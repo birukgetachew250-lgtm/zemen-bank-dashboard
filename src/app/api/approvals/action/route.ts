@@ -18,7 +18,7 @@ export async function POST(req: Request) {
         const newStatus = action === 'approve' ? 'approved' : 'rejected';
         
         const transaction = db.transaction(() => {
-            db.prepare('UPDATE pending_approvals SET status = ? WHERE id = ?').run(newStatus, approvalId);
+            db.prepare('DELETE FROM pending_approvals WHERE id = ?').run(approvalId);
             
             // Example action: if unblocking a customer, set their status to 'active'
             if (action === 'approve' && approval.type === 'unblock') {
