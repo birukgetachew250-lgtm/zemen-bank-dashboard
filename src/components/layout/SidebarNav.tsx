@@ -22,7 +22,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
-import { Logo } from "@/components/Logo";
 import { menu, MenuItem } from "@/lib/menu";
 
 export function SidebarNav() {
@@ -40,7 +39,6 @@ export function SidebarNav() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2 p-2">
-           <Logo className="w-8 h-8 text-sidebar-primary" />
            <span className="text-lg font-semibold text-sidebar-primary group-data-[collapsible=icon]:hidden truncate">
              Zemen Admin
            </span>

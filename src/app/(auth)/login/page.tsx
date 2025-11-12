@@ -24,7 +24,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Logo } from "@/components/Logo";
 import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
@@ -53,7 +52,6 @@ export default function LoginPage() {
   return (
     <Card className="w-full">
       <CardHeader className="items-center text-center">
-        <Logo className="w-16 h-16 text-primary mb-2" />
         <CardTitle className="font-headline text-2xl font-bold">
           Zemen Admin Login
         </CardTitle>
