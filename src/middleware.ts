@@ -5,25 +5,25 @@ const protectedRoutes = ['/dashboard', '/corporates', '/customers', '/reports', 
 const publicRoutes = ['/login'];
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  // const { pathname } = request.nextUrl;
   
-  // In a real app, the session token would be from a Firebase auth state listener.
-  // For this prototype, we're checking a mock session cookie.
-  const sessionCookie = request.cookies.get('firebase-auth-mock-state') || request.cookies.get('session');
+  // // In a real app, the session token would be from a Firebase auth state listener.
+  // // For this prototype, we're checking a mock session cookie.
+  // const sessionCookie = request.cookies.get('firebase-auth-mock-state') || request.cookies.get('session');
 
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+  // const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
-  if (isProtectedRoute && !sessionCookie) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
-  }
+  // if (isProtectedRoute && !sessionCookie) {
+  //   const url = request.nextUrl.clone();
+  //   url.pathname = '/login';
+  //   return NextResponse.redirect(url);
+  // }
   
-  if (publicRoutes.includes(pathname) && sessionCookie) {
-     const url = request.nextUrl.clone();
-     url.pathname = '/dashboard';
-     return NextResponse.redirect(url);
-  }
+  // if (publicRoutes.includes(pathname) && sessionCookie) {
+  //    const url = request.nextUrl.clone();
+  //    url.pathname = '/dashboard';
+  //    return NextResponse.redirect(url);
+  // }
 
   return NextResponse.next();
 }
