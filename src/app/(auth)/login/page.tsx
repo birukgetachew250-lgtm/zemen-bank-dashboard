@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -34,7 +33,6 @@ const formSchema = z.object({
 });
 
 export default function LoginPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -60,10 +58,11 @@ export default function LoginPage() {
       if (response.ok && data.success) {
         toast({
           title: "Login Successful",
-          description: "Welcome back!",
+          description: "Welcome back! Redirecting...",
         });
-        router.push("/dashboard");
-        router.refresh();
+        // Use window.location to trigger a full page refresh
+        // This ensures the middleware runs and correctly redirects to the dashboard
+        window.location.href = "/dashboard";
       } else {
         throw new Error(data.message || "Invalid credentials");
       }
