@@ -1,0 +1,19 @@
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+
+export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+    const type = searchParams.get('type');
+
+    if (!type) {
+        return NextResponse.json({ message: 'Approval type is required' }, { status: 400 });
+    }
+
+    try {
+        const rows = db.prepare("SELECT * FROM pending_approvals WHERE type = ? AND status = 'pending' ORDER BY requestedAt DESC").all(type);
+        return NextResponse.json(rows);
+    } catch (error) {
+        console.error(`Failed to fetch pending approvals for type ${type}:`, error);
+        return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    }
+}
