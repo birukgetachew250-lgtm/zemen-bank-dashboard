@@ -11,6 +11,7 @@ import {
   Landmark,
   Settings,
   AppWindow,
+  CheckSquare,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -39,18 +40,26 @@ export const menu: MenuItem[] = [
     icon: Users,
     open: true,
     children: [
-      { label: "Customer Details", href: "/customers/details" },
       { label: "Existing Customers", href: "/customers" },
-      { label: "Approve New Customers", href: "/customers/approve-new" },
-      { label: "Approve Updated Customers", href: "/customers/approve-updated" },
-      { label: "Approve Customer Accounts", href: "/customers/approve-accounts" },
-      { label: "Approve Unblocked", href: "/customers/approve-unblocked" },
-      { label: "Approve Pin Reset", href: "/customers/approve-pin-reset" },
-      { label: "Approve Reset Security", href: "/customers/approve-security" },
-      { label: "Approve Transaction Pin", href: "/customers/approve-transaction-pin" },
-      { label: "Approve New Devices", href: "/customers/approve-devices" },
-      { label: "Approve Disabled", href: "/customers/approve-disabled" },
+      { label: "Customer Details", href: "/customers/details" },
+      { label: "Customers Audit Trail", href: "/customers/audit" },
     ],
+  },
+  {
+    label: "Approvals",
+    icon: CheckSquare,
+    open: false,
+    children: [
+      { label: "New Customers", href: "/customers/approve-new" },
+      { label: "Updated Customers", href: "/customers/approve-updated" },
+      { label: "Customer Accounts", href: "/customers/approve-accounts" },
+      { label: "Unblocked Customers", href: "/customers/approve-unblocked" },
+      { label: "Pin Resets", href: "/customers/approve-pin-reset" },
+      { label: "Security Resets", href: "/customers/approve-security" },
+      { label: "Transaction Pins", href: "/customers/approve-transaction-pin" },
+      { label: "New Devices", href: "/customers/approve-devices" },
+      { label: "Disabled Customers", href: "/customers/approve-disabled" },
+    ]
   },
   { icon: BarChart3, label: "Transaction Reports", href: "/reports/transactions" },
   {
@@ -70,7 +79,6 @@ export const menu: MenuItem[] = [
     icon: Shield,
     children: [
       { label: "Users Audit Trail", href: "/users/audit" },
-      { label: "Customers Audit Trail", href: "/customers/audit" },
     ],
   },
   { icon: MessageSquare, label: "OTP Sms", href: "/otp" },
