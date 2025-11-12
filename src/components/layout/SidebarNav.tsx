@@ -41,7 +41,7 @@ export function SidebarNav() {
       <SidebarHeader>
         <div className="flex items-center gap-2 p-2">
            <Logo className="w-8 h-8 text-sidebar-primary" />
-           <span className="text-lg font-semibold text-sidebar-primary group-data-[collapsible=icon]:hidden">
+           <span className="text-lg font-semibold text-sidebar-primary group-data-[collapsible=icon]:hidden truncate">
              Zemen Admin
            </span>
         </div>
@@ -60,9 +60,9 @@ export function SidebarNav() {
                       isActive={isSubActive(item.children)}
                       tooltip={item.label}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 overflow-hidden">
                         <item.icon />
-                        <span>{item.label}</span>
+                        <span className="truncate">{item.label}</span>
                       </div>
                       <ChevronDown className="size-4 shrink-0 transition-transform duration-200 group-data-[collapsible=icon]:hidden data-[state=open]:rotate-180" />
                     </SidebarMenuButton>
@@ -88,7 +88,7 @@ export function SidebarNav() {
                     tooltip={item.label}
                   >
                     <item.icon />
-                    <span>{item.label}</span>
+                    <span className="truncate">{item.label}</span>
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
