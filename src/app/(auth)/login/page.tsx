@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,11 +27,16 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/Logo";
 import { Loader2 } from "lucide-react";
+import { initializeFirebase } from "@/firebase";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(1, { message: "Password is required." }),
 });
+
+// Initialize Firebase
+const { app } = initializeFirebase();
+const auth = getAuth(app);
 
 export default function LoginPage() {
   const { toast } = useToast();
@@ -47,31 +53,16 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        toast({
-          title: "Login Successful",
-          description: "Welcome back! Redirecting...",
-        });
-        // Use window.location to trigger a full page refresh
-        // This ensures the middleware runs and correctly redirects to the dashboard
-        window.location.href = "/dashboard";
-      } else {
-        throw new Error(data.message || "Invalid credentials");
-      }
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      // The middleware will handle the redirect automatically after successful login
+      // by detecting the change in auth state.
+      // We can force a reload to ensure the middleware is triggered.
+      window.location.href = "/dashboard";
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description:
-          error instanceof Error ? error.message : "An unknown error occurred.",
+        description: "Invalid email or password.",
       });
     } finally {
       setIsLoading(false);

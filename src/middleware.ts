@@ -6,7 +6,10 @@ const publicRoutes = ['/login'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const sessionCookie = request.cookies.get('session');
+  
+  // In a real app, the session token would be from a Firebase auth state listener.
+  // For this prototype, we're checking a mock session cookie.
+  const sessionCookie = request.cookies.get('firebase-auth-mock-state') || request.cookies.get('session');
 
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
@@ -35,6 +38,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - images (public images)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|images).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|images|firebase-config).*)',
   ],
 };
