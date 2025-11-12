@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -25,22 +24,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/Logo";
 import { Loader2 } from "lucide-react";
-import { initializeFirebase } from "@/firebase";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(1, { message: "Password is required." }),
 });
 
-// Initialize Firebase
-const { app } = initializeFirebase();
-const auth = getAuth(app);
-
 export default function LoginPage() {
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -54,19 +46,8 @@ export default function LoginPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
-      // Force a reload to trigger the middleware for redirection
-      window.location.href = "/dashboard";
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: "Invalid email or password.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Bypass login and redirect to dashboard
+    router.push("/dashboard");
   }
 
   return (
