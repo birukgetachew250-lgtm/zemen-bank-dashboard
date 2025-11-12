@@ -72,11 +72,9 @@ export function SidebarNav() {
                   <SidebarMenuSub>
                     {item.children.map((child, childIndex) => (
                       <SidebarMenuSubItem key={childIndex}>
-                        <Link href={child.href || "#"}>
-                          <SidebarMenuSubButton isActive={isActive(child.href || "#")}>
-                            {child.label}
-                          </SidebarMenuSubButton>
-                        </Link>
+                        <SidebarMenuSubButton asChild isActive={isActive(child.href || "#")}>
+                          <Link href={child.href || "#"}>{child.label}</Link>
+                        </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))}
                   </SidebarMenuSub>
