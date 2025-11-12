@@ -1,14 +1,23 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function ExistingCustomersPage() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Existing Customers</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p>This page will display a list of existing customers. Content coming soon.</p>
-      </CardContent>
-    </Card>
-  );
+import { CustomerTable } from "@/components/customers/CustomerTable";
+import { db } from "@/lib/db";
+import { format } from "date-fns";
+
+async function getCustomers() {
+  const data = db.prepare("SELECT id, name, phone, status, registeredAt FROM customers ORDER BY registeredAt DESC").all();
+  return data.map(customer => ({
+    ...customer,
+    registeredAt: format(new Date(customer.registeredAt), 'dd MMM yyyy, h:mm a'),
+  }));
+}
+
+export default async function ExistingCustomersPage() {
+    const customers = await getCustomers();
+    
+    return (
+        <CustomerTable 
+            title="Existing Customers" 
+            customers={customers} 
+        />
+    )
 }

@@ -1,14 +1,23 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function FailedNewCustomersReportPage() {
+import { CustomerTable } from "@/components/customers/CustomerTable";
+import { db } from "@/lib/db";
+import { format } from "date-fns";
+
+async function getCustomers() {
+  const data = db.prepare("SELECT id, name, phone, status, registeredAt FROM customers WHERE status = 'failed' ORDER BY registeredAt DESC").all();
+  return data.map(customer => ({
+    ...customer,
+    registeredAt: format(new Date(customer.registeredAt), 'dd MMM yyyy, h:mm a'),
+  }));
+}
+
+export default async function FailedNewCustomersReportPage() {
+  const customers = await getCustomers();
+  
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Failed New Customers Report</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p>This page will display a report of failed new customer registrations. Content coming soon.</p>
-      </CardContent>
-    </Card>
-  );
+      <CustomerTable 
+          title="Failed New Customers Report" 
+          customers={customers} 
+      />
+  )
 }
