@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function RolesAndPermissionsPage() {
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Roles & Permissions</CardTitle>
       </CardHeader>

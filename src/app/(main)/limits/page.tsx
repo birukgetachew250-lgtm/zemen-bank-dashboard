@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function LimitsAndChargesPage() {
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Limits & Charges</CardTitle>
       </CardHeader>

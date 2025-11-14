@@ -36,70 +36,70 @@ export function SidebarNav() {
   }
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <div className="flex items-center gap-2 p-2">
-           <span className="text-lg font-semibold text-sidebar-primary group-data-[collapsible=icon]:hidden truncate">
-             Zemen Admin
-           </span>
-        </div>
-      </SidebarHeader>
-      <Separator />
-      <SidebarContent>
-        <SidebarMenu>
-          {menu.map((item, index) =>
-            item.children ? (
-              <Collapsible key={index} defaultOpen={item.open || isSubActive(item.children)}>
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
+      <Sidebar collapsible="icon">
+        <SidebarHeader>
+          <div className="flex items-center gap-2 p-2">
+            <span className="text-lg font-semibold text-sidebar-primary group-data-[collapsible=icon]:hidden truncate">
+              Zemen Admin
+            </span>
+          </div>
+        </SidebarHeader>
+        <Separator />
+        <SidebarContent>
+          <SidebarMenu>
+            {menu.map((item, index) =>
+              item.children ? (
+                <Collapsible key={index} defaultOpen={item.open || isSubActive(item.children)}>
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton
+                        className="justify-between"
+                        variant={isSubActive(item.children) ? 'default' : 'ghost'}
+                        isActive={isSubActive(item.children)}
+                        tooltip={item.label}
+                      >
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <item.icon />
+                          <span className="truncate">{item.label}</span>
+                        </div>
+                        <ChevronDown className="size-4 shrink-0 transition-transform duration-200 group-data-[collapsible=icon]:hidden data-[state=open]:rotate-180" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                  </SidebarMenuItem>
+                  <CollapsibleContent asChild>
+                    <SidebarMenuSub>
+                      {item.children.map((child, childIndex) => (
+                        <SidebarMenuSubItem key={childIndex}>
+                          <SidebarMenuSubButton asChild isActive={isActive(child.href || "#")}>
+                            <Link href={child.href || "#"}>{child.label}</Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </Collapsible>
+              ) : (
+                <SidebarMenuItem key={index}>
+                  <Link href={item.href || "#"}>
                     <SidebarMenuButton
-                      className="justify-between"
-                      variant={isSubActive(item.children) ? 'default' : 'ghost'}
-                      isActive={isSubActive(item.children)}
+                      isActive={isActive(item.href || "#")}
                       tooltip={item.label}
                     >
-                      <div className="flex items-center gap-2 overflow-hidden">
-                        <item.icon />
-                        <span className="truncate">{item.label}</span>
-                      </div>
-                      <ChevronDown className="size-4 shrink-0 transition-transform duration-200 group-data-[collapsible=icon]:hidden data-[state=open]:rotate-180" />
+                      <item.icon />
+                      <span className="truncate">{item.label}</span>
                     </SidebarMenuButton>
-                  </CollapsibleTrigger>
+                  </Link>
                 </SidebarMenuItem>
-                <CollapsibleContent asChild>
-                  <SidebarMenuSub>
-                    {item.children.map((child, childIndex) => (
-                      <SidebarMenuSubItem key={childIndex}>
-                        <SidebarMenuSubButton asChild isActive={isActive(child.href || "#")}>
-                          <Link href={child.href || "#"}>{child.label}</Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
-                  </SidebarMenuSub>
-                </CollapsibleContent>
-              </Collapsible>
-            ) : (
-              <SidebarMenuItem key={index}>
-                <Link href={item.href || "#"}>
-                  <SidebarMenuButton
-                    isActive={isActive(item.href || "#")}
-                    tooltip={item.label}
-                  >
-                    <item.icon />
-                    <span className="truncate">{item.label}</span>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-            )
-          )}
-        </SidebarMenu>
-      </SidebarContent>
-      <Separator />
-      <SidebarFooter>
-        <div className="text-xs text-sidebar-foreground/50 p-4 group-data-[collapsible=icon]:hidden">
-            © {new Date().getFullYear()} Zemen Bank
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+              )
+            )}
+          </SidebarMenu>
+        </SidebarContent>
+        <Separator />
+        <SidebarFooter>
+          <div className="text-xs text-sidebar-foreground/50 p-4 group-data-[collapsible=icon]:hidden">
+              © {new Date().getFullYear()} Zemen Bank
+          </div>
+        </SidebarFooter>
+      </Sidebar>
   );
 }

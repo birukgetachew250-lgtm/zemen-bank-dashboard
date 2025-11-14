@@ -57,7 +57,7 @@ const signatories = [
 
 export default function CorporateDetailsPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
        <Card>
             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
@@ -80,7 +80,7 @@ export default function CorporateDetailsPage() {
             </CardHeader>
        </Card>
 
-      <Tabs defaultValue="overview">
+      <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">
             <User className="mr-2" />
@@ -191,7 +191,7 @@ export default function CorporateDetailsPage() {
                 <CardTitle>Compliance Status</CardTitle>
                  <CardDescription>Key compliance and verification checks.</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-6">
+            <CardContent className="grid gap-6 p-6">
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <InfoItem label="KYC Status" value={<Badge className="bg-green-100 text-green-800 border-green-200">Verified</Badge>} />
                     <InfoItem label="AML Risk Score" value={<Badge variant="outline">Low</Badge>} />

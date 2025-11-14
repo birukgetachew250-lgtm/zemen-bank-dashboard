@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function MiniAppsPage() {
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Mini Apps</CardTitle>
       </CardHeader>

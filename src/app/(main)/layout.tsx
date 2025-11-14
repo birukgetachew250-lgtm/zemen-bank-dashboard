@@ -1,7 +1,7 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Header } from "@/components/layout/Header";
 import { Watermark } from "@/components/layout/Watermark";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function MainLayout({
   children,

@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function OtpSmsPage() {
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>OTP SMS</CardTitle>
       </CardHeader>

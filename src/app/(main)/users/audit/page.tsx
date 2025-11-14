@@ -19,7 +19,7 @@ const auditLogs = [
 
 export default function UsersAuditTrailPage() {
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>System Users Audit Trail</CardTitle>
       </CardHeader>
