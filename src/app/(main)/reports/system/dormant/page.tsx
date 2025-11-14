@@ -18,6 +18,7 @@ export default async function DormantCustomersReportPage() {
       <CustomerTable 
           title="Dormant Customers Report" 
           customers={customers} 
+          showExport
       />
   )
 }

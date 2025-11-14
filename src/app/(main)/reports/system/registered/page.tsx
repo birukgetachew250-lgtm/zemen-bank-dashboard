@@ -18,6 +18,7 @@ export default async function RegisteredCustomersReportPage() {
       <CustomerTable 
           title="Registered Customers Report" 
           customers={customers} 
+          showExport
       />
   )
 }

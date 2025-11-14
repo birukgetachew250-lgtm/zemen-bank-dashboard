@@ -18,6 +18,7 @@ export default async function FailedNewCustomersReportPage() {
       <CustomerTable 
           title="Failed New Customers Report" 
           customers={customers} 
+          showExport
       />
   )
 }

@@ -18,6 +18,7 @@ export default async function InactiveCustomersReportPage() {
       <CustomerTable 
           title="Inactive Customers Report" 
           customers={customers} 
+          showExport
       />
   )
 }

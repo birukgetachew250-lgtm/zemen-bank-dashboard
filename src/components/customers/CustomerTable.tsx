@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
+import { Download } from "lucide-react";
 
 interface Customer {
   id: string;
@@ -26,6 +28,7 @@ interface Customer {
 interface CustomerTableProps {
     title: string;
     customers: Customer[];
+    showExport?: boolean;
 }
 
 const getStatusVariant = (status: string) => {
@@ -44,7 +47,7 @@ const getStatusVariant = (status: string) => {
     }
 }
 
-export function CustomerTable({ title, customers }: CustomerTableProps) {
+export function CustomerTable({ title, customers, showExport = false }: CustomerTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredCustomers = useMemo(() => {
@@ -57,15 +60,23 @@ export function CustomerTable({ title, customers }: CustomerTableProps) {
   }, [searchTerm, customers]);
 
   return (
-    <Card>
+    <Card className="w-full">
         <CardHeader className="flex-row items-center justify-between">
             <CardTitle>{title}</CardTitle>
-             <Input 
-                placeholder="Search by name or phone..."
-                className="max-w-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div className="flex items-center gap-2">
+              <Input 
+                  placeholder="Search by name or phone..."
+                  className="max-w-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {showExport && (
+                <Button variant="outline">
+                  <Download className="mr-2" />
+                  Export
+                </Button>
+              )}
+            </div>
         </CardHeader>
       <CardContent>
         <div className="rounded-md border">
