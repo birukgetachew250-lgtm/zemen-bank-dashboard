@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Download, Edit, FileText, User, Shield } from "lucide-react";
+import { Download, Edit, FileText, User, Shield, Users } from "lucide-react";
 
 // Mock data for a single corporate client
 const corporate = {
