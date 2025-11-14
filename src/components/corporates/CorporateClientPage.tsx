@@ -50,7 +50,7 @@ export function CorporateClientPage({ corporates }: CorporateClientPageProps) {
   }, [searchTerm, corporates]);
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader className="flex-row items-center justify-between">
         <CardTitle>Existing Corporates</CardTitle>
         <Input 
