@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -14,6 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
+import { Edit, Trash2 } from "lucide-react";
 
 interface Corporate {
   id: string;
@@ -69,6 +72,7 @@ export function CorporateClientPage({ corporates }: CorporateClientPageProps) {
                 <TableHead>Industry</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Internet Banking</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -110,10 +114,20 @@ export function CorporateClientPage({ corporates }: CorporateClientPageProps) {
                         {corporate.internet_banking_status}
                      </Badge>
                   </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="ghost" size="icon">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               )) : (
                  <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
+                  <TableCell colSpan={5} className="h-24 text-center">
                     No corporates found.
                   </TableCell>
                 </TableRow>
