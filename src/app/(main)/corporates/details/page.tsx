@@ -213,7 +213,7 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
     return (
         <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">{label}</p>
-            <p className={className}>{value}</p>
+            <div className={className}>{value}</div>
         </div>
     )
 }
