@@ -14,6 +14,7 @@ import {
   CheckSquare,
   type LucideIcon,
   Users2,
+  UserPlus,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -41,6 +42,7 @@ export const menu: MenuItem[] = [
     icon: Users,
     open: true,
     children: [
+      { label: "Create Customer", href: "/customers/create" },
       { label: "Existing Customers", href: "/customers" },
       { label: "Customer Details", href: "/customers/details" },
       { label: "App Users & Accounts", href: "/customers/users-accounts" },

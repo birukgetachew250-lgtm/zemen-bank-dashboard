@@ -20,12 +20,19 @@ export async function POST(req: Request) {
         const transaction = db.transaction(() => {
             db.prepare('DELETE FROM pending_approvals WHERE id = ?').run(approvalId);
             
-            // Example action: if unblocking a customer, set their status to 'active'
-            if (action === 'approve' && approval.type === 'unblock') {
-                db.prepare("UPDATE customers SET status = 'active' WHERE id = ?").run(approval.customerId);
+            // Handle different approval types
+            if (action === 'approve') {
+                if (approval.type === 'new-customer' || approval.type === 'unblock') {
+                    db.prepare("UPDATE customers SET status = 'active' WHERE id = ?").run(approval.customerId);
+                }
+                // Add other specific 'approve' actions for different approval types here
+            } else { // action === 'reject'
+                if (approval.type === 'new-customer') {
+                    // Optionally, set customer status to 'rejected' or delete them
+                    db.prepare("UPDATE customers SET status = 'rejected' WHERE id = ?").run(approval.customerId);
+                }
+                 // Add other specific 'reject' actions for different approval types here
             }
-            
-            // Add other specific actions for different approval types here
         });
 
         transaction();
