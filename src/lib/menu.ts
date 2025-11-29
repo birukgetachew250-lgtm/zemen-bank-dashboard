@@ -13,6 +13,7 @@ import {
   AppWindow,
   CheckSquare,
   type LucideIcon,
+  Users2,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -42,6 +43,7 @@ export const menu: MenuItem[] = [
     children: [
       { label: "Existing Customers", href: "/customers" },
       { label: "Customer Details", href: "/customers/details" },
+      { label: "App Users & Accounts", href: "/customers/users-accounts" },
       { label: "Customers Audit Trail", href: "/customers/audit" },
     ],
   },
