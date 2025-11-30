@@ -47,7 +47,14 @@ export const menu: MenuItem[] = [
       { label: "Existing Customers", href: "/customers" },
     ],
   },
-  { icon: AppWindow, label: "Mini Apps", href: "/mini-apps" },
+  {
+    label: "Mini Apps",
+    icon: AppWindow,
+    children: [
+      { label: "Existing Mini Apps", href: "/mini-apps" },
+      { label: "Add New Mini App", href: "/mini-apps/create" },
+    ]
+  },
   {
     label: "Approvals",
     icon: CheckSquare,

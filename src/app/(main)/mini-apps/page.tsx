@@ -1,14 +1,19 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { db } from "@/lib/db";
+import { MiniAppManagementClient } from "@/components/mini-apps/MiniAppManagementClient";
+import type { MiniApp } from "@/components/mini-apps/MiniAppManagementClient";
+
+function getMiniApps() {
+  try {
+    return db.prepare("SELECT * FROM mini_apps ORDER BY name ASC").all() as MiniApp[];
+  } catch (e) {
+    console.error("Failed to fetch mini apps:", e);
+    return [];
+  }
+}
 
 export default function MiniAppsPage() {
-  return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Mini Apps</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p>This page will be used for managing mini apps. Content coming soon.</p>
-      </CardContent>
-    </Card>
-  );
+  const miniApps = getMiniApps();
+
+  return <MiniAppManagementClient initialMiniApps={miniApps} />;
 }

@@ -109,14 +109,29 @@ const schema = `
     name TEXT NOT NULL UNIQUE,
     permissions TEXT NOT NULL 
   );
+
+  CREATE TABLE IF NOT EXISTS mini_apps (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    logo_url TEXT,
+    username TEXT NOT NULL,
+    password TEXT NOT NULL,
+    encryption_key TEXT NOT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `;
 
 
 // Drop pending_approvals if details column does not exist
-const hasDetailsColumn = db.prepare("PRAGMA table_info(pending_approvals)").all().some(col => col.name === 'details');
-if (!hasDetailsColumn) {
-    db.exec('DROP TABLE IF EXISTS pending_approvals');
-    console.log("Dropped pending_approvals table to add 'details' column.");
+try {
+    const hasDetailsColumn = db.prepare("PRAGMA table_info(pending_approvals)").all().some(col => col.name === 'details');
+    if (!hasDetailsColumn) {
+        db.exec('DROP TABLE IF EXISTS pending_approvals');
+        console.log("Dropped pending_approvals table to add 'details' column.");
+    }
+} catch (e) {
+    // pending_approvals doesn't exist, which is fine.
 }
 
 
@@ -219,7 +234,40 @@ if (departmentCount === 0) {
     console.log(`Seeded ${departments.length} departments.`);
 }
 
+// Seed mini-apps if table is empty
+const miniAppCount = db.prepare('SELECT COUNT(*) as count FROM mini_apps').get().count;
+if (miniAppCount === 0) {
+    const insertMiniApp = db.prepare(
+        'INSERT INTO mini_apps (id, name, url, logo_url, username, password, encryption_key) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    );
+    const miniApps = [
+        { 
+            id: `mapp_${crypto.randomUUID()}`, 
+            name: "Cinema Ticket", 
+            url: "https://cinema.example.com", 
+            logo_url: "https://picsum.photos/seed/cinema/100/100", 
+            username: "cinema_api", 
+            password: "secure_password_1", 
+            encryption_key: crypto.randomBytes(32).toString('hex') 
+        },
+        { 
+            id: `mapp_${crypto.randomUUID()}`, 
+            name: "Events Ticket", 
+            url: "https://events.example.com", 
+            logo_url: "https://picsum.photos/seed/events/100/100", 
+            username: "events_api", 
+            password: "secure_password_2", 
+            encryption_key: crypto.randomBytes(32).toString('hex') 
+        },
+    ];
+    const insertManyMiniApps = db.transaction((items) => {
+        for (const item of items) {
+            insertMiniApp.run(item.id, item.name, item.url, item.logo_url, item.username, item.password, item.encryption_key);
+        }
+    });
+    insertManyMiniApps(miniApps);
+    console.log(`Seeded ${miniApps.length} mini apps.`);
+}
+
 
 console.log("Database initialized.");
-
-    
