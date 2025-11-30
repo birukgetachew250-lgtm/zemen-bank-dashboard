@@ -17,7 +17,7 @@ export default function MainLayout({
           <Header />
           <main className="flex-1 p-4 md:p-6 lg:p-8 relative">
             <Watermark />
-            <div className="relative z-10">{children}</div>
+            <div className="relative z-10 w-full h-full">{children}</div>
           </main>
         </div>
       </div>
