@@ -21,7 +21,9 @@ const schema = `
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    avatar_url TEXT
+    avatar_url TEXT,
+    branch TEXT,
+    department TEXT
   );
 
   CREATE TABLE IF NOT EXISTS customers (
@@ -87,6 +89,17 @@ const schema = `
   );
 `;
 
+// Drop users table if branch and department columns do not exist
+const usersColumns = db.prepare("PRAGMA table_info(users)").all();
+const hasBranchColumn = usersColumns.some(col => col.name === 'branch');
+const hasDepartmentColumn = usersColumns.some(col => col.name === 'department');
+
+if (!hasBranchColumn || !hasDepartmentColumn) {
+    db.exec('DROP TABLE IF EXISTS users');
+    console.log("Dropped users table to add 'branch' and 'department' columns.");
+}
+
+
 // Drop pending_approvals if details column does not exist
 const hasDetailsColumn = db.prepare("PRAGMA table_info(pending_approvals)").all().some(col => col.name === 'details');
 if (!hasDetailsColumn) {
@@ -101,13 +114,15 @@ db.exec(schema);
 const admin = db.prepare('SELECT * FROM users WHERE email = ?').get('admin@zemen.com');
 if (!admin) {
   db.prepare(
-    "INSERT INTO users (id, name, email, password, avatar_url) VALUES (?, ?, ?, ?, ?)"
+    "INSERT INTO users (id, name, email, password, avatar_url, branch, department) VALUES (?, ?, ?, ?, ?, ?, ?)"
   ).run(
     'user_ck_admin_001',
     'Admin User',
     'admin@zemen.com',
     'zemen2025', // In a real app, this should be a hashed password
-    'https://picsum.photos/seed/admin/100/100'
+    'https://picsum.photos/seed/admin/100/100',
+    'Head Office',
+    'IT Department'
   );
 }
 
@@ -144,6 +159,7 @@ if (branchCount === 0) {
         { id: `br_${crypto.randomUUID()}`, name: "Kazanchis Branch", location: "Kazanchis, Addis Ababa" },
         { id: `br_${crypto.randomUUID()}`, name: "Piassa Branch", location: "Piassa, Addis Ababa" },
         { id: `br_${crypto.randomUUID()}`, name: "Mexico Branch", location: "Mexico, Addis Ababa" },
+        { id: `br_${crypto.randomUUID()}`, name: "Head Office", location: "HQ, Addis Ababa" },
     ];
     const insertManyBranches = db.transaction((items) => {
         for (const item of items) insertBranch.run(item.id, item.name, item.location);
