@@ -108,7 +108,7 @@ function SelectAccountsContent() {
 
   if (!customer.cif) {
     return (
-        <Card className="w-full">
+        <Card>
             <CardHeader>
                 <CardTitle>Error</CardTitle>
             </CardHeader>
@@ -126,7 +126,7 @@ function SelectAccountsContent() {
   }
 
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
         <CardTitle className="font-headline text-2xl font-bold">Onboard New Customer</CardTitle>
         <CardDescription>
