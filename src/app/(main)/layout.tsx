@@ -14,9 +14,9 @@ export default function MainLayout({
         <SidebarNav />
         <main className="flex-1 flex flex-col">
           <Header />
-          <div className="relative flex flex-1 p-4 md:p-6 lg:p-8">
+          <div className="relative flex-1 p-4 md:p-6 lg:p-8">
             <Watermark />
-            <div className="w-full">{children}</div>
+            <div className="w-full h-full">{children}</div>
           </div>
         </main>
       </div>
