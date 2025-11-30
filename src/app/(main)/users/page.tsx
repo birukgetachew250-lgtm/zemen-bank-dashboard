@@ -25,24 +25,6 @@ function getSystemUsers() {
   }
 }
 
-function getBranches() {
-  try {
-    return db.prepare("SELECT * FROM branches ORDER BY name ASC").all() as Branch[];
-  } catch (e) {
-    console.error("Failed to fetch branches:", e);
-    return [];
-  }
-}
-
-function getDepartments() {
-  try {
-    return db.prepare("SELECT * FROM departments ORDER BY name ASC").all() as Department[];
-  } catch (e) {
-    console.error("Failed to fetch departments:", e);
-    return [];
-  }
-}
-
 function getRoles() {
   try {
     return db.prepare("SELECT * FROM roles ORDER BY name ASC").all() as Role[];
@@ -54,11 +36,7 @@ function getRoles() {
 
 export default function UsersPage() {
   const users = getSystemUsers();
-  const branches = getBranches();
-  const departments = getDepartments();
   const roles = getRoles();
 
-  return <UserManagementClient initialUsers={users} branches={branches} departments={departments} roles={roles} />;
+  return <UserManagementClient initialUsers={users} roles={roles} />;
 }
-
-    

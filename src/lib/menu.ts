@@ -85,7 +85,15 @@ export const menu: MenuItem[] = [
       { label: "System Users Audit Trail", href: "/users/audit" },
     ],
   },
-  { icon: Shield, label: "System Users", href: "/users"},
+  {
+    label: "System Users",
+    icon: Shield,
+    open: false,
+    children: [
+      { label: "Manage Users", href: "/users" },
+      { label: "Add New User", href: "/users/create" },
+    ],
+  },
   { icon: MessageSquare, label: "OTP Sms", href: "/otp" },
   { icon: SlidersHorizontal, label: "Limits & Charges", href: "/limits" },
   { icon: UserCheck, label: "Roles & Permissions", href: "/roles" },
