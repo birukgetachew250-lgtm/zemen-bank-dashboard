@@ -44,7 +44,6 @@ export const menu: MenuItem[] = [
     children: [
       { label: "Create Customer", href: "/customers/create" },
       { label: "Existing Customers", href: "/customers" },
-      { label: "App Users & Accounts", href: "/customers/users-accounts" },
       { label: "Customers Audit Trail", href: "/customers/audit" },
     ],
   },
