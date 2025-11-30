@@ -22,7 +22,7 @@ const userStats = {
 };
 
 export default function ExistingCustomersPage() {
-  const [cifNumber, setCifNumber] = useState("");
+  const [cifNumber, setCifNumber] = useState("1");
   const router = useRouter();
 
   const handleSearch = () => {
