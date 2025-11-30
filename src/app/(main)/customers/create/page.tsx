@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm, useFormContext, FormProvider } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
@@ -120,8 +120,8 @@ export default function CreateCustomerPage() {
   };
 
   return (
-    <div className="w-full flex justify-center">
-      <Card className="w-full max-w-4xl">
+    <div className="w-full">
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="font-headline text-2xl font-bold">
             Onboard New Customer for Mobile Banking
@@ -132,7 +132,7 @@ export default function CreateCustomerPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onCifSubmit)} className="flex items-start gap-4 mb-8">
+            <form onSubmit={form.handleSubmit(onCifSubmit)} className="flex items-start gap-4 mb-8 max-w-lg">
               <FormField
                 control={form.control}
                 name="cif"

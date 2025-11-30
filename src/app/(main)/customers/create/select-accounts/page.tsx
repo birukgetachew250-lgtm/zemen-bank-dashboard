@@ -25,11 +25,12 @@ import { Loader2, Trash2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface Account {
-    accountNumber: string;
-    accountType: string;
-    currency: string;
-    branchName: string;
-    status: string;
+    CUSTACNO: string;
+    BRANCH_CODE: string;
+    CCY: string;
+    ACCOUNT_TYPE: string;
+    ACCLASSDESC: string;
+    status: string; // Added status for UI consistency
 }
 
 // Mock function to fetch accounts for a CIF
@@ -38,10 +39,10 @@ const fetchAccountsByCif = async (cif: string): Promise<Account[]> => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500));
     return [
-        { accountNumber: "0012345678", accountType: "Savings", currency: "NGN", status: "Active", branchName: "Head Office" },
-        { accountNumber: "0087654321", accountType: "Current", currency: "NGN", status: "Active", branchName: "Head Office" },
-        { accountNumber: "3012345678", accountType: "Domiciliary", currency: "USD", status: "Dormant", branchName: "VI Branch" },
-        { accountNumber: "4009876543", accountType: "Fixed Deposit", currency: "NGN", status: "Active", branchName: "Head Office" },
+        { CUSTACNO: "1031110048533015", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Private and Individual", status: "Active" },
+        { CUSTACNO: "1031110048533016", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "C", ACCLASSDESC: "Personal Current - Private and Individual", status: "Active" },
+        { CUSTACNO: "1031110048533017", BRANCH_CODE: "101", CCY: "USD", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Domiciliary Saving", status: "Dormant" },
+        { CUSTACNO: "1031110048533018", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Joint", status: "Active" },
     ];
 };
 
@@ -73,7 +74,7 @@ function SelectAccountsContent() {
   });
 
   const handleRemoveAccount = (accountNumber: string) => {
-    setAccounts(prev => prev.filter(acc => acc.accountNumber !== accountNumber));
+    setAccounts(prev => prev.filter(acc => acc.CUSTACNO !== accountNumber));
   };
   
   const handleSubmitForApproval = async () => {
@@ -107,7 +108,7 @@ function SelectAccountsContent() {
 
   if (!customer.cif) {
     return (
-        <Card className="w-full max-w-4xl">
+        <Card className="w-full">
             <CardHeader>
                 <CardTitle>Error</CardTitle>
             </CardHeader>
@@ -125,7 +126,7 @@ function SelectAccountsContent() {
   }
 
   return (
-    <Card className="w-full max-w-4xl">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="font-headline text-2xl font-bold">Onboard New Customer</CardTitle>
         <CardDescription>
@@ -138,28 +139,26 @@ function SelectAccountsContent() {
             <TableHeader>
               <TableRow>
                 <TableHead>Account Number</TableHead>
-                <TableHead>Account Type</TableHead>
+                <TableHead>Account Description</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Currency</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Branch</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={5} className="h-24 text-center"><Loader2 className="animate-spin" /></TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="h-24 text-center"><Loader2 className="animate-spin mx-auto" /></TableCell></TableRow>
               ) : accounts.length > 0 ? (
                 accounts.map((acc) => (
-                  <TableRow key={acc.accountNumber}>
-                    <TableCell className="font-medium">{acc.accountNumber}</TableCell>
-                    <TableCell>{acc.accountType}</TableCell>
-                    <TableCell><Badge variant="outline">{acc.currency}</Badge></TableCell>
-                    <TableCell>
-                        <Badge className={acc.status === 'Active' ? 'bg-green-100 text-green-800' : ''}>
-                            {acc.status}
-                        </Badge>
-                    </TableCell>
+                  <TableRow key={acc.CUSTACNO}>
+                    <TableCell className="font-medium">{acc.CUSTACNO}</TableCell>
+                    <TableCell>{acc.ACCLASSDESC}</TableCell>
+                    <TableCell><Badge variant="outline">{acc.ACCOUNT_TYPE}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{acc.CCY}</Badge></TableCell>
+                    <TableCell>{acc.BRANCH_CODE}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleRemoveAccount(acc.accountNumber)}>
+                      <Button variant="ghost" size="icon" onClick={() => handleRemoveAccount(acc.CUSTACNO)}>
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
                     </TableCell>
@@ -167,13 +166,13 @@ function SelectAccountsContent() {
                 ))
               ) : (
                 <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">No accounts found for this customer.</TableCell>
+                    <TableCell colSpan={6} className="h-24 text-center">No accounts found for this customer.</TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </div>
-        <div className="flex justify-end mt-6 gap-2">
+        <div className="flex justify-between mt-6 gap-2">
             <Button variant="outline" onClick={() => router.back()}>Back</Button>
             <Button onClick={handleSubmitForApproval} disabled={submitting || accounts.length === 0}>
                 {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -188,11 +187,10 @@ function SelectAccountsContent() {
 
 export default function SelectAccountsPage() {
     return (
-        <div className="w-full flex justify-center">
-            <Suspense fallback={<div>Loading...</div>}>
+        <div className="w-full">
+            <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
                 <SelectAccountsContent />
             </Suspense>
         </div>
     )
 }
-
