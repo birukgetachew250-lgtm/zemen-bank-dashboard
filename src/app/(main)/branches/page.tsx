@@ -9,12 +9,6 @@ export interface Branch {
   createdAt: string;
 }
 
-export interface Department {
-  id: string;
-  name: string;
-  createdAt: string;
-}
-
 function getBranches() {
   try {
     return db.prepare("SELECT * FROM branches ORDER BY name ASC").all() as Branch[];
@@ -24,18 +18,8 @@ function getBranches() {
   }
 }
 
-function getDepartments() {
-  try {
-    return db.prepare("SELECT * FROM departments ORDER BY name ASC").all() as Department[];
-  } catch (e) {
-    console.error("Failed to fetch departments:", e);
-    return [];
-  }
-}
-
-export default function BranchesAndDepartmentsPage() {
+export default function BranchesPage() {
   const branches = getBranches();
-  const departments = getDepartments();
 
-  return <BranchManagementClient initialBranches={branches} initialDepartments={departments} />;
+  return <BranchManagementClient initialBranches={branches} />;
 }

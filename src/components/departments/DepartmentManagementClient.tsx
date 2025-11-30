@@ -38,47 +38,45 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import type { Branch } from "@/app/(main)/branches/page";
+import type { Department } from "@/app/(main)/departments/page";
 import { format } from "date-fns";
 
-interface BranchManagementClientProps {
-  initialBranches: Branch[];
+interface DepartmentManagementClientProps {
+  initialDepartments: Department[];
 }
 
-export function BranchManagementClient({
-  initialBranches,
-}: BranchManagementClientProps) {
-  const [branches, setBranches] = useState(initialBranches);
-  const [isAddBranchOpen, setAddBranchOpen] = useState(false);
+export function DepartmentManagementClient({
+  initialDepartments,
+}: DepartmentManagementClientProps) {
+  const [departments, setDepartments] = useState(initialDepartments);
+  const [isAddDeptOpen, setAddDeptOpen] = useState(false);
   const [isDeleteAlertOpen, setDeleteAlertOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<{ id: string; type: "branch" } | null>(null);
-  const [newBranchName, setNewBranchName] = useState("");
-  const [newBranchLocation, setNewBranchLocation] = useState("");
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; type: "department" } | null>(null);
+  const [newDeptName, setNewDeptName] = useState("");
   const { toast } = useToast();
 
-  const handleAddBranch = async () => {
-    if (!newBranchName || !newBranchLocation) {
-        toast({ variant: "destructive", title: "Missing fields", description: "Please enter both branch name and location."});
+  const handleAddDepartment = async () => {
+    if (!newDeptName) {
+        toast({ variant: "destructive", title: "Missing field", description: "Please enter a department name." });
         return;
     }
-    const res = await fetch("/api/branches", {
+     const res = await fetch("/api/departments", {
         method: "POST",
-        body: JSON.stringify({ name: newBranchName, location: newBranchLocation }),
+        body: JSON.stringify({ name: newDeptName }),
         headers: { "Content-Type": "application/json" },
     });
-    if (res.ok) {
-        const newBranch = await res.json();
-        setBranches(prev => [...prev, { id: newBranch.id, name: newBranchName, location: newBranchLocation, createdAt: new Date().toISOString() }].sort((a, b) => a.name.localeCompare(b.name)));
-        toast({ title: "Success", description: "New branch added." });
-        setNewBranchName("");
-        setNewBranchLocation("");
-        setAddBranchOpen(false);
+     if (res.ok) {
+        const newDept = await res.json();
+        setDepartments(prev => [...prev, { id: newDept.id, name: newDeptName, createdAt: new Date().toISOString() }].sort((a, b) => a.name.localeCompare(b.name)));
+        toast({ title: "Success", description: "New department added." });
+        setNewDeptName("");
+        setAddDeptOpen(false);
     } else {
-        toast({ variant: "destructive", title: "Error", description: "Failed to add branch." });
+        toast({ variant: "destructive", title: "Error", description: "Failed to add department." });
     }
   };
 
-  const openDeleteDialog = (id: string, type: "branch") => {
+  const openDeleteDialog = (id: string, type: "department") => {
     setItemToDelete({ id, type });
     setDeleteAlertOpen(true);
   };
@@ -92,7 +90,7 @@ export function BranchManagementClient({
       headers: { "Content-Type": "application/json" },
     });
     if (res.ok) {
-      setBranches((prev) => prev.filter((b) => b.id !== id));
+      setDepartments((prev) => prev.filter((d) => d.id !== id));
       toast({ title: "Success", description: `${type.charAt(0).toUpperCase() + type.slice(1)} deleted.` });
     } else {
       toast({ variant: "destructive", title: "Error", description: `Failed to delete ${type}.` });
@@ -101,32 +99,29 @@ export function BranchManagementClient({
     setItemToDelete(null);
   };
 
-
   return (
     <>
       <Card>
         <CardHeader className="flex-row items-center justify-between">
-          <CardTitle>Manage Branches</CardTitle>
-          <Button onClick={() => setAddBranchOpen(true)}><PlusCircle className="mr-2"/>Add New Branch</Button>
+          <CardTitle>Manage Departments</CardTitle>
+          <Button onClick={() => setAddDeptOpen(true)}><PlusCircle className="mr-2"/>Add New Department</Button>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Branch Name</TableHead>
-                <TableHead>Location</TableHead>
+                <TableHead>Department Name</TableHead>
                 <TableHead>Date Created</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {branches.map((branch) => (
-                <TableRow key={branch.id}>
-                  <TableCell className="font-medium">{branch.name}</TableCell>
-                  <TableCell>{branch.location}</TableCell>
-                  <TableCell>{format(new Date(branch.createdAt), "dd MMM yyyy")}</TableCell>
+              {departments.map((dept) => (
+                <TableRow key={dept.id}>
+                  <TableCell className="font-medium">{dept.name}</TableCell>
+                  <TableCell>{format(new Date(dept.createdAt), "dd MMM yyyy")}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(branch.id, "branch")}>
+                      <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(dept.id, "department")}>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
                   </TableCell>
@@ -137,24 +132,23 @@ export function BranchManagementClient({
         </CardContent>
       </Card>
       
-      {/* Add Branch Dialog */}
-      <Dialog open={isAddBranchOpen} onOpenChange={setAddBranchOpen}>
+      {/* Add Department Dialog */}
+       <Dialog open={isAddDeptOpen} onOpenChange={setAddDeptOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Branch</DialogTitle>
-            <DialogDescription>Enter the details for the new bank branch.</DialogDescription>
+            <DialogTitle>Add New Department</DialogTitle>
+             <DialogDescription>Enter the name for the new department.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-             <Input placeholder="Branch Name" value={newBranchName} onChange={(e) => setNewBranchName(e.target.value)} />
-             <Input placeholder="Branch Location (e.g., Bole, Addis Ababa)" value={newBranchLocation} onChange={(e) => setNewBranchLocation(e.target.value)} />
+             <Input placeholder="Department Name" value={newDeptName} onChange={(e) => setNewDeptName(e.target.value)} />
           </div>
           <DialogFooter>
-            <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-            <Button onClick={handleAddBranch}>Add Branch</Button>
+             <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+            <Button onClick={handleAddDepartment}>Add Department</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
           <AlertDialogContent>

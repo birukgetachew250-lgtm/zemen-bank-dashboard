@@ -16,6 +16,7 @@ import {
   Users2,
   UserPlus,
   History,
+  Building,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -88,6 +89,7 @@ export const menu: MenuItem[] = [
   { icon: MessageSquare, label: "OTP Sms", href: "/otp" },
   { icon: SlidersHorizontal, label: "Limits & Charges", href: "/limits" },
   { icon: UserCheck, label: "Roles & Permissions", href: "/roles" },
-  { icon: Landmark, label: "Branches & Departments", href: "/branches" },
+  { icon: Landmark, label: "Branches", href: "/branches" },
+  { icon: Building, label: "Departments", href: "/departments" },
   { icon: Settings, label: "Settings", href: "/settings" },
 ];
