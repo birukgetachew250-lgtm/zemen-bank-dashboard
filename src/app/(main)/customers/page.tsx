@@ -27,8 +27,8 @@ export default function ExistingCustomersPage() {
 
   const handleSearch = () => {
     if (cifNumber) {
-      // In a real application, you would navigate to a dynamic route like `/customers/details/${cifNumber}`
-      // For this prototype, we'll navigate to the existing static details page.
+      // We will construct a mock customer ID from the CIF for demonstration.
+      // In a real app, you might have a lookup service first.
       router.push(`/customers/cust_${cifNumber}`);
     }
   };
