@@ -15,15 +15,31 @@ if (!fs.existsSync(dbDir)) {
 
 export const db = new Database(dbPath);
 
+// Drop users table if new columns do not exist
+try {
+    const usersColumns = db.prepare("PRAGMA table_info(users)").all();
+    const hasEmployeeId = usersColumns.some(col => col.name === 'employeeId');
+    const hasRole = usersColumns.some(col => col.name === 'role');
+    if (!hasEmployeeId || !hasRole) {
+        db.exec('DROP TABLE IF EXISTS users');
+        console.log("Dropped users table to add 'employeeId' and 'role' columns.");
+    }
+} catch (e) {
+    // users table doesn't exist, which is fine
+}
+
+
 const schema = `
   CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
+    employeeId TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
+    role TEXT NOT NULL,
     avatar_url TEXT,
     branch TEXT,
-    department TEXT
+    department TEXT NOT NULL
   );
 
   CREATE TABLE IF NOT EXISTS customers (
@@ -87,17 +103,13 @@ const schema = `
     name TEXT NOT NULL,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+  
+  CREATE TABLE IF NOT EXISTS roles (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    permissions TEXT NOT NULL 
+  );
 `;
-
-// Drop users table if branch and department columns do not exist
-const usersColumns = db.prepare("PRAGMA table_info(users)").all();
-const hasBranchColumn = usersColumns.some(col => col.name === 'branch');
-const hasDepartmentColumn = usersColumns.some(col => col.name === 'department');
-
-if (!hasBranchColumn || !hasDepartmentColumn) {
-    db.exec('DROP TABLE IF EXISTS users');
-    console.log("Dropped users table to add 'branch' and 'department' columns.");
-}
 
 
 // Drop pending_approvals if details column does not exist
@@ -114,17 +126,37 @@ db.exec(schema);
 const admin = db.prepare('SELECT * FROM users WHERE email = ?').get('admin@zemen.com');
 if (!admin) {
   db.prepare(
-    "INSERT INTO users (id, name, email, password, avatar_url, branch, department) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO users (id, employeeId, name, email, password, role, avatar_url, branch, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
   ).run(
     'user_ck_admin_001',
+    '0001',
     'Admin User',
     'admin@zemen.com',
     'zemen2025', // In a real app, this should be a hashed password
+    'Admin',
     'https://picsum.photos/seed/admin/100/100',
     'Head Office',
     'IT Department'
   );
 }
+
+// Seed roles if table is empty
+const roleCount = db.prepare('SELECT COUNT(*) as count FROM roles').get().count;
+if (roleCount === 0) {
+    const insertRole = db.prepare('INSERT INTO roles (id, name, permissions) VALUES (?, ?, ?)');
+    const roles = [
+      { id: "role_1", name: "Admin", permissions: JSON.stringify(["manage-users", "manage-roles", "view-reports", "manage-settings", "approve-all"]) },
+      { id: "role_2", name: "Support Lead", permissions: JSON.stringify(["approve-pin-reset", "approve-new-device", "view-customer-audit", "manage-tickets"]) },
+      { id: "role_3", name: "Support Staff", permissions: JSON.stringify(["view-customers", "handle-tickets", "request-pin-reset"]) },
+      { id: "role_4", name: "Compliance Officer", permissions: JSON.stringify(["view-reports", "view-audit-trails", "flag-transaction"]) },
+    ];
+    const insertManyRoles = db.transaction((items) => {
+        for (const item of items) insertRole.run(item.id, item.name, item.permissions);
+    });
+    insertManyRoles(roles);
+    console.log(`Seeded ${roles.length} roles.`);
+}
+
 
 // Seed corporates if table is empty
 const corporateCount = db.prepare('SELECT COUNT(*) as count FROM corporates').get().count;
@@ -173,6 +205,7 @@ const departmentCount = db.prepare('SELECT COUNT(*) as count FROM departments').
 if (departmentCount === 0) {
     const insertDepartment = db.prepare('INSERT INTO departments (id, name) VALUES (?, ?)');
     const departments = [
+        { id: `dep_${crypto.randomUUID()}`, name: "Branch Operations" },
         { id: `dep_${crypto.randomUUID()}`, name: "Retail Banking" },
         { id: `dep_${crypto.randomUUID()}`, name: "Corporate Banking" },
         { id: `dep_${crypto.randomUUID()}`, name: "IT Department" },
@@ -188,3 +221,5 @@ if (departmentCount === 0) {
 
 
 console.log("Database initialized.");
+
+    

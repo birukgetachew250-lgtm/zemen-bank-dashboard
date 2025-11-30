@@ -6,15 +6,24 @@ import { faker } from '@faker-js/faker';
 
 export async function POST(req: Request) {
     try {
-        const { name, email, password, branch, department } = await req.json();
+        const { employeeId, name, email, password, role, branch, department } = await req.json();
 
-        if (!name || !email || !password || !branch || !department) {
-            return NextResponse.json({ message: 'All fields are required' }, { status: 400 });
+        if (!employeeId || !name || !email || !password || !role || !department) {
+            return NextResponse.json({ message: 'All fields except branch are required' }, { status: 400 });
+        }
+        
+        if (department === 'Branch Operations' && !branch) {
+             return NextResponse.json({ message: 'Branch is required for users in Branch Operations' }, { status: 400 });
         }
 
-        const existingUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-        if (existingUser) {
+        const existingUserByEmail = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+        if (existingUserByEmail) {
             return NextResponse.json({ message: 'User with this email already exists' }, { status: 409 });
+        }
+
+        const existingUserByEmployeeId = db.prepare('SELECT * FROM users WHERE employeeId = ?').get(employeeId);
+        if (existingUserByEmployeeId) {
+            return NextResponse.json({ message: 'User with this Employee ID already exists' }, { status: 409 });
         }
 
         const id = `user_${crypto.randomUUID()}`;
@@ -22,10 +31,10 @@ export async function POST(req: Request) {
 
         // In a real app, password should be hashed before storing
         db.prepare(
-            'INSERT INTO users (id, name, email, password, avatar_url, branch, department) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        ).run(id, name, email, password, avatar_url, branch, department);
+            'INSERT INTO users (id, employeeId, name, email, password, role, avatar_url, branch, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        ).run(id, employeeId, name, email, password, role, avatar_url, branch, department);
 
-        const newUser = { id, name, email, avatar_url, branch, department };
+        const newUser: any = { id, employeeId, name, email, role, avatar_url, branch, department };
 
         return NextResponse.json({ success: true, message: 'User created successfully', user: newUser }, { status: 201 });
 
@@ -60,3 +69,5 @@ export async function DELETE(req: Request) {
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }
+
+    

@@ -19,8 +19,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, PlusCircle, Trash2 } from "lucide-react";
 
+export interface Role {
+    id: string;
+    name: string;
+    permissions: string; // This is a JSON string
+}
+
+
 // Mock data for roles and permissions
-const roles = [
+const roles: {id: number, name: string, permissions: string[]}[] = [
   {
     id: 1,
     name: "Admin",
@@ -113,3 +120,5 @@ export default function RolesAndPermissionsPage() {
     </Card>
   );
 }
+
+    
