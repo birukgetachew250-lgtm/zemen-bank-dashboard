@@ -25,7 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Loader2, User, Building, Phone } from 'lucide-react';
+import { Loader2, User, Building, Phone, Mail, Fingerprint, MapPin, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 
@@ -39,6 +39,10 @@ const customerDetailsSchema = z.object({
     phoneNumber: z.string(),
     branchName: z.string(),
     email: z.string().email(),
+    gender: z.string(),
+    nationalId: z.string().optional(),
+    address: z.string(),
+    country: z.string(),
 });
 
 type CustomerDetails = z.infer<typeof customerDetailsSchema>;
@@ -47,14 +51,18 @@ type CustomerDetails = z.infer<typeof customerDetailsSchema>;
 const fetchCustomerByCif = async (cif: string): Promise<CustomerDetails | null> => {
     console.log(`Fetching customer with CIF: ${cif}`);
     // In a real app, this would be an API call.
-    // For this prototype, we'll return mock data if the CIF is '1002345'
-    if (cif === '1002345') {
+    // For this prototype, we'll return mock data if the CIF is '0048533'
+    if (cif === '0048533') {
         return {
-            cif: '1002345',
-            name: 'John Adebayo Doe',
-            phoneNumber: '+2348012345678',
-            branchName: 'Head Office',
-            email: 'john.doe@example.com'
+            cif: '0048533',
+            name: 'AKALEWORK TAMENE KEBEDE',
+            phoneNumber: '+251911223344',
+            branchName: 'ADDIS KETEMA',
+            email: 'akalework.t@example.com',
+            gender: 'Female',
+            nationalId: '123456789',
+            address: 'AA, 06, 790',
+            country: 'ETH',
         };
     }
     return null;
@@ -112,7 +120,7 @@ export default function CreateCustomerPage() {
 
   return (
     <div className="w-full flex justify-center">
-      <Card className="w-full max-w-3xl">
+      <Card className="w-full max-w-4xl">
         <CardHeader>
           <CardTitle className="font-headline text-2xl font-bold">
             Onboard New Customer for Mobile Banking
@@ -131,7 +139,7 @@ export default function CreateCustomerPage() {
                   <FormItem className="flex-1">
                     <FormLabel>CIF Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., 1002345" {...field} />
+                      <Input placeholder="e.g., 0048533" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -148,28 +156,15 @@ export default function CreateCustomerPage() {
             <div className="animate-in fade-in-50 space-y-6">
                 <Separator />
                 <h3 className="text-lg font-semibold text-foreground">Customer Verification</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-lg border p-6">
-                    <div className="flex items-center gap-4">
-                        <User className="w-6 h-6 text-muted-foreground" />
-                        <div>
-                            <p className="text-sm text-muted-foreground">Full Name</p>
-                            <p className="font-medium">{customer.name}</p>
-                        </div>
-                    </div>
-                     <div className="flex items-center gap-4">
-                        <Phone className="w-6 h-6 text-muted-foreground" />
-                        <div>
-                            <p className="text-sm text-muted-foreground">Phone Number</p>
-                            <p className="font-medium">{customer.phoneNumber}</p>
-                        </div>
-                    </div>
-                     <div className="flex items-center gap-4">
-                        <Building className="w-6 h-6 text-muted-foreground" />
-                        <div>
-                            <p className="text-sm text-muted-foreground">Home Branch</p>
-                            <p className="font-medium">{customer.branchName}</p>
-                        </div>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 rounded-lg border p-6">
+                    <InfoItem icon={<User />} label="Full Name" value={customer.name} />
+                    <InfoItem icon={<Phone />} label="Phone Number" value={customer.phoneNumber} />
+                    <InfoItem icon={<Mail />} label="Email Address" value={customer.email} />
+                    <InfoItem icon={<User />} label="Gender" value={customer.gender} />
+                    {customer.nationalId && <InfoItem icon={<Fingerprint />} label="National ID" value={customer.nationalId} />}
+                    <InfoItem icon={<Building />} label="Home Branch" value={customer.branchName} />
+                    <InfoItem icon={<MapPin />} label="Address" value={customer.address} className="lg:col-span-2" />
+                    <InfoItem icon={<Globe />} label="Country" value={customer.country} />
                 </div>
                 <div className="flex justify-end">
                     <Button onClick={handleNext}>Next: Select Accounts</Button>
@@ -180,4 +175,16 @@ export default function CreateCustomerPage() {
       </Card>
     </div>
   );
+}
+
+function InfoItem({ icon, label, value, className }: { icon: React.ReactNode, label: string, value: React.ReactNode, className?: string }) {
+    return (
+        <div className={cn("flex items-start gap-4", className)}>
+            <div className="w-6 h-6 text-muted-foreground mt-1">{icon}</div>
+            <div>
+                <p className="text-sm text-muted-foreground">{label}</p>
+                <p className="font-medium">{value}</p>
+            </div>
+        </div>
+    )
 }
