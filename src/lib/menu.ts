@@ -46,6 +46,7 @@ export const menu: MenuItem[] = [
       { label: "Existing Customers", href: "/customers" },
     ],
   },
+  { icon: AppWindow, label: "Mini Apps", href: "/mini-apps" },
   {
     label: "Approvals",
     icon: CheckSquare,
@@ -89,5 +90,4 @@ export const menu: MenuItem[] = [
   { icon: UserCheck, label: "Roles & Permissions", href: "/roles" },
   { icon: Landmark, label: "Branches & Departments", href: "/branches" },
   { icon: Settings, label: "Settings", href: "/settings" },
-  { icon: AppWindow, label: "Mini Apps", href: "/mini-apps" },
 ];
