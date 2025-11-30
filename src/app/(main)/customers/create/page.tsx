@@ -28,9 +28,10 @@ import {
 import { Loader2, User, Building, Phone, Mail, Fingerprint, MapPin, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 const cifSchema = z.object({
-  cif: z.string().min(4, { message: 'CIF number must be at least 4 digits.' }),
+  cif: z.string().min(7, { message: 'CIF number must be 7 digits.' }).max(7, { message: 'CIF number must be 7 digits.' }),
 });
 
 const customerDetailsSchema = z.object({
@@ -51,17 +52,17 @@ type CustomerDetails = z.infer<typeof customerDetailsSchema>;
 const fetchCustomerByCif = async (cif: string): Promise<CustomerDetails | null> => {
     console.log(`Fetching customer with CIF: ${cif}`);
     // In a real app, this would be an API call.
-    // For this prototype, we'll return mock data if the CIF is '0048533'
-    if (cif === '0048533') {
+    // For this prototype, we'll return mock data for any 7-digit CIF
+    if (cif.length === 7 && /^\d+$/.test(cif)) {
         return {
-            cif: '0048533',
+            cif: cif,
             name: 'AKALEWORK TAMENE KEBEDE',
             phoneNumber: '+251911223344',
             branchName: 'ADDIS KETEMA',
             email: 'akalework.t@example.com',
             gender: 'Female',
             nationalId: '123456789',
-            address: 'AA, 06, 790',
+            address: 'AA, ADDIS KETEMA, 06, 790',
             country: 'ETH',
         };
     }
@@ -77,7 +78,7 @@ export default function CreateCustomerPage() {
   const form = useForm<z.infer<typeof cifSchema>>({
     resolver: zodResolver(cifSchema),
     defaultValues: {
-      cif: '',
+      cif: '0048533',
     },
   });
 
@@ -113,7 +114,7 @@ export default function CreateCustomerPage() {
   const handleNext = () => {
     if (customer) {
         // Pass customer data to the next step
-        const params = new URLSearchParams(customer);
+        const params = new URLSearchParams(customer as any);
         router.push(`/customers/create/select-accounts?${params.toString()}`);
     }
   };
@@ -139,7 +140,7 @@ export default function CreateCustomerPage() {
                   <FormItem className="flex-1">
                     <FormLabel>CIF Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., 0048533" {...field} />
+                      <Input placeholder="Enter 7-digit CIF number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
