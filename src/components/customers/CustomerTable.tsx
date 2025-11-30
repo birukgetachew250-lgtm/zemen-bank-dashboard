@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -49,6 +50,7 @@ const getStatusVariant = (status: string) => {
 
 export function CustomerTable({ title, customers, showExport = false }: CustomerTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
 
   const filteredCustomers = useMemo(() => {
     if (!searchTerm) return customers;
@@ -58,6 +60,10 @@ export function CustomerTable({ title, customers, showExport = false }: Customer
         customer.phone.includes(searchTerm)
     );
   }, [searchTerm, customers]);
+  
+  const handleRowClick = (customerId: string) => {
+    router.push(`/customers/${customerId}`);
+  };
 
   return (
     <Card className="w-full">
@@ -92,7 +98,11 @@ export function CustomerTable({ title, customers, showExport = false }: Customer
             <TableBody>
               {filteredCustomers.length > 0 ? (
                 filteredCustomers.map((customer) => (
-                  <TableRow key={customer.id}>
+                  <TableRow 
+                    key={customer.id} 
+                    onClick={() => handleRowClick(customer.id)}
+                    className="cursor-pointer"
+                  >
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell>{customer.phone}</TableCell>
                     <TableCell>

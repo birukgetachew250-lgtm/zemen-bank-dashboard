@@ -1,4 +1,3 @@
-
 import Image from "next/image";
 import {
   Card,
@@ -25,25 +24,61 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { User, Landmark, Activity, Smartphone, Shield, Edit, Ban, History } from "lucide-react";
+import { db } from "@/lib/db";
+import { notFound } from "next/navigation";
 
-const customer = {
-    id: "user_123",
-    cifNumber: "1002345",
-    firstName: "John",
-    secondName: "Adebayo",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phoneNumber: "+2348012345678",
-    address: "123, Main Street, Victoria Island, Lagos, Nigeria",
-    nationality: "Nigerian",
-    branchCode: "001",
-    branchName: "Head Office",
-    status: "Active",
-    signUp2FA: "SMS_OTP",
-    signUpMainAuth: "PIN",
-    insertDate: "2022-08-15T10:30:00Z",
-    avatarUrl: "https://picsum.photos/seed/customer1/100/100"
-};
+
+const getCustomerById = (id: string) => {
+    // This is a mock data fetch. In a real app, you would query your database.
+    // For this prototype, we'll return a mock customer object if the id is known.
+    const mockCustomers: {[key: string]: any} = {
+        'cust_1': {
+            id: "cust_1",
+            cifNumber: "1002345",
+            firstName: "John",
+            secondName: "Adebayo",
+            lastName: "Doe",
+            email: "john.doe@example.com",
+            phoneNumber: "+2348012345678",
+            address: "123, Main Street, Victoria Island, Lagos, Nigeria",
+            nationality: "Nigerian",
+            branchCode: "001",
+            branchName: "Head Office",
+            status: "Active",
+            signUp2FA: "SMS_OTP",
+            signUpMainAuth: "PIN",
+            insertDate: "2022-08-15T10:30:00Z",
+            avatarUrl: "https://picsum.photos/seed/customer1/100/100"
+        },
+    };
+    
+    // For any other ID, we can derive it from the db
+    const customerFromDb = db.prepare('SELECT * FROM customers WHERE id = ?').get(id);
+    if (customerFromDb) {
+        return {
+             id: customerFromDb.id,
+            cifNumber: "CIF" + customerFromDb.id.substring(4, 10),
+            firstName: customerFromDb.name.split(' ')[0],
+            secondName: customerFromDb.name.split(' ')[1] || '',
+            lastName: customerFromDb.name.split(' ')[2] || '',
+            email: `${customerFromDb.name.split(' ')[0].toLowerCase()}@example.com`,
+            phoneNumber: customerFromDb.phone,
+            address: "123, Mock Street, Addis Ababa",
+            nationality: "Ethiopian",
+            branchCode: "101",
+            branchName: "Main Branch",
+            status: customerFromDb.status,
+            signUp2FA: "SMS_OTP",
+            signUpMainAuth: "PIN",
+            insertDate: customerFromDb.registeredAt,
+            avatarUrl: `https://picsum.photos/seed/${customerFromDb.id}/100/100`
+        }
+    }
+
+
+    return mockCustomers[id] || null;
+}
+
 
 const accounts = [
     { id: "acc_1", accountNumber: "0012345678", accountType: "Savings", currency: "NGN", status: "Active", branchName: "Head Office" },
@@ -68,11 +103,17 @@ const getStatusVariant = (status: string) => {
 }
 
 
-export default function CustomerDetailsPage() {
+export default function CustomerDetailsPage({ params }: { params: { customerId: string } }) {
+    const customer = getCustomerById(params.customerId);
+
+    if (!customer) {
+        notFound();
+    }
+
     const fullName = `${customer.firstName} ${customer.secondName} ${customer.lastName}`;
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="w-full space-y-6">
         <Card className="w-full">
             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
@@ -227,4 +268,3 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
         </div>
     )
 }
-
