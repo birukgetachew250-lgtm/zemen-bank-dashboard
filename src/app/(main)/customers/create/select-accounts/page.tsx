@@ -88,12 +88,7 @@ function SelectAccountsContent() {
 
         if (!response.ok) throw new Error('Submission failed');
 
-        toast({
-            title: "Successfully Submitted",
-            description: `${customer.name} has been submitted for mobile banking approval.`,
-        });
-
-        router.push('/customers/approve-new');
+        router.push('/customers/create/success');
     } catch (error) {
          toast({
             variant: "destructive",
@@ -108,6 +103,7 @@ function SelectAccountsContent() {
 
   if (!customer.cif) {
     return (
+        <div className="w-full">
         <Card>
             <CardHeader>
                 <CardTitle>Error</CardTitle>
@@ -122,10 +118,12 @@ function SelectAccountsContent() {
                 </Alert>
             </CardContent>
         </Card>
+        </div>
     )
   }
 
   return (
+    <div className="w-full">
     <Card>
       <CardHeader>
         <CardTitle className="font-headline text-2xl font-bold">Onboard New Customer</CardTitle>
@@ -181,13 +179,14 @@ function SelectAccountsContent() {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }
 
 
 export default function SelectAccountsPage() {
     return (
-        <div className="w-full">
+        <div className="w-full h-full flex items-center justify-center">
             <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
                 <SelectAccountsContent />
             </Suspense>
