@@ -72,6 +72,19 @@ const schema = `
     internet_banking_status TEXT,
     logo_url TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS branches (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    location TEXT NOT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS departments (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `;
 
 // Drop pending_approvals if details column does not exist
@@ -120,6 +133,41 @@ if (corporateCount === 0) {
     });
 
     insertMany(corporates);
+}
+
+// Seed branches if table is empty
+const branchCount = db.prepare('SELECT COUNT(*) as count FROM branches').get().count;
+if (branchCount === 0) {
+    const insertBranch = db.prepare('INSERT INTO branches (id, name, location) VALUES (?, ?, ?)');
+    const branches = [
+        { id: `br_${crypto.randomUUID()}`, name: "Bole Branch", location: "Bole, Addis Ababa" },
+        { id: `br_${crypto.randomUUID()}`, name: "Kazanchis Branch", location: "Kazanchis, Addis Ababa" },
+        { id: `br_${crypto.randomUUID()}`, name: "Piassa Branch", location: "Piassa, Addis Ababa" },
+        { id: `br_${crypto.randomUUID()}`, name: "Mexico Branch", location: "Mexico, Addis Ababa" },
+    ];
+    const insertManyBranches = db.transaction((items) => {
+        for (const item of items) insertBranch.run(item.id, item.name, item.location);
+    });
+    insertManyBranches(branches);
+    console.log(`Seeded ${branches.length} branches.`);
+}
+
+// Seed departments if table is empty
+const departmentCount = db.prepare('SELECT COUNT(*) as count FROM departments').get().count;
+if (departmentCount === 0) {
+    const insertDepartment = db.prepare('INSERT INTO departments (id, name) VALUES (?, ?)');
+    const departments = [
+        { id: `dep_${crypto.randomUUID()}`, name: "Retail Banking" },
+        { id: `dep_${crypto.randomUUID()}`, name: "Corporate Banking" },
+        { id: `dep_${crypto.randomUUID()}`, name: "IT Department" },
+        { id: `dep_${crypto.randomUUID()}`, name: "Human Resources" },
+        { id: `dep_${crypto.randomUUID()}`, name: "Compliance" },
+    ];
+    const insertManyDepts = db.transaction((items) => {
+        for (const item of items) insertDepartment.run(item.id, item.name);
+    });
+    insertManyDepts(departments);
+    console.log(`Seeded ${departments.length} departments.`);
 }
 
 
