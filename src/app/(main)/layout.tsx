@@ -1,3 +1,4 @@
+
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Header } from "@/components/layout/Header";
 import { Watermark } from "@/components/layout/Watermark";
@@ -10,15 +11,15 @@ export default function MainLayout({
 }) {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen bg-background">
         <SidebarNav />
-        <main className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col">
           <Header />
-          <div className="relative flex-1 p-4 md:p-6 lg:p-8">
+          <main className="flex-1 p-4 md:p-6 lg:p-8 relative">
             <Watermark />
-            <div className="w-full h-full">{children}</div>
-          </div>
-        </main>
+            <div className="relative z-10 w-full h-full">{children}</div>
+          </main>
+        </div>
       </div>
     </SidebarProvider>
   );
