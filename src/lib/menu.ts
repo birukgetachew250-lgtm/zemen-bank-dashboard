@@ -15,6 +15,7 @@ import {
   type LucideIcon,
   Users2,
   UserPlus,
+  History,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -33,7 +34,6 @@ export const menu: MenuItem[] = [
     open: false,
     children: [
       { label: "Existing Corporates", href: "/corporates" },
-      { label: "Corporate Details", href: "/corporates/details" },
       { label: "Corporate Transactions", href: "/corporates/transactions" },
     ],
   },
@@ -44,7 +44,6 @@ export const menu: MenuItem[] = [
     children: [
       { label: "Create Customer", href: "/customers/create" },
       { label: "Existing Customers", href: "/customers" },
-      { label: "Customers Audit Trail", href: "/customers/audit" },
     ],
   },
   {
@@ -77,12 +76,14 @@ export const menu: MenuItem[] = [
     ],
   },
   {
-    label: "System Users",
-    icon: Shield,
+    label: "Audit Trails",
+    icon: History,
     children: [
-      { label: "Users Audit Trail", href: "/users/audit" },
+      { label: "Customers Audit Trail", href: "/customers/audit" },
+      { label: "System Users Audit Trail", href: "/users/audit" },
     ],
   },
+  { icon: Shield, label: "System Users", href: "/users/audit"},
   { icon: MessageSquare, label: "OTP Sms", href: "/otp" },
   { icon: SlidersHorizontal, label: "Limits & Charges", href: "/limits" },
   { icon: UserCheck, label: "Roles & Permissions", href: "/roles" },
