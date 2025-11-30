@@ -1,16 +1,18 @@
+
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
+import { useForm, useFormContext, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -23,103 +25,157 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, Building, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
-const formSchema = z.object({
-  name: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
-  phone: z.string().min(10, { message: 'Please enter a valid phone number.' }),
+const cifSchema = z.object({
+  cif: z.string().min(4, { message: 'CIF number must be at least 4 digits.' }),
 });
+
+const customerDetailsSchema = z.object({
+    cif: z.string(),
+    name: z.string(),
+    phoneNumber: z.string(),
+    branchName: z.string(),
+    email: z.string().email(),
+});
+
+type CustomerDetails = z.infer<typeof customerDetailsSchema>;
+
+// Mock function to simulate fetching customer data from a core banking API
+const fetchCustomerByCif = async (cif: string): Promise<CustomerDetails | null> => {
+    console.log(`Fetching customer with CIF: ${cif}`);
+    // In a real app, this would be an API call.
+    // For this prototype, we'll return mock data if the CIF is '1002345'
+    if (cif === '1002345') {
+        return {
+            cif: '1002345',
+            name: 'John Adebayo Doe',
+            phoneNumber: '+2348012345678',
+            branchName: 'Head Office',
+            email: 'john.doe@example.com'
+        };
+    }
+    return null;
+}
 
 export default function CreateCustomerPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [customer, setCustomer] = useState<CustomerDetails | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof cifSchema>>({
+    resolver: zodResolver(cifSchema),
     defaultValues: {
-      name: '',
-      phone: '',
+      cif: '',
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onCifSubmit(values: z.infer<typeof cifSchema>) {
     setIsLoading(true);
+    setCustomer(null);
     try {
-      const response = await fetch('/api/customers/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create customer');
-      }
-
-      toast({
-        title: 'Customer Submitted for Approval',
-        description: `${values.name} has been successfully created and is awaiting approval.`,
-      });
-      router.push('/customers');
+        const result = await fetchCustomerByCif(values.cif);
+        if (result) {
+            setCustomer(result);
+            toast({
+                title: 'Customer Found',
+                description: `Displaying details for ${result.name}.`,
+            });
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Customer Not Found',
+                description: 'No customer found with the provided CIF number.',
+            });
+        }
     } catch (error) {
-      toast({
+       toast({
         variant: 'destructive',
         title: 'Uh oh! Something went wrong.',
-        description:
-          (error as Error).message || 'Could not submit customer for approval.',
+        description: 'Could not fetch customer details.',
       });
     } finally {
       setIsLoading(false);
     }
   }
+  
+  const handleNext = () => {
+    if (customer) {
+        // Pass customer data to the next step
+        const params = new URLSearchParams(customer);
+        router.push(`/customers/create/select-accounts?${params.toString()}`);
+    }
+  };
 
   return (
     <div className="w-full flex justify-center">
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-3xl">
         <CardHeader>
           <CardTitle className="font-headline text-2xl font-bold">
-            Create New Customer
+            Onboard New Customer for Mobile Banking
           </CardTitle>
           <CardDescription>
-            Enter the details for the new customer. The request will be sent for approval.
+            Step 1: Enter the Customer Information File (CIF) number to fetch their details.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onCifSubmit)} className="flex items-start gap-4 mb-8">
               <FormField
                 control={form.control}
-                name="name"
+                name="cif"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                  <FormItem className="flex-1">
+                    <FormLabel>CIF Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., John Doe" {...field} />
+                      <Input placeholder="e.g., 1002345" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., 08012345678" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full font-medium" disabled={isLoading}>
+              <Button type="submit" className="font-medium mt-8" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Submit for Approval
+                Fetch Details
               </Button>
             </form>
           </Form>
+
+          {customer && (
+            <div className="animate-in fade-in-50 space-y-6">
+                <Separator />
+                <h3 className="text-lg font-semibold text-foreground">Customer Verification</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-lg border p-6">
+                    <div className="flex items-center gap-4">
+                        <User className="w-6 h-6 text-muted-foreground" />
+                        <div>
+                            <p className="text-sm text-muted-foreground">Full Name</p>
+                            <p className="font-medium">{customer.name}</p>
+                        </div>
+                    </div>
+                     <div className="flex items-center gap-4">
+                        <Phone className="w-6 h-6 text-muted-foreground" />
+                        <div>
+                            <p className="text-sm text-muted-foreground">Phone Number</p>
+                            <p className="font-medium">{customer.phoneNumber}</p>
+                        </div>
+                    </div>
+                     <div className="flex items-center gap-4">
+                        <Building className="w-6 h-6 text-muted-foreground" />
+                        <div>
+                            <p className="text-sm text-muted-foreground">Home Branch</p>
+                            <p className="font-medium">{customer.branchName}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex justify-end">
+                    <Button onClick={handleNext}>Next: Select Accounts</Button>
+                </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

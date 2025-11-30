@@ -1,3 +1,4 @@
+
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
@@ -39,6 +40,7 @@ const schema = `
     status TEXT DEFAULT 'pending',
     customerName TEXT,
     customerPhone TEXT,
+    details TEXT, -- JSON blob for extra info like accounts
     FOREIGN KEY (customerId) REFERENCES customers(id)
   );
 
@@ -71,6 +73,14 @@ const schema = `
     logo_url TEXT
   );
 `;
+
+// Drop pending_approvals if details column does not exist
+const hasDetailsColumn = db.prepare("PRAGMA table_info(pending_approvals)").all().some(col => col.name === 'details');
+if (!hasDetailsColumn) {
+    db.exec('DROP TABLE IF EXISTS pending_approvals');
+    console.log("Dropped pending_approvals table to add 'details' column.");
+}
+
 
 db.exec(schema);
 
