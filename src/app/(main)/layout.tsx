@@ -15,9 +15,11 @@ export default function MainLayout({
         <SidebarNav />
         <div className="flex flex-1 flex-col min-w-0">
           <Header />
-          <main className="flex-1 p-4 md:p-6 lg:p-8 relative flex flex-col">
+          <main className="flex-1 p-4 md:p-6 lg:p-8 relative flex flex-col flex-grow">
             <Watermark />
-            {children}
+            <div className="flex flex-col h-full">
+              {children}
+            </div>
             <footer className="relative z-10 text-center text-xs text-muted-foreground pt-4 mt-auto">
               © {new Date().getFullYear()} Zemen Bank. All rights reserved.
             </footer>
