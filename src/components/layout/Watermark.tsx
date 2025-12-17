@@ -9,7 +9,7 @@ export function Watermark() {
           alt="Zemen Bank Watermark"
           width={384}
           height={384}
-          className="opacity-[0.03]"
+          className="opacity-[0.1]"
         />
       </div>
     </div>
