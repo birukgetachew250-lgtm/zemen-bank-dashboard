@@ -67,8 +67,6 @@ export const menu: MenuItem[] = [
       { label: "Unblocked Customers", href: "/customers/approve-unblocked" },
       { label: "Pin Resets", href: "/customers/approve-pin-reset" },
       { label: "Security Resets", href: "/customers/approve-security" },
-      { label: "Transaction Pins", href: "/customers/approve-transaction-pin" },
-      { label: "Disabled Customers", href: "/customers/approve-disabled" },
     ]
   },
   { icon: BarChart3, label: "Transaction Reports", href: "/reports/transactions" },
