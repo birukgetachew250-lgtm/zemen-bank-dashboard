@@ -138,7 +138,7 @@ function OverviewContent() {
 
   return (
     <Form {...form}>
-    <form onSubmit={form.handleSubmit(onSubmit)} className="w-full h-full flex flex-col">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="w-full flex flex-col">
     <Card className="w-full flex-grow flex flex-col">
       <CardHeader>
         <CardTitle>Onboard New Customer: Overview & Finalize</CardTitle>
