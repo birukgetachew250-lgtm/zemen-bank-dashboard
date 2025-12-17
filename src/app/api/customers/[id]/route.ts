@@ -2,8 +2,26 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+const getCustomerByCif = (cif: string) => {
+    // This is not efficient, but for the prototype we can find the customer by iterating
+    const allCustomers = db.prepare('SELECT * FROM customers').all();
+    const customerFromDb = allCustomers.find(c => {
+        const constructedCif = "CIF" + c.id.substring(4, 10).toUpperCase();
+        return constructedCif === cif;
+    });
+
+    return customerFromDb;
+}
+
 const getCustomerById = (id: string) => {
-    const customerFromDb = db.prepare('SELECT * FROM customers WHERE id = ?').get(id);
+    let customerFromDb: any;
+
+    if (id.startsWith('CIF')) {
+        customerFromDb = getCustomerByCif(id);
+    } else {
+        customerFromDb = db.prepare('SELECT * FROM customers WHERE id = ?').get(id);
+    }
+    
     if (customerFromDb) {
         return {
              id: customerFromDb.id,
@@ -37,7 +55,7 @@ export async function GET(
     const customer = getCustomerById(customerId);
 
     if (!customer) {
-      return NextResponse.json({ message: 'Customer not found' }, { status: 404 });
+      return NextResponse.json({ message: 'Customer not found with that CIF or ID' }, { status: 404 });
     }
 
     return NextResponse.json(customer);

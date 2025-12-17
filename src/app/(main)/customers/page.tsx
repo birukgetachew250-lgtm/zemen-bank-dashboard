@@ -24,7 +24,7 @@ const userStats = {
 };
 
 export default function ExistingCustomersPage() {
-  const [cifNumber, setCifNumber] = useState("cust_1");
+  const [cifNumber, setCifNumber] = useState("CIFCUST_1");
   const [isLoading, setIsLoading] = useState(false);
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
   const { toast } = useToast();
@@ -60,7 +60,7 @@ export default function ExistingCustomersPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="w-full space-y-8">
       <div>
         <h2 className="text-2xl font-headline font-semibold mb-4">App User Summary</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -89,14 +89,14 @@ export default function ExistingCustomersPage() {
         <CardHeader>
           <CardTitle>Search Customer</CardTitle>
           <CardDescription>
-            Enter a Customer ID to find a specific app user and view their details.
+            Enter a CIF number to find a specific app user and view their details.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex w-full items-center space-x-2">
             <Input
               type="text"
-              placeholder="Enter Customer ID (e.g., cust_1)"
+              placeholder="Enter CIF Number (e.g., CIFCUST_1)"
               value={cifNumber}
               onChange={(e) => setCifNumber(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
