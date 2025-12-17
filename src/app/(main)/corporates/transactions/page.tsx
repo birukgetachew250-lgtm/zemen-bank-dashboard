@@ -62,65 +62,67 @@ export default function CorporateTransactionsPage() {
   }, [searchTerm]);
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-col md:flex-row items-center justify-between gap-4">
-        <CardTitle>Corporate Transactions</CardTitle>
-        <div className="flex items-center gap-2 w-full md:w-auto">
-            <Input 
-                placeholder="Search by corporate, type, or ID..."
-                className="max-w-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <Button variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                Export
-            </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-         <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Corporate</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredTransactions.length > 0 ? filteredTransactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell className="font-medium">{transaction.corporateName}</TableCell>
-                  <TableCell>{format(new Date(transaction.date), "dd MMM yyyy, h:mm a")}</TableCell>
-                  <TableCell>{transaction.type}</TableCell>
-                  <TableCell>&#8358;{transaction.amount.toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Badge 
-                        variant={getStatusVariant(transaction.status)}
-                        className={cn({
-                            'bg-green-100 text-green-800 border-green-200': transaction.status === 'Successful',
-                            'bg-red-100 text-red-800 border-red-200': transaction.status === 'Failed',
-                            'bg-yellow-100 text-yellow-800 border-yellow-200': transaction.status === 'Pending',
-                        })}
-                     >
-                        {transaction.status}
-                     </Badge>
-                  </TableCell>
+    <div className="w-full h-full">
+      <Card>
+        <CardHeader className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <CardTitle>Corporate Transactions</CardTitle>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+              <Input 
+                  placeholder="Search by corporate, type, or ID..."
+                  className="max-w-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Button variant="outline">
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+              </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Corporate</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
-              )) : (
-                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
-                    No transactions found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {filteredTransactions.length > 0 ? filteredTransactions.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell className="font-medium">{transaction.corporateName}</TableCell>
+                    <TableCell>{format(new Date(transaction.date), "dd MMM yyyy, h:mm a")}</TableCell>
+                    <TableCell>{transaction.type}</TableCell>
+                    <TableCell>&#8358;{transaction.amount.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Badge 
+                          variant={getStatusVariant(transaction.status)}
+                          className={cn({
+                              'bg-green-100 text-green-800 border-green-200': transaction.status === 'Successful',
+                              'bg-red-100 text-red-800 border-red-200': transaction.status === 'Failed',
+                              'bg-yellow-100 text-yellow-800 border-yellow-200': transaction.status === 'Pending',
+                          })}
+                      >
+                          {transaction.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                )) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      No transactions found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -34,7 +34,7 @@ export default function ExistingCustomersPage() {
   };
 
   return (
-    <div className="w-full space-y-8">
+    <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-headline font-semibold mb-4">App User Summary</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -59,7 +59,7 @@ export default function ExistingCustomersPage() {
         </div>
       </div>
 
-      <Card className="w-full max-w-2xl mx-auto">
+      <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Search Customer</CardTitle>
           <CardDescription>

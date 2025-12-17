@@ -106,7 +106,7 @@ function SelectAccountsContent() {
 
   if (!customer.customer_number) {
     return (
-        <Card className="w-full">
+        <Card>
             <CardHeader>
                 <CardTitle>Error</CardTitle>
             </CardHeader>
@@ -126,15 +126,15 @@ function SelectAccountsContent() {
   const includedCount = accounts.filter(acc => acc.included).length;
 
   return (
-    <Card className="w-full">
+    <Card className="flex flex-col flex-grow">
       <CardHeader>
         <CardTitle className="font-headline text-2xl font-bold">Onboard New Customer</CardTitle>
         <CardDescription>
           Step 2: Review and select the accounts to link for mobile banking for <span className="font-semibold">{customer.full_name}</span>.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col flex-1">
-        <div className="rounded-md border">
+      <CardContent className="flex flex-col flex-grow">
+        <div className="rounded-md border flex-grow">
           <Table>
             <TableHeader>
               <TableRow>
@@ -191,7 +191,7 @@ function SelectAccountsContent() {
             </TableBody>
           </Table>
         </div>
-        <div className="flex justify-between items-center mt-auto pt-6 gap-2">
+        <div className="flex justify-between items-center pt-6 gap-2">
             <Button variant="outline" onClick={() => router.back()}>Back</Button>
              <p className="text-sm text-muted-foreground">{includedCount} of {accounts.length} accounts selected.</p>
             <Button onClick={handleNext} disabled={includedCount === 0}>
@@ -207,7 +207,9 @@ function SelectAccountsContent() {
 export default function SelectAccountsPage() {
     return (
         <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
-            <SelectAccountsContent />
+            <div className="w-full h-full flex flex-col">
+              <SelectAccountsContent />
+            </div>
         </Suspense>
     )
 }

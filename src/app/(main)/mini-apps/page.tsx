@@ -15,5 +15,9 @@ function getMiniApps() {
 export default function MiniAppsPage() {
   const miniApps = getMiniApps();
 
-  return <MiniAppManagementClient initialMiniApps={miniApps} />;
+  return (
+    <div className="w-full h-full">
+      <MiniAppManagementClient initialMiniApps={miniApps} />
+    </div>
+  );
 }

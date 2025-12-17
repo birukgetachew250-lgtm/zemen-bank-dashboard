@@ -20,5 +20,9 @@ function getDepartments() {
 export default function DepartmentsPage() {
   const departments = getDepartments();
 
-  return <DepartmentManagementClient initialDepartments={departments} />;
+  return (
+    <div className="w-full h-full">
+      <DepartmentManagementClient initialDepartments={departments} />
+    </div>
+  );
 }

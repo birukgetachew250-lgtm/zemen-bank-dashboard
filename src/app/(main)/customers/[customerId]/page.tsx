@@ -114,7 +114,7 @@ export default function CustomerDetailsPage({ params }: { params: { customerId: 
 
   return (
     <div className="w-full space-y-6">
-        <Card className="w-full">
+        <Card>
             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <Image

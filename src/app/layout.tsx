@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
@@ -22,7 +23,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased h-full">
+      <body className="font-body antialiased h-full flex flex-col">
         {children}
         <Toaster />
       </body>

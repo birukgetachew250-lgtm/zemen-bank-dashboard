@@ -17,10 +17,12 @@ export default async function IncompleteRegistrationsReportPage() {
   const customers = await getCustomers();
   
   return (
+    <div className="w-full h-full">
       <CustomerTable 
           title="Incomplete Registrations Report" 
           customers={customers} 
           showExport
       />
+    </div>
   )
 }

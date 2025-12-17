@@ -11,13 +11,13 @@ export default function MainLayout({
 }) {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-background">
+      <div className="flex h-full bg-background">
         <SidebarNav />
         <div className="flex flex-1 flex-col min-w-0">
           <Header />
-          <main className="flex flex-col flex-1 p-4 md:p-6 lg:p-8 relative">
+          <main className="flex-1 p-4 md:p-6 lg:p-8 relative flex flex-col">
             <Watermark />
-            <div className="w-full flex-1">
+            <div className="flex-1 w-full flex flex-col">
               {children}
             </div>
             <footer className="relative z-10 text-center text-xs text-muted-foreground pt-4 mt-auto">

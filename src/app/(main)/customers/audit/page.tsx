@@ -19,36 +19,38 @@ const auditLogs = [
 
 export default function CustomersAuditTrailPage() {
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Customers Audit Trail</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Timestamp</TableHead>
-                <TableHead>User/System</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {auditLogs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell>{log.timestamp}</TableCell>
-                  <TableCell>{log.user}</TableCell>
-                  <TableCell className="font-medium">{log.customer}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{log.action}</Badge>
-                  </TableCell>
+    <div className="w-full h-full">
+      <Card>
+        <CardHeader>
+          <CardTitle>Customers Audit Trail</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Timestamp</TableHead>
+                  <TableHead>User/System</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Action</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {auditLogs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>{log.timestamp}</TableCell>
+                    <TableCell>{log.user}</TableCell>
+                    <TableCell className="font-medium">{log.customer}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{log.action}</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -89,7 +89,7 @@ function OverviewContent() {
 
   if (!customer || accounts.length === 0) {
     return (
-        <Card className="w-full">
+        <Card>
             <CardHeader>
                 <CardTitle>Error</CardTitle>
                 <CardDescription>Could not retrieve customer or account data. Please start over.</CardDescription>
@@ -137,15 +137,15 @@ function OverviewContent() {
 
   return (
     <Form {...form}>
-    <form onSubmit={form.handleSubmit(onSubmit)} className="w-full flex flex-col flex-1">
-    <Card className="w-full flex flex-col flex-1">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="h-full flex flex-col">
+    <Card className="flex-grow flex flex-col">
       <CardHeader>
         <CardTitle>Onboard New Customer: Overview & Finalize</CardTitle>
         <CardDescription>
           Review all customer information and set security details before submitting for approval.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6 flex-1">
+      <CardContent className="space-y-6 flex-grow">
         <div>
             <h3 className="font-semibold text-lg mb-2">Customer Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-4 border rounded-lg bg-muted/50">
@@ -230,7 +230,7 @@ function OverviewContent() {
             </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between items-center p-6 mt-auto">
+      <CardFooter className="flex justify-between items-center p-6">
         <Button type="button" variant="outline" onClick={() => router.back()}>Back</Button>
         <Button type="submit" disabled={submitting}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -258,7 +258,9 @@ function InfoItem({ icon, label, value, className }: { icon: React.ReactNode, la
 export default function OverviewPage() {
     return (
         <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
-            <OverviewContent />
+            <div className="w-full h-full flex flex-col">
+              <OverviewContent />
+            </div>
         </Suspense>
     );
 }

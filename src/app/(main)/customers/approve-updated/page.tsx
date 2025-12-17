@@ -1,5 +1,9 @@
 import { ApprovalClientPage } from "@/components/customers/ApprovalClientPage";
 
 export default function ApproveUpdatedCustomersPage() {
-  return <ApprovalClientPage approvalType="updated-customer" pageTitle="Approve Updated Customers" />;
+  return (
+    <div className="w-full h-full">
+      <ApprovalClientPage approvalType="updated-customer" pageTitle="Approve Updated Customers" />
+    </div>
+  );
 }

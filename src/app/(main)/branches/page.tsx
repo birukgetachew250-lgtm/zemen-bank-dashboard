@@ -21,5 +21,9 @@ function getBranches() {
 export default function BranchesPage() {
   const branches = getBranches();
 
-  return <BranchManagementClient initialBranches={branches} />;
+  return (
+    <div className="w-full h-full">
+      <BranchManagementClient initialBranches={branches} />
+    </div>
+  );
 }

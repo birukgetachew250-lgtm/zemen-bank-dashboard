@@ -93,62 +93,64 @@ export default function CreateUserPage() {
     };
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleAddUser)}>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Add New System User</CardTitle>
-                        <CardDescription>Fill in the details to create a new admin user.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField control={form.control} name="employeeId" render={({ field }) => (
-                            <FormItem><FormLabel>Employee ID</FormLabel><FormControl><Input placeholder="e.g. 12345" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <FormField control={form.control} name="name" render={({ field }) => (
-                            <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="e.g. John Doe" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <FormField control={form.control} name="email" render={({ field }) => (
-                            <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="e.g. john.doe@zemenbank.com" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <FormField control={form.control} name="password" render={({ field }) => (
-                            <FormItem><FormLabel>Password</FormLabel><FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <FormField control={form.control} name="role" render={({ field }) => (
-                            <FormItem><FormLabel>Role</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger></FormControl>
-                                    <SelectContent>{roles.map(role => (<SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>))}</SelectContent>
-                                </Select><FormMessage />
-                            </FormItem>
-                        )} />
-                        <FormField control={form.control} name="department" render={({ field }) => (
-                            <FormItem><FormLabel>Department</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a department" /></SelectTrigger></FormControl>
-                                    <SelectContent>{departments.map(dept => (<SelectItem key={dept.id} value={dept.name}>{dept.name}</SelectItem>))}</SelectContent>
-                                </Select><FormMessage />
-                            </FormItem>
-                        )} />
-                        {departmentWatcher === 'Branch Operations' && (
-                            <FormField control={form.control} name="branch" render={({ field }) => (
-                                <FormItem><FormLabel>Branch</FormLabel>
+        <div className="w-full h-full">
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleAddUser)}>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Add New System User</CardTitle>
+                            <CardDescription>Fill in the details to create a new admin user.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField control={form.control} name="employeeId" render={({ field }) => (
+                                <FormItem><FormLabel>Employee ID</FormLabel><FormControl><Input placeholder="e.g. 12345" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="name" render={({ field }) => (
+                                <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="e.g. John Doe" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="email" render={({ field }) => (
+                                <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="e.g. john.doe@zemenbank.com" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="password" render={({ field }) => (
+                                <FormItem><FormLabel>Password</FormLabel><FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="role" render={({ field }) => (
+                                <FormItem><FormLabel>Role</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a branch" /></SelectTrigger></FormControl>
-                                        <SelectContent>{branches.map(branch => (<SelectItem key={branch.id} value={branch.name}>{branch.name}</SelectItem>))}</SelectContent>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger></FormControl>
+                                        <SelectContent>{roles.map(role => (<SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>))}</SelectContent>
                                     </Select><FormMessage />
                                 </FormItem>
                             )} />
-                        )}
-                    </CardContent>
-                    <CardFooter className="flex justify-end gap-2">
-                        <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Create User
-                        </Button>
-                    </CardFooter>
-                </Card>
-            </form>
-        </Form>
+                            <FormField control={form.control} name="department" render={({ field }) => (
+                                <FormItem><FormLabel>Department</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a department" /></SelectTrigger></FormControl>
+                                        <SelectContent>{departments.map(dept => (<SelectItem key={dept.id} value={dept.name}>{dept.name}</SelectItem>))}</SelectContent>
+                                    </Select><FormMessage />
+                                </FormItem>
+                            )} />
+                            {departmentWatcher === 'Branch Operations' && (
+                                <FormField control={form.control} name="branch" render={({ field }) => (
+                                    <FormItem><FormLabel>Branch</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl><SelectTrigger><SelectValue placeholder="Select a branch" /></SelectTrigger></FormControl>
+                                            <SelectContent>{branches.map(branch => (<SelectItem key={branch.id} value={branch.name}>{branch.name}</SelectItem>))}</SelectContent>
+                                        </Select><FormMessage />
+                                    </FormItem>
+                                )} />
+                            )}
+                        </CardContent>
+                        <CardFooter className="flex justify-end gap-2">
+                            <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Create User
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </form>
+            </Form>
+        </div>
     );
 }

@@ -70,55 +70,55 @@ const permissionLabels: { [key: string]: string } = {
 
 export default function RolesAndPermissionsPage() {
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Roles & Permissions</CardTitle>
-        <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add New Role
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Role</TableHead>
-                <TableHead>Permissions</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {roles.map((role) => (
-                <TableRow key={role.id}>
-                  <TableCell className="font-semibold w-1/4">{role.name}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">
-                      {role.permissions.map((permission) => (
-                        <Badge key={permission} variant="secondary" className="font-normal">
-                          {permissionLabels[permission] || permission}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex gap-2 justify-end">
-                      <Button variant="ghost" size="icon">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+    <div className="w-full h-full">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Roles & Permissions</CardTitle>
+          <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add New Role
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Permissions</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {roles.map((role) => (
+                  <TableRow key={role.id}>
+                    <TableCell className="font-semibold w-1/4">{role.name}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-2">
+                        {role.permissions.map((permission) => (
+                          <Badge key={permission} variant="secondary" className="font-normal">
+                            {permissionLabels[permission] || permission}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex gap-2 justify-end">
+                        <Button variant="ghost" size="icon">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
-
-    

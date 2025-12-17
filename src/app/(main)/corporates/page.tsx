@@ -1,3 +1,4 @@
+
 import { db } from "@/lib/db";
 import { CorporateClientPage } from "@/components/corporates/CorporateClientPage";
 
@@ -34,5 +35,9 @@ const fallbackCorporates = [
 export default function CorporatesPage() {
     const corporatesData = getCorporates();
     const corporates = corporatesData.length > 0 ? corporatesData : fallbackCorporates;
-    return <CorporateClientPage corporates={corporates} />;
+    return (
+      <div className="w-full h-full">
+        <CorporateClientPage corporates={corporates} />
+      </div>
+    );
 }

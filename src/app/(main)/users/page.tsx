@@ -38,5 +38,9 @@ export default function UsersPage() {
   const users = getSystemUsers();
   const roles = getRoles();
 
-  return <UserManagementClient initialUsers={users} roles={roles} />;
+  return (
+    <div className="w-full h-full">
+      <UserManagementClient initialUsers={users} roles={roles} />
+    </div>
+  );
 }

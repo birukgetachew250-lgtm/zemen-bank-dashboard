@@ -15,10 +15,12 @@ export default async function ActiveCustomersReportPage() {
   const customers = await getCustomers();
   
   return (
+    <div className="w-full h-full">
       <CustomerTable 
           title="Active Customers Report" 
           customers={customers} 
           showExport
       />
+    </div>
   )
 }

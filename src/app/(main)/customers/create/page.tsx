@@ -12,7 +12,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -128,72 +127,74 @@ export default function CreateCustomerPage() {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl font-bold">
-          Onboard New Customer for Mobile Banking
-        </CardTitle>
-        <CardDescription>
-          Step 1: Enter the Branch Code and CIF number to fetch customer details from Flexcube.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onCifSubmit)} className="flex items-start gap-4 mb-8 max-w-xl">
-            <FormField
-              control={form.control}
-              name="branch_code"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormLabel>Branch Code</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter branch code" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="customer_id"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormLabel>Customer ID (CIF)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter CIF number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="font-medium mt-8" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Fetch Details
-            </Button>
-          </form>
-        </Form>
+    <div className="w-full h-full flex flex-col">
+      <Card className="flex-grow flex flex-col">
+        <CardHeader>
+          <CardTitle className="font-headline text-2xl font-bold">
+            Onboard New Customer for Mobile Banking
+          </CardTitle>
+          <CardDescription>
+            Step 1: Enter the Branch Code and CIF number to fetch customer details from Flexcube.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex-grow">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onCifSubmit)} className="flex items-start gap-4 mb-8 max-w-xl">
+              <FormField
+                control={form.control}
+                name="branch_code"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Branch Code</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter branch code" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="customer_id"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Customer ID (CIF)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter CIF number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="font-medium mt-8" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Fetch Details
+              </Button>
+            </form>
+          </Form>
 
-        {customer && (
-          <div className="animate-in fade-in-50 space-y-6">
-              <Separator />
-              <h3 className="text-lg font-semibold text-foreground">Customer Verification</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 rounded-lg border p-6">
-                  <InfoItem icon={<User />} label="Full Name" value={customer.full_name} />
-                  <InfoItem icon={<Phone />} label="Phone Number" value={customer.mobile_number} />
-                  <InfoItem icon={<Mail />} label="Email Address" value={customer.email_id} />
-                  <InfoItem icon={<User />} label="Gender" value={customer.gender} />
-                  <InfoItem icon={<Fingerprint />} label="Date of Birth" value={new Date(customer.date_of_birth).toLocaleDateString()} />
-                  <InfoItem icon={<Building />} label="Home Branch" value={customer.branch} />
-                  <InfoItem icon={<MapPin />} label="Address" value={`${customer.address_line_1}, ${customer.address_line_2}, ${customer.address_line_3}`} className="lg:col-span-2" />
-                  <InfoItem icon={<Globe />} label="Country" value={customer.country} />
-              </div>
-              <div className="flex justify-end mt-4">
-                  <Button onClick={handleNext}>Next: Select Accounts</Button>
-              </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          {customer && (
+            <div className="animate-in fade-in-50 space-y-6">
+                <Separator />
+                <h3 className="text-lg font-semibold text-foreground">Customer Verification</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 rounded-lg border p-6">
+                    <InfoItem icon={<User />} label="Full Name" value={customer.full_name} />
+                    <InfoItem icon={<Phone />} label="Phone Number" value={customer.mobile_number} />
+                    <InfoItem icon={<Mail />} label="Email Address" value={customer.email_id} />
+                    <InfoItem icon={<User />} label="Gender" value={customer.gender} />
+                    <InfoItem icon={<Fingerprint />} label="Date of Birth" value={new Date(customer.date_of_birth).toLocaleDateString()} />
+                    <InfoItem icon={<Building />} label="Home Branch" value={customer.branch} />
+                    <InfoItem icon={<MapPin />} label="Address" value={`${customer.address_line_1}, ${customer.address_line_2}, ${customer.address_line_3}`} className="lg:col-span-2" />
+                    <InfoItem icon={<Globe />} label="Country" value={customer.country} />
+                </div>
+                <div className="flex justify-end mt-4">
+                    <Button onClick={handleNext}>Next: Select Accounts</Button>
+                </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

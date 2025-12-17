@@ -18,7 +18,9 @@ async function getMiniApp(id: string | undefined) {
 export default function CreateMiniAppPage({ searchParams }: { searchParams: { id?: string }}) {
   return (
     <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
+      <div className="w-full h-full">
         <MiniAppFormLoader id={searchParams.id} />
+      </div>
     </Suspense>
   )
 }

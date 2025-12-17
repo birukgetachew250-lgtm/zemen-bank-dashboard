@@ -19,36 +19,38 @@ const auditLogs = [
 
 export default function UsersAuditTrailPage() {
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>System Users Audit Trail</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Timestamp</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Details</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {auditLogs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell>{log.timestamp}</TableCell>
-                  <TableCell className="font-medium">{log.user}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{log.action}</Badge>
-                  </TableCell>
-                  <TableCell>{log.details}</TableCell>
+    <div className="w-full h-full">
+      <Card>
+        <CardHeader>
+          <CardTitle>System Users Audit Trail</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Timestamp</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead>Details</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {auditLogs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>{log.timestamp}</TableCell>
+                    <TableCell className="font-medium">{log.user}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{log.action}</Badge>
+                    </TableCell>
+                    <TableCell>{log.details}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

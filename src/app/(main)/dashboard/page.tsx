@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   const stats = await getCustomerStats();
   
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-headline font-semibold mb-4">Customer Overview</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
