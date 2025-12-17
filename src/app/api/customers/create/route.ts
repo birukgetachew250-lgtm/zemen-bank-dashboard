@@ -7,6 +7,7 @@ export async function POST(req: Request) {
     try {
         const { customer, accounts } = await req.json();
 
+        // Customer object now contains { cif, name, phoneNumber, email }
         if (!customer || !customer.cif || !customer.name || !accounts) {
             return NextResponse.json({ message: 'Incomplete customer or account data' }, { status: 400 });
         }
@@ -16,22 +17,32 @@ export async function POST(req: Request) {
         
         // This transaction ensures that both operations succeed or fail together.
         const transaction = db.transaction(() => {
-            // 1. Insert the customer with a 'registered' status, which indicates they are in the approval pipeline.
+            // 1. Insert the customer with a 'registered' status. 
+            // This status means they are in the approval pipeline but not yet active.
             db.prepare(
                 'INSERT INTO customers (id, name, phone, status, registeredAt) VALUES (?, ?, ?, ?, ?)'
             ).run(customerId, customer.name, customer.phoneNumber, 'registered', new Date().toISOString());
 
             // 2. Create a pending approval request for this new customer registration.
-            // We serialize the accounts data to store it with the approval request.
+            // We serialize the full customer and account data to store it with the approval request.
+            // This ensures the approver has all necessary information.
             const approvalDetails = {
-                cif: customer.cif,
-                email: customer.email,
-                linkedAccounts: accounts,
+                customerData: customer, // Contains CIF, name, email, phone
+                linkedAccounts: accounts, // Contains the list of accounts to be linked
             };
 
             db.prepare(
                 'INSERT INTO pending_approvals (id, customerId, type, requestedAt, customerName, customerPhone, status, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-            ).run(approvalId, customerId, 'new-customer', new Date().toISOString(), customer.name, customer.phoneNumber, 'pending', JSON.stringify(approvalDetails));
+            ).run(
+                approvalId, 
+                customerId, 
+                'new-customer', 
+                new Date().toISOString(), 
+                customer.name, 
+                customer.phoneNumber, 
+                'pending', 
+                JSON.stringify(approvalDetails)
+            );
         });
 
         transaction();

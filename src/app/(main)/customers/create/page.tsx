@@ -29,41 +29,52 @@ import { Loader2, User, Building, Phone, Mail, Fingerprint, MapPin, Globe } from
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const cifSchema = z.object({
-  cif: z.string().min(7, { message: 'CIF number must be 7 digits.' }).max(7, { message: 'CIF number must be 7 digits.' }),
+  branch_code: z.string().min(1, 'Branch code is required'),
+  customer_id: z.string().min(1, 'Customer ID/CIF is required'),
 });
 
+// Based on the proto definition for CustomerDetail
 const customerDetailsSchema = z.object({
-    cif: z.string(),
-    name: z.string(),
-    phoneNumber: z.string(),
-    branchName: z.string(),
-    email: z.string().email(),
+    full_name: z.string(),
+    cif_creation_date: z.string(),
+    customer_number: z.string(),
+    date_of_birth: z.string(),
     gender: z.string(),
-    nationalId: z.string().optional(),
-    address: z.string(),
+    email_id: z.string().email(),
+    mobile_number: z.string(),
+    address_line_1: z.string(),
+    address_line_2: z.string().optional(),
+    address_line_3: z.string().optional(),
+    address_line_4: z.string().optional(),
     country: z.string(),
+    branch: z.string(),
 });
 
 type CustomerDetails = z.infer<typeof customerDetailsSchema>;
 
-// Mock function to simulate fetching customer data from a core banking API
-const fetchCustomerByCif = async (cif: string): Promise<CustomerDetails | null> => {
-    console.log(`Fetching customer with CIF: ${cif}`);
-    // In a real app, this would be an API call.
-    // For this prototype, we'll return mock data for any 7-digit CIF
-    if (cif.length === 7 && /^\d+$/.test(cif)) {
+// Mock function to simulate fetching customer data from Flexcube via gRPC
+const queryCustomerDetails = async (branch_code: string, customer_id: string): Promise<CustomerDetails | null> => {
+    console.log(`Querying Flexcube with Branch: ${branch_code}, CIF: ${customer_id}`);
+    // In a real app, this would be a gRPC call.
+    // We'll return mock data that matches the proto structure.
+    if (customer_id) {
         return {
-            cif: cif,
-            name: 'AKALEWORK TAMENE KEBEDE',
-            phoneNumber: '+251911223344',
-            branchName: 'ADDIS KETEMA',
-            email: 'akalework.t@example.com',
+            customer_number: customer_id,
+            full_name: 'AKALEWORK TAMENE KEBEDE',
+            cif_creation_date: '2022-01-20',
+            date_of_birth: '1990-05-15',
             gender: 'Female',
-            nationalId: '123456789',
-            address: 'AA, ADDIS KETEMA, 06, 790',
-            country: 'ETH',
+            email_id: 'akalework.t@example.com',
+            mobile_number: '+251911223344',
+            address_line_1: 'AA, ADDIS KETEMA',
+            address_line_2: '06',
+            address_line_3: '790',
+            address_line_4: '',
+            country: 'ETHIOPIA',
+            branch: 'ADDIS KETEMA',
         };
     }
     return null;
@@ -78,7 +89,8 @@ export default function CreateCustomerPage() {
   const form = useForm<z.infer<typeof cifSchema>>({
     resolver: zodResolver(cifSchema),
     defaultValues: {
-      cif: '0048533',
+      branch_code: '103',
+      customer_id: '0048533',
     },
   });
 
@@ -86,12 +98,12 @@ export default function CreateCustomerPage() {
     setIsLoading(true);
     setCustomer(null);
     try {
-        const result = await fetchCustomerByCif(values.cif);
+        const result = await queryCustomerDetails(values.branch_code, values.customer_id);
         if (result) {
             setCustomer(result);
             toast({
                 title: 'Customer Found',
-                description: `Displaying details for ${result.name}.`,
+                description: `Displaying details for ${result.full_name}.`,
             });
         } else {
             toast({
@@ -113,8 +125,12 @@ export default function CreateCustomerPage() {
   
   const handleNext = () => {
     if (customer) {
-        // Pass customer data to the next step
-        const params = new URLSearchParams(customer as any);
+        const params = new URLSearchParams({
+            cif: customer.customer_number,
+            name: customer.full_name,
+            phoneNumber: customer.mobile_number,
+            email: customer.email_id
+        });
         router.push(`/customers/create/select-accounts?${params.toString()}`);
     }
   };
@@ -127,20 +143,33 @@ export default function CreateCustomerPage() {
             Onboard New Customer for Mobile Banking
           </CardTitle>
           <CardDescription>
-            Step 1: Enter the Customer Information File (CIF) number to fetch their details.
+            Step 1: Enter the Branch Code and CIF number to fetch customer details from Flexcube.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onCifSubmit)} className="flex items-start gap-4 mb-8 max-w-lg">
+            <form onSubmit={form.handleSubmit(onCifSubmit)} className="flex items-start gap-4 mb-8 max-w-xl">
               <FormField
                 control={form.control}
-                name="cif"
+                name="branch_code"
                 render={({ field }) => (
                   <FormItem className="flex-1">
-                    <FormLabel>CIF Number</FormLabel>
+                    <FormLabel>Branch Code</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter 7-digit CIF number" {...field} />
+                      <Input placeholder="Enter branch code" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="customer_id"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Customer ID (CIF)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter CIF number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -158,13 +187,13 @@ export default function CreateCustomerPage() {
                 <Separator />
                 <h3 className="text-lg font-semibold text-foreground">Customer Verification</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 rounded-lg border p-6">
-                    <InfoItem icon={<User />} label="Full Name" value={customer.name} />
-                    <InfoItem icon={<Phone />} label="Phone Number" value={customer.phoneNumber} />
-                    <InfoItem icon={<Mail />} label="Email Address" value={customer.email} />
+                    <InfoItem icon={<User />} label="Full Name" value={customer.full_name} />
+                    <InfoItem icon={<Phone />} label="Phone Number" value={customer.mobile_number} />
+                    <InfoItem icon={<Mail />} label="Email Address" value={customer.email_id} />
                     <InfoItem icon={<User />} label="Gender" value={customer.gender} />
-                    {customer.nationalId && <InfoItem icon={<Fingerprint />} label="National ID" value={customer.nationalId} />}
-                    <InfoItem icon={<Building />} label="Home Branch" value={customer.branchName} />
-                    <InfoItem icon={<MapPin />} label="Address" value={customer.address} className="lg:col-span-2" />
+                    <InfoItem icon={<Fingerprint />} label="Date of Birth" value={new Date(customer.date_of_birth).toLocaleDateString()} />
+                    <InfoItem icon={<Building />} label="Home Branch" value={customer.branch} />
+                    <InfoItem icon={<MapPin />} label="Address" value={`${customer.address_line_1}, ${customer.address_line_2}, ${customer.address_line_3}`} className="lg:col-span-2" />
                     <InfoItem icon={<Globe />} label="Country" value={customer.country} />
                 </div>
                 <div className="flex justify-end">
