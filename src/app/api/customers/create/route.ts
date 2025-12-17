@@ -5,30 +5,29 @@ import crypto from 'crypto';
 
 export async function POST(req: Request) {
     try {
-        const { customer, accounts } = await req.json();
+        const { customer, accounts, manualData } = await req.json();
 
-        // Customer object now contains { cif, name, phoneNumber, email }
-        if (!customer || !customer.cif || !customer.name || !accounts) {
-            return NextResponse.json({ message: 'Incomplete customer or account data' }, { status: 400 });
+        // `customer` is from Flexcube query
+        // `accounts` is the list of selected accounts
+        // `manualData` contains fields like signUp2FA, signUpMainAuth
+        if (!customer || !customer.customer_number || !accounts || !manualData) {
+            return NextResponse.json({ message: 'Incomplete customer, account, or manual data' }, { status: 400 });
         }
 
         const customerId = `cust_${crypto.randomUUID()}`;
         const approvalId = `appr_${crypto.randomUUID()}`;
         
-        // This transaction ensures that both operations succeed or fail together.
         const transaction = db.transaction(() => {
-            // 1. Insert the customer with a 'registered' status. 
-            // This status means they are in the approval pipeline but not yet active.
+            // 1. Insert the customer with a 'registered' status.
             db.prepare(
                 'INSERT INTO customers (id, name, phone, status, registeredAt) VALUES (?, ?, ?, ?, ?)'
-            ).run(customerId, customer.name, customer.phoneNumber, 'registered', new Date().toISOString());
+            ).run(customerId, customer.full_name, customer.mobile_number, 'registered', new Date().toISOString());
 
             // 2. Create a pending approval request for this new customer registration.
-            // We serialize the full customer and account data to store it with the approval request.
-            // This ensures the approver has all necessary information.
             const approvalDetails = {
-                customerData: customer, // Contains CIF, name, email, phone
-                linkedAccounts: accounts, // Contains the list of accounts to be linked
+                customerData: customer, 
+                linkedAccounts: accounts,
+                onboardingData: manualData, // Include the manually entered data
             };
 
             db.prepare(
@@ -38,8 +37,8 @@ export async function POST(req: Request) {
                 customerId, 
                 'new-customer', 
                 new Date().toISOString(), 
-                customer.name, 
-                customer.phoneNumber, 
+                customer.full_name, 
+                customer.mobile_number, 
                 'pending', 
                 JSON.stringify(approvalDetails)
             );

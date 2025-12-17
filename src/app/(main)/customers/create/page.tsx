@@ -29,14 +29,12 @@ import { Loader2, User, Building, Phone, Mail, Fingerprint, MapPin, Globe } from
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const cifSchema = z.object({
   branch_code: z.string().min(1, 'Branch code is required'),
   customer_id: z.string().min(1, 'Customer ID/CIF is required'),
 });
 
-// Based on the proto definition for CustomerDetail
 const customerDetailsSchema = z.object({
     full_name: z.string(),
     cif_creation_date: z.string(),
@@ -55,11 +53,8 @@ const customerDetailsSchema = z.object({
 
 type CustomerDetails = z.infer<typeof customerDetailsSchema>;
 
-// Mock function to simulate fetching customer data from Flexcube via gRPC
 const queryCustomerDetails = async (branch_code: string, customer_id: string): Promise<CustomerDetails | null> => {
     console.log(`Querying Flexcube with Branch: ${branch_code}, CIF: ${customer_id}`);
-    // In a real app, this would be a gRPC call.
-    // We'll return mock data that matches the proto structure.
     if (customer_id) {
         return {
             customer_number: customer_id,
@@ -126,10 +121,7 @@ export default function CreateCustomerPage() {
   const handleNext = () => {
     if (customer) {
         const params = new URLSearchParams({
-            cif: customer.customer_number,
-            name: customer.full_name,
-            phoneNumber: customer.mobile_number,
-            email: customer.email_id
+            customer: JSON.stringify(customer)
         });
         router.push(`/customers/create/select-accounts?${params.toString()}`);
     }

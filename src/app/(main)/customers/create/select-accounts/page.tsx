@@ -31,16 +31,13 @@ interface Account {
     CCY: string;
     ACCOUNT_TYPE: string;
     ACCLASSDESC: string;
-    status: string; // Added status for UI consistency
-    included: boolean; // To track inclusion status
+    status: string; 
+    included: boolean;
 }
 
-// Mock function to fetch accounts for a CIF, simulating a gRPC call
 const fetchAccountsByCif = async (cif: string): Promise<Omit<Account, 'included'>[]> => {
     console.log("Fetching accounts for CIF:", cif);
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500));
-    // Mock data based on the provided proto schema
     return [
         { CUSTACNO: "1031110048533015", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Private and Individual", status: "Active" },
         { CUSTACNO: "1031110048533016", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "C", ACCLASSDESC: "Personal Current - Private and Individual", status: "Active" },
@@ -63,27 +60,24 @@ function SelectAccountsContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
-  const customer = useMemo(() => ({
-    cif: searchParams.get('cif'),
-    name: searchParams.get('name'),
-    phoneNumber: searchParams.get('phoneNumber'),
-    email: searchParams.get('email'),
-  }), [searchParams]);
+  const customer = useMemo(() => {
+    const data = searchParams.get('customer');
+    return data ? JSON.parse(data) : {};
+  }, [searchParams]);
 
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (customer.cif) {
-      fetchAccountsByCif(customer.cif).then(data => {
-        setAccounts(data.map(acc => ({ ...acc, included: true }))); // Default all to included
+    if (customer.customer_number) {
+      fetchAccountsByCif(customer.customer_number).then(data => {
+        setAccounts(data.map(acc => ({ ...acc, included: true })));
         setLoading(false);
       });
     } else {
         setLoading(false);
     }
-  }, [customer.cif]);
+  }, [customer.customer_number]);
 
   const toggleAccountInclusion = (accountNumber: string) => {
     setAccounts(prev => prev.map(acc => 
@@ -91,32 +85,26 @@ function SelectAccountsContent() {
     ));
   };
   
-  const handleSubmitForApproval = async () => {
-    setSubmitting(true);
+  const handleNext = () => {
     const includedAccounts = accounts.filter(acc => acc.included);
-    try {
-        const response = await fetch('/api/customers/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ customer, accounts: includedAccounts }),
-        });
-
-        if (!response.ok) throw new Error('Submission failed');
-
-        router.push('/customers/create/success');
-    } catch (error) {
-         toast({
-            variant: "destructive",
-            title: "Submission Failed",
-            description: "An error occurred while submitting the request for approval.",
+    if (includedAccounts.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No Accounts Selected",
+        description: "Please include at least one account to link.",
       });
-    } finally {
-        setSubmitting(false);
+      return;
     }
+    
+    const params = new URLSearchParams({
+        customer: JSON.stringify(customer),
+        accounts: JSON.stringify(includedAccounts)
+    });
+    router.push(`/customers/create/overview?${params.toString()}`);
   };
 
 
-  if (!customer.cif) {
+  if (!customer.customer_number) {
     return (
         <div className="w-full">
         <Card>
@@ -145,7 +133,7 @@ function SelectAccountsContent() {
       <CardHeader>
         <CardTitle className="font-headline text-2xl font-bold">Onboard New Customer</CardTitle>
         <CardDescription>
-          Step 2: Review and select the accounts to link for mobile banking for <span className="font-semibold">{customer.name}</span>.
+          Step 2: Review and select the accounts to link for mobile banking for <span className="font-semibold">{customer.full_name}</span>.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -209,9 +197,8 @@ function SelectAccountsContent() {
         <div className="flex justify-between items-center mt-6 gap-2">
             <Button variant="outline" onClick={() => router.back()}>Back</Button>
              <p className="text-sm text-muted-foreground">{includedCount} of {accounts.length} accounts selected.</p>
-            <Button onClick={handleSubmitForApproval} disabled={submitting || includedCount === 0}>
-                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Submit for Approval
+            <Button onClick={handleNext} disabled={includedCount === 0}>
+                Next: Overview & Finalize
             </Button>
         </div>
       </CardContent>
