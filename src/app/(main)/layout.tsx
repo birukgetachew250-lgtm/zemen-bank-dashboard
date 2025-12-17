@@ -15,9 +15,9 @@ export default function MainLayout({
         <SidebarNav />
         <div className="flex flex-1 flex-col min-w-0">
           <Header />
-          <main className="flex-1 p-4 md:p-6 lg:p-8 relative flex flex-col flex-grow">
+          <main className="flex-1 p-4 md:p-6 lg:p-8 relative flex flex-col">
             <Watermark />
-            <div className="flex flex-col h-full">
+            <div className="flex-grow flex flex-col">
               {children}
             </div>
             <footer className="relative z-10 text-center text-xs text-muted-foreground pt-4 mt-auto">

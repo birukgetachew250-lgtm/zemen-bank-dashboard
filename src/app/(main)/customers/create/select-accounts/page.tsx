@@ -126,7 +126,7 @@ function SelectAccountsContent() {
   const includedCount = accounts.filter(acc => acc.included).length;
 
   return (
-    <Card className="w-full flex flex-col">
+    <Card className="w-full flex-grow flex flex-col">
       <CardHeader>
         <CardTitle className="font-headline text-2xl font-bold">Onboard New Customer</CardTitle>
         <CardDescription>
