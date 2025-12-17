@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, Suspense } from 'react';
+import { useState, useMemo, Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Card,
@@ -33,11 +33,12 @@ interface Account {
     status: string; // Added status for UI consistency
 }
 
-// Mock function to fetch accounts for a CIF
+// Mock function to fetch accounts for a CIF, simulating a gRPC call
 const fetchAccountsByCif = async (cif: string): Promise<Account[]> => {
     console.log("Fetching accounts for CIF:", cif);
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500));
+    // Mock data based on the provided proto schema
     return [
         { CUSTACNO: "1031110048533015", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Private and Individual", status: "Active" },
         { CUSTACNO: "1031110048533016", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "C", ACCLASSDESC: "Personal Current - Private and Individual", status: "Active" },
@@ -62,7 +63,7 @@ function SelectAccountsContent() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  useState(() => {
+  useEffect(() => {
     if (customer.cif) {
       fetchAccountsByCif(customer.cif).then(data => {
         setAccounts(data);
@@ -71,7 +72,7 @@ function SelectAccountsContent() {
     } else {
         setLoading(false);
     }
-  });
+  }, [customer.cif]);
 
   const handleRemoveAccount = (accountNumber: string) => {
     setAccounts(prev => prev.filter(acc => acc.CUSTACNO !== accountNumber));
