@@ -21,7 +21,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, MinusCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 
@@ -32,10 +32,11 @@ interface Account {
     ACCOUNT_TYPE: string;
     ACCLASSDESC: string;
     status: string; // Added status for UI consistency
+    included: boolean; // To track inclusion status
 }
 
 // Mock function to fetch accounts for a CIF, simulating a gRPC call
-const fetchAccountsByCif = async (cif: string): Promise<Account[]> => {
+const fetchAccountsByCif = async (cif: string): Promise<Omit<Account, 'included'>[]> => {
     console.log("Fetching accounts for CIF:", cif);
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -76,7 +77,7 @@ function SelectAccountsContent() {
   useEffect(() => {
     if (customer.cif) {
       fetchAccountsByCif(customer.cif).then(data => {
-        setAccounts(data);
+        setAccounts(data.map(acc => ({ ...acc, included: true }))); // Default all to included
         setLoading(false);
       });
     } else {
@@ -84,17 +85,20 @@ function SelectAccountsContent() {
     }
   }, [customer.cif]);
 
-  const handleRemoveAccount = (accountNumber: string) => {
-    setAccounts(prev => prev.filter(acc => acc.CUSTACNO !== accountNumber));
+  const toggleAccountInclusion = (accountNumber: string) => {
+    setAccounts(prev => prev.map(acc => 
+        acc.CUSTACNO === accountNumber ? { ...acc, included: !acc.included } : acc
+    ));
   };
   
   const handleSubmitForApproval = async () => {
     setSubmitting(true);
+    const includedAccounts = accounts.filter(acc => acc.included);
     try {
         const response = await fetch('/api/customers/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ customer, accounts }),
+            body: JSON.stringify({ customer, accounts: includedAccounts }),
         });
 
         if (!response.ok) throw new Error('Submission failed');
@@ -133,6 +137,8 @@ function SelectAccountsContent() {
     )
   }
 
+  const includedCount = accounts.filter(acc => acc.included).length;
+
   return (
     <div className="w-full">
     <Card>
@@ -161,7 +167,7 @@ function SelectAccountsContent() {
                 <TableRow><TableCell colSpan={7} className="h-24 text-center"><Loader2 className="animate-spin mx-auto" /></TableCell></TableRow>
               ) : accounts.length > 0 ? (
                 accounts.map((acc) => (
-                  <TableRow key={acc.CUSTACNO}>
+                  <TableRow key={acc.CUSTACNO} className={cn(!acc.included && "bg-muted/50 text-muted-foreground")}>
                     <TableCell className="font-medium">{acc.CUSTACNO}</TableCell>
                     <TableCell>{acc.ACCLASSDESC}</TableCell>
                     <TableCell><Badge variant="outline">{acc.ACCOUNT_TYPE}</Badge></TableCell>
@@ -180,9 +186,14 @@ function SelectAccountsContent() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleRemoveAccount(acc.CUSTACNO)}>
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                        <span className="sr-only">Exclude</span>
+                       <Button 
+                          variant={acc.included ? "destructive" : "secondary"} 
+                          size="sm"
+                          onClick={() => toggleAccountInclusion(acc.CUSTACNO)}
+                          className={cn(acc.included ? "bg-red-500 hover:bg-red-600" : "")}
+                        >
+                        {acc.included ? <MinusCircle className="mr-2 h-4 w-4" /> : <PlusCircle className="mr-2 h-4 w-4" />}
+                        {acc.included ? 'Exclude' : 'Include'}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -195,9 +206,10 @@ function SelectAccountsContent() {
             </TableBody>
           </Table>
         </div>
-        <div className="flex justify-between mt-6 gap-2">
+        <div className="flex justify-between items-center mt-6 gap-2">
             <Button variant="outline" onClick={() => router.back()}>Back</Button>
-            <Button onClick={handleSubmitForApproval} disabled={submitting || accounts.length === 0}>
+             <p className="text-sm text-muted-foreground">{includedCount} of {accounts.length} accounts selected.</p>
+            <Button onClick={handleSubmitForApproval} disabled={submitting || includedCount === 0}>
                 {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Submit for Approval
             </Button>
