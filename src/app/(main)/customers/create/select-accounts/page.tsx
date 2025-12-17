@@ -106,7 +106,7 @@ function SelectAccountsContent() {
 
   if (!customer.customer_number) {
     return (
-        <div className="w-full flex-grow flex flex-col">
+        <div className="w-full h-full flex flex-col">
         <Card className="w-full flex-grow flex flex-col">
             <CardHeader>
                 <CardTitle>Error</CardTitle>
@@ -128,7 +128,7 @@ function SelectAccountsContent() {
   const includedCount = accounts.filter(acc => acc.included).length;
 
   return (
-    <div className="w-full flex-grow flex flex-col">
+    <div className="w-full h-full flex flex-col">
     <Card className="w-full flex-grow flex flex-col">
       <CardHeader>
         <CardTitle className="font-headline text-2xl font-bold">Onboard New Customer</CardTitle>
