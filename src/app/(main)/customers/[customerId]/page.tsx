@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { User, Landmark, Activity, Smartphone, Shield, Edit, Ban, History } from "lucide-react";
+import { User, Landmark, Activity, Smartphone, Shield, Edit, Ban, History, Unlink } from "lucide-react";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 
@@ -31,6 +31,22 @@ import { notFound } from "next/navigation";
 const getCustomerById = (id: string) => {
     // This is a mock data fetch. In a real app, you would query your database.
     const mockCustomers: {[key: string]: any} = {
+        'CIFCUST_1': {
+            id: "cust_1",
+            cifNumber: "CIFCUST_1",
+            name: "John Adebayo Doe",
+            email: "john.doe@example.com",
+            phoneNumber: "+2348012345678",
+            address: "123, Main Street, Victoria Island, Lagos, Nigeria",
+            nationality: "Nigerian",
+            branchCode: "001",
+            branchName: "Head Office",
+            status: "Active",
+            signUp2FA: "SMS_OTP",
+            signUpMainAuth: "PIN",
+            insertDate: "2022-08-15T10:30:00Z",
+            avatarUrl: "https://picsum.photos/seed/customer1/100/100"
+        },
         'cust_1': {
             id: "cust_1",
             cifNumber: "CIFCUST_1",
@@ -130,7 +146,7 @@ export default function CustomerDetailsPage({ params }: { params: { customerId: 
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline"><Edit className="mr-2 h-4 w-4" /> Edit Profile</Button>
-                    <Button variant="destructive" className="bg-red-600 hover:bg-red-700"><Ban className="mr-2 h-4 w-4" /> Suspend</Button>
+                    <Button variant="destructive" className="bg-red-600 hover:bg-red-700"><Ban className="mr-2 h-4 w-4" /> Block App User</Button>
                 </div>
             </CardHeader>
        </Card>
@@ -178,6 +194,7 @@ export default function CustomerDetailsPage({ params }: { params: { customerId: 
                             <TableHead>Currency</TableHead>
                             <TableHead>Branch</TableHead>
                             <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -192,6 +209,11 @@ export default function CustomerDetailsPage({ params }: { params: { customerId: 
                                         variant={getStatusVariant(acc.status)}
                                         className={acc.status === 'Active' ? 'bg-green-100 text-green-800 border-green-200' : ''}
                                      >{acc.status}</Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <Button variant="ghost" size="icon">
+                                        <Unlink className="h-4 w-4 text-red-500" />
+                                    </Button>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -245,10 +267,11 @@ export default function CustomerDetailsPage({ params }: { params: { customerId: 
                     <InfoItem label="Two-Factor Authentication (2FA)" value={<Badge variant="secondary">{customer.signUp2FA}</Badge>} />
                 </div>
                 <Separator />
-                <div className="flex justify-start gap-2">
+                <div className="flex justify-start gap-2 flex-wrap">
                     <Button>Reset PIN</Button>
                     <Button variant="outline">Reset Security Questions</Button>
                     <Button variant="destructive" className="bg-red-600 hover:bg-red-700">Force Logout</Button>
+                    <Button variant="destructive" className="bg-orange-600 hover:bg-orange-700">Block App User</Button>
                 </div>
             </CardContent>
           </Card>
