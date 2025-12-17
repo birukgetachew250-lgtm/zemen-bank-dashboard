@@ -1,7 +1,6 @@
 
 'use client';
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -12,7 +11,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { Users, Link, UserCheck, Search } from "lucide-react";
+import { Users, Link, UserCheck, Search, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { CustomerDetailsCard } from "@/components/customers/CustomerDetailsCard";
+import type { CustomerDetails } from "@/components/customers/CustomerDetailsCard";
 
 // Mock data for the summary stats
 const userStats = {
@@ -22,14 +24,38 @@ const userStats = {
 };
 
 export default function ExistingCustomersPage() {
-  const [cifNumber, setCifNumber] = useState("1");
-  const router = useRouter();
+  const [cifNumber, setCifNumber] = useState("cust_1");
+  const [isLoading, setIsLoading] = useState(false);
+  const [customer, setCustomer] = useState<CustomerDetails | null>(null);
+  const { toast } = useToast();
 
-  const handleSearch = () => {
-    if (cifNumber) {
-      // We will construct a mock customer ID from the CIF for demonstration.
-      // In a real app, you might have a lookup service first.
-      router.push(`/customers/cust_${cifNumber}`);
+  const handleSearch = async () => {
+    if (!cifNumber) {
+        toast({
+            variant: "destructive",
+            title: "CIF number required",
+            description: "Please enter a CIF number to search.",
+        });
+        return;
+    }
+    setIsLoading(true);
+    setCustomer(null);
+    try {
+        const response = await fetch(`/api/customers/${cifNumber}`);
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || "Customer not found");
+        }
+        const data = await response.json();
+        setCustomer(data);
+    } catch (error: any) {
+        toast({
+            variant: "destructive",
+            title: "Search Failed",
+            description: error.message,
+        });
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -63,25 +89,37 @@ export default function ExistingCustomersPage() {
         <CardHeader>
           <CardTitle>Search Customer</CardTitle>
           <CardDescription>
-            Enter a Customer Information File (CIF) number to find a specific app user and view their details.
+            Enter a Customer ID to find a specific app user and view their details.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex w-full items-center space-x-2">
             <Input
               type="text"
-              placeholder="Enter CIF Number..."
+              placeholder="Enter Customer ID (e.g., cust_1)"
               value={cifNumber}
               onChange={(e) => setCifNumber(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
-            <Button onClick={handleSearch}>
-              <Search className="mr-2 h-4 w-4" />
+            <Button onClick={handleSearch} disabled={isLoading}>
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
               Search
             </Button>
           </div>
         </CardContent>
       </Card>
+      
+      {isLoading && (
+        <div className="flex justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+
+      {customer && (
+        <div className="animate-in fade-in-50">
+            <CustomerDetailsCard customer={customer} />
+        </div>
+      )}
     </div>
   );
 }
