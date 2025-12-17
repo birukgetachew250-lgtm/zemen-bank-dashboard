@@ -100,7 +100,14 @@ export const menu: MenuItem[] = [
     ],
   },
   { icon: MessageSquare, label: "OTP Sms", href: "/otp" },
-  { icon: SlidersHorizontal, label: "Limits & Charges", href: "/limits" },
+  { 
+    icon: SlidersHorizontal, 
+    label: "Limits & Charges",
+    children: [
+      { label: "Transaction Limits", href: "/limits" },
+      { label: "Transaction Charges", href: "/charges" },
+    ]
+  },
   { icon: UserCheck, label: "Roles & Permissions", href: "/roles" },
   { icon: Landmark, label: "Branches", href: "/branches" },
   { icon: Building, label: "Departments", href: "/departments" },
