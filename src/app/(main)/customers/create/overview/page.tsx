@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { Suspense, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, Phone, Mail, Fingerprint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -34,6 +35,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const authMethods = [
   { value: 'SMSOTP', label: 'SMS OTP' },
@@ -147,11 +149,11 @@ function OverviewContent() {
       <CardContent className="space-y-6">
         <div>
             <h3 className="font-semibold text-lg mb-2">Customer Details</h3>
-            <div className="text-sm space-y-1 p-4 border rounded-lg bg-muted/50">
-                <p><span className="font-medium text-muted-foreground w-24 inline-block">Name:</span> {customer.full_name}</p>
-                <p><span className="font-medium text-muted-foreground w-24 inline-block">CIF:</span> {customer.customer_number}</p>
-                <p><span className="font-medium text-muted-foreground w-24 inline-block">Phone:</span> {customer.mobile_number}</p>
-                <p><span className="font-medium text-muted-foreground w-24 inline-block">Email:</span> {customer.email_id}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-4 border rounded-lg bg-muted/50">
+                <InfoItem icon={<User />} label="Name" value={customer.full_name} />
+                <InfoItem icon={<Fingerprint />} label="CIF Number" value={customer.customer_number} />
+                <InfoItem icon={<Phone />} label="Phone" value={customer.mobile_number} />
+                <InfoItem icon={<Mail />} label="Email" value={customer.email_id} />
             </div>
         </div>
          <div>
@@ -230,7 +232,7 @@ function OverviewContent() {
         </div>
       </CardContent>
       <CardFooter className="flex justify-between items-center p-6">
-        <Button variant="outline" onClick={() => router.back()}>Back</Button>
+        <Button type="button" variant="outline" onClick={() => router.back()}>Back</Button>
         <Button type="submit" disabled={submitting}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Submit for Approval
@@ -240,6 +242,18 @@ function OverviewContent() {
     </form>
     </Form>
   );
+}
+
+function InfoItem({ icon, label, value, className }: { icon: React.ReactNode, label: string, value: React.ReactNode, className?: string }) {
+    return (
+        <div className={cn("flex items-start gap-4", className)}>
+            <div className="w-6 h-6 text-muted-foreground mt-1">{icon}</div>
+            <div>
+                <p className="text-sm text-muted-foreground">{label}</p>
+                <p className="font-medium">{value}</p>
+            </div>
+        </div>
+    )
 }
 
 export default function OverviewPage() {
