@@ -46,7 +46,6 @@ export const menu: MenuItem[] = [
     children: [
       { label: "Create Customer", href: "/customers/create" },
       { label: "Existing Customers", href: "/customers" },
-      { label: "Update Customers", href: "/customers/update" },
     ],
   },
   {
