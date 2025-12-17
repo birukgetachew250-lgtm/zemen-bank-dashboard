@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Trash2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 interface Account {
     CUSTACNO: string;
@@ -43,9 +44,18 @@ const fetchAccountsByCif = async (cif: string): Promise<Account[]> => {
         { CUSTACNO: "1031110048533015", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Private and Individual", status: "Active" },
         { CUSTACNO: "1031110048533016", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "C", ACCLASSDESC: "Personal Current - Private and Individual", status: "Active" },
         { CUSTACNO: "1031110048533017", BRANCH_CODE: "101", CCY: "USD", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Domiciliary Saving", status: "Dormant" },
-        { CUSTACNO: "1031110048533018", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Joint", status: "Active" },
+        { CUSTACNO: "1031110048533018", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Joint", status: "Inactive" },
     ];
 };
+
+const getStatusVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+        case 'active': return 'secondary';
+        case 'dormant': return 'outline';
+        case 'inactive': return 'destructive';
+        default: return 'default';
+    }
+}
 
 function SelectAccountsContent() {
   const router = useRouter();
@@ -142,12 +152,13 @@ function SelectAccountsContent() {
                 <TableHead>Type</TableHead>
                 <TableHead>Currency</TableHead>
                 <TableHead>Branch</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={6} className="h-24 text-center"><Loader2 className="animate-spin mx-auto" /></TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="h-24 text-center"><Loader2 className="animate-spin mx-auto" /></TableCell></TableRow>
               ) : accounts.length > 0 ? (
                 accounts.map((acc) => (
                   <TableRow key={acc.CUSTACNO}>
@@ -156,16 +167,29 @@ function SelectAccountsContent() {
                     <TableCell><Badge variant="outline">{acc.ACCOUNT_TYPE}</Badge></TableCell>
                     <TableCell><Badge variant="outline">{acc.CCY}</Badge></TableCell>
                     <TableCell>{acc.BRANCH_CODE}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={getStatusVariant(acc.status)}
+                        className={cn({
+                            'bg-green-100 text-green-800 border-green-200': acc.status === 'Active',
+                            'bg-yellow-100 text-yellow-800 border-yellow-200': acc.status === 'Dormant',
+                            'bg-red-100 text-red-800 border-red-200': acc.status === 'Inactive',
+                        })}
+                      >
+                          {acc.status}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => handleRemoveAccount(acc.CUSTACNO)}>
                         <Trash2 className="h-4 w-4 text-red-500" />
+                        <span className="sr-only">Exclude</span>
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">No accounts found for this customer.</TableCell>
+                    <TableCell colSpan={7} className="h-24 text-center">No accounts found for this customer.</TableCell>
                 </TableRow>
               )}
             </TableBody>
