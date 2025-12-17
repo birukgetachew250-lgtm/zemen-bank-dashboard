@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Settings, User } from "lucide-react";
 
 import {
@@ -15,10 +15,33 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { menu, type MenuItem } from "@/lib/menu";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
+import { ScrollArea } from "../ui/scroll-area";
+import { Menu as MenuIcon } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
+const findCurrentPage = (menuItems: MenuItem[], pathname: string): MenuItem | undefined => {
+    for (const item of menuItems) {
+      if (item.href === pathname) {
+        return item;
+      }
+      if (item.children) {
+        const child = findCurrentPage(item.children, pathname);
+        if (child) return child;
+      }
+    }
+  };
+  
 export function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+
+  const currentPage = findCurrentPage(menu, pathname);
 
   const handleLogout = async () => {
     const response = await fetch('/api/auth/logout', { method: 'POST' });
@@ -32,7 +55,36 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur-sm px-4 md:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 backdrop-blur-sm px-4 md:px-6">
+      <div className="flex items-center gap-4">
+        {isMobile && (
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon">
+                <MenuIcon />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="flex flex-col p-0">
+               <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
+                <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
+                  <Image src="/images/logo.png" alt="Zemen Bank" width={32} height={32} />
+                  <span className="">Zemen Admin</span>
+                </Link>
+              </div>
+               <ScrollArea className="flex-1">
+                <nav className="grid items-start gap-1 p-2 text-sm font-medium">
+                  {menu.map((item) => (
+                    <p key={item.label}>Nav Item</p>
+                  ))}
+                </nav>
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
+        )}
+         <h1 className="text-xl font-semibold tracking-tight">
+          {currentPage?.label || 'Dashboard'}
+        </h1>
+      </div>
       <div className="ml-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
