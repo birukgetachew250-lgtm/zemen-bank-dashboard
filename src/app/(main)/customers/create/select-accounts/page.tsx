@@ -106,8 +106,8 @@ function SelectAccountsContent() {
 
   if (!customer.customer_number) {
     return (
-        <div className="w-full">
-        <Card>
+        <div className="w-full flex-grow flex flex-col">
+        <Card className="w-full flex-grow flex flex-col">
             <CardHeader>
                 <CardTitle>Error</CardTitle>
             </CardHeader>
@@ -128,15 +128,15 @@ function SelectAccountsContent() {
   const includedCount = accounts.filter(acc => acc.included).length;
 
   return (
-    <div className="w-full">
-    <Card>
+    <div className="w-full flex-grow flex flex-col">
+    <Card className="w-full flex-grow flex flex-col">
       <CardHeader>
         <CardTitle className="font-headline text-2xl font-bold">Onboard New Customer</CardTitle>
         <CardDescription>
           Step 2: Review and select the accounts to link for mobile banking for <span className="font-semibold">{customer.full_name}</span>.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow flex flex-col">
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -194,7 +194,7 @@ function SelectAccountsContent() {
             </TableBody>
           </Table>
         </div>
-        <div className="flex justify-between items-center mt-6 gap-2">
+        <div className="flex justify-between items-center mt-auto pt-6 gap-2">
             <Button variant="outline" onClick={() => router.back()}>Back</Button>
              <p className="text-sm text-muted-foreground">{includedCount} of {accounts.length} accounts selected.</p>
             <Button onClick={handleNext} disabled={includedCount === 0}>

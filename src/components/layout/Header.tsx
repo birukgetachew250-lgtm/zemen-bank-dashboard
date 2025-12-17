@@ -1,3 +1,4 @@
+
 "use client";
 
 import { usePathname, useRouter } from 'next/navigation';
@@ -22,19 +23,26 @@ export function Header() {
   const { toast } = useToast();
 
   const getPageTitle = () => {
-    for (const item of menu) {
-      if (item.href === pathname) {
-        return item.label;
-      }
-      if (item.children) {
-        for (const child of item.children) {
-          if (child.href === pathname) {
-            return child.label;
-          }
+    // Traverse the menu to find the matching label for the current path
+    const findLabel = (items: typeof menu): string | null => {
+        for (const item of items) {
+            if (item.href === pathname) {
+                return item.label;
+            }
+            if (item.children) {
+                const childLabel = findLabel(item.children as any);
+                if (childLabel) return childLabel;
+            }
         }
-      }
-    }
-    return "Dashboard";
+        
+        // Handle dynamic routes like customer details
+        if (pathname.startsWith('/customers/cust_')) return "Customer Details";
+        if (pathname.startsWith('/corporates/details')) return "Corporate Client Details";
+
+
+        return null;
+    };
+    return findLabel(menu) || "Dashboard";
   };
   
   const handleLogout = async () => {
@@ -60,7 +68,7 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9">
-                <AvatarImage src="https://picsum.photos/seed/admin/100/100" alt="Admin User" />
+                <AvatarImage src="https://picsum.photos/seed/admin-user/100/100" alt="Admin User" />
                 <AvatarFallback>AU</AvatarFallback>
               </Avatar>
             </Button>

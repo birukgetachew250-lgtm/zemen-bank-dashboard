@@ -34,7 +34,7 @@ export default function ExistingCustomersPage() {
   };
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-8 flex-grow flex flex-col">
       <div>
         <h2 className="text-2xl font-headline font-semibold mb-4">App User Summary</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -59,29 +59,31 @@ export default function ExistingCustomersPage() {
         </div>
       </div>
 
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Search Customer</CardTitle>
-          <CardDescription>
-            Enter a Customer Information File (CIF) number to find a specific app user and view their details.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex w-full items-center space-x-2">
-            <Input
-              type="text"
-              placeholder="Enter CIF Number..."
-              value={cifNumber}
-              onChange={(e) => setCifNumber(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            />
-            <Button onClick={handleSearch}>
-              <Search className="mr-2 h-4 w-4" />
-              Search
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex-grow flex items-center justify-center">
+        <Card className="w-full max-w-2xl">
+          <CardHeader>
+            <CardTitle>Search Customer</CardTitle>
+            <CardDescription>
+              Enter a Customer Information File (CIF) number to find a specific app user and view their details.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex w-full items-center space-x-2">
+              <Input
+                type="text"
+                placeholder="Enter CIF Number..."
+                value={cifNumber}
+                onChange={(e) => setCifNumber(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+              <Button onClick={handleSearch}>
+                <Search className="mr-2 h-4 w-4" />
+                Search
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
