@@ -42,7 +42,7 @@ export function SidebarNav() {
       <Sidebar collapsible="icon">
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
-            <Image src="/logo.png" alt="Zemen Bank" width={32} height={32} className="group-data-[collapsible=icon]:mx-auto" />
+            <Image src="/images/logo.png" alt="Zemen Bank" width={32} height={32} />
             <span className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden truncate">
               Zemen Admin
             </span>
