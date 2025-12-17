@@ -210,10 +210,8 @@ function SelectAccountsContent() {
 
 export default function SelectAccountsPage() {
     return (
-        <div className="w-full h-full flex items-center justify-center">
-            <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
-                <SelectAccountsContent />
-            </Suspense>
-        </div>
+        <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
+            <SelectAccountsContent />
+        </Suspense>
     )
 }

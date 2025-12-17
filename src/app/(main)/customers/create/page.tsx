@@ -129,7 +129,7 @@ export default function CreateCustomerPage() {
 
   return (
     <div className="w-full flex-grow flex flex-col">
-      <Card className="flex-grow flex flex-col">
+      <Card className="w-full flex-grow flex flex-col">
         <CardHeader>
           <CardTitle className="font-headline text-2xl font-bold">
             Onboard New Customer for Mobile Banking

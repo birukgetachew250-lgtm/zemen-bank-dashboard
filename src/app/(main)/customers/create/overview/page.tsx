@@ -139,7 +139,7 @@ function OverviewContent() {
   return (
     <Form {...form}>
     <form onSubmit={form.handleSubmit(onSubmit)} className="w-full h-full flex flex-col">
-    <Card className="w-full max-w-4xl mx-auto flex-grow flex flex-col">
+    <Card className="w-full flex-grow flex flex-col">
       <CardHeader>
         <CardTitle>Onboard New Customer: Overview & Finalize</CardTitle>
         <CardDescription>
@@ -258,10 +258,8 @@ function InfoItem({ icon, label, value, className }: { icon: React.ReactNode, la
 
 export default function OverviewPage() {
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center p-4">
-            <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
-                <OverviewContent />
-            </Suspense>
-        </div>
+        <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
+            <OverviewContent />
+        </Suspense>
     );
 }
