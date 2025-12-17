@@ -128,7 +128,7 @@ export default function CreateCustomerPage() {
   };
 
   return (
-    <Card className="w-full flex-grow flex flex-col">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="font-headline text-2xl font-bold">
           Onboard New Customer for Mobile Banking
@@ -137,7 +137,7 @@ export default function CreateCustomerPage() {
           Step 1: Enter the Branch Code and CIF number to fetch customer details from Flexcube.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col">
+      <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onCifSubmit)} className="flex items-start gap-4 mb-8 max-w-xl">
             <FormField
@@ -174,7 +174,7 @@ export default function CreateCustomerPage() {
         </Form>
 
         {customer && (
-          <div className="animate-in fade-in-50 space-y-6 flex-grow flex flex-col">
+          <div className="animate-in fade-in-50 space-y-6">
               <Separator />
               <h3 className="text-lg font-semibold text-foreground">Customer Verification</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 rounded-lg border p-6">
@@ -187,7 +187,7 @@ export default function CreateCustomerPage() {
                   <InfoItem icon={<MapPin />} label="Address" value={`${customer.address_line_1}, ${customer.address_line_2}, ${customer.address_line_3}`} className="lg:col-span-2" />
                   <InfoItem icon={<Globe />} label="Country" value={customer.country} />
               </div>
-              <div className="flex justify-end mt-auto">
+              <div className="flex justify-end mt-4">
                   <Button onClick={handleNext}>Next: Select Accounts</Button>
               </div>
           </div>

@@ -126,14 +126,14 @@ function SelectAccountsContent() {
   const includedCount = accounts.filter(acc => acc.included).length;
 
   return (
-    <Card className="w-full flex-grow flex flex-col">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="font-headline text-2xl font-bold">Onboard New Customer</CardTitle>
         <CardDescription>
           Step 2: Review and select the accounts to link for mobile banking for <span className="font-semibold">{customer.full_name}</span>.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col">
+      <CardContent className="flex flex-col flex-1">
         <div className="rounded-md border">
           <Table>
             <TableHeader>

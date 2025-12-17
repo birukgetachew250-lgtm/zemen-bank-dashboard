@@ -10,7 +10,7 @@ export default function CreateCustomerSuccessPage() {
   const router = useRouter();
 
   return (
-    <div className="flex items-center justify-center h-full w-full">
+    <div className="w-full h-full flex items-center justify-center">
       <Card className="w-full max-w-lg text-center">
         <CardHeader className="items-center">
             <div className="p-4 bg-green-100 rounded-full">

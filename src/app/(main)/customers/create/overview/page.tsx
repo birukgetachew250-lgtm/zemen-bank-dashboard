@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Suspense, useState, useMemo } from 'react';
@@ -138,15 +137,15 @@ function OverviewContent() {
 
   return (
     <Form {...form}>
-    <form onSubmit={form.handleSubmit(onSubmit)} className="w-full flex-grow flex flex-col">
-    <Card className="w-full flex-grow flex flex-col">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="w-full flex flex-col flex-1">
+    <Card className="w-full flex flex-col flex-1">
       <CardHeader>
         <CardTitle>Onboard New Customer: Overview & Finalize</CardTitle>
         <CardDescription>
           Review all customer information and set security details before submitting for approval.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6 flex-grow">
+      <CardContent className="space-y-6 flex-1">
         <div>
             <h3 className="font-semibold text-lg mb-2">Customer Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-4 border rounded-lg bg-muted/50">
