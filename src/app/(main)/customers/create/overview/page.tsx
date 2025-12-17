@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Suspense, useState } from 'react';
@@ -190,7 +191,7 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
             <p className="text-sm font-medium text-muted-foreground">{label}</p>
             <div className="font-semibold">{value}</div>
         </div>
-    )
+    );
 }
 
 export default function OverviewPage() {
@@ -200,5 +201,5 @@ export default function OverviewPage() {
                 <OverviewContent />
             </Suspense>
         </div>
-    )
+    );
 }
