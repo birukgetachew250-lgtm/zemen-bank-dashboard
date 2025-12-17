@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 
 const authMethods = [
   { value: 'SMSOTP', label: 'SMS OTP' },
@@ -155,11 +156,17 @@ function OverviewContent() {
         </div>
          <div>
             <h3 className="font-semibold text-lg mb-2">Accounts to be Linked ({accounts.length})</h3>
-            <div className="text-sm space-y-1 p-4 border rounded-lg bg-muted/50">
-                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                {accounts.map((acc: any) => (
-                        <li key={acc.CUSTACNO}>{acc.CUSTACNO} ({acc.ACCLASSDESC})</li>
-                ))}
+            <div className="border rounded-lg">
+                <ul className="divide-y divide-border">
+                    {accounts.map((acc: any) => (
+                        <li key={acc.CUSTACNO} className="px-4 py-3 flex justify-between items-center text-sm">
+                            <div>
+                                <p className="font-medium text-foreground">{acc.CUSTACNO}</p>
+                                <p className="text-muted-foreground">{acc.ACCLASSDESC}</p>
+                            </div>
+                            <Badge variant="outline">{acc.CCY}</Badge>
+                        </li>
+                    ))}
                 </ul>
             </div>
         </div>
