@@ -30,14 +30,11 @@ import { notFound } from "next/navigation";
 
 const getCustomerById = (id: string) => {
     // This is a mock data fetch. In a real app, you would query your database.
-    // For this prototype, we'll return a mock customer object if the id is known.
     const mockCustomers: {[key: string]: any} = {
         'cust_1': {
             id: "cust_1",
-            cifNumber: "1002345",
-            firstName: "John",
-            secondName: "Adebayo",
-            lastName: "Doe",
+            cifNumber: "CIFCUST_1",
+            name: "John Adebayo Doe",
             email: "john.doe@example.com",
             phoneNumber: "+2348012345678",
             address: "123, Main Street, Victoria Island, Lagos, Nigeria",
@@ -52,15 +49,17 @@ const getCustomerById = (id: string) => {
         },
     };
     
+    if (mockCustomers[id]) {
+      return mockCustomers[id];
+    }
+    
     // For any other ID, we can derive it from the db
     const customerFromDb = db.prepare('SELECT * FROM customers WHERE id = ?').get(id);
     if (customerFromDb) {
         return {
              id: customerFromDb.id,
             cifNumber: "CIF" + customerFromDb.id.substring(4, 10),
-            firstName: customerFromDb.name.split(' ')[0],
-            secondName: customerFromDb.name.split(' ')[1] || '',
-            lastName: customerFromDb.name.split(' ')[2] || '',
+            name: customerFromDb.name,
             email: `${customerFromDb.name.split(' ')[0].toLowerCase()}@example.com`,
             phoneNumber: customerFromDb.phone,
             address: "123, Mock Street, Addis Ababa",
@@ -76,7 +75,7 @@ const getCustomerById = (id: string) => {
     }
 
 
-    return mockCustomers[id] || null;
+    return null;
 }
 
 
@@ -110,7 +109,7 @@ export default function CustomerDetailsPage({ params }: { params: { customerId: 
         notFound();
     }
 
-    const fullName = `${customer.firstName} ${customer.secondName} ${customer.lastName}`;
+    const fullName = customer.name;
 
   return (
     <div className="w-full space-y-6">

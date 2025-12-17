@@ -2,43 +2,40 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-const getCustomerByCif = (cif: string) => {
-    // This is not efficient, but for the prototype we can find the customer by iterating
-    const allCustomers = db.prepare('SELECT * FROM customers').all();
-    const customerFromDb = allCustomers.find(c => {
-        const constructedCif = "CIF" + c.id.substring(4, 10).toUpperCase();
-        return constructedCif === cif;
-    });
-
-    return customerFromDb;
-}
-
 const getCustomerById = (id: string) => {
-    let customerFromDb: any;
+    const mockCustomers: {[key: string]: any} = {
+        'CIFCUST_1': {
+            id: "cust_1",
+            cifNumber: "CIFCUST_1",
+            name: "John Adebayo Doe",
+            email: "john.doe@example.com",
+            phoneNumber: "+2348012345678",
+            address: "123, Main Street, Victoria Island, Lagos, Nigeria",
+            nationality: "Nigerian",
+            branchName: "Head Office",
+            status: "Active",
+            insertDate: "2022-08-15T10:30:00Z",
+            avatarUrl: "https://picsum.photos/seed/customer1/100/100"
+        },
+    };
 
-    if (id.startsWith('CIF')) {
-        customerFromDb = getCustomerByCif(id);
-    } else {
-        customerFromDb = db.prepare('SELECT * FROM customers WHERE id = ?').get(id);
+    if (mockCustomers[id]) {
+        return mockCustomers[id];
     }
+    
+    const customerFromDb = db.prepare('SELECT * FROM customers WHERE id = ?').get(id);
     
     if (customerFromDb) {
         return {
              id: customerFromDb.id,
             cifNumber: "CIF" + customerFromDb.id.substring(4, 10).toUpperCase(),
-            firstName: customerFromDb.name.split(' ')[0],
-            secondName: customerFromDb.name.split(' ')[1] || '',
-            lastName: customerFromDb.name.split(' ')[2] || '',
             name: customerFromDb.name,
             email: `${customerFromDb.name.split(' ')[0].toLowerCase()}@example.com`,
             phoneNumber: customerFromDb.phone,
             address: "123, Mock Street, Addis Ababa",
             nationality: "Ethiopian",
-            branchCode: "101",
             branchName: "Main Branch",
             status: customerFromDb.status,
-            signUp2FA: "SMS_OTP",
-            signUpMainAuth: "PIN",
             insertDate: customerFromDb.registeredAt,
             avatarUrl: `https://picsum.photos/seed/${customerFromDb.id}/100/100`
         }
