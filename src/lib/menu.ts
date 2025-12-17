@@ -68,7 +68,6 @@ export const menu: MenuItem[] = [
       { label: "Pin Resets", href: "/customers/approve-pin-reset" },
       { label: "Security Resets", href: "/customers/approve-security" },
       { label: "Transaction Pins", href: "/customers/approve-transaction-pin" },
-      { label: "New Devices", href: "/customers/approve-devices" },
       { label: "Disabled Customers", href: "/customers/approve-disabled" },
     ]
   },
