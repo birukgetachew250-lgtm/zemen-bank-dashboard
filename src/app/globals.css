@@ -29,14 +29,16 @@
     --chart-4: 240 50% 60%;
     --chart-5: 30 80% 55%;
     --radius: 0.5rem;
-    --sidebar-background: 347 72% 47.3%; /* #D02149 */
-    --sidebar-foreground: 347 100% 96%; /* Lighter pink for text */
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 347 72% 47.3%;
-    --sidebar-accent: 347 72% 42.3%; /* Darker pink for hover */
-    --sidebar-accent-foreground: 0 0% 100%; /* White text on hover */
-    --sidebar-border: 347 72% 42.3%;
-    --sidebar-ring: 0 0% 100%;
+    
+    /* Dark Sidebar Theme */
+    --sidebar-background: 240 10% 3.9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 347 72% 47.3%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 10% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 10% 12%;
+    --sidebar-ring: 347 72% 47.3%;
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -63,14 +65,16 @@
     --chart-3: 0 72% 51%;
     --chart-4: 240 50% 60%;
     --chart-5: 30 80% 55%;
-    --sidebar-background: 347 72% 47.3%; /* #D02149 */
-    --sidebar-foreground: 347 100% 96%; /* Lighter pink for text */
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 347 72% 47.3%;
-    --sidebar-accent: 347 72% 42.3%; /* Darker pink for hover */
-    --sidebar-accent-foreground: 0 0% 100%; /* White text on hover */
-    --sidebar-border: 347 72% 42.3%;
-    --sidebar-ring: 0 0% 100%;
+
+    /* Dark Sidebar Theme */
+    --sidebar-background: 240 10% 3.9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 347 72% 47.3%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 10% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 10% 12%;
+    --sidebar-ring: 347 72% 47.3%;
   }
 }
 

@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { menu, MenuItem } from "@/lib/menu";
+import { Button } from "../ui/button";
+import Image from "next/image";
 
 export function SidebarNav() {
   const pathname = usePathname();
@@ -39,7 +41,8 @@ export function SidebarNav() {
       <Sidebar collapsible="icon">
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
-            <span className="text-lg font-semibold text-sidebar-primary group-data-[collapsible=icon]:hidden truncate">
+            <Image src="https://zemenbank.com/wp-content/themes/zemen-bank/images/logo.png" alt="Zemen Bank" width={32} height={32} className="group-data-[collapsible=icon]:mx-auto" />
+            <span className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden truncate">
               Zemen Admin
             </span>
           </div>
@@ -94,12 +97,6 @@ export function SidebarNav() {
             )}
           </SidebarMenu>
         </SidebarContent>
-        <Separator />
-        <SidebarFooter>
-          <div className="text-xs text-sidebar-foreground/50 p-4 group-data-[collapsible=icon]:hidden">
-              © {new Date().getFullYear()} Zemen Bank
-          </div>
-        </SidebarFooter>
       </Sidebar>
   );
 }
