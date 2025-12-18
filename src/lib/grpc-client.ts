@@ -1,4 +1,3 @@
-
 'use server';
 
 import * as grpc from '@grpc/grpc-js';
@@ -19,8 +18,9 @@ export function getAccountDetailServiceClient() {
         throw new Error("GRPC_URL is not defined in the environment variables.");
     }
     
-    // gRPC clients expect 'hostname:port', not 'http://hostname:port'
-    const grpcUrl = config.grpc.url.replace(/^https?:\/\//, '');
+    // gRPC clients expect 'hostname:port', not 'http://hostname:port'.
+    // This regex removes the protocol prefix.
+    const grpcUrl = config.grpc.url.replace(/^(https?:\/\/)/, '');
 
     console.log(`Initializing gRPC client for AccountDetailService at ${grpcUrl}`);
 
