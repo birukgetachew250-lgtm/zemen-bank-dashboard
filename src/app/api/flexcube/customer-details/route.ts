@@ -10,7 +10,6 @@ class AccountDetailServiceClient {
     QueryCustomerDetails(request: any, callback: (err: any, res: any) => void) {
       // This is a placeholder for the real gRPC call.
       // In a live environment with a real client, this will be replaced.
-      // This now only returns 'not found' to prove the hardcoded '0048533' mock is gone.
       // The next step would be to implement the actual gRPC client logic here.
       const { requestBody } = JSON.parse(request.getPayload());
       const customer_id = requestBody.customer_id;
