@@ -271,7 +271,7 @@ if (db.prepare('SELECT COUNT(*) as count FROM corporates').get().count === 0) {
         { id: "corp_2", name: "MTN Nigeria", industry: "Telecommunications", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/mtn/40/40" },
     ];
     db.transaction((items) => {
-        if (items && items.length) {
+        if (items && items.length > 0) {
             items.forEach(item => insertCorporate.run(item.id, item.name, item.industry, item.status, item.internet_banking_status, item.logo_url))
         }
     })(corporates);
@@ -284,7 +284,7 @@ if (db.prepare('SELECT COUNT(*) as count FROM branches').get().count === 0) {
         { id: `br_${crypto.randomUUID()}`, name: "Head Office", location: "HQ, Addis Ababa" },
     ];
     db.transaction((items) => {
-        if (items && items.length) {
+        if (items && items.length > 0) {
             items.forEach(item => insertBranch.run(item.id, item.name, item.location))
         }
     })(branches);
@@ -297,7 +297,7 @@ if (db.prepare('SELECT COUNT(*) as count FROM departments').get().count === 0) {
         { id: `dep_${crypto.randomUUID()}`, name: "IT Department" },
     ];
      db.transaction((items) => {
-        if (items && items.length) {
+        if (items && items.length > 0) {
             items.forEach(item => insertDepartment.run(item.id, item.name))
         }
     })(departments);
@@ -307,7 +307,7 @@ if (db.prepare('SELECT COUNT(*) as count FROM mini_apps').get().count === 0) {
     const insertMiniApp = db.prepare('INSERT INTO mini_apps (id, name, url, logo_url, username, password, encryption_key) VALUES (?, ?, ?, ?, ?, ?, ?)');
     const miniApps = [ { id: `mapp_${crypto.randomUUID()}`, name: "Cinema Ticket", url: "https://cinema.example.com", logo_url: "https://picsum.photos/seed/cinema/100/100", username: "cinema_api", password: "secure_password_1", encryption_key: crypto.randomBytes(32).toString('hex') }];
     db.transaction((items) => {
-        if (items && items.length) {
+        if (items && items.length > 0) {
             items.forEach(item => insertMiniApp.run(item.id, item.name, item.url, item.logo_url, item.username, item.password, item.encryption_key))
         }
     })(miniApps);
