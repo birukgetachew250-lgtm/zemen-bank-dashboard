@@ -56,7 +56,7 @@ const getCustomerById = (id: string) => {
             name: [firstName, secondName, lastName].filter(Boolean).join(' '),
             email: email,
             phoneNumber: phoneNumber,
-            address: `${d.AddressLine1 || d.ADDRESSLINE1 || ''}, ${d.AddressLine2 || d.ADDRESSLINE2 || ''}`,
+            address: [d.AddressLine1 || d.ADDRESSLINE1, d.AddressLine2 || d.ADDRESSLINE2, d.AddressLine3 || d.ADDRESSLINE3, d.AddressLine4 || d.ADDRESSLINE4].filter(Boolean).join(', '),
             nationality: d.Nationality || d.NATIONALITY,
             branchCode: d.BranchCode || d.BRANCHCODE,
             branchName: d.BranchName || d.BRANCHNAME,
@@ -293,4 +293,5 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
     
 
     
+
 
