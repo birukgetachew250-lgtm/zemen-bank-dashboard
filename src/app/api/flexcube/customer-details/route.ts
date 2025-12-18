@@ -19,7 +19,6 @@ export async function POST(req: Request) {
     try {
         const client = getAccountDetailServiceClient();
         
-        // Correctly serialize the AccountDetailRequest message to binary format
         const RequestType = getAccountDetailRequestType();
         if (!RequestType) {
             throw new Error("Could not load the AccountDetailRequest message type.");
@@ -82,4 +81,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: error.details || 'An internal server error occurred' }, { status: 500 });
     }
 }
-

@@ -1,3 +1,4 @@
+
 'use server';
 
 import * as grpc from '@grpc/grpc-js';
@@ -57,7 +58,7 @@ function loadGrpcClient() {
             grpc.credentials.createInsecure()
         );
 
-        // Cache the message type
+        // Cache the message type itself, which contains the .encode method
         accountDetailRequestType = accountDetailPackage.AccountDetailRequest;
 
         console.log("[gRPC Client] gRPC client and message types created successfully.");
