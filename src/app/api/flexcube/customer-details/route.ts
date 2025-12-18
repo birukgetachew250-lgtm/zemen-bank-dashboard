@@ -6,6 +6,8 @@ import { getAccountDetailServiceClient } from '@/lib/grpc-client';
 export async function POST(req: Request) {
     const { branch_code, customer_id } = await req.json();
 
+    console.log(`[API] Received request for branch: ${branch_code}, cif: ${customer_id}`);
+
     if (!branch_code || !customer_id) {
         return NextResponse.json({ message: 'Branch code and customer ID are required' }, { status: 400 });
     }
@@ -21,7 +23,7 @@ export async function POST(req: Request) {
         const serviceRequest = {
             data: {
                 type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
-                value: Buffer.from(JSON.stringify(accountDetailRequest)) // This is a simplification. Real proto encoding is needed.
+                value: Buffer.from(JSON.stringify(accountDetailRequest))
             },
             request_id: `req_${Date.now()}`,
             source_system: 'ZemenSuperAppAdmin',
@@ -29,51 +31,49 @@ export async function POST(req: Request) {
             user_id: 'admin_user'
         };
 
+        console.log('[API] Sending gRPC request:', JSON.stringify(serviceRequest, null, 2));
+
         const customer = await new Promise((resolve, reject) => {
              // The client object here is dynamically created by proto-loader and has the service methods
             (client as any).QueryCustomerDetails(serviceRequest, (err: any, response: any) => {
                 if (err) {
-                    console.error("gRPC Error:", err);
+                    console.error("[API] gRPC Error received:", err);
                     return reject(err);
                 }
 
-                console.log("Raw gRPC Response:", response);
+                console.log("[API] Raw gRPC Response received:", JSON.stringify(response, null, 2));
 
                 if (response && response.success && response.data) {
-                    // Assuming data is of type `google.protobuf.Any`
-                    // In a real scenario, you'd properly unpack the 'Any' type.
-                    // For now, we'll assume it's a JSON string in the 'value' buffer.
                     try {
-                        // This part is tricky without proper proto-decoding stubs.
-                        // We are assuming the response 'data.value' is a buffer containing a JSON string.
-                        // This might need adjustment based on the actual server implementation.
                         const detailResponse = JSON.parse(response.data.value.toString('utf8'));
                         
                         if (detailResponse.status === 'SUCCESS' && detailResponse.customer) {
-                             console.log("gRPC Success, Customer Data:", detailResponse.customer);
+                             console.log("[API] gRPC Success, decoded customer data:", detailResponse.customer);
                              resolve(detailResponse.customer);
                         } else {
-                             console.error("gRPC call returned non-success in nested response:", detailResponse.message);
+                             console.error("[API] gRPC call returned non-success in nested response:", detailResponse.message);
                              resolve(null);
                         }
                     } catch(e) {
-                         console.error("Failed to parse nested response from gRPC data field", e);
+                         console.error("[API] Failed to parse nested response from gRPC data field", e);
                          reject(new Error("Failed to parse nested gRPC response."));
                     }
                 } else {
-                    console.error("gRPC call returned non-success or empty data:", response.message);
+                    console.error("[API] gRPC call returned non-success or empty data:", response.message);
                     resolve(null);
                 }
             });
         });
 
         if (customer) {
+            console.log("[API] Customer found, returning data.");
             return NextResponse.json(customer);
         } else {
+            console.error("[API] Customer not found after successful gRPC call.");
             return NextResponse.json({ message: 'Customer not found in Flexcube' }, { status: 404 });
         }
     } catch (error: any) {
-        console.error("gRPC call failed:", error);
+        console.error("[API] Final catch block - gRPC call failed:", error);
         return NextResponse.json({ message: error.details || 'An internal server error occurred' }, { status: 500 });
     }
 }

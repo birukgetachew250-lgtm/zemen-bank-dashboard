@@ -1,3 +1,4 @@
+
 'use server';
 
 import * as grpc from '@grpc/grpc-js';
@@ -15,6 +16,7 @@ export function getAccountDetailServiceClient() {
     }
 
     if (!config.grpc.url) {
+        console.error("GRPC_URL is not defined. Please set it in your .env file.");
         throw new Error("GRPC_URL is not defined in the environment variables.");
     }
     
@@ -22,34 +24,44 @@ export function getAccountDetailServiceClient() {
     // This regex removes the protocol prefix.
     const grpcUrl = config.grpc.url.replace(/^(https?:\/\/)/, '');
 
-    console.log(`Initializing gRPC client for AccountDetailService at ${grpcUrl}`);
+    console.log(`Initializing gRPC client for AccountDetailService at target URL: ${grpcUrl}`);
 
-    const packageDefinition = protoLoader.loadSync(
-        path.join(PROTO_PATH, 'accountdetail.proto'),
-        {
-            keepCase: true,
-            longs: String,
-            enums: String,
-            defaults: true,
-            oneofs: true,
-            includeDirs: [PROTO_PATH] // Important for resolving imports like common.proto
+    try {
+        const packageDefinition = protoLoader.loadSync(
+            path.join(PROTO_PATH, 'accountdetail.proto'),
+            {
+                keepCase: true,
+                longs: String,
+                enums: String,
+                defaults: true,
+                oneofs: true,
+                includeDirs: [PROTO_PATH] // Important for resolving imports
+            }
+        );
+
+        const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
+        
+        // The package name is 'accountdetail' as defined in the proto file
+        const accountDetailPackage = (protoDescriptor as any).accountdetail;
+
+        if (!accountDetailPackage || !accountDetailPackage.AccountDetailService) {
+            console.error("Proto definition for 'accountdetail.AccountDetailService' not found after loading.");
+            throw new Error("Could not load AccountDetailService from proto definition.");
         }
-    );
+        
+        console.log("Successfully loaded 'accountdetail.AccountDetailService' from proto.");
+        
+        // Create the client
+        accountDetailServiceClient = new accountDetailPackage.AccountDetailService(
+            grpcUrl,
+            grpc.credentials.createInsecure()
+        );
 
-    const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
-    
-    // The package name is 'accountdetail' as defined in the proto file
-    const accountDetailPackage = (protoDescriptor as any).accountdetail;
+        console.log("gRPC client created successfully.");
+        return accountDetailServiceClient;
 
-    if (!accountDetailPackage || !accountDetailPackage.AccountDetailService) {
-        throw new Error("Could not load AccountDetailService from proto definition.");
+    } catch (error) {
+        console.error("Failed to initialize gRPC client:", error);
+        throw error; // Re-throw the error to be caught by the caller
     }
-    
-    // Create the client
-    accountDetailServiceClient = new accountDetailPackage.AccountDetailService(
-        grpcUrl,
-        grpc.credentials.createInsecure()
-    );
-
-    return accountDetailServiceClient;
 }
