@@ -18,13 +18,11 @@ export async function POST(req: Request) {
         const client = getAccountDetailServiceClient();
         const AccountDetailRequest = getAccountDetailRequestType();
         
-        // 1. Create the inner payload with the correct message type
         const accountDetailPayload = { branch_code, customer_id };
 
-        // 2. Serialize the inner payload to a binary buffer
+        // Correctly serialize the payload to a binary buffer
         const serializedPayload = AccountDetailRequest.encode(accountDetailPayload).finish();
         
-        // 3. Construct the main ServiceRequest
         const serviceRequest = {
             data: {
                 type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
@@ -49,8 +47,7 @@ export async function POST(req: Request) {
 
                 if (response && response.success && response.data && response.data.value) {
                     try {
-                        // The response 'data.value' is also a binary buffer that needs to be decoded
-                        const AccountDetailResponse = getAccountDetailRequestType(); // Re-using for structure, assuming response is similar or we need a specific response type
+                        const AccountDetailResponse = getAccountDetailRequestType(); 
                         const detailResponse = JSON.parse(Buffer.from(response.data.value).toString('utf8'));
                         
                         if (detailResponse.status === 'SUCCESS' && detailResponse.customer) {
