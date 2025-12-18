@@ -1,6 +1,4 @@
 
-'use server';
-
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
@@ -52,13 +50,11 @@ function loadGrpcClient() {
         
         console.log("[gRPC Client] Successfully loaded 'accountdetail' package from proto.");
         
-        // Create the client and cache it
         accountDetailServiceClient = new accountDetailPackage.AccountDetailService(
             grpcUrl,
             grpc.credentials.createInsecure()
         );
 
-        // Cache the message type itself, which contains the .encode method
         accountDetailRequestType = accountDetailPackage.AccountDetailRequest;
 
         console.log("[gRPC Client] gRPC client and message types created successfully.");
