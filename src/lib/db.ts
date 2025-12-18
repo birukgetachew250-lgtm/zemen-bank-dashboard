@@ -44,7 +44,8 @@ if (config.db.isProduction) {
                 // Determine which user to connect as
                 let user = config.db.user;
                 if (isSecurityModuleQuery) {
-                    user = 'security_module';
+                    // This is a simplification. A real app might have different users/passwords per module.
+                    user = 'security_module'; 
                 }
 
                 return await oracledb.getConnection({ 

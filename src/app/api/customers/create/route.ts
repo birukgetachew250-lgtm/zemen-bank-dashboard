@@ -58,8 +58,13 @@ export async function POST(req: Request) {
                     acc.BRANCH_CODE
                 );
             }
+
+            // 3. Create initial security record
+            db.prepare(
+                'INSERT INTO UserSecurities (UserId, CIFNumber, Status) VALUES (?, ?, ?)'
+            ).run(appUserId, customer.customer_number, 'Registered');
             
-            // 3. Create a pending approval request for this new customer registration.
+            // 4. Create a pending approval request for this new customer registration.
             const legacyCustomerId = `cust_${customer.customer_number}`; // for compatibility with approvals page
             db.prepare(
                 'INSERT INTO customers (id, name, phone, status) VALUES (?, ?, ?, ?)'
