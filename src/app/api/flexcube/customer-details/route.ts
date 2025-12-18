@@ -10,35 +10,11 @@ class AccountDetailServiceClient {
     QueryCustomerDetails(request: any, callback: (err: any, res: any) => void) {
       // This is a placeholder for the real gRPC call.
       // In a live environment with a real client, this will be replaced.
-      // For now, it simulates a "not found" to demonstrate the mock is gone.
+      // This now only returns 'not found' to prove the hardcoded '0048533' mock is gone.
+      // The next step would be to implement the actual gRPC client logic here.
       const { requestBody } = JSON.parse(request.getPayload());
       const customer_id = requestBody.customer_id;
-
-      if (customer_id === '0048533') {
-        const mockResponse = {
-            getPayload: () => JSON.stringify({
-                status: 'SUCCESS',
-                customer: {
-                    customer_number: '0048533',
-                    full_name: 'AKALEWORK TAMENE KEBEDE',
-                    cif_creation_date: '2022-01-20',
-                    date_of_birth: '1990-05-15',
-                    gender: 'Female',
-                    email_id: 'akalework.t@example.com',
-                    mobile_number: '+251911223344',
-                    address_line_1: 'AA, ADDIS KETEMA',
-                    address_line_2: '06',
-                    address_line_3: '790',
-                    address_line_4: '',
-                    country: 'ETHIOPIA',
-                    branch: 'ADDIS KETEMA'
-                }
-            })
-        };
-        callback(null, mockResponse);
-      } else {
-         callback({ code: 5, details: `Customer with CIF ${customer_id} not found.` }, null);
-      }
+      callback({ code: 5, details: `Customer with CIF ${customer_id} not found.` }, null);
     }
 }
 
