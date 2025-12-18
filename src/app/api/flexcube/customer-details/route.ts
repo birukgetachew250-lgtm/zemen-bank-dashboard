@@ -2,7 +2,7 @@
 'use server';
 
 import { NextResponse } from 'next/server';
-import { getAccountDetailServiceClient, getAccountDetailRequestType } from '@/lib/grpc-client';
+import { getAccountDetailServiceClient, getAccountDetailPackage } from '@/lib/grpc-client';
 import * as grpc from '@grpc/grpc-js';
 
 export async function POST(req: Request) {
@@ -16,9 +16,16 @@ export async function POST(req: Request) {
 
     try {
         const client = getAccountDetailServiceClient();
-        // Get the actual message type class from the loader
-        const AccountDetailRequest = getAccountDetailRequestType();
+        // Get the full protobuf package, which contains the message types
+        const accountDetailPackage = getAccountDetailPackage();
         
+        // Retrieve the message type constructor from the loaded package
+        const AccountDetailRequest = accountDetailPackage.AccountDetailRequest;
+
+        if (!AccountDetailRequest || typeof AccountDetailRequest.encode !== 'function') {
+            throw new Error('Failed to load AccountDetailRequest message type from proto definition.');
+        }
+
         const accountDetailPayload = { branch_code, customer_id };
 
         // Correctly serialize the payload to a binary buffer using the loaded type

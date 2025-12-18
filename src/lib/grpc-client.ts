@@ -6,11 +6,13 @@ import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import config from './config';
 
+// This will cache the loaded package definition
 let accountDetailPackage: any = null;
 
 const PROTO_PATH = path.resolve(process.cwd(), 'public', 'protos');
 
 function loadGrpcClient() {
+    // If already loaded, do nothing
     if (accountDetailPackage) {
         return; 
     }
@@ -46,6 +48,7 @@ function loadGrpcClient() {
         
         console.log("[gRPC Client] Successfully loaded 'accountdetail' package from proto.");
         
+        // Cache the entire loaded package
         accountDetailPackage = loadedPackage;
         
     } catch (error) {
@@ -54,23 +57,22 @@ function loadGrpcClient() {
     }
 }
 
-// This function returns the service client
+// This function ensures the client is loaded and returns the service client
 export function getAccountDetailServiceClient(): grpc.Client {
     if (!accountDetailPackage) {
         loadGrpcClient();
     }
-     const grpcUrl = config.grpc.url!.replace(/^(https?:\/\/)/, '');
+    const grpcUrl = config.grpc.url!.replace(/^(https?:\/\/)/, '');
     return new accountDetailPackage.AccountDetailService(
         grpcUrl,
         grpc.credentials.createInsecure()
     );
 }
 
-// This function returns the message type class, which has the .encode method
-export function getAccountDetailRequestType(): any {
+// This function ensures the client is loaded and returns the entire package
+export function getAccountDetailPackage(): any {
      if (!accountDetailPackage) {
         loadGrpcClient();
     }
-    // This is the critical fix: return the message type from the loaded package.
-    return accountDetailPackage.AccountDetailRequest;
+    return accountDetailPackage;
 }
