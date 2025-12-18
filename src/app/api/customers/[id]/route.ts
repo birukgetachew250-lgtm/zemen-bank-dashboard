@@ -24,7 +24,6 @@ const getCustomerByCifOrId = async (id: string) => {
             cifNumber: d.CIFNumber || d.CIFNUMBER,
             name: [firstName, secondName, lastName].filter(Boolean).join(' '),
             firstName: firstName,
-            secondName: secondName,
             lastName: lastName,
             email: decrypt(d.Email || d.EMAIL),
             phoneNumber: decrypt(d.PhoneNumber || d.PHONENUMBER),
@@ -33,7 +32,6 @@ const getCustomerByCifOrId = async (id: string) => {
             branchName: d.BranchName || d.BRANCHNAME,
             status: d.Status || d.STATUS,
             insertDate: d.InsertDate || d.INSERTDATE,
-            avatarUrl: `https://picsum.photos/seed/${d.Id || d.ID}/100/100`
         };
     }
     return null;

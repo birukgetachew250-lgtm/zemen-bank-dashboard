@@ -136,7 +136,6 @@ if (config.db.isProduction) {
         email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
         role TEXT NOT NULL,
-        avatar_url TEXT,
         branch TEXT,
         department TEXT NOT NULL
       );
@@ -308,10 +307,10 @@ if (config.db.isProduction) {
     const admin = db.prepare('SELECT * FROM users WHERE email = ?').get('admin@zemen.com');
     if (!admin) {
       db.prepare(
-        "INSERT INTO users (id, employeeId, name, email, password, role, avatar_url, branch, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO users (id, employeeId, name, email, password, role, branch, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
       ).run(
         'user_ck_admin_001', '0001', 'Admin User', 'admin@zemen.com', 'zemen2025', 'Admin',
-        'https://picsum.photos/seed/admin/100/100', 'Head Office', 'IT Department'
+        'Head Office', 'IT Department'
       );
     }
 
@@ -402,5 +401,3 @@ if (config.db.isProduction) {
 
 
 export { db };
-
-    

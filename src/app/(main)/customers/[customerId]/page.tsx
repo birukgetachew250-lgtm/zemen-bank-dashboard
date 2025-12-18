@@ -30,6 +30,7 @@ import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import config from "@/lib/config";
 import { decrypt } from "@/lib/crypto";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 
 const getCustomerById = async (id: string) => {
@@ -62,7 +63,6 @@ const getCustomerById = async (id: string) => {
             signUp2FA: d.SignUp2FA || d.SIGNUP2FA,
             signUpMainAuth: d.SignUpMainAuth || d.SIGNUPMAINAUTH,
             insertDate: d.InsertDate || d.INSERTDATE,
-            avatarUrl: `https://picsum.photos/seed/${d.Id || d.ID}/100/100`
         }
     }
     return null;
@@ -130,13 +130,9 @@ export default async function CustomerDetailsPage({ params }: { params: { custom
         <Card>
             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Image
-                        src={customer.avatarUrl}
-                        alt={`${fullName} avatar`}
-                        width={80}
-                        height={80}
-                        className="rounded-full border"
-                    />
+                    <Avatar className="h-20 w-20">
+                      <AvatarFallback>{fullName?.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    </Avatar>
                     <div>
                         <CardTitle className="text-3xl font-bold font-headline">{fullName}</CardTitle>
                         <CardDescription className="text-lg text-muted-foreground">CIF: {customer.cifNumber}</CardDescription>
@@ -144,7 +140,6 @@ export default async function CustomerDetailsPage({ params }: { params: { custom
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline"><Edit className="mr-2 h-4 w-4" /> Edit Profile</Button>
-                    <Button variant="destructive" className="bg-red-600 hover:bg-red-700"><Ban className="mr-2 h-4 w-4" /> Block App User</Button>
                 </div>
             </CardHeader>
        </Card>
@@ -266,9 +261,7 @@ export default async function CustomerDetailsPage({ params }: { params: { custom
                 </div>
                 <Separator />
                 <div className="flex justify-start gap-2 flex-wrap">
-                    <Button>Reset PIN</Button>
                     <Button variant="outline">Reset Security Questions</Button>
-                    <Button variant="destructive" className="bg-red-600 hover:bg-red-700">Force Logout</Button>
                 </div>
             </CardContent>
           </Card>
@@ -287,4 +280,3 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
         </div>
     )
 }
-

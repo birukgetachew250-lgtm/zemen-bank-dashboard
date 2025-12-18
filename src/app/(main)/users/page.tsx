@@ -11,14 +11,13 @@ export interface SystemUser {
   name: string;
   email: string;
   role: string;
-  avatar_url: string;
   branch: string;
   department: string;
 }
 
 function getSystemUsers() {
   try {
-    return db.prepare("SELECT id, employeeId, name, email, role, avatar_url, branch, department FROM users ORDER BY name ASC").all() as SystemUser[];
+    return db.prepare("SELECT id, employeeId, name, email, role, branch, department FROM users ORDER BY name ASC").all() as SystemUser[];
   } catch (e) {
     console.error("Failed to fetch users:", e);
     return [];

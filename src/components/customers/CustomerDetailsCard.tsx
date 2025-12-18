@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from "next/image";
@@ -13,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Ban } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 
 export interface CustomerDetails {
     id: string;
@@ -27,7 +29,6 @@ export interface CustomerDetails {
     branchName: string;
     status: string;
     insertDate: string;
-    avatarUrl: string;
 }
 
 interface CustomerDetailsCardProps {
@@ -41,13 +42,9 @@ export function CustomerDetailsCard({ customer }: CustomerDetailsCardProps) {
         <Card>
             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Image
-                        src={customer.avatarUrl}
-                        alt={`${customer.name} avatar`}
-                        width={80}
-                        height={80}
-                        className="rounded-full border"
-                    />
+                    <Avatar className="h-20 w-20">
+                      <AvatarFallback>{customer.name?.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    </Avatar>
                     <div>
                         <CardTitle className="text-3xl font-bold font-headline">{customer.name}</CardTitle>
                         <CardDescription className="text-lg text-muted-foreground">CIF: {customer.cifNumber}</CardDescription>

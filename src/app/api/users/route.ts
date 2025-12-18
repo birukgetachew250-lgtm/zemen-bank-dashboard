@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
-import { faker } from '@faker-js/faker';
 
 export async function POST(req: Request) {
     try {
@@ -27,14 +26,13 @@ export async function POST(req: Request) {
         }
 
         const id = `user_${crypto.randomUUID()}`;
-        const avatar_url = faker.image.avatar();
 
         // In a real app, password should be hashed before storing
         db.prepare(
-            'INSERT INTO users (id, employeeId, name, email, password, role, avatar_url, branch, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        ).run(id, employeeId, name, email, password, role, avatar_url, branch, department);
+            'INSERT INTO users (id, employeeId, name, email, password, role, branch, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        ).run(id, employeeId, name, email, password, role, branch, department);
 
-        const newUser: any = { id, employeeId, name, email, role, avatar_url, branch, department };
+        const newUser: any = { id, employeeId, name, email, role, branch, department };
 
         return NextResponse.json({ success: true, message: 'User created successfully', user: newUser }, { status: 201 });
 
@@ -69,5 +67,3 @@ export async function DELETE(req: Request) {
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }
-
-    

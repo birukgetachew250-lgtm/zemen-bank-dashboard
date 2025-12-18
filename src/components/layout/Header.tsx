@@ -90,7 +90,6 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9">
-                <AvatarImage src="https://i.pravatar.cc/150?u=admin-formal" alt="Admin User" />
                 <AvatarFallback>AU</AvatarFallback>
               </Avatar>
             </Button>

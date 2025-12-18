@@ -34,6 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 
 interface UserManagementClientProps {
   initialUsers: SystemUser[];
@@ -95,13 +96,9 @@ export function UserManagementClient({
                     <TableRow key={user.id}>
                         <TableCell className="font-medium">
                             <div className="flex items-center gap-3">
-                                <Image 
-                                    src={user.avatar_url || `https://picsum.photos/seed/${user.id}/40/40`} 
-                                    alt={`${user.name} avatar`}
-                                    width={40}
-                                    height={40}
-                                    className="rounded-full"
-                                />
+                                <Avatar className="h-10 w-10">
+                                  <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                </Avatar>
                                 <div className="flex flex-col">
                                   <span>{user.name}</span>
                                   <span className="text-xs text-muted-foreground">{user.email}</span>
