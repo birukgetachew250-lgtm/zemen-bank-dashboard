@@ -1,4 +1,5 @@
 
+
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import config from '@/lib/config';
@@ -14,19 +15,19 @@ export async function POST(req: Request) {
 
         let statement;
         if (config.db.isProduction) {
-            statement = db.prepare('UPDATE "USER_MODULE"."AppUsers" SET "Status" = :1 WHERE "CIFNumber" = :2 AND "Status" != \'Pending\'');
+            statement = await db.prepare('UPDATE "USER_MODULE"."AppUsers" SET "Status" = :1 WHERE "CIFNumber" = :2 AND "Status" != \'Pending\'');
         } else {
             statement = db.prepare('UPDATE AppUsers SET Status = ? WHERE CIFNumber = ? AND Status != \'Pending\'');
         }
-
-        const result = statement.run(status, cifNumber);
+        
+        const result = config.db.isProduction ? await statement.run(status, cifNumber) : statement.run(status, cifNumber);
         
         if (result.changes === 0) {
             // Check if user exists but is pending
             const userCheckSql = config.db.isProduction 
               ? 'SELECT "Status" FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :1' 
               : 'SELECT Status FROM AppUsers WHERE CIFNumber = ?';
-            const user = db.prepare(userCheckSql).get(cifNumber);
+            const user = config.db.isProduction ? await db.prepare(userCheckSql).get(cifNumber) : db.prepare(userCheckSql).get(cifNumber);
             
             if (user && (user.Status || user.STATUS) === 'Pending') {
                  return NextResponse.json({ message: 'Cannot change status of a pending customer.' }, { status: 403 });
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
           ? 'SELECT "Id", "CIFNumber", "FirstName", "SecondName", "LastName", "Email", "PhoneNumber", "AddressLine1", "AddressLine2", "Nationality", "BranchName", "Status", "InsertDate" FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :1'
           : 'SELECT * FROM AppUsers WHERE CIFNumber = ?';
 
-        const updatedUser = db.prepare(fetchSql).get(cifNumber);
+        const updatedUser = config.db.isProduction ? await db.prepare(fetchSql).get(cifNumber) : db.prepare(fetchSql).get(cifNumber);
 
         if (!updatedUser) {
              return NextResponse.json({ message: 'Customer updated, but could not be refetched.' }, { status: 500 });

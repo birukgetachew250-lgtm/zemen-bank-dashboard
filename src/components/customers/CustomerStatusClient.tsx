@@ -1,6 +1,7 @@
 
 'use client';
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -48,6 +49,7 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
 
   const targetStatus = action === 'Block' ? 'Block' : 'Active';
   const buttonLabel = action;
@@ -98,12 +100,10 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
              const error = await response.json();
             throw new Error(error.message || `Failed to ${action.toLowerCase()} customer`);
         }
-        const updatedCustomer = await response.json();
-        setCustomer(updatedCustomer);
-        toast({
-            title: 'Success',
-            description: `Customer has been successfully ${action.toLowerCase()}ed.`,
-        });
+        
+        // Redirect to success page
+        router.push(`/customers/${action.toLowerCase()}/success`);
+
     } catch (error: any) {
         toast({
             variant: "destructive",
@@ -213,4 +213,3 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
     </>
   );
 }
-
