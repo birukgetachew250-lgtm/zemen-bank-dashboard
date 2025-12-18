@@ -47,8 +47,9 @@ export async function POST(req: Request) {
 
                 if (response && response.success && response.data && response.data.value) {
                     try {
-                        const AccountDetailResponse = getAccountDetailRequestType(); 
-                        const detailResponse = JSON.parse(Buffer.from(response.data.value).toString('utf8'));
+                        // The 'value' is a buffer containing a JSON string. We need to parse it.
+                        const nestedJsonResponse = Buffer.from(response.data.value).toString('utf8');
+                        const detailResponse = JSON.parse(nestedJsonResponse);
                         
                         if (detailResponse.status === 'SUCCESS' && detailResponse.customer) {
                              console.log("[API] gRPC Success, decoded customer data:", detailResponse.customer);
