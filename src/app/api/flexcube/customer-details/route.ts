@@ -16,11 +16,12 @@ export async function POST(req: Request) {
 
     try {
         const client = getAccountDetailServiceClient();
+        // Get the actual message type class from the loader
         const AccountDetailRequest = getAccountDetailRequestType();
         
         const accountDetailPayload = { branch_code, customer_id };
 
-        // Correctly serialize the payload to a binary buffer
+        // Correctly serialize the payload to a binary buffer using the loaded type
         const serializedPayload = AccountDetailRequest.encode(accountDetailPayload).finish();
         
         const serviceRequest = {
