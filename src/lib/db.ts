@@ -14,62 +14,78 @@ import config from './config';
 // you would replace this with a connection to your Oracle databases
 // using the connection strings from config.db.
 
-let db: Database.Database;
+let db: any;
 
 if (config.db.isProduction) {
     // ---- PRODUCTION DATABASE CONNECTION ----
-    // This is where you would initialize your Oracle DB connections.
-    console.log("Production mode enabled. Attempting to connect to Oracle...");
+    console.log("Production mode enabled. Initializing Oracle connection logic...");
 
     // Set oracledb defaults
     oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
     // This is a placeholder for a more robust connection pool.
     // In a real app, you would manage connections more carefully.
-    async function getDbConnections() {
-      try {
-        const userModuleConnection = await oracledb.getConnection({
-            connectString: config.db.userModuleConnectionString
-        });
-        const securityModuleConnection = await oracledb.getConnection({
-            connectString: config.db.securityModuleConnectionString
-        });
-        
-        console.log("Successfully connected to Oracle databases.");
-        
-        // This is a simplified mock of the 'better-sqlite3' API for demonstration.
-        // A real implementation would require a full translation layer or different DAO logic.
-        return {
-            userDB: userModuleConnection,
-            securityDB: securityModuleConnection,
-            // A mock 'prepare' function
-            prepare: (sql: string) => ({
+    // For now, we are creating a mock of the 'better-sqlite3' API
+    // to minimize changes in the data access code.
+    
+    // This is a simplified mock of the 'better-sqlite3' API for demonstration.
+    // A real implementation would require a full translation layer or different DAO logic.
+    db = {
+        prepare: (sql: string) => {
+            const isUserModuleQuery = sql.includes('AppUsers') || sql.includes('Accounts');
+            const isSecurityModuleQuery = sql.includes('UserSecurities') || sql.includes('SecurityQuestions');
+
+            const getConnection = async () => {
+                if (isUserModuleQuery) {
+                    if (!config.db.userModuleConnectionString) throw new Error("USER_MODULE_DB_CONNECTION_STRING is not set");
+                    return await oracledb.getConnection({ connectString: config.db.userModuleConnectionString });
+                }
+                if (isSecurityModuleQuery) {
+                    if (!config.db.securityModuleConnectionString) throw new Error("SECURITY_MODULE_DB_CONNECTION_STRING is not set");
+                    return await oracledb.getConnection({ connectString: config.db.securityModuleConnectionString });
+                }
+                // Fallback for other tables (admin, etc.), which don't exist in Oracle.
+                // This will cause an error downstream, which is expected for this prototype.
+                throw new Error(`Query does not target a known module: ${sql}`);
+            };
+
+            return {
                 get: async (...params: any[]) => {
-                    // This is highly simplified and assumes USER_MODULE. A real implementation needs routing.
-                    const result = await userModuleConnection.execute(sql, params);
-                    return result.rows ? result.rows[0] : undefined;
+                    let connection;
+                    try {
+                        connection = await getConnection();
+                        const result = await connection.execute(sql, params);
+                        // In Oracle, COUNT(*) is aliased as COUNT(*), not 'count'. We need to get the first key.
+                        const row = result.rows ? result.rows[0] : undefined;
+                        if (row && 'COUNT(*)' in row) {
+                            return { count: row['COUNT(*)'] };
+                        }
+                        return row;
+                    } finally {
+                        if (connection) {
+                            await connection.close();
+                        }
+                    }
                 },
                 all: async (...params: any[]) => {
-                     const result = await userModuleConnection.execute(sql, params);
-                    return result.rows || [];
+                    let connection;
+                    try {
+                        connection = await getConnection();
+                        const result = await connection.execute(sql, params);
+                        return result.rows || [];
+                    } finally {
+                        if (connection) {
+                            await connection.close();
+                        }
+                    }
                 }
-            })
-        };
-      } catch (err) {
-        console.error("FATAL: Oracle connection failed. Ensure Oracle Instant Client is installed and configured.", err);
-        // Throwing the error will cause Next.js to render an error page.
-        throw new Error(`Oracle connection failed: ${(err as Error).message}`);
-      }
-    }
+            };
+        }
+    };
     
-    // In a real scenario, you'd export a connection manager.
-    // For this prototype, we are showing the connection attempt and error handling.
-    // The 'db' variable won't be a 'better-sqlite3' instance in prod.
-    // We are deliberately not assigning it to stop the app from working with the wrong DB type.
     console.warn(
       "IS_PRODUCTION_DB is true. App will try to connect to Oracle. " +
-      "If the connection fails, an error will be thrown. The current implementation " +
-      "does not support querying Oracle and will fail."
+      "If the connection fails, an error will be thrown. Ensure Oracle Instant Client is properly installed and configured."
     );
 
 } else {

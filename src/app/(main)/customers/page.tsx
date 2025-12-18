@@ -14,33 +14,37 @@ import { ExistingCustomerClient } from "@/components/customers/ExistingCustomerC
 import config from "@/lib/config";
 
 async function getAppUserStats() {
-  // If in production, do not attempt to query the demo DB.
-  // The real implementation would use an Oracle client here.
-  if (config.db.isProduction) {
-    // In a real application, you would have a proper data access layer
-    // that uses the Oracle connection. For now, we simulate the failure.
-    // The error will be caught by Next.js and render an error page.
-    throw new Error(
-        "Production database not connected. " + 
-        "The application is configured for production but the Oracle database driver is not fully implemented."
-    );
-  }
-  
   try {
-    const totalUsers = db.prepare("SELECT COUNT(Id) as count FROM AppUsers").get()?.count ?? 0;
-    const linkedAccounts = db.prepare("SELECT COUNT(Id) as count FROM Accounts").get()?.count ?? 0;
-    const activeUsers = db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Active'").get()?.count ?? 0;
-    return {
-      totalUsers: totalUsers.toLocaleString(),
-      linkedAccounts: linkedAccounts.toLocaleString(),
-      activeUsers: activeUsers.toLocaleString(),
-    };
+    if (config.db.isProduction) {
+      // In production, query the Oracle database.
+      // These queries are simple COUNTs and should be compatible.
+      const totalUsers = (await db.prepare("SELECT COUNT(Id) as count FROM AppUsers").get())?.count ?? 0;
+      const linkedAccounts = (await db.prepare("SELECT COUNT(Id) as count FROM Accounts").get())?.count ?? 0;
+      const activeUsers = (await db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Active'").get())?.count ?? 0;
+      return {
+        totalUsers: totalUsers.toLocaleString(),
+        linkedAccounts: linkedAccounts.toLocaleString(),
+        activeUsers: activeUsers.toLocaleString(),
+      };
+    } else {
+      // In demo mode, query the SQLite database.
+      const totalUsers = db.prepare("SELECT COUNT(Id) as count FROM AppUsers").get()?.count ?? 0;
+      const linkedAccounts = db.prepare("SELECT COUNT(Id) as count FROM Accounts").get()?.count ?? 0;
+      const activeUsers = db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Active'").get()?.count ?? 0;
+      return {
+        totalUsers: totalUsers.toLocaleString(),
+        linkedAccounts: linkedAccounts.toLocaleString(),
+        activeUsers: activeUsers.toLocaleString(),
+      };
+    }
   } catch (error) {
-    console.error("Failed to fetch app user stats from demo DB:", error);
-    // Throw an error to be caught by the error boundary
-    throw new Error(`Failed to fetch stats from demo database: ${(error as Error).message}`);
+    console.error("Failed to fetch app user stats:", error);
+    // Throw an error to be caught by the Next.js error boundary
+    // This will render the error.tsx file.
+    throw new Error(`Failed to fetch stats from the database: ${(error as Error).message}`);
   }
 }
+
 
 export default async function ExistingCustomersPage() {
   const userStats = await getAppUserStats();
