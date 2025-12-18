@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { credentials } from '@grpc/grpc-js';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -29,6 +30,58 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import config from '@/lib/config';
+
+// Assuming you have a generated client from your proto file
+// e.g., using @grpc/grpc-js and @grpc/proto-loader
+// This is a placeholder for the actual generated client
+// import { AccountDetailServiceClient } from './generated/accountdetail_grpc_pb';
+// import { ServiceRequest } from './generated/common_pb';
+
+// Mock client for demonstration until real one is available
+class MockAccountDetailServiceClient {
+    constructor(url: string, creds: any) {}
+    QueryCustomerDetails(request: any, callback: (err: any, res: any) => void) {
+        // This is where the actual gRPC call would be made
+        console.log("Making mock gRPC call with request:", request.toObject());
+        
+        const customer_id = JSON.parse(request.getPayload()).customer_id;
+        
+        if (customer_id === '0048533') {
+             callback(null, { 
+                getPayload: () => JSON.stringify({
+                    customer: {
+                        customer_number: customer_id,
+                        full_name: 'AKALEWORK TAMENE KEBEDE',
+                        cif_creation_date: '2022-01-20',
+                        date_of_birth: '1990-05-15',
+                        gender: 'Female',
+                        email_id: 'akalework.t@example.com',
+                        mobile_number: '+251911223344',
+                        address_line_1: 'AA, ADDIS KETEMA',
+                        address_line_2: '06',
+                        address_line_3: '790',
+                        address_line_4: '',
+                        country: 'ETHIOPIA',
+                        branch: 'ADDIS KETEMA',
+                    },
+                    status: "SUCCESS",
+                    message: "Customer found"
+                })
+            });
+        } else {
+            callback({ message: "Customer not found" }, null);
+        }
+    }
+}
+const AccountDetailServiceClient = MockAccountDetailServiceClient;
+const ServiceRequest = class {
+    private payload: string;
+    constructor() { this.payload = ''; }
+    setPayload(p: string) { this.payload = p; }
+    getPayload() { return this.payload; }
+    toObject() { return { payload: this.payload }; }
+};
+
 
 const cifSchema = z.object({
   branch_code: z.string().min(1, 'Branch code is required'),
@@ -59,14 +112,37 @@ const queryCustomerDetails = async (branch_code: string, customer_id: string): P
     
     // If IS_PRODUCTION_GRPC is true, you would make a real gRPC call here.
     if (config.grpc.isProduction) {
+        if (!config.grpc.url) {
+            throw new Error("gRPC URL is not configured in environment variables.");
+        }
         console.log(`Making a real gRPC call to ${config.grpc.url}...`);
-        // Example:
-        // const client = new FlexcubeClient(config.grpc.url, credentials);
-        // const response = await client.getCustomerDetails({ branch_code, customer_id });
-        // return response; 
         
-        // For now, we'll return null to indicate it's not implemented.
-        return null;
+        const client = new AccountDetailServiceClient(config.grpc.url, credentials.createInsecure());
+        
+        return new Promise((resolve, reject) => {
+            const request = new ServiceRequest();
+            request.setPayload(JSON.stringify({
+                serviceName: "accountdetail",
+                requestBody: { branch_code, customer_id }
+            }));
+
+            client.QueryCustomerDetails(request, (err: any, response: any) => {
+                if (err) {
+                    console.error("gRPC Error:", err);
+                    return reject(err);
+                }
+                
+                const payload = JSON.parse(response.getPayload());
+
+                if (payload.status === 'SUCCESS' && payload.customer) {
+                    console.log("gRPC Success:", payload.customer);
+                    resolve(payload.customer);
+                } else {
+                    console.error("gRPC call failed with message:", payload.message);
+                    resolve(null);
+                }
+            });
+        });
     }
 
     // If IS_PRODUCTION_GRPC is false, use demo data.
@@ -125,11 +201,11 @@ export default function CreateCustomerPage() {
                     : 'No demo customer found with the provided CIF number.',
             });
         }
-    } catch (error) {
+    } catch (error: any) {
        toast({
         variant: 'destructive',
         title: 'Uh oh! Something went wrong.',
-        description: 'Could not fetch customer details.',
+        description: error.message || 'Could not fetch customer details.',
       });
     } finally {
       setIsLoading(false);
@@ -228,3 +304,4 @@ function InfoItem({ icon, label, value, className }: { icon: React.ReactNode, la
         </div>
     )
 }
+
