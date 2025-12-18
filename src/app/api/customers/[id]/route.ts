@@ -4,29 +4,30 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import config from '@/lib/config';
 
-const getCustomerByCifOrId = (id: string) => {
+const getCustomerByCifOrId = async (id: string) => {
     let user;
     if (config.db.isProduction) {
         // Case-sensitive query for Oracle
-        user = db.prepare('SELECT * FROM "USER_MODULE"."AppUsers" WHERE "Id" = ? OR "CIFNumber" = ?').get(id, id);
+        user = await db.prepare('SELECT * FROM "USER_MODULE"."AppUsers" WHERE "Id" = ? OR "CIFNumber" = ?').get(id, id);
     } else {
         user = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
     }
     
     if (user) {
         // Handle Oracle's uppercase column names
+        const d = user;
         return {
-            id: user.Id || user.ID,
-            cifNumber: user.CIFNumber || user.CIFNUMBER,
-            name: `${user.FirstName || user.FIRSTNAME} ${user.LastName || user.LASTNAME}`,
-            email: user.Email || user.EMAIL,
-            phoneNumber: user.PhoneNumber || user.PHONENUMBER,
-            address: `${user.AddressLine1 || user.ADDRESSLINE1 || ''}, ${user.AddressLine2 || user.ADDRESSLINE2 || ''}`,
-            nationality: user.Nationality || user.NATIONALITY,
-            branchName: user.BranchName || user.BRANCHNAME,
-            status: user.Status || user.STATUS,
-            insertDate: user.InsertDate || user.INSERTDATE,
-            avatarUrl: `https://picsum.photos/seed/${user.Id || user.ID}/100/100`
+            id: d.Id || d.ID,
+            cifNumber: d.CIFNumber || d.CIFNUMBER,
+            name: `${d.FirstName || d.FIRSTNAME} ${d.LastName || d.LASTNAME}`,
+            email: d.Email || d.EMAIL,
+            phoneNumber: d.PhoneNumber || d.PHONENUMBER,
+            address: `${d.AddressLine1 || d.ADDRESSLINE1 || ''}, ${d.AddressLine2 || d.ADDRESSLINE2 || ''}`,
+            nationality: d.Nationality || d.NATIONALITY,
+            branchName: d.BranchName || d.BRANCHNAME,
+            status: d.Status || d.STATUS,
+            insertDate: d.InsertDate || d.INSERTDATE,
+            avatarUrl: `https://picsum.photos/seed/${d.Id || d.ID}/100/100`
         };
     }
     return null;
