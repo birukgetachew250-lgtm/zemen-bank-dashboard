@@ -1,3 +1,4 @@
+
 import Image from "next/image";
 import {
   Card,
@@ -30,63 +31,23 @@ import { notFound } from "next/navigation";
 
 const getCustomerById = (id: string) => {
     // This is a mock data fetch. In a real app, you would query your database.
-    const mockCustomers: {[key: string]: any} = {
-        'CIFCUST_1': {
-            id: "cust_1",
-            cifNumber: "CIFCUST_1",
-            name: "John Adebayo Doe",
-            email: "john.doe@example.com",
-            phoneNumber: "+2348012345678",
-            address: "123, Main Street, Victoria Island, Lagos, Nigeria",
-            nationality: "Nigerian",
-            branchCode: "001",
-            branchName: "Head Office",
-            status: "Active",
-            signUp2FA: "SMS_OTP",
-            signUpMainAuth: "PIN",
-            insertDate: "2022-08-15T10:30:00Z",
-            avatarUrl: "https://picsum.photos/seed/customer1/100/100"
-        },
-        'cust_1': {
-            id: "cust_1",
-            cifNumber: "CIFCUST_1",
-            name: "John Adebayo Doe",
-            email: "john.doe@example.com",
-            phoneNumber: "+2348012345678",
-            address: "123, Main Street, Victoria Island, Lagos, Nigeria",
-            nationality: "Nigerian",
-            branchCode: "001",
-            branchName: "Head Office",
-            status: "Active",
-            signUp2FA: "SMS_OTP",
-            signUpMainAuth: "PIN",
-            insertDate: "2022-08-15T10:30:00Z",
-            avatarUrl: "https://picsum.photos/seed/customer1/100/100"
-        },
-    };
-    
-    if (mockCustomers[id]) {
-      return mockCustomers[id];
-    }
-    
-    // For any other ID, we can derive it from the db
-    const customerFromDb = db.prepare('SELECT * FROM customers WHERE id = ?').get(id);
+    const customerFromDb = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
     if (customerFromDb) {
         return {
-             id: customerFromDb.id,
-            cifNumber: "CIF" + customerFromDb.id.substring(4, 10),
-            name: customerFromDb.name,
-            email: `${customerFromDb.name.split(' ')[0].toLowerCase()}@example.com`,
-            phoneNumber: customerFromDb.phone,
-            address: "123, Mock Street, Addis Ababa",
-            nationality: "Ethiopian",
-            branchCode: "101",
-            branchName: "Main Branch",
-            status: customerFromDb.status,
-            signUp2FA: "SMS_OTP",
-            signUpMainAuth: "PIN",
-            insertDate: customerFromDb.registeredAt,
-            avatarUrl: `https://picsum.photos/seed/${customerFromDb.id}/100/100`
+            id: customerFromDb.Id,
+            cifNumber: customerFromDb.CIFNumber,
+            name: `${customerFromDb.FirstName} ${customerFromDb.LastName}`,
+            email: customerFromDb.Email,
+            phoneNumber: customerFromDb.PhoneNumber,
+            address: `${customerFromDb.AddressLine1 || ''}, ${customerFromDb.AddressLine2 || ''}`,
+            nationality: customerFromDb.Nationality,
+            branchCode: customerFromDb.BranchCode,
+            branchName: customerFromDb.BranchName,
+            status: customerFromDb.Status,
+            signUp2FA: customerFromDb.SignUp2FA,
+            signUpMainAuth: customerFromDb.SignUpMainAuth,
+            insertDate: customerFromDb.InsertDate,
+            avatarUrl: `https://picsum.photos/seed/${customerFromDb.Id}/100/100`
         }
     }
 
@@ -95,11 +56,10 @@ const getCustomerById = (id: string) => {
 }
 
 
-const accounts = [
-    { id: "acc_1", accountNumber: "0012345678", accountType: "Savings", currency: "NGN", status: "Active", branchName: "Head Office" },
-    { id: "acc_2", accountNumber: "0087654321", accountType: "Current", currency: "NGN", status: "Active", branchName: "Head Office" },
-    { id: "acc_3", accountNumber: "3012345678", accountType: "Domiciliary", currency: "USD", status: "Dormant", branchName: "VI Branch" },
-];
+const getAccountsByCif = (cif: string) => {
+    return db.prepare('SELECT * FROM Accounts WHERE CIFNumber = ?').all(cif);
+}
+
 
 const activityLogs = [
     { id: 1, action: "Logged In", timestamp: "2023-10-27 10:00 AM", ip: "192.168.1.1", device: "iPhone 14 Pro" },
@@ -109,10 +69,12 @@ const activityLogs = [
 
 
 const getStatusVariant = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
         case 'active': return 'secondary';
         case 'dormant': return 'outline';
-        case 'frozen': return 'destructive';
+        case 'frozen':
+        case 'inactive':
+             return 'destructive';
         default: return 'default';
     }
 }
@@ -124,6 +86,8 @@ export default function CustomerDetailsPage({ params }: { params: { customerId: 
     if (!customer) {
         notFound();
     }
+    
+    const accounts = getAccountsByCif(customer.cifNumber);
 
     const fullName = customer.name;
 
@@ -198,17 +162,17 @@ export default function CustomerDetailsPage({ params }: { params: { customerId: 
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {accounts.map((acc) => (
-                            <TableRow key={acc.id}>
-                                <TableCell className="font-medium">{acc.accountNumber}</TableCell>
-                                <TableCell>{acc.accountType}</TableCell>
-                                <TableCell>{acc.currency}</TableCell>
-                                <TableCell>{acc.branchName}</TableCell>
+                        {accounts.map((acc: any) => (
+                            <TableRow key={acc.Id}>
+                                <TableCell className="font-medium">{acc.AccountNumber}</TableCell>
+                                <TableCell>{acc.AccountType}</TableCell>
+                                <TableCell>{acc.Currency}</TableCell>
+                                <TableCell>{acc.BranchName}</TableCell>
                                 <TableCell>
                                      <Badge 
-                                        variant={getStatusVariant(acc.status)}
-                                        className={acc.status === 'Active' ? 'bg-green-100 text-green-800 border-green-200' : ''}
-                                     >{acc.status}</Badge>
+                                        variant={getStatusVariant(acc.Status)}
+                                        className={acc.Status === 'Active' ? 'bg-green-100 text-green-800 border-green-200' : ''}
+                                     >{acc.Status}</Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="icon">
@@ -271,7 +235,6 @@ export default function CustomerDetailsPage({ params }: { params: { customerId: 
                     <Button>Reset PIN</Button>
                     <Button variant="outline">Reset Security Questions</Button>
                     <Button variant="destructive" className="bg-red-600 hover:bg-red-700">Force Logout</Button>
-                    <Button variant="destructive" className="bg-orange-600 hover:bg-orange-700">Block App User</Button>
                 </div>
             </CardContent>
           </Card>
@@ -290,3 +253,5 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
         </div>
     )
 }
+
+    

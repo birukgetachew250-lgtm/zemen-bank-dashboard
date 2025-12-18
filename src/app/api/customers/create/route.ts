@@ -14,42 +14,79 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Incomplete customer, account, or manual data' }, { status: 400 });
         }
 
-        const customerId = `cust_${crypto.randomUUID()}`;
+        const appUserId = `user_${crypto.randomUUID()}`;
         const approvalId = `appr_${crypto.randomUUID()}`;
+        const nameParts = customer.full_name.split(' ');
         
         const transaction = db.transaction(() => {
-            // 1. Insert the customer with a 'registered' status.
+            // 1. Insert into AppUsers table with a 'registered' status.
             db.prepare(
-                'INSERT INTO customers (id, name, phone, status, registeredAt) VALUES (?, ?, ?, ?, ?)'
-            ).run(customerId, customer.full_name, customer.mobile_number, 'registered', new Date().toISOString());
+                `INSERT INTO AppUsers 
+                (Id, CIFNumber, FirstName, SecondName, LastName, Email, PhoneNumber, Status, SignUpMainAuth, SignUp2FA, BranchName, AddressLine1, AddressLine2, Nationality) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).run(
+                appUserId,
+                customer.customer_number,
+                nameParts[0],
+                nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1],
+                nameParts[nameParts.length - 1],
+                customer.email_id,
+                customer.mobile_number,
+                'Registered', // Initial status
+                manualData.signUpMainAuth,
+                manualData.signUp2FA,
+                customer.branch,
+                customer.address_line_1,
+                customer.address_line_2,
+                customer.country
+            );
 
-            // 2. Create a pending approval request for this new customer registration.
-            const approvalDetails = {
-                customerData: customer, 
-                linkedAccounts: accounts,
-                onboardingData: manualData, // Include the manually entered data
-            };
+            // 2. Link accounts
+            const insertAccount = db.prepare(
+                'INSERT INTO Accounts (Id, CIFNumber, AccountNumber, AccountType, Currency, Status, BranchName) VALUES (?, ?, ?, ?, ?, ?, ?)'
+            );
+            for (const acc of accounts) {
+                insertAccount.run(
+                    `acc_${crypto.randomUUID()}`,
+                    customer.customer_number,
+                    acc.CUSTACNO,
+                    acc.ACCLASSDESC,
+                    acc.CCY,
+                    acc.status,
+                    acc.BRANCH_CODE
+                );
+            }
+            
+            // 3. Create a pending approval request for this new customer registration.
+            const legacyCustomerId = `cust_${customer.customer_number}`; // for compatibility with approvals page
+            db.prepare(
+                'INSERT INTO customers (id, name, phone, status) VALUES (?, ?, ?, ?)'
+            ).run(legacyCustomerId, customer.full_name, customer.mobile_number, 'registered');
 
             db.prepare(
-                'INSERT INTO pending_approvals (id, customerId, type, requestedAt, customerName, customerPhone, status, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+                'INSERT INTO pending_approvals (id, customerId, type, customerName, customerPhone, details) VALUES (?, ?, ?, ?, ?, ?)'
             ).run(
                 approvalId, 
-                customerId, 
+                legacyCustomerId, 
                 'new-customer', 
-                new Date().toISOString(), 
                 customer.full_name, 
                 customer.mobile_number, 
-                'pending', 
-                JSON.stringify(approvalDetails)
+                JSON.stringify({ customerData: customer, linkedAccounts: accounts, onboardingData: manualData })
             );
         });
 
         transaction();
 
-        return NextResponse.json({ success: true, message: 'Customer registration submitted for approval', customerId });
+        return NextResponse.json({ success: true, message: 'Customer registration submitted for approval', customerId: appUserId });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Failed to create customer for approval:', error);
+        // Better error for unique constraint violation
+        if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+            return NextResponse.json({ message: 'A user with this CIF Number already exists.' }, { status: 409 });
+        }
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }
+
+    

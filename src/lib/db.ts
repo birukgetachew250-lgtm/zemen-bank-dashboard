@@ -15,21 +15,9 @@ if (!fs.existsSync(dbDir)) {
 
 export const db = new Database(dbPath);
 
-// Drop users table if new columns do not exist
-try {
-    const usersColumns = db.prepare("PRAGMA table_info(users)").all();
-    const hasEmployeeId = usersColumns.some(col => col.name === 'employeeId');
-    const hasRole = usersColumns.some(col => col.name === 'role');
-    if (!hasEmployeeId || !hasRole) {
-        db.exec('DROP TABLE IF EXISTS users');
-        console.log("Dropped users table to add 'employeeId' and 'role' columns.");
-    }
-} catch (e) {
-    // users table doesn't exist, which is fine
-}
-
 
 const schema = `
+  -- Admin Panel Tables
   CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     employeeId TEXT NOT NULL UNIQUE,
@@ -41,7 +29,103 @@ const schema = `
     branch TEXT,
     department TEXT NOT NULL
   );
+  
+  CREATE TABLE IF NOT EXISTS roles (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    permissions TEXT NOT NULL 
+  );
 
+  -- USER_MODULE Tables (Translated from Oracle DDL)
+  CREATE TABLE IF NOT EXISTS AppUsers (
+    Id TEXT PRIMARY KEY, 
+    CIFNumber TEXT UNIQUE NOT NULL, 
+    FirstName TEXT, 
+    SecondName TEXT, 
+    LastName TEXT, 
+    Email TEXT, 
+    PhoneNumber TEXT, 
+    AddressLine1 TEXT, 
+    AddressLine2 TEXT, 
+    AddressLine3 TEXT, 
+    AddressLine4 TEXT, 
+    Nationality TEXT, 
+    BranchCode TEXT, 
+    BranchName TEXT, 
+    Status TEXT, 
+    SignUp2FA TEXT, 
+    SignUpMainAuth TEXT, 
+    InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+    UpdateDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+    InsertUser TEXT DEFAULT 'system', 
+    UpdateUser TEXT DEFAULT 'system', 
+    Version TEXT DEFAULT (lower(hex(randomblob(16))))
+  );
+
+  CREATE TABLE IF NOT EXISTS Accounts (
+    Id TEXT PRIMARY KEY, 
+    CIFNumber TEXT NOT NULL, 
+    AccountNumber TEXT, 
+    HashedAccountNumber TEXT, 
+    FirstName TEXT, 
+    SecondName TEXT, 
+    LastName TEXT, 
+    BranchCode TEXT, 
+    BranchName TEXT, 
+    AccountType TEXT, 
+    Currency TEXT, 
+    Status TEXT, 
+    InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+    UpdateDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+    InsertUser TEXT DEFAULT 'system', 
+    UpdateUser TEXT DEFAULT 'system', 
+    Version TEXT DEFAULT (lower(hex(randomblob(16)))),
+    FOREIGN KEY (CIFNumber) REFERENCES AppUsers(CIFNumber) ON DELETE CASCADE
+  );
+
+  -- SECURITY_MODULE Tables (Translated from Oracle DDL)
+  CREATE TABLE IF NOT EXISTS SecurityQuestions (
+    Id TEXT PRIMARY KEY, 
+    Question TEXT UNIQUE, 
+    InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+    UpdateDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+    InsertUser TEXT DEFAULT 'system', 
+    UpdateUser TEXT DEFAULT 'system', 
+    Version TEXT DEFAULT (lower(hex(randomblob(16))))
+  );
+
+  CREATE TABLE IF NOT EXISTS UserSecurities (
+    UserId TEXT PRIMARY KEY, 
+    CIFNumber TEXT UNIQUE NOT NULL, 
+    PinHash TEXT, 
+    Status TEXT, 
+    SecurityQuestionId TEXT, 
+    SecurityAnswer TEXT, 
+    IsLoggedIn INTEGER DEFAULT 0, 
+    FailedAttempts INTEGER DEFAULT 0, 
+    LastLoginAttempt DATETIME, 
+    IsLocked INTEGER DEFAULT 0, 
+    UnlockedTime DATETIME, 
+    LockedIntervalMinutes INTEGER, 
+    EncKey TEXT, 
+    EncIV TEXT, 
+    IsBiometricsLogin INTEGER DEFAULT 0, 
+    IsBiometricsPayment INTEGER DEFAULT 0, 
+    DeviceSwitchConsent INTEGER DEFAULT 0, 
+    OnTmpPassword INTEGER DEFAULT 0, 
+    IsActivationUsed INTEGER DEFAULT 0, 
+    ActivationExpiredAt DATETIME DEFAULT CURRENT_TIMESTAMP, 
+    InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+    UpdateDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+    InsertUser TEXT DEFAULT 'system', 
+    UpdateUser TEXT DEFAULT 'system', 
+    Version TEXT DEFAULT (lower(hex(randomblob(16)))),
+    FOREIGN KEY(UserId) REFERENCES AppUsers(Id),
+    FOREIGN KEY(CIFNumber) REFERENCES AppUsers(CIFNumber),
+    FOREIGN KEY(SecurityQuestionId) REFERENCES SecurityQuestions(Id) ON DELETE SET NULL
+  );
+
+  -- Legacy/Demo Tables (to be consolidated)
   CREATE TABLE IF NOT EXISTS customers (
     id TEXT PRIMARY KEY,
     name TEXT,
@@ -58,7 +142,7 @@ const schema = `
     status TEXT DEFAULT 'pending',
     customerName TEXT,
     customerPhone TEXT,
-    details TEXT, -- JSON blob for extra info like accounts
+    details TEXT, 
     FOREIGN KEY (customerId) REFERENCES customers(id)
   );
 
@@ -71,15 +155,6 @@ const schema = `
     is_anomalous BOOLEAN DEFAULT FALSE,
     anomaly_reason TEXT,
     FOREIGN KEY (customerId) REFERENCES customers(id)
-  );
-
-  CREATE TABLE IF NOT EXISTS audit_logs (
-    id TEXT PRIMARY KEY,
-    userId TEXT,
-    action TEXT,
-    details TEXT,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (userId) REFERENCES users(id)
   );
 
   CREATE TABLE IF NOT EXISTS corporates (
@@ -103,12 +178,6 @@ const schema = `
     name TEXT NOT NULL,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
   );
-  
-  CREATE TABLE IF NOT EXISTS roles (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
-    permissions TEXT NOT NULL 
-  );
 
   CREATE TABLE IF NOT EXISTS mini_apps (
     id TEXT PRIMARY KEY,
@@ -122,152 +191,74 @@ const schema = `
   );
 `;
 
-
-// Drop pending_approvals if details column does not exist
-try {
-    const hasDetailsColumn = db.prepare("PRAGMA table_info(pending_approvals)").all().some(col => col.name === 'details');
-    if (!hasDetailsColumn) {
-        db.exec('DROP TABLE IF EXISTS pending_approvals');
-        console.log("Dropped pending_approvals table to add 'details' column.");
-    }
-} catch (e) {
-    // pending_approvals doesn't exist, which is fine.
-}
-
-
 db.exec(schema);
 
-// Seed a default admin user if not exists
+// Seed admin user, roles, and other demo data
 const admin = db.prepare('SELECT * FROM users WHERE email = ?').get('admin@zemen.com');
 if (!admin) {
   db.prepare(
     "INSERT INTO users (id, employeeId, name, email, password, role, avatar_url, branch, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
   ).run(
-    'user_ck_admin_001',
-    '0001',
-    'Admin User',
-    'admin@zemen.com',
-    'zemen2025', // In a real app, this should be a hashed password
-    'Admin',
-    'https://picsum.photos/seed/admin/100/100',
-    'Head Office',
-    'IT Department'
+    'user_ck_admin_001', '0001', 'Admin User', 'admin@zemen.com', 'zemen2025', 'Admin',
+    'https://picsum.photos/seed/admin/100/100', 'Head Office', 'IT Department'
   );
 }
 
-// Seed roles if table is empty
-const roleCount = db.prepare('SELECT COUNT(*) as count FROM roles').get().count;
-if (roleCount === 0) {
-    const insertRole = db.prepare('INSERT INTO roles (id, name, permissions) VALUES (?, ?, ?)');
-    const roles = [
+if (db.prepare('SELECT COUNT(*) as count FROM roles').get().count === 0) {
+    const insert = db.prepare('INSERT INTO roles (id, name, permissions) VALUES (?, ?, ?)');
+    const items = [
       { id: "role_1", name: "Admin", permissions: JSON.stringify(["manage-users", "manage-roles", "view-reports", "manage-settings", "approve-all"]) },
       { id: "role_2", name: "Support Lead", permissions: JSON.stringify(["approve-pin-reset", "approve-new-device", "view-customer-audit", "manage-tickets"]) },
       { id: "role_3", name: "Support Staff", permissions: JSON.stringify(["view-customers", "handle-tickets", "request-pin-reset"]) },
       { id: "role_4", name: "Compliance Officer", permissions: JSON.stringify(["view-reports", "view-audit-trails", "flag-transaction"]) },
     ];
-    const insertManyRoles = db.transaction((items) => {
-        for (const item of items) insertRole.run(item.id, item.name, item.permissions);
-    });
-    insertManyRoles(roles);
-    console.log(`Seeded ${roles.length} roles.`);
+    db.transaction(() => items.forEach(item => insert.run(item.id, item.name, item.permissions)))();
 }
 
+if (db.prepare('SELECT COUNT(*) as count FROM SecurityQuestions').get().count === 0) {
+    const insert = db.prepare('INSERT INTO SecurityQuestions (Id, Question) VALUES (?, ?)');
+    const questions = [
+        { id: '294b2da0-1613-4263-961b-c07cef56a346', question: 'Your primary school name ?' },
+        { id: '294b2da0-1613-4263-961b-c09cef56a346', question: 'Your nick name ?' },
+        { id: '294b2da0-1613-4263-961b-c01cef56a346', question: 'Your faviourite subject at primary school?' },
+    ];
+    db.transaction(() => questions.forEach(q => insert.run(q.id, q.question)))();
+    console.log(`Seeded ${questions.length} security questions.`);
+}
 
-// Seed corporates if table is empty
-const corporateCount = db.prepare('SELECT COUNT(*) as count FROM corporates').get().count;
-if (corporateCount === 0) {
+if (db.prepare('SELECT COUNT(*) as count FROM corporates').get().count === 0) {
     const insertCorporate = db.prepare('INSERT INTO corporates (id, name, industry, status, internet_banking_status, logo_url) VALUES (?, ?, ?, ?, ?, ?)');
     const corporates = [
         { id: "corp_1", name: "Dangote Cement", industry: "Manufacturing", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/dangote/40/40" },
         { id: "corp_2", name: "MTN Nigeria", industry: "Telecommunications", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/mtn/40/40" },
-        { id: "corp_3", name: "Zenith Bank", industry: "Finance", status: "Inactive", internet_banking_status: "Disabled", logo_url: "https://picsum.photos/seed/zenith/40/40" },
-        { id: "corp_4_new", name: "Jumia Group", industry: "E-commerce", status: "Active", internet_banking_status: "Pending", logo_url: "https://picsum.photos/seed/jumia/40/40" },
-        { id: "corp_5", name: "Flutterwave", industry: "Fintech", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/flutterwave/40/40" },
-        { id: "corp_6", name: "Andela", industry: "Technology", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/andela/40/40" },
-        { id: "corp_7", name: "Oando Plc", industry: "Oil & Gas", status: "Inactive", internet_banking_status: "Disabled", logo_url: "https://picsum.photos/seed/oando/40/40" },
-        { id: "corp_8", name: "Paystack", industry: "Fintech", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/paystack/40/40" },
     ];
-
-    const insertMany = db.transaction((items) => {
-        for (const item of items) {
-            insertCorporate.run(item.id, item.name, item.industry, item.status, item.internet_banking_status, item.logo_url);
-        }
-    });
-
-    insertMany(corporates);
+    db.transaction((items) => items.forEach(item => insertCorporate.run(item.id, item.name, item.industry, item.status, item.internet_banking_status, item.logo_url)))();
 }
 
-// Seed branches if table is empty
-const branchCount = db.prepare('SELECT COUNT(*) as count FROM branches').get().count;
-if (branchCount === 0) {
+if (db.prepare('SELECT COUNT(*) as count FROM branches').get().count === 0) {
     const insertBranch = db.prepare('INSERT INTO branches (id, name, location) VALUES (?, ?, ?)');
     const branches = [
         { id: `br_${crypto.randomUUID()}`, name: "Bole Branch", location: "Bole, Addis Ababa" },
-        { id: `br_${crypto.randomUUID()}`, name: "Kazanchis Branch", location: "Kazanchis, Addis Ababa" },
-        { id: `br_${crypto.randomUUID()}`, name: "Piassa Branch", location: "Piassa, Addis Ababa" },
-        { id: `br_${crypto.randomUUID()}`, name: "Mexico Branch", location: "Mexico, Addis Ababa" },
         { id: `br_${crypto.randomUUID()}`, name: "Head Office", location: "HQ, Addis Ababa" },
     ];
-    const insertManyBranches = db.transaction((items) => {
-        for (const item of items) insertBranch.run(item.id, item.name, item.location);
-    });
-    insertManyBranches(branches);
-    console.log(`Seeded ${branches.length} branches.`);
+    db.transaction((items) => items.forEach(item => insertBranch.run(item.id, item.name, item.location)))();
 }
 
-// Seed departments if table is empty
-const departmentCount = db.prepare('SELECT COUNT(*) as count FROM departments').get().count;
-if (departmentCount === 0) {
+if (db.prepare('SELECT COUNT(*) as count FROM departments').get().count === 0) {
     const insertDepartment = db.prepare('INSERT INTO departments (id, name) VALUES (?, ?)');
     const departments = [
         { id: `dep_${crypto.randomUUID()}`, name: "Branch Operations" },
-        { id: `dep_${crypto.randomUUID()}`, name: "Retail Banking" },
-        { id: `dep_${crypto.randomUUID()}`, name: "Corporate Banking" },
         { id: `dep_${crypto.randomUUID()}`, name: "IT Department" },
-        { id: `dep_${crypto.randomUUID()}`, name: "Human Resources" },
-        { id: `dep_${crypto.randomUUID()}`, name: "Compliance" },
     ];
-    const insertManyDepts = db.transaction((items) => {
-        for (const item of items) insertDepartment.run(item.id, item.name);
-    });
-    insertManyDepts(departments);
-    console.log(`Seeded ${departments.length} departments.`);
+     db.transaction((items) => items.forEach(item => insertDepartment.run(item.id, item.name)))();
 }
 
-// Seed mini-apps if table is empty
-const miniAppCount = db.prepare('SELECT COUNT(*) as count FROM mini_apps').get().count;
-if (miniAppCount === 0) {
-    const insertMiniApp = db.prepare(
-        'INSERT INTO mini_apps (id, name, url, logo_url, username, password, encryption_key) VALUES (?, ?, ?, ?, ?, ?, ?)'
-    );
-    const miniApps = [
-        { 
-            id: `mapp_${crypto.randomUUID()}`, 
-            name: "Cinema Ticket", 
-            url: "https://cinema.example.com", 
-            logo_url: "https://picsum.photos/seed/cinema/100/100", 
-            username: "cinema_api", 
-            password: "secure_password_1", 
-            encryption_key: crypto.randomBytes(32).toString('hex') 
-        },
-        { 
-            id: `mapp_${crypto.randomUUID()}`, 
-            name: "Events Ticket", 
-            url: "https://events.example.com", 
-            logo_url: "https://picsum.photos/seed/events/100/100", 
-            username: "events_api", 
-            password: "secure_password_2", 
-            encryption_key: crypto.randomBytes(32).toString('hex') 
-        },
-    ];
-    const insertManyMiniApps = db.transaction((items) => {
-        for (const item of items) {
-            insertMiniApp.run(item.id, item.name, item.url, item.logo_url, item.username, item.password, item.encryption_key);
-        }
-    });
-    insertManyMiniApps(miniApps);
-    console.log(`Seeded ${miniApps.length} mini apps.`);
+if (db.prepare('SELECT COUNT(*) as count FROM mini_apps').get().count === 0) {
+    const insertMiniApp = db.prepare('INSERT INTO mini_apps (id, name, url, logo_url, username, password, encryption_key) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    const miniApps = [ { id: `mapp_${crypto.randomUUID()}`, name: "Cinema Ticket", url: "https://cinema.example.com", logo_url: "https://picsum.photos/seed/cinema/100/100", username: "cinema_api", password: "secure_password_1", encryption_key: crypto.randomBytes(32).toString('hex') }];
+    db.transaction((items) => items.forEach(item => insertMiniApp.run(item.id, item.name, item.url, item.logo_url, item.username, item.password, item.encryption_key)))();
 }
 
+console.log("Database initialized with new schema.");
 
-console.log("Database initialized.");
+    
