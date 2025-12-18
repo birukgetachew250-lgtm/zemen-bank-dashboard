@@ -4,17 +4,45 @@ import path from 'path';
 import fs from 'fs';
 import { faker } from '@faker-js/faker';
 import crypto from 'crypto';
+import config from './config';
 
+// NOTE: This setup uses SQLite for the demo environment.
+// In a production environment (when config.db.isProduction is true),
+// you would replace this with a connection to your Oracle databases
+// using the connection strings from config.db.
+
+let db: Database.Database;
+
+if (config.db.isProduction) {
+    // ---- PRODUCTION DATABASE CONNECTION ----
+    // This is where you would initialize your Oracle DB connections.
+    // For example, using the 'oracledb' package:
+    //
+    // import oracledb from 'oracledb';
+    //
+    // try {
+    //   const userModuleConnection = await oracledb.getConnection(config.db.userModuleConnectionString);
+    //   const securityModuleConnection = await oracledb.getConnection(config.db.securityModuleConnectionString);
+    //   console.log("Successfully connected to Oracle databases.");
+    //   // You would then export these connections or a DB client instance.
+    // } catch (err) {
+    //   console.error("Oracle connection failed: ", err);
+    //   process.exit(1);
+    // }
+    
+    // For now, we'll throw an error if IS_PRODUCTION_DB is true because the Oracle driver isn't implemented.
+    // In a real scenario, we would fall back to the demo DB or handle this gracefully.
+    console.warn("IS_PRODUCTION_DB is true, but Oracle connection is not implemented. Falling back to demo SQLite DB.");
+}
+
+// ---- DEMO/FALLBACK SQLITE DATABASE ----
 const dbPath = path.resolve('zemen.db');
-
-// Ensure the directory exists
 const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
-
-export const db = new Database(dbPath);
-
+db = new Database(dbPath);
+console.log("Initialized demo SQLite database.");
 
 const schema = `
   -- Admin Panel Tables
@@ -36,7 +64,7 @@ const schema = `
     permissions TEXT NOT NULL 
   );
 
-  -- USER_MODULE Tables (Translated from Oracle DDL)
+  -- USER_MODULE Tables (Translated from Oracle DDL for SQLite)
   CREATE TABLE IF NOT EXISTS AppUsers (
     Id TEXT PRIMARY KEY, 
     CIFNumber TEXT UNIQUE NOT NULL, 
@@ -83,7 +111,7 @@ const schema = `
     FOREIGN KEY (CIFNumber) REFERENCES AppUsers(CIFNumber) ON DELETE CASCADE
   );
 
-  -- SECURITY_MODULE Tables (Translated from Oracle DDL)
+  -- SECURITY_MODULE Tables (Translated from Oracle DDL for SQLite)
   CREATE TABLE IF NOT EXISTS SecurityQuestions (
     Id TEXT PRIMARY KEY, 
     Question TEXT UNIQUE, 
@@ -261,4 +289,4 @@ if (db.prepare('SELECT COUNT(*) as count FROM mini_apps').get().count === 0) {
 
 console.log("Database initialized with new schema.");
 
-    
+export { db };

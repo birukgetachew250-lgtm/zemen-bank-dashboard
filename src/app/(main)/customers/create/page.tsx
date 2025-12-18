@@ -28,6 +28,7 @@ import { Loader2, User, Building, Phone, Mail, Fingerprint, MapPin, Globe } from
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import config from '@/lib/config';
 
 const cifSchema = z.object({
   branch_code: z.string().min(1, 'Branch code is required'),
@@ -52,9 +53,25 @@ const customerDetailsSchema = z.object({
 
 type CustomerDetails = z.infer<typeof customerDetailsSchema>;
 
+// This function simulates calling an external service (e.g., Flexcube via gRPC)
 const queryCustomerDetails = async (branch_code: string, customer_id: string): Promise<CustomerDetails | null> => {
     console.log(`Querying Flexcube with Branch: ${branch_code}, CIF: ${customer_id}`);
-    if (customer_id) {
+    
+    // If IS_PRODUCTION_GRPC is true, you would make a real gRPC call here.
+    if (config.grpc.isProduction) {
+        console.log(`Making a real gRPC call to ${config.grpc.url}...`);
+        // Example:
+        // const client = new FlexcubeClient(config.grpc.url, credentials);
+        // const response = await client.getCustomerDetails({ branch_code, customer_id });
+        // return response; 
+        
+        // For now, we'll return null to indicate it's not implemented.
+        return null;
+    }
+
+    // If IS_PRODUCTION_GRPC is false, use demo data.
+    console.log("Using demo data for customer details query.");
+    if (customer_id === '0048533') {
         return {
             customer_number: customer_id,
             full_name: 'AKALEWORK TAMENE KEBEDE',
@@ -103,7 +120,9 @@ export default function CreateCustomerPage() {
             toast({
                 variant: 'destructive',
                 title: 'Customer Not Found',
-                description: 'No customer found with the provided CIF number.',
+                description: config.grpc.isProduction 
+                    ? 'Could not fetch customer from the live service.' 
+                    : 'No demo customer found with the provided CIF number.',
             });
         }
     } catch (error) {
