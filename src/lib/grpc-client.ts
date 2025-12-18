@@ -46,17 +46,8 @@ function loadGrpcClient() {
         
         console.log("[gRPC Client] Successfully loaded 'accountdetail' package from proto.");
         
-        // The loadedPackage contains both the Service and the message types (e.g., AccountDetailRequest)
         accountDetailPackage = loadedPackage;
         
-        // Create a client instance and attach it to our cached package object
-        accountDetailPackage.client = new accountDetailPackage.AccountDetailService(
-            grpcUrl,
-            grpc.credentials.createInsecure()
-        );
-
-        console.log("[gRPC Client] gRPC client created successfully.");
-
     } catch (error) {
         console.error("[gRPC Client] Failed to initialize gRPC client:", error);
         throw error;
@@ -68,7 +59,11 @@ export function getAccountDetailServiceClient(): grpc.Client {
     if (!accountDetailPackage) {
         loadGrpcClient();
     }
-    return accountDetailPackage.client;
+     const grpcUrl = config.grpc.url!.replace(/^(https?:\/\/)/, '');
+    return new accountDetailPackage.AccountDetailService(
+        grpcUrl,
+        grpc.credentials.createInsecure()
+    );
 }
 
 // This function returns the message type class, which has the .encode method
@@ -76,6 +71,6 @@ export function getAccountDetailRequestType(): any {
      if (!accountDetailPackage) {
         loadGrpcClient();
     }
-    // AccountDetailRequest is a property on the loaded package
+    // This is the critical fix: return the message type from the loaded package.
     return accountDetailPackage.AccountDetailRequest;
 }
