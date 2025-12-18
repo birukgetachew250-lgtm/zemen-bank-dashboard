@@ -1,10 +1,18 @@
+
 import { Suspense } from 'react';
 import { UserPlus, Users, UserX, AlertCircle } from 'lucide-react';
 import { StatsCard, StatsCardSkeleton } from '@/components/dashboard/StatsCard';
 import { TransactionsSummary } from '@/components/dashboard/TransactionsSummary';
 import { db } from '@/lib/db';
+import config from '@/lib/config';
 
 async function getCustomerStats() {
+  if (config.db.isProduction) {
+    throw new Error(
+      "Production database not connected for Dashboard. " + 
+      "The application is configured for production but cannot query the demo database."
+    );
+  }
   const registered = db.prepare("SELECT COUNT(id) as count FROM customers").get()?.count ?? 0;
   const active = db.prepare("SELECT COUNT(id) as count FROM customers WHERE status = 'active'").get()?.count ?? 0;
   const inactive = db.prepare("SELECT COUNT(id) as count FROM customers WHERE status = 'inactive'").get()?.count ?? 0;
