@@ -3,10 +3,10 @@ import { NextResponse } from 'next/server';
 import { credentials } from '@grpc/grpc-js';
 import config from '@/lib/config';
 
-// These are placeholder imports. In a real project, these would be generated
+// These are placeholder types. In a real project, these would be generated
 // from your .proto files by a tool like grpc-tools.
 // We are defining mock classes here to make the TypeScript compiler happy.
-class MockAccountDetailServiceClient {
+class AccountDetailServiceClient {
     constructor(url: string, creds: any) {}
     QueryCustomerDetails(request: any, callback: (err: any, res: any) => void) {
         console.log("Making mock gRPC call with request:", request.toObject());
@@ -40,16 +40,15 @@ class MockAccountDetailServiceClient {
         }
     }
 }
-const AccountDetailServiceClient = MockAccountDetailServiceClient;
 
-class MockServiceRequest {
+
+class ServiceRequest {
     private payload: string;
     constructor() { this.payload = ''; }
     setPayload(p: string) { this.payload = p; }
     getPayload() { return this.payload; }
     toObject() { return { payload: this.payload }; }
 };
-const ServiceRequest = MockServiceRequest;
 
 
 // This is the actual POST handler for the API route.
@@ -78,13 +77,12 @@ export async function POST(req: Request) {
 const queryCustomerDetails = async (branch_code: string, customer_id: string): Promise<any | null> => {
     console.log(`Querying Flexcube with Branch: ${branch_code}, CIF: ${customer_id}`);
     
-    // --- Production gRPC Call ---
     if (!config.grpc.url) {
         throw new Error("gRPC URL is not configured in environment variables.");
     }
-    console.log(`Making a real gRPC call to ${config.grpc.url}...`);
     
     // In a real scenario, the 'AccountDetailServiceClient' would be imported from generated code.
+    // For this prototype, we're using a mock client.
     const client = new AccountDetailServiceClient(config.grpc.url, credentials.createInsecure());
     
     return new Promise((resolve, reject) => {
