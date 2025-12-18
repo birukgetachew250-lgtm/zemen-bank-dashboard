@@ -78,28 +78,6 @@ export async function POST(req: Request) {
 const queryCustomerDetails = async (branch_code: string, customer_id: string): Promise<any | null> => {
     console.log(`Querying Flexcube with Branch: ${branch_code}, CIF: ${customer_id}`);
     
-    if (!config.grpc.isProduction) {
-        console.log("Using demo data for customer details query.");
-        if (customer_id === '0048533') {
-            return {
-                customer_number: customer_id,
-                full_name: 'AKALEWORK TAMENE KEBEDE',
-                cif_creation_date: '2022-01-20',
-                date_of_birth: '1990-05-15',
-                gender: 'Female',
-                email_id: 'akalework.t@example.com',
-                mobile_number: '+251911223344',
-                address_line_1: 'AA, ADDIS KETEMA',
-                address_line_2: '06',
-                address_line_3: '790',
-                address_line_4: '',
-                country: 'ETHIOPIA',
-                branch: 'ADDIS KETEMA',
-            };
-        }
-        return null;
-    }
-
     // --- Production gRPC Call ---
     if (!config.grpc.url) {
         throw new Error("gRPC URL is not configured in environment variables.");
