@@ -6,13 +6,12 @@ import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import config from './config';
 
-let accountDetailServiceClient: grpc.Client | null = null;
-let accountDetailRequestType: any = null;
+let accountDetailPackage: any = null;
 
 const PROTO_PATH = path.resolve(process.cwd(), 'public', 'protos');
 
 function loadGrpcClient() {
-    if (accountDetailServiceClient && accountDetailRequestType) {
+    if (accountDetailPackage) {
         return; 
     }
 
@@ -38,26 +37,23 @@ function loadGrpcClient() {
         );
 
         const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
-        const accountDetailPackage = (protoDescriptor as any).accountdetail;
+        const loadedPackage = (protoDescriptor as any).accountdetail;
 
-        if (!accountDetailPackage || !accountDetailPackage.AccountDetailService) {
-            console.error("[gRPC Client] Proto definition for 'accountdetail.AccountDetailService' not found after loading.");
-            throw new Error("Could not load AccountDetailService from proto definition.");
+        if (!loadedPackage || !loadedPackage.AccountDetailService || !loadedPackage.AccountDetailRequest) {
+            console.error("[gRPC Client] Proto definition for 'accountdetail.AccountDetailService' or 'AccountDetailRequest' not found after loading.");
+            throw new Error("Could not load AccountDetailService or AccountDetailRequest from proto definition.");
         }
         
-        if (!accountDetailPackage.AccountDetailRequest) {
-            console.error("[gRPC Client] Proto definition for 'accountdetail.AccountDetailRequest' not found after loading.");
-            throw new Error("Could not load AccountDetailRequest message type from proto definition.");
-        }
-
         console.log("[gRPC Client] Successfully loaded 'accountdetail' package from proto.");
         
-        accountDetailServiceClient = new accountDetailPackage.AccountDetailService(
+        // Cache the entire loaded package
+        accountDetailPackage = loadedPackage;
+        
+        // Create a client instance within the package. This is not directly returned but accessed via the package.
+        accountDetailPackage.client = new accountDetailPackage.AccountDetailService(
             grpcUrl,
             grpc.credentials.createInsecure()
         );
-        
-        accountDetailRequestType = accountDetailPackage.AccountDetailRequest;
 
         console.log("[gRPC Client] gRPC client and message types created successfully.");
 
@@ -69,15 +65,15 @@ function loadGrpcClient() {
 
 
 export function getAccountDetailServiceClient(): grpc.Client {
-    if (!accountDetailServiceClient) {
+    if (!accountDetailPackage) {
         loadGrpcClient();
     }
-    return accountDetailServiceClient!;
+    return accountDetailPackage.client;
 }
 
 export function getAccountDetailRequestType(): any {
-     if (!accountDetailRequestType) {
+     if (!accountDetailPackage) {
         loadGrpcClient();
     }
-    return accountDetailRequestType;
+    return accountDetailPackage.AccountDetailRequest;
 }
