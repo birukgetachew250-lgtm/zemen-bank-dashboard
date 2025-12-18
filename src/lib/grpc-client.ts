@@ -1,5 +1,5 @@
 
-'use server';
+'server-only';
 
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
@@ -57,7 +57,6 @@ function loadGrpcClient() {
             grpc.credentials.createInsecure()
         );
         
-        // Correctly assign the message type constructor
         accountDetailRequestType = accountDetailPackage.AccountDetailRequest;
 
         console.log("[gRPC Client] gRPC client and message types created successfully.");
