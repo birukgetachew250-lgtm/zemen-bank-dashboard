@@ -13,31 +13,9 @@ class AccountDetailServiceClient {
         const { requestBody } = JSON.parse(request.getPayload());
         const customer_id = requestBody.customer_id;
         
-        if (customer_id === '0048533') {
-             callback(null, { 
-                getPayload: () => JSON.stringify({
-                    customer: {
-                        customer_number: customer_id,
-                        full_name: 'AKALEWORK TAMENE KEBEDE',
-                        cif_creation_date: '2022-01-20',
-                        date_of_birth: '1990-05-15',
-                        gender: 'Female',
-                        email_id: 'akalework.t@example.com',
-                        mobile_number: '+251911223344',
-                        address_line_1: 'AA, ADDIS KETEMA',
-                        address_line_2: '06',
-                        address_line_3: '790',
-                        address_line_4: '',
-                        country: 'ETHIOPIA',
-                        branch: 'ADDIS KETEMA',
-                    },
-                    status: "SUCCESS",
-                    message: "Customer found"
-                })
-            });
-        } else {
-            callback({ code: 5, details: "Customer not found" }, null);
-        }
+        // This is a mock response and should be replaced with a real gRPC call.
+        // For now, we simulate a "not found" for anything other than the test CIF.
+        callback({ code: 5, details: `Customer with CIF ${customer_id} not found in mock.` }, null);
     }
 }
 
