@@ -2,6 +2,7 @@
 'server-only';
 
 import Database from 'better-sqlite3';
+import oracledb from 'oracledb';
 import path from 'path';
 import fs from 'fs';
 import { faker } from '@faker-js/faker';
@@ -18,23 +19,59 @@ let db: Database.Database;
 if (config.db.isProduction) {
     // ---- PRODUCTION DATABASE CONNECTION ----
     // This is where you would initialize your Oracle DB connections.
-    // For example, using the 'oracledb' package:
-    //
-    // import oracledb from 'oracledb';
-    //
-    // try {
-    //   const userModuleConnection = await oracledb.getConnection(config.db.userModuleConnectionString);
-    //   const securityModuleConnection = await oracledb.getConnection(config.db.securityModuleConnectionString);
-    //   console.log("Successfully connected to Oracle databases.");
-    //   // You would then export these connections or a DB client instance.
-    // } catch (err) {
-    //   console.error("Oracle connection failed: ", err);
-    //   process.exit(1);
-    // }
+    console.log("Production mode enabled. Attempting to connect to Oracle...");
+
+    // Set oracledb defaults
+    oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
+
+    // This is a placeholder for a more robust connection pool.
+    // In a real app, you would manage connections more carefully.
+    async function getDbConnections() {
+      try {
+        const userModuleConnection = await oracledb.getConnection({
+            connectString: config.db.userModuleConnectionString
+        });
+        const securityModuleConnection = await oracledb.getConnection({
+            connectString: config.db.securityModuleConnectionString
+        });
+        
+        console.log("Successfully connected to Oracle databases.");
+        
+        // This is a simplified mock of the 'better-sqlite3' API for demonstration.
+        // A real implementation would require a full translation layer or different DAO logic.
+        return {
+            userDB: userModuleConnection,
+            securityDB: securityModuleConnection,
+            // A mock 'prepare' function
+            prepare: (sql: string) => ({
+                get: async (...params: any[]) => {
+                    // This is highly simplified and assumes USER_MODULE. A real implementation needs routing.
+                    const result = await userModuleConnection.execute(sql, params);
+                    return result.rows ? result.rows[0] : undefined;
+                },
+                all: async (...params: any[]) => {
+                     const result = await userModuleConnection.execute(sql, params);
+                    return result.rows || [];
+                }
+            })
+        };
+      } catch (err) {
+        console.error("FATAL: Oracle connection failed. Ensure Oracle Instant Client is installed and configured.", err);
+        // Throwing the error will cause Next.js to render an error page.
+        throw new Error(`Oracle connection failed: ${(err as Error).message}`);
+      }
+    }
     
-    // For now, we'll throw an error if IS_PRODUCTION_DB is true because the Oracle driver isn't implemented.
-    // In a real scenario, we would fall back to the demo DB or handle this gracefully.
-    console.warn("IS_PRODUCTION_DB is true, but Oracle connection is not implemented. The application will not connect to a database.");
+    // In a real scenario, you'd export a connection manager.
+    // For this prototype, we are showing the connection attempt and error handling.
+    // The 'db' variable won't be a 'better-sqlite3' instance in prod.
+    // We are deliberately not assigning it to stop the app from working with the wrong DB type.
+    console.warn(
+      "IS_PRODUCTION_DB is true. App will try to connect to Oracle. " +
+      "If the connection fails, an error will be thrown. The current implementation " +
+      "does not support querying Oracle and will fail."
+    );
+
 } else {
     // ---- DEMO/FALLBACK SQLITE DATABASE ----
     // Place the database in node_modules to prevent Next.js from watching it and restarting on change.

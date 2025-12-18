@@ -13,12 +13,17 @@ import { db } from "@/lib/db";
 import { ExistingCustomerClient } from "@/components/customers/ExistingCustomerClient";
 import config from "@/lib/config";
 
-function getAppUserStats() {
+async function getAppUserStats() {
   // If in production, do not attempt to query the demo DB.
   // The real implementation would use an Oracle client here.
   if (config.db.isProduction) {
-    console.log("Production mode: Skipping demo DB query for user stats. Real Oracle implementation needed.");
-    return { totalUsers: "0", linkedAccounts: "0", activeUsers: "0" };
+    // In a real application, you would have a proper data access layer
+    // that uses the Oracle connection. For now, we simulate the failure.
+    // The error will be caught by Next.js and render an error page.
+    throw new Error(
+        "Production database not connected. " + 
+        "The application is configured for production but the Oracle database driver is not fully implemented."
+    );
   }
   
   try {
@@ -32,13 +37,13 @@ function getAppUserStats() {
     };
   } catch (error) {
     console.error("Failed to fetch app user stats from demo DB:", error);
-    // Return zeros if there's an error so the page doesn't crash
-    return { totalUsers: "0", linkedAccounts: "0", activeUsers: "0" };
+    // Throw an error to be caught by the error boundary
+    throw new Error(`Failed to fetch stats from demo database: ${(error as Error).message}`);
   }
 }
 
-export default function ExistingCustomersPage() {
-  const userStats = getAppUserStats();
+export default async function ExistingCustomersPage() {
+  const userStats = await getAppUserStats();
 
   return (
     <div className="w-full space-y-8">
