@@ -54,19 +54,25 @@ if (config.db.isProduction) {
                     connectString: config.db.connectString 
                 });
             };
+            
+            const transformSql = (sql: string) => {
+                let i = 0;
+                return sql.replace(/\?/g, () => `:${++i}`);
+            };
 
             return {
                 get: async (...params: any[]) => {
                     let connection;
+                    const oracleSql = transformSql(sql);
                     try {
-                        console.log("Executing SQL Query:", sql, "with params:", params);
+                        console.log("Executing SQL Query:", oracleSql, "with params:", params);
                         connection = await getConnection();
-                        const result = await connection.execute(sql, params);
+                        const result = await connection.execute(oracleSql, params);
                         const row = result.rows ? result.rows[0] : undefined;
                         
                         // Handle count queries which may have different casing in Oracle
                         if (row) {
-                            const countKey = Object.keys(row).find(k => k.toLowerCase() === 'count');
+                           const countKey = Object.keys(row).find(k => k.toLowerCase() === 'count');
                             if (countKey) {
                                 return { count: row[countKey] };
                             }
@@ -85,10 +91,11 @@ if (config.db.isProduction) {
                 },
                 all: async (...params: any[]) => {
                     let connection;
+                    const oracleSql = transformSql(sql);
                     try {
-                        console.log("Executing SQL Query:", sql, "with params:", params);
+                        console.log("Executing SQL Query:", oracleSql, "with params:", params);
                         connection = await getConnection();
-                        const result = await connection.execute(sql, params);
+                        const result = await connection.execute(oracleSql, params);
                         return result.rows || [];
                     } finally {
                         if (connection) {
