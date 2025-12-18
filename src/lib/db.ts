@@ -1,4 +1,5 @@
 
+
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
@@ -36,13 +37,14 @@ if (config.db.isProduction) {
 }
 
 // ---- DEMO/FALLBACK SQLITE DATABASE ----
-const dbPath = path.resolve('zemen.db');
-const dbDir = path.dirname(dbPath);
+// Place the database in node_modules to prevent Next.js from watching it and restarting on change.
+const dbDir = path.resolve(process.cwd(), 'node_modules', '.db');
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
+const dbPath = path.join(dbDir, 'zemen.db');
 db = new Database(dbPath);
-console.log("Initialized demo SQLite database.");
+console.log(`Initialized demo SQLite database at ${dbPath}`);
 
 const schema = `
   -- Admin Panel Tables
@@ -240,7 +242,11 @@ if (db.prepare('SELECT COUNT(*) as count FROM roles').get().count === 0) {
       { id: "role_3", name: "Support Staff", permissions: JSON.stringify(["view-customers", "handle-tickets", "request-pin-reset"]) },
       { id: "role_4", name: "Compliance Officer", permissions: JSON.stringify(["view-reports", "view-audit-trails", "flag-transaction"]) },
     ];
-    db.transaction(() => items.forEach(item => insert.run(item.id, item.name, item.permissions)))();
+    db.transaction(() => {
+        if (items && items.length) {
+            items.forEach(item => insert.run(item.id, item.name, item.permissions));
+        }
+    })();
 }
 
 if (db.prepare('SELECT COUNT(*) as count FROM SecurityQuestions').get().count === 0) {
@@ -250,7 +256,11 @@ if (db.prepare('SELECT COUNT(*) as count FROM SecurityQuestions').get().count ==
         { id: '294b2da0-1613-4263-961b-c09cef56a346', question: 'Your nick name ?' },
         { id: '294b2da0-1613-4263-961b-c01cef56a346', question: 'Your faviourite subject at primary school?' },
     ];
-    db.transaction(() => questions.forEach(q => insert.run(q.id, q.question)))();
+    db.transaction(() => {
+        if (questions && questions.length) {
+            questions.forEach(q => insert.run(q.id, q.question));
+        }
+    })();
     console.log(`Seeded ${questions.length} security questions.`);
 }
 
@@ -260,7 +270,11 @@ if (db.prepare('SELECT COUNT(*) as count FROM corporates').get().count === 0) {
         { id: "corp_1", name: "Dangote Cement", industry: "Manufacturing", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/dangote/40/40" },
         { id: "corp_2", name: "MTN Nigeria", industry: "Telecommunications", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/mtn/40/40" },
     ];
-    db.transaction((items) => items.forEach(item => insertCorporate.run(item.id, item.name, item.industry, item.status, item.internet_banking_status, item.logo_url)))();
+    db.transaction((items) => {
+        if (items && items.length) {
+            items.forEach(item => insertCorporate.run(item.id, item.name, item.industry, item.status, item.internet_banking_status, item.logo_url))
+        }
+    })(corporates);
 }
 
 if (db.prepare('SELECT COUNT(*) as count FROM branches').get().count === 0) {
@@ -269,7 +283,11 @@ if (db.prepare('SELECT COUNT(*) as count FROM branches').get().count === 0) {
         { id: `br_${crypto.randomUUID()}`, name: "Bole Branch", location: "Bole, Addis Ababa" },
         { id: `br_${crypto.randomUUID()}`, name: "Head Office", location: "HQ, Addis Ababa" },
     ];
-    db.transaction((items) => items.forEach(item => insertBranch.run(item.id, item.name, item.location)))();
+    db.transaction((items) => {
+        if (items && items.length) {
+            items.forEach(item => insertBranch.run(item.id, item.name, item.location))
+        }
+    })(branches);
 }
 
 if (db.prepare('SELECT COUNT(*) as count FROM departments').get().count === 0) {
@@ -278,13 +296,21 @@ if (db.prepare('SELECT COUNT(*) as count FROM departments').get().count === 0) {
         { id: `dep_${crypto.randomUUID()}`, name: "Branch Operations" },
         { id: `dep_${crypto.randomUUID()}`, name: "IT Department" },
     ];
-     db.transaction((items) => items.forEach(item => insertDepartment.run(item.id, item.name)))();
+     db.transaction((items) => {
+        if (items && items.length) {
+            items.forEach(item => insertDepartment.run(item.id, item.name))
+        }
+    })(departments);
 }
 
 if (db.prepare('SELECT COUNT(*) as count FROM mini_apps').get().count === 0) {
     const insertMiniApp = db.prepare('INSERT INTO mini_apps (id, name, url, logo_url, username, password, encryption_key) VALUES (?, ?, ?, ?, ?, ?, ?)');
     const miniApps = [ { id: `mapp_${crypto.randomUUID()}`, name: "Cinema Ticket", url: "https://cinema.example.com", logo_url: "https://picsum.photos/seed/cinema/100/100", username: "cinema_api", password: "secure_password_1", encryption_key: crypto.randomBytes(32).toString('hex') }];
-    db.transaction((items) => items.forEach(item => insertMiniApp.run(item.id, item.name, item.url, item.logo_url, item.username, item.password, item.encryption_key)))();
+    db.transaction((items) => {
+        if (items && items.length) {
+            items.forEach(item => insertMiniApp.run(item.id, item.name, item.url, item.logo_url, item.username, item.password, item.encryption_key))
+        }
+    })(miniApps);
 }
 
 console.log("Database initialized with new schema.");
