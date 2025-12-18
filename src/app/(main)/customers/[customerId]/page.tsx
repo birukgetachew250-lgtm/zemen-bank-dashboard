@@ -32,10 +32,10 @@ import config from "@/lib/config";
 import { decrypt } from "@/lib/crypto";
 
 
-const getCustomerById = (id: string) => {
+const getCustomerById = async (id: string) => {
     let customerFromDb;
     if (config.db.isProduction) {
-        customerFromDb = db.prepare('SELECT "Id", "CIFNumber", "FirstName", "SecondName", "LastName", "Email", "PhoneNumber", "AddressLine1", "AddressLine2", "AddressLine3", "AddressLine4", "Nationality", "BranchCode", "BranchName", "Status", "SignUp2FA", "SignUpMainAuth", "InsertDate" FROM "USER_MODULE"."AppUsers" WHERE "Id" = :1 OR "CIFNumber" = :2').get(id, id);
+        customerFromDb = await db.prepare('SELECT "Id", "CIFNumber", "FirstName", "SecondName", "LastName", "Email", "PhoneNumber", "AddressLine1", "AddressLine2", "AddressLine3", "AddressLine4", "Nationality", "BranchCode", "BranchName", "Status", "SignUp2FA", "SignUpMainAuth", "InsertDate" FROM "USER_MODULE"."AppUsers" WHERE "Id" = :1 OR "CIFNumber" = :2').get(id, id);
     } else {
         customerFromDb = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
     }
@@ -69,10 +69,11 @@ const getCustomerById = (id: string) => {
 }
 
 
-const getAccountsByCif = (cif: string) => {
+const getAccountsByCif = async (cif: string) => {
+    if (!cif) return [];
     let accountsFromDb;
     if (config.db.isProduction) {
-        accountsFromDb = db.prepare('SELECT "Id", "AccountNumber", "AccountType", "Currency", "BranchName", "Status" FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :1').all(cif);
+        accountsFromDb = await db.prepare('SELECT "Id", "AccountNumber", "AccountType", "Currency", "BranchName", "Status" FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :1').all(cif);
     } else {
         accountsFromDb = db.prepare('SELECT * FROM Accounts WHERE CIFNumber = ?').all(cif);
     }
@@ -113,14 +114,14 @@ const getStatusVariant = (status: string) => {
 }
 
 
-export default function CustomerDetailsPage({ params }: { params: { customerId: string } }) {
-    const customer = getCustomerById(params.customerId);
+export default async function CustomerDetailsPage({ params }: { params: { customerId: string } }) {
+    const customer = await getCustomerById(params.customerId);
 
     if (!customer) {
         notFound();
     }
     
-    const accounts = getAccountsByCif(customer.cifNumber);
+    const accounts = await getAccountsByCif(customer.cifNumber);
 
     const fullName = customer.name;
 
@@ -286,3 +287,4 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
         </div>
     )
 }
+
