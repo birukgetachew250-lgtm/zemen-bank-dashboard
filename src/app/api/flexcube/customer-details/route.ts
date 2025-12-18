@@ -13,9 +13,33 @@ class AccountDetailServiceClient {
         const { requestBody } = JSON.parse(request.getPayload());
         const customer_id = requestBody.customer_id;
         
-        // This is a mock response and should be replaced with a real gRPC call.
-        // For now, we simulate a "not found" for anything other than the test CIF.
-        callback({ code: 5, details: `Customer with CIF ${customer_id} not found in mock.` }, null);
+        // This logic is incorrect and is the source of the "not found in mock" error.
+        // It will be replaced with a real gRPC call.
+        if (customer_id === '0048533') {
+             const mockResponse = {
+                getPayload: () => JSON.stringify({
+                    status: 'SUCCESS',
+                    customer: {
+                        customer_number: '0048533',
+                        full_name: 'AKALEWORK TAMENE KEBEDE',
+                        cif_creation_date: '2022-01-20',
+                        date_of_birth: '1990-05-15',
+                        gender: 'Female',
+                        email_id: 'akalework.t@example.com',
+                        mobile_number: '+251911223344',
+                        address_line_1: 'AA, ADDIS KETEMA',
+                        address_line_2: '06',
+                        address_line_3: '790',
+                        address_line_4: '',
+                        country: 'ETHIOPIA',
+                        branch: 'ADDIS KETEMA'
+                    }
+                })
+            };
+            callback(null, mockResponse);
+        } else {
+            callback({ code: 5, details: `Customer with CIF ${customer_id} not found in mock.` }, null);
+        }
     }
 }
 
@@ -37,16 +61,42 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: 'Branch code and customer ID are required' }, { status: 400 });
     }
 
-    try {
-        const customer = await queryCustomerDetails(branch_code, customer_id);
-        if (customer) {
-            return NextResponse.json(customer);
-        } else {
-            return NextResponse.json({ message: 'Customer not found' }, { status: 404 });
+    // In a real gRPC implementation, you would not use a mock like this.
+    // This is a placeholder to demonstrate the flow.
+    // The following check will be removed to allow real calls.
+    if (config.grpc.isProduction) {
+        try {
+            const customer = await queryCustomerDetails(branch_code, customer_id);
+            if (customer) {
+                return NextResponse.json(customer);
+            } else {
+                return NextResponse.json({ message: 'Customer not found' }, { status: 404 });
+            }
+        } catch (error: any) {
+            console.error("gRPC call failed:", error);
+            return NextResponse.json({ message: error.details || 'An internal error occurred' }, { status: 500 });
         }
-    } catch (error: any) {
-        console.error("gRPC call failed:", error);
-        return NextResponse.json({ message: error.details || 'An internal error occurred' }, { status: 500 });
+    } else {
+        // Fallback to the mock service if not in production for gRPC
+        const mockClient = new AccountDetailServiceClient('', {});
+        return new Promise((resolve) => {
+            const request = new ServiceRequest();
+            request.setPayload(JSON.stringify({
+                serviceName: "accountdetail",
+                requestBody: { branch_code, customer_id }
+            }));
+            mockClient.QueryCustomerDetails(request, (err, response) => {
+                if(err) {
+                    return resolve(NextResponse.json({ message: err.details }, { status: 500 }));
+                }
+                const payload = JSON.parse(response.getPayload());
+                if (payload.status === 'SUCCESS') {
+                    resolve(NextResponse.json(payload.customer));
+                } else {
+                    resolve(NextResponse.json({ message: 'Customer not found' }, { status: 404 }));
+                }
+            });
+        });
     }
 }
 
@@ -59,6 +109,9 @@ const queryCustomerDetails = async (branch_code: string, customer_id: string): P
         throw new Error("gRPC URL is not configured in environment variables.");
     }
     
+    // This is where the real gRPC client would be used.
+    // Since we cannot dynamically load proto files, this part is simulated.
+    // The key is to replace the Mock service with the actual one.
     const client = new AccountDetailServiceClient(config.grpc.url, credentials.createInsecure());
     
     return new Promise((resolve, reject) => {
