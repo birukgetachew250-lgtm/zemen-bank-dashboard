@@ -11,8 +11,16 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Users, Link, UserCheck } from "lucide-react";
 import { db } from "@/lib/db";
 import { ExistingCustomerClient } from "@/components/customers/ExistingCustomerClient";
+import config from "@/lib/config";
 
 function getAppUserStats() {
+  // If in production, do not attempt to query the demo DB.
+  // The real implementation would use an Oracle client here.
+  if (config.db.isProduction) {
+    console.log("Production mode: Skipping demo DB query for user stats. Real Oracle implementation needed.");
+    return { totalUsers: "0", linkedAccounts: "0", activeUsers: "0" };
+  }
+  
   try {
     const totalUsers = db.prepare("SELECT COUNT(Id) as count FROM AppUsers").get()?.count ?? 0;
     const linkedAccounts = db.prepare("SELECT COUNT(Id) as count FROM Accounts").get()?.count ?? 0;
@@ -23,7 +31,7 @@ function getAppUserStats() {
       activeUsers: activeUsers.toLocaleString(),
     };
   } catch (error) {
-    console.error("Failed to fetch app user stats:", error);
+    console.error("Failed to fetch app user stats from demo DB:", error);
     // Return zeros if there's an error so the page doesn't crash
     return { totalUsers: "0", linkedAccounts: "0", activeUsers: "0" };
   }
