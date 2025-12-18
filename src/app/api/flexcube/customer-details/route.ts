@@ -47,7 +47,6 @@ export async function POST(req: Request) {
 
                 if (response && response.success && response.data && response.data.value) {
                     try {
-                        // The 'value' is a buffer containing a JSON string. We need to parse it.
                         const nestedJsonResponse = Buffer.from(response.data.value).toString('utf8');
                         const detailResponse = JSON.parse(nestedJsonResponse);
                         
@@ -55,19 +54,22 @@ export async function POST(req: Request) {
                              console.log("[API] gRPC Success, decoded customer data:", detailResponse.customer);
                              resolve(detailResponse.customer);
                         } else {
-                             console.error("[API] gRPC call returned non-success in nested response:", detailResponse.message);
-                             reject({ code: 5, details: detailResponse.message || "Customer not found in Flexcube" });
+                             const errorMessage = detailResponse.message || "Customer not found in Flexcube";
+                             console.error("[API] gRPC call returned non-success in nested response:", errorMessage);
+                             reject({ code: grpc.status.NOT_FOUND, details: errorMessage });
                         }
                     } catch(e) {
                          console.error("[API] Failed to parse nested response from gRPC data field", e);
-                         reject({ code: 13, details: "Failed to parse nested gRPC response."});
+                         reject({ code: grpc.status.INTERNAL, details: "Failed to parse nested gRPC response."});
                     }
                 } else if (response && !response.success) {
-                    console.error("[API] gRPC call returned non-success or empty data:", response.message || 'No response');
-                    reject({ code: 2, details: response.message || "Upstream service returned an invalid or empty response." });
+                    const errorMessage = response.message || "Upstream service returned an invalid or empty response.";
+                    console.error("[API] gRPC call returned non-success or empty data:", errorMessage);
+                    reject({ code: grpc.status.UNAVAILABLE, details: errorMessage });
                 } else {
+                     const errorMessage = `No customer found for CIF: ${customer_id}`;
                     console.error("[API] Fallback: No customer found for CIF:", customer_id);
-                    resolve(null);
+                    reject({ code: grpc.status.NOT_FOUND, details: errorMessage });
                 }
             });
         });
@@ -75,12 +77,14 @@ export async function POST(req: Request) {
         if (customer) {
             return NextResponse.json(customer);
         } else {
+            // This case should ideally be handled by the promise rejection
             return NextResponse.json({ message: `Customer with CIF ${customer_id} not found.` }, { status: 404 });
         }
 
 
     } catch (error: any) {
         console.error("[API] Final catch block - gRPC call failed:", error);
-        return NextResponse.json({ message: error.details || 'An internal server error occurred' }, { status: 500 });
+        const statusCode = error.code === grpc.status.NOT_FOUND ? 404 : 500;
+        return NextResponse.json({ message: error.details || 'An internal server error occurred' }, { status: statusCode });
     }
 }
