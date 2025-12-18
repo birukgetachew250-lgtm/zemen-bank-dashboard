@@ -16,7 +16,6 @@ export async function POST(req: Request) {
 
     try {
         const client = getAccountDetailServiceClient();
-        // Get the full protobuf package, which contains the message types
         const accountDetailPackage = getAccountDetailPackage();
         
         // Retrieve the message type constructor from the loaded package

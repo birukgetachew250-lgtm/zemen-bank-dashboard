@@ -6,8 +6,10 @@ import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import config from './config';
 
-// This will cache the loaded package definition
+// This will cache the loaded package definition and its components
 let accountDetailPackage: any = null;
+let accountDetailServiceClient: grpc.Client | null = null;
+let accountDetailRequestType: any = null;
 
 const PROTO_PATH = path.resolve(process.cwd(), 'public', 'protos');
 
@@ -41,15 +43,21 @@ function loadGrpcClient() {
         const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
         const loadedPackage = (protoDescriptor as any).accountdetail;
 
-        if (!loadedPackage || !loadedPackage.AccountDetailService) {
-            console.error("[gRPC Client] Proto definition for 'accountdetail.AccountDetailService' not found after loading.");
-            throw new Error("Could not load AccountDetailService from proto definition.");
+        if (!loadedPackage || !loadedPackage.AccountDetailService || !loadedPackage.AccountDetailRequest) {
+            console.error("[gRPC Client] Proto definition for 'AccountDetailService' or 'AccountDetailRequest' not found after loading.");
+            throw new Error("Could not load required components from proto definition.");
         }
         
         console.log("[gRPC Client] Successfully loaded 'accountdetail' package from proto.");
         
-        // Cache the entire loaded package
+        // Cache the entire loaded package and its specific components
         accountDetailPackage = loadedPackage;
+        accountDetailRequestType = loadedPackage.AccountDetailRequest;
+        accountDetailServiceClient = new loadedPackage.AccountDetailService(
+            grpcUrl,
+            grpc.credentials.createInsecure()
+        );
+        console.log("[gRPC Client] gRPC client and message types created successfully.");
         
     } catch (error) {
         console.error("[gRPC Client] Failed to initialize gRPC client:", error);
@@ -57,19 +65,14 @@ function loadGrpcClient() {
     }
 }
 
-// This function ensures the client is loaded and returns the service client
+
 export function getAccountDetailServiceClient(): grpc.Client {
-    if (!accountDetailPackage) {
+    if (!accountDetailServiceClient) {
         loadGrpcClient();
     }
-    const grpcUrl = config.grpc.url!.replace(/^(https?:\/\/)/, '');
-    return new accountDetailPackage.AccountDetailService(
-        grpcUrl,
-        grpc.credentials.createInsecure()
-    );
+    return accountDetailServiceClient!;
 }
 
-// This function ensures the client is loaded and returns the entire package
 export function getAccountDetailPackage(): any {
      if (!accountDetailPackage) {
         loadGrpcClient();
