@@ -1,4 +1,5 @@
 
+
 'server-only';
 
 import Database from 'better-sqlite3';
@@ -36,17 +37,23 @@ if (config.db.isProduction) {
             const isSecurityModuleQuery = sql.includes('UserSecurities') || sql.includes('SecurityQuestions');
 
             const getConnection = async () => {
-                if (isUserModuleQuery) {
-                    if (!config.db.userModuleConnectionString) throw new Error("USER_MODULE_DB_CONNECTION_STRING is not set");
-                    return await oracledb.getConnection({ connectString: config.db.userModuleConnectionString });
+                if (!config.db.connectString || !config.db.user || !config.db.password) {
+                    throw new Error("Database credentials are not set in the .env file.");
                 }
+
+                // Determine which user to connect as
+                let user = config.db.user;
                 if (isSecurityModuleQuery) {
-                    if (!config.db.securityModuleConnectionString) throw new Error("SECURITY_MODULE_DB_CONNECTION_STRING is not set");
-                    return await oracledb.getConnection({ connectString: config.db.securityModuleConnectionString });
+                    // Assuming security module might have a different user schema, e.g., 'security_module'
+                    // For now, we'll use a simple switch based on the table name.
+                    user = 'security_module';
                 }
-                // Fallback for other tables (admin, etc.), which don't exist in Oracle.
-                // This will cause an error downstream, which is expected for this prototype.
-                throw new Error(`Query does not target a known module: ${sql}`);
+
+                return await oracledb.getConnection({ 
+                    user: user,
+                    password: config.db.password,
+                    connectString: config.db.connectString 
+                });
             };
 
             return {
@@ -60,10 +67,17 @@ if (config.db.isProduction) {
                         if (row && 'COUNT(*)' in row) {
                             return { count: row['COUNT(*)'] };
                         }
+                        if (row && 'COUNT(ID)' in row) {
+                            return { count: row['COUNT(ID)'] };
+                        }
                         return row;
                     } finally {
                         if (connection) {
-                            await connection.close();
+                            try {
+                                await connection.close();
+                            } catch (err) {
+                                console.error("Error closing Oracle connection: ", err);
+                            }
                         }
                     }
                 },
@@ -75,7 +89,11 @@ if (config.db.isProduction) {
                         return result.rows || [];
                     } finally {
                         if (connection) {
-                            await connection.close();
+                           try {
+                                await connection.close();
+                            } catch (err) {
+                                console.error("Error closing Oracle connection: ", err);
+                            }
                         }
                     }
                 }
@@ -295,11 +313,11 @@ if (config.db.isProduction) {
           { id: "role_3", name: "Support Staff", permissions: JSON.stringify(["view-customers", "handle-tickets", "request-pin-reset"]) },
           { id: "role_4", name: "Compliance Officer", permissions: JSON.stringify(["view-reports", "view-audit-trails", "flag-transaction"]) },
         ];
-        db.transaction(() => {
-            if (items && items.length) {
+        db.transaction((items) => {
+            if (items && items.length > 0) {
                 items.forEach(item => insert.run(item.id, item.name, item.permissions));
             }
-        })();
+        })(items);
     }
     
     // Seed security questions if they don't exist
@@ -311,7 +329,9 @@ if (config.db.isProduction) {
       ];
       const insertSecQuestion = db.prepare('INSERT INTO SecurityQuestions (Id, Question) VALUES (?, ?)');
       const insertManySecQuestions = db.transaction((questions) => {
+        if (questions && questions.length > 0) {
           for (const q of questions) insertSecQuestion.run(q.id, q.question);
+        }
       });
       insertManySecQuestions(securityQuestions);
       console.log(`Seeded ${securityQuestions.length} security questions.`);

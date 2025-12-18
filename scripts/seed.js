@@ -48,7 +48,9 @@ function seed() {
     { id: 'c1d47bce-71cc-4396-a256-22a079b2810a', cif: '0005995', name: 'John Adebayo Doe', email: 'john.doe@example.com', phone: '+2348012345678', branch: 'Head Office', status: 'Active' },
     { id: '74560d63-770b-412d-9f22-7f68ee6afec8', cif: '0052347', name: 'Jane Smith', email: 'jane.smith@example.com', phone: '+2348012345679', branch: 'Bole Branch', status: 'Active' },
     { id: '9719ea6c-9c16-4a84-8e20-3237ccd13238', cif: '0058322', name: 'Samson Tsegaye', email: 'samson.t@example.com', phone: '+251911223344', branch: 'Arada', status: 'Registered' },
-    { id: '39bab503-2714-4cd4-a4bd-6379f0a69fd8', cif: '0048533', name: 'AKALEWORK TAMENE KEBEDE', email: 'akalework.t@example.com', phone: '+251911223345', branch: 'Arada', status: 'Active' }
+    { id: '39bab503-2714-4cd4-a4bd-6379f0a69fd8', cif: '0048533', name: 'AKALEWORK TAMENE KEBEDE', email: 'akalework.t@example.com', phone: '+251911223345', branch: 'Arada', status: 'Active' },
+    { id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef', cif: '0061234', name: 'Sara Connor', email: 'sara.c@example.com', phone: '+251911123456', branch: 'Bole Branch', status: 'Inactive' },
+    { id: 'f0e9d8c7-b6a5-4321-fedc-ba9876543210', cif: '0078901', name: 'Kyle Reese', email: 'kyle.r@example.com', phone: '+251911654321', branch: 'Head Office', status: 'Dormant' },
   ];
 
   for (const u of userList) {
@@ -183,5 +185,3 @@ try {
 } finally {
   db.close();
 }
-
-    

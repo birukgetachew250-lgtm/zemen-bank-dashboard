@@ -2,8 +2,9 @@
 // A central place to manage environment variables.
 
 // Load environment variables
-const USER_MODULE_DB_CONNECTION_STRING = process.env.USER_MODULE_DB_CONNECTION_STRING;
-const SECURITY_MODULE_DB_CONNECTION_STRING = process.env.SECURITY_MODULE_DB_CONNECTION_STRING;
+const DB_USER = process.env.DB_USER;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const DB_CONNECT_STRING = process.env.DB_CONNECT_STRING;
 const GRPC_URL = process.env.GRPC_URL;
 
 // Parse boolean flags
@@ -13,8 +14,9 @@ const IS_PRODUCTION_GRPC = process.env.IS_PRODUCTION_GRPC === 'true';
 const config = {
     db: {
         isProduction: IS_PRODUCTION_DB,
-        userModuleConnectionString: USER_MODULE_DB_CONNECTION_STRING,
-        securityModuleConnectionString: SECURITY_MODULE_DB_CONNECTION_STRING,
+        user: DB_USER,
+        password: DB_PASSWORD,
+        connectString: DB_CONNECT_STRING,
     },
     grpc: {
         isProduction: IS_PRODUCTION_GRPC,

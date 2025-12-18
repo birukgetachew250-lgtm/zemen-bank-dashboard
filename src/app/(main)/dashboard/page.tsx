@@ -1,24 +1,41 @@
 
 import { Suspense } from 'react';
-import { UserPlus, Users, UserX, AlertCircle } from 'lucide-react';
+import { UserPlus, Users, UserX, UserCheck } from 'lucide-react';
 import { StatsCard, StatsCardSkeleton } from '@/components/dashboard/StatsCard';
 import { TransactionsSummary } from '@/components/dashboard/TransactionsSummary';
 import { db } from '@/lib/db';
 import config from '@/lib/config';
 
 async function getCustomerStats() {
-  if (config.db.isProduction) {
-    throw new Error(
-      "Production database not connected for Dashboard. " + 
-      "The application is configured for production but cannot query the demo database."
-    );
-  }
-  const registered = db.prepare("SELECT COUNT(id) as count FROM customers").get()?.count ?? 0;
-  const active = db.prepare("SELECT COUNT(id) as count FROM customers WHERE status = 'active'").get()?.count ?? 0;
-  const inactive = db.prepare("SELECT COUNT(id) as count FROM customers WHERE status = 'inactive'").get()?.count ?? 0;
-  const failed = db.prepare("SELECT COUNT(id) as count FROM customers WHERE status = 'failed'").get()?.count ?? 0;
+  try {
+    if (config.db.isProduction) {
+      // Production database queries
+      const [totalResult, activeResult, inactiveResult, registeredResult] = await Promise.all([
+        db.prepare("SELECT COUNT(Id) as count FROM AppUsers").get(),
+        db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Active'").get(),
+        db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Inactive'").get(),
+        db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Registered'").get(),
+      ]);
 
-  return { registered, active, inactive, failed };
+      return { 
+        total: totalResult?.count ?? 0, 
+        active: activeResult?.count ?? 0,
+        inactive: inactiveResult?.count ?? 0,
+        registered: registeredResult?.count ?? 0,
+      };
+    } else {
+      // Demo SQLite queries
+      const total = db.prepare("SELECT COUNT(Id) as count FROM AppUsers").get()?.count ?? 0;
+      const active = db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Active'").get()?.count ?? 0;
+      const inactive = db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Inactive' OR Status = 'Dormant'").get()?.count ?? 0;
+      const registered = db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Registered'").get()?.count ?? 0;
+      return { total, active, inactive, registered };
+    }
+  } catch (error) {
+     console.error("Failed to fetch customer stats:", error);
+     // Re-throw the error to be caught by the Next.js error boundary
+     throw new Error(`Failed to connect to the database: ${(error as Error).message}`);
+  }
 }
 
 export default async function DashboardPage() {
@@ -31,9 +48,9 @@ export default async function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Suspense fallback={<StatsCardSkeleton />}>
             <StatsCard
-              title="Registered Customers"
-              value={stats.registered.toLocaleString()}
-              icon={<UserPlus />}
+              title="Total Customers"
+              value={stats.total.toLocaleString()}
+              icon={<Users />}
               color="bg-primary text-primary-foreground"
             />
           </Suspense>
@@ -41,13 +58,13 @@ export default async function DashboardPage() {
             <StatsCard
               title="Active Customers"
               value={stats.active.toLocaleString()}
-              icon={<Users />}
+              icon={<UserCheck />}
               color="bg-green-600 text-white"
             />
           </Suspense>
           <Suspense fallback={<StatsCardSkeleton />}>
             <StatsCard
-              title="Inactive Customers"
+              title="Inactive / Dormant"
               value={stats.inactive.toLocaleString()}
               icon={<UserX />}
               color="bg-red-600 text-white"
@@ -55,10 +72,10 @@ export default async function DashboardPage() {
           </Suspense>
           <Suspense fallback={<StatsCardSkeleton />}>
              <StatsCard
-              title="Failed Registrations"
-              value={stats.failed.toLocaleString()}
-              icon={<AlertCircle />}
-              color="bg-gray-600 text-white"
+              title="Pending Registration"
+              value={stats.registered.toLocaleString()}
+              icon={<UserPlus />}
+              color="bg-yellow-500 text-white"
             />
           </Suspense>
         </div>
