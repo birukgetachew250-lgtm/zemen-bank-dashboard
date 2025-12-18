@@ -2,31 +2,8 @@
 'use server';
 
 import { NextResponse } from 'next/server';
-import { getAccountDetailServiceClient } from '@/lib/grpc-client';
-import * as protoLoader from '@grpc/proto-loader';
-import path from 'path';
-
-let AccountDetailRequest: any = null;
-
-// This function loads the AccountDetailRequest type from the proto file.
-// It's cached so it only runs once.
-function loadRequestType() {
-    if (AccountDetailRequest) return AccountDetailRequest;
-
-    try {
-        const PROTO_PATH = path.resolve(process.cwd(), 'public', 'protos');
-        const packageDefinition = protoLoader.loadSync(
-            path.join(PROTO_PATH, 'accountdetail.proto'),
-            { keepCase: true, longs: String, enums: String, defaults: true, oneofs: true }
-        );
-        const accountDetailProto: any = (packageDefinition['accountdetail.AccountDetailRequest'] as any);
-        AccountDetailRequest = accountDetailProto;
-        return AccountDetailRequest;
-    } catch(e) {
-        console.error("Failed to load AccountDetailRequest from proto", e);
-        throw new Error("Failed to load AccountDetailRequest from proto");
-    }
-}
+import { getAccountDetailServiceClient, getAccountDetailRequestType } from '@/lib/grpc-client';
+import { status } from '@grpc/grpc-js';
 
 
 // This is the actual POST handler for the API route.
@@ -43,8 +20,14 @@ export async function POST(req: Request) {
         const client = getAccountDetailServiceClient();
         
         // Correctly serialize the AccountDetailRequest message to binary format
-        const RequestType = loadRequestType();
+        const RequestType = getAccountDetailRequestType();
+        if (!RequestType) {
+            throw new Error("Could not load the AccountDetailRequest message type.");
+        }
+        
         const accountDetailPayload = { branch_code, customer_id };
+
+        // Create a buffer from the protobuf message
         const serializedPayload = RequestType.encode(accountDetailPayload).finish();
         
         const serviceRequest = {
@@ -69,7 +52,7 @@ export async function POST(req: Request) {
 
                 console.log("[API] Raw gRPC Response received:", JSON.stringify(response, null, 2));
 
-                if (response && response.success && response.data) {
+                if (response && response.success && response.data && response.data.value) {
                     try {
                         const detailResponse = JSON.parse(response.data.value.toString('utf8'));
                         
@@ -78,28 +61,25 @@ export async function POST(req: Request) {
                              resolve(detailResponse.customer);
                         } else {
                              console.error("[API] gRPC call returned non-success in nested response:", detailResponse.message);
-                             resolve(null);
+                             // Pass the specific error message from Flexcube
+                             reject({ code: status.NOT_FOUND, details: detailResponse.message || "Customer not found in Flexcube" });
                         }
                     } catch(e) {
                          console.error("[API] Failed to parse nested response from gRPC data field", e);
-                         reject(new Error("Failed to parse nested gRPC response."));
+                         reject({ code: status.INTERNAL, details: "Failed to parse nested gRPC response."});
                     }
                 } else {
                     console.error("[API] gRPC call returned non-success or empty data:", response.message);
-                    resolve(null);
+                    reject({ code: status.UNIMPLEMENTED, details: response.message || "Upstream service returned an invalid response." });
                 }
             });
         });
 
-        if (customer) {
-            console.log("[API] Customer found, returning data.");
-            return NextResponse.json(customer);
-        } else {
-            console.error("[API] Customer not found after successful gRPC call.");
-            return NextResponse.json({ message: 'Customer not found in Flexcube' }, { status: 404 });
-        }
+        return NextResponse.json(customer);
+
     } catch (error: any) {
         console.error("[API] Final catch block - gRPC call failed:", error);
         return NextResponse.json({ message: error.details || 'An internal server error occurred' }, { status: 500 });
     }
 }
+
