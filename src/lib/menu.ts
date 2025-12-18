@@ -72,7 +72,6 @@ export const menu: MenuItem[] = [
       { label: "Security Resets", href: "/customers/approve-security" },
     ]
   },
-  { icon: BarChart3, label: "Transaction Reports", href: "/reports/transactions" },
   {
     label: "System Reports",
     icon: LineChart,
