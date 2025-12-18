@@ -106,7 +106,25 @@ if (config.db.isProduction) {
                             }
                         }
                     }
-                }
+                },
+                run: async (...params: any[]) => {
+                    let connection;
+                    const oracleSql = transformSql(sql);
+                    try {
+                        console.log("Executing SQL Command:", oracleSql, "with params:", params);
+                        connection = await getConnection();
+                        const result = await connection.execute(oracleSql, params, { autoCommit: true });
+                        return { changes: result.rowsAffected || 0 };
+                    } finally {
+                        if (connection) {
+                            try {
+                                await connection.close();
+                            } catch (err) {
+                                console.error("Error closing Oracle connection: ", err);
+                            }
+                        }
+                    }
+                },
             };
         }
     };
@@ -401,3 +419,5 @@ if (config.db.isProduction) {
 
 
 export { db };
+
+    
