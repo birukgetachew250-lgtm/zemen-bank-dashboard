@@ -29,13 +29,14 @@ import { User, Landmark, Activity, Smartphone, Shield, Edit, Ban, History, Unlin
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import config from "@/lib/config";
+import { decrypt } from "@/lib/crypto";
 
 
 const getCustomerById = (id: string) => {
     let customerFromDb;
     if (config.db.isProduction) {
         // Case-sensitive query for Oracle
-        customerFromDb = db.prepare('SELECT * FROM "USER_MODULE"."AppUsers" WHERE "Id" = ? OR "CIFNumber" = ?').get(id, id);
+        customerFromDb = db.prepare('SELECT * FROM "USER_MODULE"."AppUsers" WHERE "Id" = :1 OR "CIFNumber" = :2').get(id, id);
     } else {
         customerFromDb = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
     }
@@ -43,12 +44,17 @@ const getCustomerById = (id: string) => {
     if (customerFromDb) {
         // Handle Oracle's uppercase column names
         const d = customerFromDb;
+        const firstName = decrypt(d.FirstName || d.FIRSTNAME);
+        const lastName = decrypt(d.LastName || d.LASTNAME);
+        const email = decrypt(d.Email || d.EMAIL);
+        const phoneNumber = decrypt(d.PhoneNumber || d.PHONENUMBER);
+
         return {
             id: d.Id || d.ID,
             cifNumber: d.CIFNumber || d.CIFNUMBER,
-            name: `${d.FirstName || d.FIRSTNAME} ${d.LastName || d.LASTNAME}`,
-            email: d.Email || d.EMAIL,
-            phoneNumber: d.PhoneNumber || d.PHONENUMBER,
+            name: `${firstName} ${lastName}`,
+            email: email,
+            phoneNumber: phoneNumber,
             address: `${d.AddressLine1 || d.ADDRESSLINE1 || ''}, ${d.AddressLine2 || d.ADDRESSLINE2 || ''}`,
             nationality: d.Nationality || d.NATIONALITY,
             branchCode: d.BranchCode || d.BRANCHCODE,
@@ -67,7 +73,7 @@ const getCustomerById = (id: string) => {
 const getAccountsByCif = (cif: string) => {
     if (config.db.isProduction) {
         // Case-sensitive query for Oracle
-        return db.prepare('SELECT * FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = ?').all(cif);
+        return db.prepare('SELECT * FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :1').all(cif);
     }
     return db.prepare('SELECT * FROM Accounts WHERE CIFNumber = ?').all(cif);
 }

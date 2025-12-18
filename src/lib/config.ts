@@ -6,6 +6,8 @@ const DB_USER = process.env.DB_USER;
 const DB_PASSWORD = process.env.DB_PASSWORD;
 const DB_CONNECT_STRING = process.env.DB_CONNECT_STRING;
 const GRPC_URL = process.env.GRPC_URL;
+const ENCRYPTION_MASTER_KEY = process.env.ENCRYPTION_MASTER_KEY;
+
 
 // Parse boolean flags
 const IS_PRODUCTION_DB = process.env.IS_PRODUCTION_DB === 'true';
@@ -22,6 +24,9 @@ const config = {
         isProduction: IS_PRODUCTION_GRPC,
         url: GRPC_URL,
     },
+    security: {
+        encryptionMasterKey: ENCRYPTION_MASTER_KEY,
+    }
 };
 
 export default config;

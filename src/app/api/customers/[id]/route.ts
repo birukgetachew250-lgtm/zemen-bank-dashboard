@@ -3,12 +3,13 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import config from '@/lib/config';
+import { decrypt } from '@/lib/crypto';
 
 const getCustomerByCifOrId = async (id: string) => {
     let user;
     if (config.db.isProduction) {
         // Case-sensitive query for Oracle
-        user = await db.prepare('SELECT * FROM "USER_MODULE"."AppUsers" WHERE "Id" = ? OR "CIFNumber" = ?').get(id, id);
+        user = await db.prepare('SELECT * FROM "USER_MODULE"."AppUsers" WHERE "Id" = :1 OR "CIFNumber" = :2').get(id, id);
     } else {
         user = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
     }
@@ -16,10 +17,15 @@ const getCustomerByCifOrId = async (id: string) => {
     if (user) {
         // Handle Oracle's uppercase column names
         const d = user;
+        const firstName = decrypt(d.FirstName || d.FIRSTNAME);
+        const lastName = d.LastName || d.LASTNAME; // Assuming this might also be encrypted later
+
         return {
             id: d.Id || d.ID,
             cifNumber: d.CIFNumber || d.CIFNUMBER,
-            name: `${d.FirstName || d.FIRSTNAME} ${d.LastName || d.LASTNAME}`,
+            name: `${firstName} ${lastName}`,
+            firstName: firstName,
+            lastName: lastName,
             email: d.Email || d.EMAIL,
             phoneNumber: d.PhoneNumber || d.PHONENUMBER,
             address: `${d.AddressLine1 || d.ADDRESSLINE1 || ''}, ${d.AddressLine2 || d.ADDRESSLINE2 || ''}`,
@@ -51,5 +57,3 @@ export async function GET(
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
-
-    
