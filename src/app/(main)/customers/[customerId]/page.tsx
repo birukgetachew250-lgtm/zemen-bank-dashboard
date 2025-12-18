@@ -41,7 +41,7 @@ const getCustomerById = (id: string) => {
     }
 
     if (customerFromDb) {
-        // Column names from Oracle are often uppercase
+        // Handle Oracle's uppercase column names
         const d = customerFromDb;
         return {
             id: d.Id || d.ID,

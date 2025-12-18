@@ -62,14 +62,16 @@ if (config.db.isProduction) {
                         console.log("Executing SQL Query:", sql, "with params:", params);
                         connection = await getConnection();
                         const result = await connection.execute(sql, params);
-                        // In Oracle, COUNT(*) is aliased as COUNT(*), not 'count'. We need to get the first key.
                         const row = result.rows ? result.rows[0] : undefined;
-                        if (row && 'COUNT("Id")' in row) {
-                            return { count: row['COUNT("Id")'] };
+                        
+                        // Handle count queries which may have different casing in Oracle
+                        if (row) {
+                            const countKey = Object.keys(row).find(k => k.toLowerCase() === 'count');
+                            if (countKey) {
+                                return { count: row[countKey] };
+                            }
                         }
-                         if (row && 'COUNT(*)' in row) {
-                            return { count: row['COUNT(*)'] };
-                        }
+                        
                         return row;
                     } finally {
                         if (connection) {
