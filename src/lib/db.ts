@@ -39,17 +39,16 @@ if (config.db.isProduction) {
 
             const getConnection = async () => {
                 if (!config.db.connectString || !config.db.user || !config.db.password) {
-                    throw new Error("Database credentials are not set in the .env file.");
+                    throw new Error("Database credentials are not set in the .env file for production.");
                 }
 
-                // Determine which user to connect as
+                // Determine which user to connect as. This is a simplification.
+                // A real app might have different users/passwords per module.
                 let user = config.db.user;
-                if (isSecurityModuleQuery) {
-                    // This is a simplification. A real app might have different users/passwords per module.
-                    user = 'security_module'; 
-                } else if (isOtpModuleQuery) {
-                    user = 'otp_module';
-                }
+                if (isSecurityModuleQuery) user = 'security_module';
+                else if (isOtpModuleQuery) user = 'otp_module';
+                
+                console.log(`[DB] Getting connection for user: ${user}`);
 
                 return await oracledb.getConnection({ 
                     user: user,
@@ -60,6 +59,7 @@ if (config.db.isProduction) {
             
             const transformSql = (sql: string) => {
                 let i = 0;
+                // Replaces '?' with ':1', ':2', etc. for Oracle binding
                 return sql.replace(/\?/g, () => `:${++i}`);
             };
 
