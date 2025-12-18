@@ -1,4 +1,5 @@
 
+
 import { Suspense } from 'react';
 import { UserPlus, Users, UserX, UserCheck, AlertCircle } from 'lucide-react';
 import { StatsCard, StatsCardSkeleton } from '@/components/dashboard/StatsCard';
@@ -8,15 +9,13 @@ import config from '@/lib/config';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 async function getCustomerStats() {
-  // This function will throw an error if the database connection fails.
-  // The DashboardPage component will catch it.
   if (config.db.isProduction) {
-    // Production database queries for Oracle with case-sensitive names
+    // Production database queries for Oracle with case-sensitive names and schema
     const [totalResult, activeResult, inactiveResult, registeredResult] = await Promise.all([
-      db.prepare('SELECT COUNT("Id") as count FROM "AppUsers"').get(),
-      db.prepare("SELECT COUNT(\"Id\") as count FROM \"AppUsers\" WHERE \"Status\" = 'Active'").get(),
-      db.prepare("SELECT COUNT(\"Id\") as count FROM \"AppUsers\" WHERE \"Status\" = 'Inactive' OR \"Status\" = 'Dormant'").get(),
-      db.prepare("SELECT COUNT(\"Id\") as count FROM \"AppUsers\" WHERE \"Status\" = 'Registered'").get(),
+      db.prepare('SELECT COUNT("Id") as count FROM "USER_MODULE"."AppUsers"').get(),
+      db.prepare("SELECT COUNT(\"Id\") as count FROM \"USER_MODULE\".\"AppUsers\" WHERE \"Status\" = 'Active'").get(),
+      db.prepare("SELECT COUNT(\"Id\") as count FROM \"USER_MODULE\".\"AppUsers\" WHERE \"Status\" = 'Inactive' OR \"Status\" = 'Dormant'").get(),
+      db.prepare("SELECT COUNT(\"Id\") as count FROM \"USER_MODULE\".\"AppUsers\" WHERE \"Status\" = 'Registered'").get(),
     ]);
 
     return { 
@@ -104,3 +103,5 @@ export default async function DashboardPage() {
     </div>
   );
 }
+
+    

@@ -1,4 +1,5 @@
 
+
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import config from '@/lib/config';
@@ -7,7 +8,7 @@ const getCustomerByCifOrId = (id: string) => {
     let user;
     if (config.db.isProduction) {
         // Case-sensitive query for Oracle
-        user = db.prepare('SELECT * FROM "AppUsers" WHERE "Id" = ? OR "CIFNumber" = ?').get(id, id);
+        user = db.prepare('SELECT * FROM "USER_MODULE"."AppUsers" WHERE "Id" = ? OR "CIFNumber" = ?').get(id, id);
     } else {
         user = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
     }
@@ -49,3 +50,5 @@ export async function GET(
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+    

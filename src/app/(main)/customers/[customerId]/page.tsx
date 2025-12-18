@@ -1,4 +1,5 @@
 
+
 import Image from "next/image";
 import {
   Card,
@@ -34,7 +35,7 @@ const getCustomerById = (id: string) => {
     let customerFromDb;
     if (config.db.isProduction) {
         // Case-sensitive query for Oracle
-        customerFromDb = db.prepare('SELECT * FROM "AppUsers" WHERE "Id" = ? OR "CIFNumber" = ?').get(id, id);
+        customerFromDb = db.prepare('SELECT * FROM "USER_MODULE"."AppUsers" WHERE "Id" = ? OR "CIFNumber" = ?').get(id, id);
     } else {
         customerFromDb = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
     }
@@ -66,7 +67,7 @@ const getCustomerById = (id: string) => {
 const getAccountsByCif = (cif: string) => {
     if (config.db.isProduction) {
         // Case-sensitive query for Oracle
-        return db.prepare('SELECT * FROM "Accounts" WHERE "CIFNumber" = ?').all(cif);
+        return db.prepare('SELECT * FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = ?').all(cif);
     }
     return db.prepare('SELECT * FROM Accounts WHERE CIFNumber = ?').all(cif);
 }
@@ -264,3 +265,5 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
         </div>
     )
 }
+
+    

@@ -33,8 +33,8 @@ if (config.db.isProduction) {
     // A real implementation would require a full translation layer or different DAO logic.
     db = {
         prepare: (sql: string) => {
-            const isUserModuleQuery = sql.includes('"AppUsers"') || sql.includes('"Accounts"');
-            const isSecurityModuleQuery = sql.includes('"UserSecurities"') || sql.includes('"SecurityQuestions"');
+            const isUserModuleQuery = sql.includes('"USER_MODULE"');
+            const isSecurityModuleQuery = sql.includes('"SECURITY_MODULE"');
 
             const getConnection = async () => {
                 if (!config.db.connectString || !config.db.user || !config.db.password) {
@@ -58,6 +58,7 @@ if (config.db.isProduction) {
                 get: async (...params: any[]) => {
                     let connection;
                     try {
+                        console.log("Executing SQL Query:", sql, "with params:", params);
                         connection = await getConnection();
                         const result = await connection.execute(sql, params);
                         // In Oracle, COUNT(*) is aliased as COUNT(*), not 'count'. We need to get the first key.
@@ -82,6 +83,7 @@ if (config.db.isProduction) {
                 all: async (...params: any[]) => {
                     let connection;
                     try {
+                        console.log("Executing SQL Query:", sql, "with params:", params);
                         connection = await getConnection();
                         const result = await connection.execute(sql, params);
                         return result.rows || [];
@@ -390,3 +392,5 @@ if (config.db.isProduction) {
 
 
 export { db };
+
+    
