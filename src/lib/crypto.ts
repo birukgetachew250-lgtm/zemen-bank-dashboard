@@ -5,11 +5,17 @@ import config from './config';
 const ALGORITHM = 'aes-256-cbc';
 const IV_LENGTH = 16; // For AES, this is always 16
 
-if (!config.security.encryptionMasterKey || config.security.encryptionMasterKey.length !== 64) {
-    throw new Error('ENCRYPTION_MASTER_KEY must be a 64-character hex string (for a 32-byte key).');
+if (!config.security.encryptionMasterKey) {
+    throw new Error('ENCRYPTION_MASTER_KEY must be set.');
 }
 
-const masterKey = Buffer.from(config.security.encryptionMasterKey, 'hex');
+// Decode the master key from base64
+const masterKey = Buffer.from(config.security.encryptionMasterKey, 'base64');
+
+if (masterKey.length !== 32) {
+    throw new Error('Decoded ENCRYPTION_MASTER_KEY must be 32 bytes (256 bits).');
+}
+
 
 /**
  * Encrypts a string using AES-256-CBC.
