@@ -1,6 +1,7 @@
 
+
 'use client';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -15,19 +16,45 @@ import { Users, Link, UserCheck, Search, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CustomerDetailsCard } from "@/components/customers/CustomerDetailsCard";
 import type { CustomerDetails } from "@/components/customers/CustomerDetailsCard";
+import { db } from "@/lib/db";
 
-// Mock data for the summary stats
-const userStats = {
-  totalUsers: "15,432",
-  linkedAccounts: "25,123",
-  activeUsers: "12,890",
-};
+function getAppUserStats() {
+  try {
+    const totalUsers = db.prepare("SELECT COUNT(Id) as count FROM AppUsers").get()?.count ?? 0;
+    const linkedAccounts = db.prepare("SELECT COUNT(Id) as count FROM Accounts").get()?.count ?? 0;
+    const activeUsers = db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Active'").get()?.count ?? 0;
+    return {
+      totalUsers: totalUsers.toLocaleString(),
+      linkedAccounts: linkedAccounts.toLocaleString(),
+      activeUsers: activeUsers.toLocaleString(),
+    };
+  } catch (error) {
+    console.error("Failed to fetch app user stats:", error);
+    // Return zeros if there's an error so the page doesn't crash
+    return { totalUsers: "0", linkedAccounts: "0", activeUsers: "0" };
+  }
+}
 
 export default function ExistingCustomersPage() {
-  const [cifNumber, setCifNumber] = useState("CIFCUST_1");
+  const [cifNumber, setCifNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
   const { toast } = useToast();
+  
+  // Stats will be fetched on the client side since this is a client component.
+  // For better performance, this could be a server component passing data to a client child.
+  const [userStats, setUserStats] = useState({
+    totalUsers: "0",
+    linkedAccounts: "0",
+    activeUsers: "0",
+  });
+
+  useEffect(() => {
+    // This is a workaround to fetch server-side data in a client component.
+    // In a real app, you might use an API route or restructure the components.
+    const stats = getAppUserStats();
+    setUserStats(stats);
+  }, []);
 
   const handleSearch = async () => {
     if (!cifNumber) {
@@ -96,7 +123,7 @@ export default function ExistingCustomersPage() {
           <div className="flex w-full items-center space-x-2">
             <Input
               type="text"
-              placeholder="Enter CIF Number (e.g., CIFCUST_1)"
+              placeholder="Enter CIF Number (e.g., 0048533)"
               value={cifNumber}
               onChange={(e) => setCifNumber(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
