@@ -1,4 +1,5 @@
 
+'server-only';
 
 import Database from 'better-sqlite3';
 import path from 'path';
@@ -129,7 +130,7 @@ const schema = `
     CIFNumber TEXT UNIQUE NOT NULL, 
     PinHash TEXT, 
     Status TEXT, 
-    SecurityQuestionId TEXT, 
+    SecurityQuestionId TEXT, _
     SecurityAnswer TEXT, 
     IsLoggedIn INTEGER DEFAULT 0, 
     FailedAttempts INTEGER DEFAULT 0, 
