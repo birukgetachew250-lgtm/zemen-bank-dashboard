@@ -15,19 +15,20 @@ const getCustomerByCifOrId = async (id: string) => {
     }
     
     if (user) {
-        // Handle Oracle's uppercase column names
         const d = user;
         const firstName = decrypt(d.FirstName || d.FIRSTNAME);
-        const lastName = d.LastName || d.LASTNAME; // Assuming this might also be encrypted later
+        const secondName = decrypt(d.SecondName || d.SECONDNAME);
+        const lastName = decrypt(d.LastName || d.LASTNAME);
 
         return {
             id: d.Id || d.ID,
             cifNumber: d.CIFNumber || d.CIFNUMBER,
-            name: `${firstName} ${lastName}`,
+            name: [firstName, secondName, lastName].filter(Boolean).join(' '),
             firstName: firstName,
+            secondName: secondName,
             lastName: lastName,
-            email: d.Email || d.EMAIL,
-            phoneNumber: d.PhoneNumber || d.PHONENUMBER,
+            email: decrypt(d.Email || d.EMAIL),
+            phoneNumber: decrypt(d.PhoneNumber || d.PHONENUMBER),
             address: `${d.AddressLine1 || d.ADDRESSLINE1 || ''}, ${d.AddressLine2 || d.ADDRESSLINE2 || ''}`,
             nationality: d.Nationality || d.NATIONALITY,
             branchName: d.BranchName || d.BRANCHNAME,
@@ -57,3 +58,5 @@ export async function GET(
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+    

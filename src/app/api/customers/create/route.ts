@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
+import { encrypt } from '@/lib/crypto';
 
 export async function POST(req: Request) {
     try {
@@ -27,11 +28,11 @@ export async function POST(req: Request) {
             ).run(
                 appUserId,
                 customer.customer_number,
-                nameParts[0],
-                nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1],
-                nameParts[nameParts.length - 1],
-                customer.email_id,
-                customer.mobile_number,
+                encrypt(nameParts[0]),
+                encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1]),
+                encrypt(nameParts[nameParts.length - 1]),
+                encrypt(customer.email_id),
+                encrypt(customer.mobile_number),
                 'Registered', // Initial status
                 manualData.signUpMainAuth,
                 manualData.signUp2FA,
@@ -45,15 +46,18 @@ export async function POST(req: Request) {
 
             // 2. Link accounts
             const insertAccount = db.prepare(
-                'INSERT INTO Accounts (Id, CIFNumber, AccountNumber, AccountType, Currency, Status, BranchName) VALUES (?, ?, ?, ?, ?, ?, ?)'
+                'INSERT INTO Accounts (Id, CIFNumber, AccountNumber, FirstName, SecondName, LastName, AccountType, Currency, Status, BranchName) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
             for (const acc of accounts) {
                 insertAccount.run(
                     `acc_${crypto.randomUUID()}`,
                     customer.customer_number,
-                    acc.CUSTACNO,
-                    acc.ACCLASSDESC,
-                    acc.CCY,
+                    encrypt(acc.CUSTACNO),
+                    encrypt(nameParts[0]), // Encrypting name parts for account table
+                    encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1]),
+                    encrypt(nameParts[nameParts.length - 1]),
+                    encrypt(acc.ACCLASSDESC),
+                    encrypt(acc.CCY),
                     acc.status,
                     acc.BRANCH_CODE
                 );

@@ -2,6 +2,26 @@
 const Database = require('better-sqlite3');
 const { faker } = require('@faker-js/faker');
 const crypto = require('crypto');
+const config = {
+    security: {
+        encryptionMasterKey: process.env.ENCRYPTION_MASTER_KEY || 'mUbnc+YQ+V9RjdmWdLMG4QxULn3wGuozxlQpo/jj9Pk='
+    }
+}
+
+const ALGORITHM = 'aes-256-cbc';
+const IV_LENGTH = 16;
+const masterKey = Buffer.from(config.security.encryptionMasterKey, 'base64');
+
+function encrypt(value) {
+    if (!value) return null;
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv(ALGORITHM, masterKey, iv);
+    let encrypted = cipher.update(value, 'utf8', 'binary');
+    encrypted += cipher.final('binary');
+    const result = Buffer.concat([iv, Buffer.from(encrypted, 'binary')]);
+    return result.toString('base64');
+}
+
 
 const db = new Database('zemen.db', { verbose: console.log });
 
@@ -58,11 +78,11 @@ function seed() {
       const appUser = {
         Id: u.id,
         CIFNumber: u.cif,
-        FirstName: nameParts[0],
-        SecondName: nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1],
-        LastName: nameParts[nameParts.length - 1],
-        Email: u.email,
-        PhoneNumber: u.phone,
+        FirstName: encrypt(nameParts[0]),
+        SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1]),
+        LastName: encrypt(nameParts[nameParts.length - 1]),
+        Email: encrypt(u.email),
+        PhoneNumber: encrypt(u.phone),
         Status: u.status,
         SignUpMainAuth: 'PIN',
         SignUp2FA: 'SMSOTP',
@@ -94,27 +114,28 @@ function seed() {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  for (const appUser of appUsers) {
-    const customer = {
-      id: `cust_${appUser.CIFNumber}`,
-      name: `${appUser.FirstName} ${appUser.LastName}`,
-      phone: appUser.PhoneNumber,
-      status: appUser.Status,
-      registeredAt: new Date(),
-    };
-    customers.push(customer);
+  for (const u of userList) {
+      const nameParts = u.name.split(' ');
+      const customer = {
+        id: `cust_${u.cif}`,
+        name: u.name,
+        phone: u.phone,
+        status: u.status,
+        registeredAt: new Date(),
+      };
+      customers.push(customer);
 
-    const security = {
-        UserId: appUser.Id,
-        CIFNumber: appUser.CIFNumber,
+      const security = {
+        UserId: u.id,
+        CIFNumber: u.cif,
         PinHash: crypto.createHash('sha256').update(faker.string.numeric(4)).digest('hex'),
-        Status: appUser.Status,
+        Status: u.status,
         SecurityQuestionId: faker.helpers.arrayElement(securityQuestions).id,
-        SecurityAnswer: faker.lorem.word(),
+        SecurityAnswer: encrypt(faker.lorem.word()),
         EncKey: crypto.randomBytes(64).toString('base64'),
         EncIV: crypto.randomBytes(64).toString('base64'),
-    };
-    userSecurities.push(security);
+      };
+      userSecurities.push(security);
   }
   
   const insertManyCustomers = db.transaction((custs) => {
@@ -195,3 +216,5 @@ try {
 } finally {
   db.close();
 }
+
+    

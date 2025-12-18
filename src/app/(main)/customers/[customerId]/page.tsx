@@ -45,6 +45,7 @@ const getCustomerById = (id: string) => {
         // Handle Oracle's uppercase column names
         const d = customerFromDb;
         const firstName = decrypt(d.FirstName || d.FIRSTNAME);
+        const secondName = decrypt(d.SecondName || d.SECONDNAME);
         const lastName = decrypt(d.LastName || d.LASTNAME);
         const email = decrypt(d.Email || d.EMAIL);
         const phoneNumber = decrypt(d.PhoneNumber || d.PHONENUMBER);
@@ -52,7 +53,7 @@ const getCustomerById = (id: string) => {
         return {
             id: d.Id || d.ID,
             cifNumber: d.CIFNumber || d.CIFNUMBER,
-            name: `${firstName} ${lastName}`,
+            name: [firstName, secondName, lastName].filter(Boolean).join(' '),
             email: email,
             phoneNumber: phoneNumber,
             address: `${d.AddressLine1 || d.ADDRESSLINE1 || ''}, ${d.AddressLine2 || d.ADDRESSLINE2 || ''}`,
@@ -71,11 +72,24 @@ const getCustomerById = (id: string) => {
 
 
 const getAccountsByCif = (cif: string) => {
+    let accountsFromDb;
     if (config.db.isProduction) {
         // Case-sensitive query for Oracle
-        return db.prepare('SELECT * FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :1').all(cif);
+        accountsFromDb = db.prepare('SELECT * FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :1').all(cif);
+    } else {
+        accountsFromDb = db.prepare('SELECT * FROM Accounts WHERE CIFNumber = ?').all(cif);
     }
-    return db.prepare('SELECT * FROM Accounts WHERE CIFNumber = ?').all(cif);
+    
+    return accountsFromDb.map((acc: any) => {
+        return {
+            id: acc.Id || acc.ID,
+            accountNumber: decrypt(acc.AccountNumber || acc.ACCOUNTNUMBER),
+            accountType: decrypt(acc.AccountType || acc.ACCOUNTTYPE),
+            currency: decrypt(acc.Currency || acc.CURRENCY),
+            branchName: acc.BranchName || acc.BRANCHNAME,
+            status: acc.Status || acc.STATUS,
+        }
+    });
 }
 
 
@@ -181,16 +195,16 @@ export default function CustomerDetailsPage({ params }: { params: { customerId: 
                     </TableHeader>
                     <TableBody>
                         {accounts.map((acc: any) => (
-                            <TableRow key={acc.Id || acc.ID}>
-                                <TableCell className="font-medium">{acc.AccountNumber || acc.ACCOUNTNUMBER}</TableCell>
-                                <TableCell>{acc.AccountType || acc.ACCOUNTTYPE}</TableCell>
-                                <TableCell>{acc.Currency || acc.CURRENCY}</TableCell>
-                                <TableCell>{acc.BranchName || acc.BRANCHNAME}</TableCell>
+                            <TableRow key={acc.id}>
+                                <TableCell className="font-medium">{acc.accountNumber}</TableCell>
+                                <TableCell>{acc.accountType}</TableCell>
+                                <TableCell>{acc.currency}</TableCell>
+                                <TableCell>{acc.branchName}</TableCell>
                                 <TableCell>
                                      <Badge 
-                                        variant={getStatusVariant(acc.Status || acc.STATUS)}
-                                        className={(acc.Status || acc.STATUS) === 'Active' ? 'bg-green-100 text-green-800 border-green-200' : ''}
-                                     >{acc.Status || acc.STATUS}</Badge>
+                                        variant={getStatusVariant(acc.status)}
+                                        className={(acc.status) === 'Active' ? 'bg-green-100 text-green-800 border-green-200' : ''}
+                                     >{acc.status}</Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="icon">
@@ -271,5 +285,7 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
         </div>
     )
 }
+
+    
 
     
