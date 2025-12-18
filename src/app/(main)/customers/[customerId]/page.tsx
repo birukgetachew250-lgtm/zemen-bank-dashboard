@@ -30,7 +30,7 @@ import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import config from "@/lib/config";
 import { decrypt } from "@/lib/crypto";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 const getCustomerById = async (id: string) => {
@@ -131,6 +131,7 @@ export default async function CustomerDetailsPage({ params }: { params: { custom
             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <Avatar className="h-20 w-20">
+                      <AvatarImage src="/images/avatar.png" alt={fullName} />
                       <AvatarFallback>{fullName?.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
                     <div>

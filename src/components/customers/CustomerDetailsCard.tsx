@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Ban } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 export interface CustomerDetails {
     id: string;
@@ -43,6 +43,7 @@ export function CustomerDetailsCard({ customer }: CustomerDetailsCardProps) {
             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <Avatar className="h-20 w-20">
+                      <AvatarImage src="/images/avatar.png" alt={customer.name} />
                       <AvatarFallback>{customer.name?.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
                     <div>
