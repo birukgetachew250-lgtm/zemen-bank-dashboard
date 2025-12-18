@@ -35,6 +35,7 @@ if (config.db.isProduction) {
         prepare: (sql: string) => {
             const isUserModuleQuery = sql.includes('"USER_MODULE"');
             const isSecurityModuleQuery = sql.includes('"SECURITY_MODULE"');
+            const isOtpModuleQuery = sql.includes('"OTP_MODULE"');
 
             const getConnection = async () => {
                 if (!config.db.connectString || !config.db.user || !config.db.password) {
@@ -46,6 +47,8 @@ if (config.db.isProduction) {
                 if (isSecurityModuleQuery) {
                     // This is a simplification. A real app might have different users/passwords per module.
                     user = 'security_module'; 
+                } else if (isOtpModuleQuery) {
+                    user = 'otp_module';
                 }
 
                 return await oracledb.getConnection({ 
@@ -253,6 +256,33 @@ if (config.db.isProduction) {
         FOREIGN KEY(SecurityQuestionId) REFERENCES SecurityQuestions(Id) ON DELETE SET NULL
       );
 
+      -- OTP_MODULE Tables (Translated from Oracle DDL for SQLite)
+      CREATE TABLE IF NOT EXISTS OtpCodes (
+        Id TEXT,
+        UserId TEXT,
+        CodeHash TEXT,
+        Secret TEXT,
+        OtpType TEXT,
+        Purpose TEXT,
+        IsUsed INTEGER DEFAULT 0,
+        Attempts INTEGER,
+        ExpiresAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+        InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UpdateDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+        InsertUser TEXT DEFAULT 'system',
+        UpdateUser TEXT DEFAULT 'system',
+        Version TEXT
+      );
+
+      CREATE TABLE IF NOT EXISTS OtpUsers (
+          UserId TEXT PRIMARY KEY,
+          Status INTEGER,
+          LockedUntil DATETIME DEFAULT CURRENT_TIMESTAMP,
+          InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+          UpdateDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+          OtpCodeId TEXT
+      );
+
       -- Legacy/Demo Tables (to be consolidated)
       CREATE TABLE IF NOT EXISTS customers (
         id TEXT PRIMARY KEY,
@@ -413,6 +443,25 @@ if (config.db.isProduction) {
             }
         })(miniApps);
     }
+    
+    // Seed OTP data
+    if (db.prepare('SELECT COUNT(*) as count FROM OtpCodes').get().count === 0) {
+        const insertOtpCode = db.prepare(`
+            INSERT INTO OtpCodes (Id, UserId, CodeHash, Secret, OtpType, Purpose, IsUsed, Attempts, ExpiresAt, InsertDate, UpdateDate, InsertUser, UpdateUser, Version) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        const otpCodes = [
+            { "Id": "78fc45dc-9e36-419c-b2df-93baff7e4e09", "UserId": "0058322", "CodeHash": "0951885f722d1adaaff8f844f4caf2b01329dd7769fff4c606d2fabaf184ef1c", "Secret": null, "OtpType": "SmsCode", "Purpose": "LoginMFA", "IsUsed": 1, "Attempts": 0, "ExpiresAt": "2025-11-28 17:30:11", "InsertDate": "2025-11-28 17:20:11", "UpdateDate": "2025-11-29 07:04:34", "InsertUser": "system", "UpdateUser": "system", "Version": "44ABB8931602BCC6E063430B10ACCF92" },
+            { "Id": "b8ac902d-9816-4fb4-b9b2-7250382eb764", "UserId": "0034047", "CodeHash": "5eb7554bb84c10d7840c6263936b8a5d33c4e61ab4b743253f70261cf08b1ea5", "Secret": null, "OtpType": "SmsCode", "Purpose": "LoginMFA", "IsUsed": 1, "Attempts": 0, "ExpiresAt": "2025-12-12 00:40:54", "InsertDate": "2025-11-28 17:21:42", "UpdateDate": "2025-12-12 11:39:55", "InsertUser": "system", "UpdateUser": "system", "Version": "44ABB8931604BCC6E063430B10ACCF92" },
+            { "Id": "cf2c4008-4e0d-4795-a042-978d71db675b", "UserId": "0048533", "CodeHash": "ec254ff4ba7183e6dc11db9e5a63c92315def262cf820be07a9d3a622bed094f", "Secret": null, "OtpType": "SmsCode", "Purpose": "LoginMFA", "IsUsed": 1, "Attempts": 2, "ExpiresAt": "2025-11-28 17:31:47", "InsertDate": "2025-11-28 17:21:47", "UpdateDate": "2025-11-29 10:08:45", "InsertUser": "system", "UpdateUser": "system", "Version": "44ABB8931605BCC6E063430B10ACCF92" },
+        ];
+         db.transaction((items) => {
+            if (items && items.length > 0) {
+                items.forEach(item => insertOtpCode.run(item.Id, item.UserId, item.CodeHash, item.Secret, item.OtpType, item.Purpose, item.IsUsed, item.Attempts, item.ExpiresAt, item.InsertDate, item.UpdateDate, item.InsertUser, item.UpdateUser, item.Version))
+            }
+        })(otpCodes);
+    }
+
 
     console.log("Database initialized with new schema.");
 }
