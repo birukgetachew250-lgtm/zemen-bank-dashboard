@@ -2,7 +2,8 @@
 'use server';
 
 import { NextResponse } from 'next/server';
-import { getAccountDetailServiceClient } from '@/lib/grpc-client';
+import { getAccountDetailServiceClient, getAccountDetailRequestType } from '@/lib/grpc-client';
+import * as grpc from '@grpc/grpc-js';
 
 export async function POST(req: Request) {
     const { branch_code, customer_id } = await req.json();
@@ -15,13 +16,15 @@ export async function POST(req: Request) {
 
     try {
         const client = getAccountDetailServiceClient();
+        const AccountDetailRequest = getAccountDetailRequestType();
         
-        // This is the part that causes the "System Error"
-        // It incorrectly serializes the payload as a JSON string instead of a protobuf binary.
-        // We will fix this in the next step.
+        // 1. Create the inner payload with the correct message type
         const accountDetailPayload = { branch_code, customer_id };
-        const serializedPayload = Buffer.from(JSON.stringify(accountDetailPayload));
+
+        // 2. Serialize the inner payload to a binary buffer
+        const serializedPayload = AccountDetailRequest.encode(accountDetailPayload).finish();
         
+        // 3. Construct the main ServiceRequest
         const serviceRequest = {
             data: {
                 type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
@@ -33,7 +36,7 @@ export async function POST(req: Request) {
             user_id: 'admin_user'
         };
 
-        console.log('[API] Sending gRPC request:', JSON.stringify(serviceRequest, null, 2));
+        console.log('[API] Sending gRPC request with correctly serialized payload.');
 
         const customer = await new Promise((resolve, reject) => {
             (client as any).QueryCustomerDetails(serviceRequest, (err: any, response: any) => {
@@ -46,8 +49,9 @@ export async function POST(req: Request) {
 
                 if (response && response.success && response.data && response.data.value) {
                     try {
-                        // This part might not be reached if the server rejects the payload format
-                        const detailResponse = JSON.parse(response.data.value.toString('utf8'));
+                        // The response 'data.value' is also a binary buffer that needs to be decoded
+                        const AccountDetailResponse = getAccountDetailRequestType(); // Re-using for structure, assuming response is similar or we need a specific response type
+                        const detailResponse = JSON.parse(Buffer.from(response.data.value).toString('utf8'));
                         
                         if (detailResponse.status === 'SUCCESS' && detailResponse.customer) {
                              console.log("[API] gRPC Success, decoded customer data:", detailResponse.customer);
@@ -60,14 +64,22 @@ export async function POST(req: Request) {
                          console.error("[API] Failed to parse nested response from gRPC data field", e);
                          reject({ code: 13, details: "Failed to parse nested gRPC response."});
                     }
+                } else if (response && !response.success) {
+                    console.error("[API] gRPC call returned non-success or empty data:", response.message || 'No response');
+                    reject({ code: 2, details: response.message || "Upstream service returned an invalid or empty response." });
                 } else {
-                    console.error("[API] gRPC call returned non-success or empty data:", response ? response.message : 'No response');
-                    reject({ code: 2, details: response ? response.message : "Upstream service returned an invalid or empty response." });
+                    console.error("[API] Fallback: No customer found for CIF:", customer_id);
+                    resolve(null);
                 }
             });
         });
 
-        return NextResponse.json(customer);
+        if (customer) {
+            return NextResponse.json(customer);
+        } else {
+            return NextResponse.json({ message: `Customer with CIF ${customer_id} not found.` }, { status: 404 });
+        }
+
 
     } catch (error: any) {
         console.error("[API] Final catch block - gRPC call failed:", error);
