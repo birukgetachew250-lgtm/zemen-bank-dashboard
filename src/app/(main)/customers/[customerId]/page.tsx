@@ -79,6 +79,10 @@ const getAccountsByCif = (cif: string) => {
     } else {
         accountsFromDb = db.prepare('SELECT * FROM Accounts WHERE CIFNumber = ?').all(cif);
     }
+
+    if (!accountsFromDb || !Array.isArray(accountsFromDb)) {
+        return [];
+    }
     
     return accountsFromDb.map((acc: any) => {
         return {
