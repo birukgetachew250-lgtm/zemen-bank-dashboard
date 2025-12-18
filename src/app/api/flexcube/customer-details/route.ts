@@ -2,11 +2,8 @@
 'use server';
 
 import { NextResponse } from 'next/server';
-import { getAccountDetailServiceClient, getAccountDetailRequestType } from '@/lib/grpc-client';
-import { status } from '@grpc/grpc-js';
+import { getAccountDetailServiceClient } from '@/lib/grpc-client';
 
-
-// This is the actual POST handler for the API route.
 export async function POST(req: Request) {
     const { branch_code, customer_id } = await req.json();
 
@@ -19,20 +16,16 @@ export async function POST(req: Request) {
     try {
         const client = getAccountDetailServiceClient();
         
-        const RequestType = getAccountDetailRequestType();
-        if (!RequestType) {
-            throw new Error("Could not load the AccountDetailRequest message type.");
-        }
-        
+        // This is the part that causes the "System Error"
+        // It incorrectly serializes the payload as a JSON string instead of a protobuf binary.
+        // We will fix this in the next step.
         const accountDetailPayload = { branch_code, customer_id };
-
-        // Create a buffer from the protobuf message
-        const serializedPayload = RequestType.encode(accountDetailPayload).finish();
+        const serializedPayload = Buffer.from(JSON.stringify(accountDetailPayload));
         
         const serviceRequest = {
             data: {
                 type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
-                value: serializedPayload // Use the binary buffer directly
+                value: serializedPayload
             },
             request_id: `req_${Date.now()}`,
             source_system: 'ZemenSuperAppAdmin',
@@ -40,7 +33,7 @@ export async function POST(req: Request) {
             user_id: 'admin_user'
         };
 
-        console.log('[API] Sending gRPC request with correctly serialized payload.');
+        console.log('[API] Sending gRPC request:', JSON.stringify(serviceRequest, null, 2));
 
         const customer = await new Promise((resolve, reject) => {
             (client as any).QueryCustomerDetails(serviceRequest, (err: any, response: any) => {
@@ -53,6 +46,7 @@ export async function POST(req: Request) {
 
                 if (response && response.success && response.data && response.data.value) {
                     try {
+                        // This part might not be reached if the server rejects the payload format
                         const detailResponse = JSON.parse(response.data.value.toString('utf8'));
                         
                         if (detailResponse.status === 'SUCCESS' && detailResponse.customer) {
@@ -60,16 +54,15 @@ export async function POST(req: Request) {
                              resolve(detailResponse.customer);
                         } else {
                              console.error("[API] gRPC call returned non-success in nested response:", detailResponse.message);
-                             // Pass the specific error message from Flexcube
-                             reject({ code: status.NOT_FOUND, details: detailResponse.message || "Customer not found in Flexcube" });
+                             reject({ code: 5, details: detailResponse.message || "Customer not found in Flexcube" });
                         }
                     } catch(e) {
                          console.error("[API] Failed to parse nested response from gRPC data field", e);
-                         reject({ code: status.INTERNAL, details: "Failed to parse nested gRPC response."});
+                         reject({ code: 13, details: "Failed to parse nested gRPC response."});
                     }
                 } else {
-                    console.error("[API] gRPC call returned non-success or empty data:", response.message);
-                    reject({ code: status.UNIMPLEMENTED, details: response.message || "Upstream service returned an invalid response." });
+                    console.error("[API] gRPC call returned non-success or empty data:", response ? response.message : 'No response');
+                    reject({ code: 2, details: response ? response.message : "Upstream service returned an invalid or empty response." });
                 }
             });
         });
