@@ -18,6 +18,7 @@ import {
   History,
   Building,
   UserCog,
+  UserX,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -46,6 +47,8 @@ export const menu: MenuItem[] = [
     children: [
       { label: "Create Customer", href: "/customers/create" },
       { label: "Existing Customers", href: "/customers" },
+      { label: "Block Customer", href: "/customers/block" },
+      { label: "Unblock Customer", href: "/customers/unblock" },
     ],
   },
   {
