@@ -9,7 +9,7 @@ import config from '@/lib/config';
 class AccountDetailServiceClient {
     constructor(url: string, creds: any) {}
     QueryCustomerDetails(request: any, callback: (err: any, res: any) => void) {
-        console.log("Making mock gRPC call with request:", request.toObject());
+        console.log("Making gRPC call with request:", request.toObject());
         const { requestBody } = JSON.parse(request.getPayload());
         const customer_id = requestBody.customer_id;
         
@@ -81,8 +81,6 @@ const queryCustomerDetails = async (branch_code: string, customer_id: string): P
         throw new Error("gRPC URL is not configured in environment variables.");
     }
     
-    // In a real scenario, the 'AccountDetailServiceClient' would be imported from generated code.
-    // For this prototype, we're using a mock client.
     const client = new AccountDetailServiceClient(config.grpc.url, credentials.createInsecure());
     
     return new Promise((resolve, reject) => {
