@@ -1,6 +1,33 @@
 
+'use server';
+
 import { NextResponse } from 'next/server';
 import { getAccountDetailServiceClient } from '@/lib/grpc-client';
+import * as protoLoader from '@grpc/proto-loader';
+import path from 'path';
+
+let AccountDetailRequest: any = null;
+
+// This function loads the AccountDetailRequest type from the proto file.
+// It's cached so it only runs once.
+function loadRequestType() {
+    if (AccountDetailRequest) return AccountDetailRequest;
+
+    try {
+        const PROTO_PATH = path.resolve(process.cwd(), 'public', 'protos');
+        const packageDefinition = protoLoader.loadSync(
+            path.join(PROTO_PATH, 'accountdetail.proto'),
+            { keepCase: true, longs: String, enums: String, defaults: true, oneofs: true }
+        );
+        const accountDetailProto: any = (packageDefinition['accountdetail.AccountDetailRequest'] as any);
+        AccountDetailRequest = accountDetailProto;
+        return AccountDetailRequest;
+    } catch(e) {
+        console.error("Failed to load AccountDetailRequest from proto", e);
+        throw new Error("Failed to load AccountDetailRequest from proto");
+    }
+}
+
 
 // This is the actual POST handler for the API route.
 export async function POST(req: Request) {
@@ -15,15 +42,15 @@ export async function POST(req: Request) {
     try {
         const client = getAccountDetailServiceClient();
         
-        const accountDetailRequest = {
-            branch_code: branch_code,
-            customer_id: customer_id
-        };
-
+        // Correctly serialize the AccountDetailRequest message to binary format
+        const RequestType = loadRequestType();
+        const accountDetailPayload = { branch_code, customer_id };
+        const serializedPayload = RequestType.encode(accountDetailPayload).finish();
+        
         const serviceRequest = {
             data: {
                 type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
-                value: Buffer.from(JSON.stringify(accountDetailRequest))
+                value: serializedPayload // Use the binary buffer directly
             },
             request_id: `req_${Date.now()}`,
             source_system: 'ZemenSuperAppAdmin',
@@ -31,10 +58,9 @@ export async function POST(req: Request) {
             user_id: 'admin_user'
         };
 
-        console.log('[API] Sending gRPC request:', JSON.stringify(serviceRequest, null, 2));
+        console.log('[API] Sending gRPC request with correctly serialized payload.');
 
         const customer = await new Promise((resolve, reject) => {
-             // The client object here is dynamically created by proto-loader and has the service methods
             (client as any).QueryCustomerDetails(serviceRequest, (err: any, response: any) => {
                 if (err) {
                     console.error("[API] gRPC Error received:", err);
