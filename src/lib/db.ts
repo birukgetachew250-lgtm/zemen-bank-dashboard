@@ -33,8 +33,8 @@ if (config.db.isProduction) {
     // A real implementation would require a full translation layer or different DAO logic.
     db = {
         prepare: (sql: string) => {
-            const isUserModuleQuery = sql.includes('AppUsers') || sql.includes('Accounts');
-            const isSecurityModuleQuery = sql.includes('UserSecurities') || sql.includes('SecurityQuestions');
+            const isUserModuleQuery = sql.includes('"AppUsers"') || sql.includes('"Accounts"');
+            const isSecurityModuleQuery = sql.includes('"UserSecurities"') || sql.includes('"SecurityQuestions"');
 
             const getConnection = async () => {
                 if (!config.db.connectString || !config.db.user || !config.db.password) {
@@ -44,8 +44,6 @@ if (config.db.isProduction) {
                 // Determine which user to connect as
                 let user = config.db.user;
                 if (isSecurityModuleQuery) {
-                    // Assuming security module might have a different user schema, e.g., 'security_module'
-                    // For now, we'll use a simple switch based on the table name.
                     user = 'security_module';
                 }
 
@@ -64,11 +62,11 @@ if (config.db.isProduction) {
                         const result = await connection.execute(sql, params);
                         // In Oracle, COUNT(*) is aliased as COUNT(*), not 'count'. We need to get the first key.
                         const row = result.rows ? result.rows[0] : undefined;
-                        if (row && 'COUNT(*)' in row) {
-                            return { count: row['COUNT(*)'] };
+                        if (row && 'COUNT("Id")' in row) {
+                            return { count: row['COUNT("Id")'] };
                         }
-                        if (row && 'COUNT(ID)' in row) {
-                            return { count: row['COUNT(ID)'] };
+                         if (row && 'COUNT(*)' in row) {
+                            return { count: row['COUNT(*)'] };
                         }
                         return row;
                     } finally {

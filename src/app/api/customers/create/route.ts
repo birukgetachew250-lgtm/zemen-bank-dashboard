@@ -22,8 +22,8 @@ export async function POST(req: Request) {
             // 1. Insert into AppUsers table with a 'registered' status.
             db.prepare(
                 `INSERT INTO AppUsers 
-                (Id, CIFNumber, FirstName, SecondName, LastName, Email, PhoneNumber, Status, SignUpMainAuth, SignUp2FA, BranchName, AddressLine1, AddressLine2, Nationality) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                (Id, CIFNumber, FirstName, SecondName, LastName, Email, PhoneNumber, Status, SignUpMainAuth, SignUp2FA, BranchName, AddressLine1, AddressLine2, AddressLine3, AddressLine4, Nationality) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
             ).run(
                 appUserId,
                 customer.customer_number,
@@ -38,6 +38,8 @@ export async function POST(req: Request) {
                 customer.branch,
                 customer.address_line_1,
                 customer.address_line_2,
+                customer.address_line_3,
+                customer.address_line_4,
                 customer.country
             );
 

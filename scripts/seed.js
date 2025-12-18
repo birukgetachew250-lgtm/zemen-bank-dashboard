@@ -40,8 +40,8 @@ function seed() {
   // Seed AppUsers
   const appUsers = [];
   const insertAppUser = db.prepare(`
-    INSERT INTO AppUsers (Id, CIFNumber, FirstName, SecondName, LastName, Email, PhoneNumber, Status, SignUpMainAuth, SignUp2FA, BranchName) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO AppUsers (Id, CIFNumber, FirstName, SecondName, LastName, Email, PhoneNumber, Status, SignUpMainAuth, SignUp2FA, BranchName, AddressLine1, AddressLine2, AddressLine3, AddressLine4, Nationality) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   
   const userList = [
@@ -67,13 +67,18 @@ function seed() {
         SignUpMainAuth: 'PIN',
         SignUp2FA: 'SMSOTP',
         BranchName: u.branch,
+        AddressLine1: faker.location.streetAddress(),
+        AddressLine2: faker.location.secondaryAddress(),
+        AddressLine3: faker.location.city(),
+        AddressLine4: faker.location.state(),
+        Nationality: 'Ethiopian'
       };
       appUsers.push(appUser);
   }
   
   const insertManyAppUsers = db.transaction((users) => {
     for (const user of users) {
-      insertAppUser.run(user.Id, user.CIFNumber, user.FirstName, user.SecondName, user.LastName, user.Email, user.PhoneNumber, user.Status, user.SignUpMainAuth, user.SignUp2FA, user.BranchName);
+      insertAppUser.run(user.Id, user.CIFNumber, user.FirstName, user.SecondName, user.LastName, user.Email, user.PhoneNumber, user.Status, user.SignUpMainAuth, user.SignUp2FA, user.BranchName, user.AddressLine1, user.AddressLine2, user.AddressLine3, user.AddressLine4, user.Nationality);
     }
   });
   insertManyAppUsers(appUsers);
@@ -84,7 +89,10 @@ function seed() {
   const customers = [];
   const userSecurities = [];
   const insertCustomer = db.prepare('INSERT INTO customers (id, name, phone, status, registeredAt) VALUES (?, ?, ?, ?, ?)');
-  const insertUserSecurity = db.prepare('INSERT INTO UserSecurities (UserId, CIFNumber, PinHash, Status, SecurityQuestionId, SecurityAnswer) VALUES (?, ?, ?, ?, ?, ?)');
+  const insertUserSecurity = db.prepare(`
+    INSERT INTO UserSecurities (UserId, CIFNumber, PinHash, Status, SecurityQuestionId, SecurityAnswer, EncKey, EncIV) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `);
 
   for (const appUser of appUsers) {
     const customer = {
@@ -103,6 +111,8 @@ function seed() {
         Status: appUser.Status,
         SecurityQuestionId: faker.helpers.arrayElement(securityQuestions).id,
         SecurityAnswer: faker.lorem.word(),
+        EncKey: crypto.randomBytes(64).toString('base64'),
+        EncIV: crypto.randomBytes(64).toString('base64'),
     };
     userSecurities.push(security);
   }
@@ -117,7 +127,7 @@ function seed() {
 
   const insertManyUserSecurities = db.transaction((secs) => {
     for (const s of secs) {
-      insertUserSecurity.run(s.UserId, s.CIFNumber, s.PinHash, s.Status, s.SecurityQuestionId, s.SecurityAnswer);
+      insertUserSecurity.run(s.UserId, s.CIFNumber, s.PinHash, s.Status, s.SecurityQuestionId, s.SecurityAnswer, s.EncKey, s.EncIV);
     }
   });
   insertManyUserSecurities(userSecurities);
