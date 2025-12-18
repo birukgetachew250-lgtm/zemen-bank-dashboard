@@ -1,5 +1,5 @@
 
-'use server';
+'server-only';
 
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
@@ -16,7 +16,7 @@ export function getAccountDetailServiceClient() {
     }
 
     if (!config.grpc.url) {
-        console.error("GRPC_URL is not defined. Please set it in your .env file.");
+        console.error("[gRPC Client] GRPC_URL is not defined. Please set it in your .env file.");
         throw new Error("GRPC_URL is not defined in the environment variables.");
     }
     
@@ -24,7 +24,7 @@ export function getAccountDetailServiceClient() {
     // This regex removes the protocol prefix.
     const grpcUrl = config.grpc.url.replace(/^(https?:\/\/)/, '');
 
-    console.log(`Initializing gRPC client for AccountDetailService at target URL: ${grpcUrl}`);
+    console.log(`[gRPC Client] Initializing gRPC client for AccountDetailService at target URL: ${grpcUrl}`);
 
     try {
         const packageDefinition = protoLoader.loadSync(
@@ -45,11 +45,11 @@ export function getAccountDetailServiceClient() {
         const accountDetailPackage = (protoDescriptor as any).accountdetail;
 
         if (!accountDetailPackage || !accountDetailPackage.AccountDetailService) {
-            console.error("Proto definition for 'accountdetail.AccountDetailService' not found after loading.");
+            console.error("[gRPC Client] Proto definition for 'accountdetail.AccountDetailService' not found after loading.");
             throw new Error("Could not load AccountDetailService from proto definition.");
         }
         
-        console.log("Successfully loaded 'accountdetail.AccountDetailService' from proto.");
+        console.log("[gRPC Client] Successfully loaded 'accountdetail.AccountDetailService' from proto.");
         
         // Create the client
         accountDetailServiceClient = new accountDetailPackage.AccountDetailService(
@@ -57,11 +57,11 @@ export function getAccountDetailServiceClient() {
             grpc.credentials.createInsecure()
         );
 
-        console.log("gRPC client created successfully.");
+        console.log("[gRPC Client] gRPC client created successfully.");
         return accountDetailServiceClient;
 
     } catch (error) {
-        console.error("Failed to initialize gRPC client:", error);
+        console.error("[gRPC Client] Failed to initialize gRPC client:", error);
         throw error; // Re-throw the error to be caught by the caller
     }
 }
