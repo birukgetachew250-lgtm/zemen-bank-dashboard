@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { credentials } from '@grpc/grpc-js';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -30,57 +29,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import config from '@/lib/config';
-
-// Assuming you have a generated client from your proto file
-// e.g., using @grpc/grpc-js and @grpc/proto-loader
-// This is a placeholder for the actual generated client
-// import { AccountDetailServiceClient } from './generated/accountdetail_grpc_pb';
-// import { ServiceRequest } from './generated/common_pb';
-
-// Mock client for demonstration until real one is available
-class MockAccountDetailServiceClient {
-    constructor(url: string, creds: any) {}
-    QueryCustomerDetails(request: any, callback: (err: any, res: any) => void) {
-        // This is where the actual gRPC call would be made
-        console.log("Making mock gRPC call with request:", request.toObject());
-        
-        const customer_id = JSON.parse(request.getPayload()).customer_id;
-        
-        if (customer_id === '0048533') {
-             callback(null, { 
-                getPayload: () => JSON.stringify({
-                    customer: {
-                        customer_number: customer_id,
-                        full_name: 'AKALEWORK TAMENE KEBEDE',
-                        cif_creation_date: '2022-01-20',
-                        date_of_birth: '1990-05-15',
-                        gender: 'Female',
-                        email_id: 'akalework.t@example.com',
-                        mobile_number: '+251911223344',
-                        address_line_1: 'AA, ADDIS KETEMA',
-                        address_line_2: '06',
-                        address_line_3: '790',
-                        address_line_4: '',
-                        country: 'ETHIOPIA',
-                        branch: 'ADDIS KETEMA',
-                    },
-                    status: "SUCCESS",
-                    message: "Customer found"
-                })
-            });
-        } else {
-            callback({ message: "Customer not found" }, null);
-        }
-    }
-}
-const AccountDetailServiceClient = MockAccountDetailServiceClient;
-const ServiceRequest = class {
-    private payload: string;
-    constructor() { this.payload = ''; }
-    setPayload(p: string) { this.payload = p; }
-    getPayload() { return this.payload; }
-    toObject() { return { payload: this.payload }; }
-};
 
 
 const cifSchema = z.object({
@@ -106,67 +54,6 @@ const customerDetailsSchema = z.object({
 
 type CustomerDetails = z.infer<typeof customerDetailsSchema>;
 
-// This function simulates calling an external service (e.g., Flexcube via gRPC)
-const queryCustomerDetails = async (branch_code: string, customer_id: string): Promise<CustomerDetails | null> => {
-    console.log(`Querying Flexcube with Branch: ${branch_code}, CIF: ${customer_id}`);
-    
-    // If IS_PRODUCTION_GRPC is true, you would make a real gRPC call here.
-    if (config.grpc.isProduction) {
-        if (!config.grpc.url) {
-            throw new Error("gRPC URL is not configured in environment variables.");
-        }
-        console.log(`Making a real gRPC call to ${config.grpc.url}...`);
-        
-        const client = new AccountDetailServiceClient(config.grpc.url, credentials.createInsecure());
-        
-        return new Promise((resolve, reject) => {
-            const request = new ServiceRequest();
-            request.setPayload(JSON.stringify({
-                serviceName: "accountdetail",
-                requestBody: { branch_code, customer_id }
-            }));
-
-            client.QueryCustomerDetails(request, (err: any, response: any) => {
-                if (err) {
-                    console.error("gRPC Error:", err);
-                    return reject(err);
-                }
-                
-                const payload = JSON.parse(response.getPayload());
-
-                if (payload.status === 'SUCCESS' && payload.customer) {
-                    console.log("gRPC Success:", payload.customer);
-                    resolve(payload.customer);
-                } else {
-                    console.error("gRPC call failed with message:", payload.message);
-                    resolve(null);
-                }
-            });
-        });
-    }
-
-    // If IS_PRODUCTION_GRPC is false, use demo data.
-    console.log("Using demo data for customer details query.");
-    if (customer_id === '0048533') {
-        return {
-            customer_number: customer_id,
-            full_name: 'AKALEWORK TAMENE KEBEDE',
-            cif_creation_date: '2022-01-20',
-            date_of_birth: '1990-05-15',
-            gender: 'Female',
-            email_id: 'akalework.t@example.com',
-            mobile_number: '+251911223344',
-            address_line_1: 'AA, ADDIS KETEMA',
-            address_line_2: '06',
-            address_line_3: '790',
-            address_line_4: '',
-            country: 'ETHIOPIA',
-            branch: 'ADDIS KETEMA',
-        };
-    }
-    return null;
-}
-
 export default function CreateCustomerPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
@@ -185,7 +72,18 @@ export default function CreateCustomerPage() {
     setIsLoading(true);
     setCustomer(null);
     try {
-        const result = await queryCustomerDetails(values.branch_code, values.customer_id);
+        const response = await fetch('/api/flexcube/customer-details', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(values),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to fetch customer details');
+        }
+
         if (result) {
             setCustomer(result);
             toast({
@@ -193,12 +91,10 @@ export default function CreateCustomerPage() {
                 description: `Displaying details for ${result.full_name}.`,
             });
         } else {
-            toast({
+             toast({
                 variant: 'destructive',
                 title: 'Customer Not Found',
-                description: config.grpc.isProduction 
-                    ? 'Could not fetch customer from the live service.' 
-                    : 'No demo customer found with the provided CIF number.',
+                description: 'Could not fetch customer from the service.',
             });
         }
     } catch (error: any) {
@@ -304,4 +200,3 @@ function InfoItem({ icon, label, value, className }: { icon: React.ReactNode, la
         </div>
     )
 }
-
