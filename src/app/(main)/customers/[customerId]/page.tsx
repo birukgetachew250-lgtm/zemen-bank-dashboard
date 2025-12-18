@@ -27,36 +27,47 @@ import {
 import { User, Landmark, Activity, Smartphone, Shield, Edit, Ban, History, Unlink } from "lucide-react";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
+import config from "@/lib/config";
 
 
 const getCustomerById = (id: string) => {
-    // This is a mock data fetch. In a real app, you would query your database.
-    const customerFromDb = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
-    if (customerFromDb) {
-        return {
-            id: customerFromDb.Id,
-            cifNumber: customerFromDb.CIFNumber,
-            name: `${customerFromDb.FirstName} ${customerFromDb.LastName}`,
-            email: customerFromDb.Email,
-            phoneNumber: customerFromDb.PhoneNumber,
-            address: `${customerFromDb.AddressLine1 || ''}, ${customerFromDb.AddressLine2 || ''}`,
-            nationality: customerFromDb.Nationality,
-            branchCode: customerFromDb.BranchCode,
-            branchName: customerFromDb.BranchName,
-            status: customerFromDb.Status,
-            signUp2FA: customerFromDb.SignUp2FA,
-            signUpMainAuth: customerFromDb.SignUpMainAuth,
-            insertDate: customerFromDb.InsertDate,
-            avatarUrl: `https://picsum.photos/seed/${customerFromDb.Id}/100/100`
-        }
+    let customerFromDb;
+    if (config.db.isProduction) {
+        // Case-sensitive query for Oracle
+        customerFromDb = db.prepare('SELECT * FROM "AppUsers" WHERE "Id" = ? OR "CIFNumber" = ?').get(id, id);
+    } else {
+        customerFromDb = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
     }
 
-
+    if (customerFromDb) {
+        // Column names from Oracle are often uppercase
+        const d = customerFromDb;
+        return {
+            id: d.Id || d.ID,
+            cifNumber: d.CIFNumber || d.CIFNUMBER,
+            name: `${d.FirstName || d.FIRSTNAME} ${d.LastName || d.LASTNAME}`,
+            email: d.Email || d.EMAIL,
+            phoneNumber: d.PhoneNumber || d.PHONENUMBER,
+            address: `${d.AddressLine1 || d.ADDRESSLINE1 || ''}, ${d.AddressLine2 || d.ADDRESSLINE2 || ''}`,
+            nationality: d.Nationality || d.NATIONALITY,
+            branchCode: d.BranchCode || d.BRANCHCODE,
+            branchName: d.BranchName || d.BRANCHNAME,
+            status: d.Status || d.STATUS,
+            signUp2FA: d.SignUp2FA || d.SIGNUP2FA,
+            signUpMainAuth: d.SignUpMainAuth || d.SIGNUPMAINAUTH,
+            insertDate: d.InsertDate || d.INSERTDATE,
+            avatarUrl: `https://picsum.photos/seed/${d.Id || d.ID}/100/100`
+        }
+    }
     return null;
 }
 
 
 const getAccountsByCif = (cif: string) => {
+    if (config.db.isProduction) {
+        // Case-sensitive query for Oracle
+        return db.prepare('SELECT * FROM "Accounts" WHERE "CIFNumber" = ?').all(cif);
+    }
     return db.prepare('SELECT * FROM Accounts WHERE CIFNumber = ?').all(cif);
 }
 
@@ -163,16 +174,16 @@ export default function CustomerDetailsPage({ params }: { params: { customerId: 
                     </TableHeader>
                     <TableBody>
                         {accounts.map((acc: any) => (
-                            <TableRow key={acc.Id}>
-                                <TableCell className="font-medium">{acc.AccountNumber}</TableCell>
-                                <TableCell>{acc.AccountType}</TableCell>
-                                <TableCell>{acc.Currency}</TableCell>
-                                <TableCell>{acc.BranchName}</TableCell>
+                            <TableRow key={acc.Id || acc.ID}>
+                                <TableCell className="font-medium">{acc.AccountNumber || acc.ACCOUNTNUMBER}</TableCell>
+                                <TableCell>{acc.AccountType || acc.ACCOUNTTYPE}</TableCell>
+                                <TableCell>{acc.Currency || acc.CURRENCY}</TableCell>
+                                <TableCell>{acc.BranchName || acc.BRANCHNAME}</TableCell>
                                 <TableCell>
                                      <Badge 
-                                        variant={getStatusVariant(acc.Status)}
-                                        className={acc.Status === 'Active' ? 'bg-green-100 text-green-800 border-green-200' : ''}
-                                     >{acc.Status}</Badge>
+                                        variant={getStatusVariant(acc.Status || acc.STATUS)}
+                                        className={(acc.Status || acc.STATUS) === 'Active' ? 'bg-green-100 text-green-800 border-green-200' : ''}
+                                     >{acc.Status || acc.STATUS}</Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="icon">
@@ -253,5 +264,3 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
         </div>
     )
 }
-
-    

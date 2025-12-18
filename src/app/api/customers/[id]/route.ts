@@ -1,24 +1,31 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import config from '@/lib/config';
 
 const getCustomerByCifOrId = (id: string) => {
-    // This function can now find a user by their AppUser ID or their CIF Number
-    const user = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
+    let user;
+    if (config.db.isProduction) {
+        // Case-sensitive query for Oracle
+        user = db.prepare('SELECT * FROM "AppUsers" WHERE "Id" = ? OR "CIFNumber" = ?').get(id, id);
+    } else {
+        user = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
+    }
     
     if (user) {
+        // Handle Oracle's uppercase column names
         return {
-            id: user.Id,
-            cifNumber: user.CIFNumber,
-            name: `${user.FirstName} ${user.LastName}`,
-            email: user.Email,
-            phoneNumber: user.PhoneNumber,
-            address: `${user.AddressLine1 || ''}, ${user.AddressLine2 || ''}`,
-            nationality: user.Nationality,
-            branchName: user.BranchName,
-            status: user.Status,
-            insertDate: user.InsertDate,
-            avatarUrl: `https://picsum.photos/seed/${user.Id}/100/100`
+            id: user.Id || user.ID,
+            cifNumber: user.CIFNumber || user.CIFNUMBER,
+            name: `${user.FirstName || user.FIRSTNAME} ${user.LastName || user.LASTNAME}`,
+            email: user.Email || user.EMAIL,
+            phoneNumber: user.PhoneNumber || user.PHONENUMBER,
+            address: `${user.AddressLine1 || user.ADDRESSLINE1 || ''}, ${user.AddressLine2 || user.ADDRESSLINE2 || ''}`,
+            nationality: user.Nationality || user.NATIONALITY,
+            branchName: user.BranchName || user.BRANCHNAME,
+            status: user.Status || user.STATUS,
+            insertDate: user.InsertDate || user.INSERTDATE,
+            avatarUrl: `https://picsum.photos/seed/${user.Id || user.ID}/100/100`
         };
     }
     return null;
@@ -30,7 +37,7 @@ export async function GET(
 ) {
   try {
     const customerId = params.id;
-    const customer = getCustomerByCifOrId(customerId);
+    const customer = await getCustomerByCifOrId(customerId);
 
     if (!customer) {
       return NextResponse.json({ message: 'Customer not found with that CIF or ID' }, { status: 404 });
@@ -42,5 +49,3 @@ export async function GET(
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
-
-    

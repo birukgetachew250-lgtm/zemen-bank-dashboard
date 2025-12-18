@@ -16,11 +16,10 @@ import config from "@/lib/config";
 async function getAppUserStats() {
   try {
     if (config.db.isProduction) {
-      // In production, query the Oracle database.
-      // These queries are simple COUNTs and should be compatible.
-      const totalUsers = (await db.prepare("SELECT COUNT(Id) as count FROM AppUsers").get())?.count ?? 0;
-      const linkedAccounts = (await db.prepare("SELECT COUNT(Id) as count FROM Accounts").get())?.count ?? 0;
-      const activeUsers = (await db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Active'").get())?.count ?? 0;
+      // In production, query the Oracle database with case-sensitive identifiers.
+      const totalUsers = (await db.prepare('SELECT COUNT("Id") as count FROM "AppUsers"').get())?.count ?? 0;
+      const linkedAccounts = (await db.prepare('SELECT COUNT("Id") as count FROM "Accounts"').get())?.count ?? 0;
+      const activeUsers = (await db.prepare("SELECT COUNT(\"Id\") as count FROM \"AppUsers\" WHERE \"Status\" = 'Active'").get())?.count ?? 0;
       return {
         totalUsers: totalUsers.toLocaleString(),
         linkedAccounts: linkedAccounts.toLocaleString(),
