@@ -1,4 +1,6 @@
 
+'use server';
+
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
@@ -16,7 +18,11 @@ export function getAccountDetailServiceClient() {
     if (!config.grpc.url) {
         throw new Error("GRPC_URL is not defined in the environment variables.");
     }
-    console.log(`Initializing gRPC client for AccountDetailService at ${config.grpc.url}`);
+    
+    // gRPC clients expect 'hostname:port', not 'http://hostname:port'
+    const grpcUrl = config.grpc.url.replace(/^https?:\/\//, '');
+
+    console.log(`Initializing gRPC client for AccountDetailService at ${grpcUrl}`);
 
     const packageDefinition = protoLoader.loadSync(
         path.join(PROTO_PATH, 'accountdetail.proto'),
@@ -41,7 +47,7 @@ export function getAccountDetailServiceClient() {
     
     // Create the client
     accountDetailServiceClient = new accountDetailPackage.AccountDetailService(
-        config.grpc.url,
+        grpcUrl,
         grpc.credentials.createInsecure()
     );
 
