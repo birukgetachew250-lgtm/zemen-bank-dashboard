@@ -1,7 +1,5 @@
 
 
-'use client';
-import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -9,14 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { Users, Link, UserCheck, Search, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { CustomerDetailsCard } from "@/components/customers/CustomerDetailsCard";
-import type { CustomerDetails } from "@/components/customers/CustomerDetailsCard";
+import { Users, Link, UserCheck } from "lucide-react";
 import { db } from "@/lib/db";
+import { ExistingCustomerClient } from "@/components/customers/ExistingCustomerClient";
 
 function getAppUserStats() {
   try {
@@ -36,55 +30,7 @@ function getAppUserStats() {
 }
 
 export default function ExistingCustomersPage() {
-  const [cifNumber, setCifNumber] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [customer, setCustomer] = useState<CustomerDetails | null>(null);
-  const { toast } = useToast();
-  
-  // Stats will be fetched on the client side since this is a client component.
-  // For better performance, this could be a server component passing data to a client child.
-  const [userStats, setUserStats] = useState({
-    totalUsers: "0",
-    linkedAccounts: "0",
-    activeUsers: "0",
-  });
-
-  useEffect(() => {
-    // This is a workaround to fetch server-side data in a client component.
-    // In a real app, you might use an API route or restructure the components.
-    const stats = getAppUserStats();
-    setUserStats(stats);
-  }, []);
-
-  const handleSearch = async () => {
-    if (!cifNumber) {
-        toast({
-            variant: "destructive",
-            title: "CIF number required",
-            description: "Please enter a CIF number to search.",
-        });
-        return;
-    }
-    setIsLoading(true);
-    setCustomer(null);
-    try {
-        const response = await fetch(`/api/customers/${cifNumber}`);
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || "Customer not found");
-        }
-        const data = await response.json();
-        setCustomer(data);
-    } catch (error: any) {
-        toast({
-            variant: "destructive",
-            title: "Search Failed",
-            description: error.message,
-        });
-    } finally {
-        setIsLoading(false);
-    }
-  };
+  const userStats = getAppUserStats();
 
   return (
     <div className="w-full space-y-8">
@@ -112,41 +58,7 @@ export default function ExistingCustomersPage() {
         </div>
       </div>
 
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Search Customer</CardTitle>
-          <CardDescription>
-            Enter a CIF number to find a specific app user and view their details.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex w-full items-center space-x-2">
-            <Input
-              type="text"
-              placeholder="Enter CIF Number (e.g., 0048533)"
-              value={cifNumber}
-              onChange={(e) => setCifNumber(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            />
-            <Button onClick={handleSearch} disabled={isLoading}>
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-              Search
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {isLoading && (
-        <div className="flex justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      )}
-
-      {customer && (
-        <div className="animate-in fade-in-50">
-            <CustomerDetailsCard customer={customer} />
-        </div>
-      )}
+      <ExistingCustomerClient />
     </div>
   );
 }
