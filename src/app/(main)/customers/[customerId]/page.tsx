@@ -35,14 +35,12 @@ import { decrypt } from "@/lib/crypto";
 const getCustomerById = (id: string) => {
     let customerFromDb;
     if (config.db.isProduction) {
-        // Case-sensitive query for Oracle
         customerFromDb = db.prepare('SELECT "Id", "CIFNumber", "FirstName", "SecondName", "LastName", "Email", "PhoneNumber", "AddressLine1", "AddressLine2", "AddressLine3", "AddressLine4", "Nationality", "BranchCode", "BranchName", "Status", "SignUp2FA", "SignUpMainAuth", "InsertDate" FROM "USER_MODULE"."AppUsers" WHERE "Id" = :1 OR "CIFNumber" = :2').get(id, id);
     } else {
         customerFromDb = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
     }
 
     if (customerFromDb) {
-        // Handle Oracle's uppercase column names
         const d = customerFromDb;
         const firstName = decrypt(d.FirstName || d.FIRSTNAME);
         const secondName = decrypt(d.SecondName || d.SECONDNAME);
@@ -74,7 +72,6 @@ const getCustomerById = (id: string) => {
 const getAccountsByCif = (cif: string) => {
     let accountsFromDb;
     if (config.db.isProduction) {
-        // Case-sensitive query for Oracle
         accountsFromDb = db.prepare('SELECT "Id", "AccountNumber", "AccountType", "Currency", "BranchName", "Status" FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :1').all(cif);
     } else {
         accountsFromDb = db.prepare('SELECT * FROM Accounts WHERE CIFNumber = ?').all(cif);
@@ -289,9 +286,3 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
         </div>
     )
 }
-
-    
-
-    
-
-

@@ -8,7 +8,6 @@ import { decrypt } from '@/lib/crypto';
 const getCustomerByCifOrId = async (id: string) => {
     let user;
     if (config.db.isProduction) {
-        // Case-sensitive query for Oracle
         user = await db.prepare('SELECT "Id", "CIFNumber", "FirstName", "SecondName", "LastName", "Email", "PhoneNumber", "AddressLine1", "AddressLine2", "AddressLine3", "AddressLine4", "Nationality", "BranchCode", "BranchName", "Status", "SignUp2FA", "SignUpMainAuth", "InsertDate" FROM "USER_MODULE"."AppUsers" WHERE "Id" = :1 OR "CIFNumber" = :2').get(id, id);
     } else {
         user = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
@@ -58,5 +57,3 @@ export async function GET(
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
-
-    
