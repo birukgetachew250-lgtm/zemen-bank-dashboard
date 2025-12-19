@@ -9,15 +9,30 @@ const publicRoutes = ['/login'];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // This is a simplified way to get the session from the cookie.
-  // In a real app, you might have an encrypted cookie or a server-side session store.
   const sessionCookie = request.cookies.get('zemen-admin-session');
-  const session = sessionCookie ? JSON.parse(sessionCookie.value) : null;
+  let session = null;
+  if (sessionCookie) {
+    try {
+      session = JSON.parse(sessionCookie.value);
+    } catch (e) {
+      console.error("Failed to parse session cookie", e);
+    }
+  }
 
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
+  // Hardcode access for admin@zemen.com
+  const isAdminUser = session?.user?.email === 'admin@zemen.com';
+
   if (!session && isProtectedRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.searchParams.set('redirectedFrom', pathname);
+    return NextResponse.redirect(url);
+  }
+
+  if (session && !isAdminUser && isProtectedRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('redirectedFrom', pathname);
