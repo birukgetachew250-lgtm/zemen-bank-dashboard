@@ -36,7 +36,6 @@ const settingsFormSchema = z.object({
 
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 
-// This can be fetched from a database or config file
 const defaultValues: Partial<SettingsFormValues> = {
   theme: 'light',
   sessionTimeout: 30,
@@ -58,7 +57,6 @@ export default function SettingsPage() {
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(theme);
   }, [theme]);
-
 
   function onSubmit(data: SettingsFormValues) {
     console.log(data);
