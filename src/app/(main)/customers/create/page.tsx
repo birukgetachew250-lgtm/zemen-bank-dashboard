@@ -63,8 +63,8 @@ export default function CreateCustomerPage() {
   const form = useForm<z.infer<typeof cifSchema>>({
     resolver: zodResolver(cifSchema),
     defaultValues: {
-      branch_code: '103',
-      customer_id: '0048533',
+      branch_code: '302',
+      customer_id: '0000238',
     },
   });
 

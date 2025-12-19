@@ -38,6 +38,11 @@ interface Account {
 const fetchAccountsByCif = async (cif: string): Promise<Omit<Account, 'included'>[]> => {
     console.log("Fetching accounts for CIF:", cif);
     await new Promise(resolve => setTimeout(resolve, 500));
+    if (cif === '0000238') {
+        return [
+            { CUSTACNO: "3021110000238018", BRANCH_CODE: "302", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Z-Club Gold –  Saving", status: "Active" },
+        ];
+    }
     return [
         { CUSTACNO: "1031110048533015", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Private and Individual", status: "Active" },
         { CUSTACNO: "1031110048533016", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "C", ACCLASSDESC: "Personal Current - Private and Individual", status: "Active" },
