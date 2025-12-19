@@ -14,7 +14,6 @@ import {
 import { cn } from '@/lib/utils';
 import { menu, type MenuItem } from '@/lib/menu';
 import { ScrollArea } from '../ui/scroll-area';
-import { useSession } from '@/hooks/use-session';
 
 function SidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; pathname: string, userPermissions: string[] }) {
     const Icon = item.icon;
@@ -96,10 +95,8 @@ function SidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; p
     );
   }
 
-export function Sidebar() {
+export function Sidebar({ userPermissions }: { userPermissions: string[] }) {
   const pathname = usePathname();
-  const { session } = useSession(); // Use the client-side hook
-  const userPermissions = session?.permissions || [];
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border">
