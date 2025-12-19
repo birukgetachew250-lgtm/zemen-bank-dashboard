@@ -2,12 +2,17 @@
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Watermark } from "@/components/layout/Watermark";
+import { verifySessionAndPermissions } from "@/lib/auth";
+import { headers } from 'next/headers';
 
-export default function MainLayout({
+export default async function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = headers().get('x-next-pathname') || '/';
+  await verifySessionAndPermissions(pathname);
+  
   return (
       <div className="flex h-screen bg-background">
         <Sidebar />

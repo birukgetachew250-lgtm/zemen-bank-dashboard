@@ -4,26 +4,42 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
-import { ChevronDown, type LucideIcon } from 'lucide-react';
+import { type LucideIcon } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { menu, type MenuItem } from '@/lib/menu';
 import { ScrollArea } from '../ui/scroll-area';
+import { useSession } from '@/hooks/use-session';
 
-function SidebarNavItem({ item, pathname }: { item: MenuItem; pathname: string }) {
-    const isActive = item.href ? pathname === item.href : false;
-    const isChildActive =
-      item.children?.some((child) => child.href && pathname.startsWith(child.href)) ?? false;
-  
+function SidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; pathname: string, userPermissions: string[] }) {
     const Icon = item.icon;
-  
+
+    // Check if user has permission for this item or is a super admin
+    const isSuperAdmin = userPermissions.includes('approve-all');
+    const hasPermission = isSuperAdmin || !item.permission || userPermissions.includes(item.permission);
+
+    if (!hasPermission) {
+        return null;
+    }
+
     if (item.children) {
+      // Filter children based on permissions
+      const visibleChildren = item.children.filter(child => 
+        isSuperAdmin || !child.permission || userPermissions.includes(child.permission)
+      );
+
+      // If no children are visible, don't render the parent accordion
+      if (visibleChildren.length === 0) {
+        return null;
+      }
+
+      const isChildActive = visibleChildren.some((child) => child.href && pathname.startsWith(child.href)) ?? false;
+
       return (
         <Accordion
           type="single"
@@ -46,7 +62,7 @@ function SidebarNavItem({ item, pathname }: { item: MenuItem; pathname: string }
             </AccordionTrigger>
             <AccordionContent className="pl-4 pt-2 pb-0">
               <div className="flex flex-col space-y-1">
-                {item.children.map((child) => (
+                {visibleChildren.map((child) => (
                   <Link
                     key={child.label}
                     href={child.href || '#'}
@@ -71,7 +87,7 @@ function SidebarNavItem({ item, pathname }: { item: MenuItem; pathname: string }
         href={item.href || '#'}
         className={cn(
           'flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-          isActive && 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
+          pathname === item.href && 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
         )}
       >
         <Icon className="h-4 w-4" />
@@ -82,6 +98,8 @@ function SidebarNavItem({ item, pathname }: { item: MenuItem; pathname: string }
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { session } = useSession(); // Use the client-side hook
+  const userPermissions = session?.permissions || [];
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border">
@@ -94,7 +112,7 @@ export function Sidebar() {
       <ScrollArea className="flex-1">
         <nav className="grid items-start gap-1 p-2 text-sm font-medium">
           {menu.map((item) => (
-            <SidebarNavItem key={item.label} item={item} pathname={pathname} />
+            <SidebarNavItem key={item.label} item={item} pathname={pathname} userPermissions={userPermissions} />
           ))}
         </nav>
       </ScrollArea>

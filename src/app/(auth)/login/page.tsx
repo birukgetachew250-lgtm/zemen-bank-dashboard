@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -25,6 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -34,6 +36,7 @@ const formSchema = z.object({
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,8 +48,30 @@ export default function LoginPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // Bypass login and redirect to dashboard
-    router.push("/dashboard");
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(values),
+        });
+
+        if (response.ok) {
+            toast({ title: 'Login successful!' });
+            router.push('/dashboard');
+            router.refresh(); // Important to refresh server-side data like the session
+        } else {
+            const error = await response.json();
+            throw new Error(error.message || 'Login failed');
+        }
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: error.message,
+        });
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   return (
