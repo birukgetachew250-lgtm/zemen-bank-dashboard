@@ -6,6 +6,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Zemen Admin Center",
   description: "Zemen Bank Super App Management Dashboard",
+  icons: {
+    icon: '/images/logo.png',
+  },
 };
 
 export default function RootLayout({
