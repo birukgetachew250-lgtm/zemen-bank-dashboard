@@ -59,10 +59,8 @@ export default function LoginPage() {
 
         if (response.ok) {
             toast({ title: 'Login successful!' });
-            router.push('/dashboard');
-            // The refresh is important to ensure the new session cookie is picked up by server components
-            // and the layout re-renders with the correct user data.
-            router.refresh(); 
+            // Force a hard redirect to ensure the new session is picked up.
+            window.location.href = '/dashboard';
         } else {
             throw new Error(result.message || 'Login failed');
         }
