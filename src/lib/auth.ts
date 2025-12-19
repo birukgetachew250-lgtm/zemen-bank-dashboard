@@ -23,14 +23,15 @@ const sessionCookieName = 'zemen-admin-session';
 
 
 export async function createSession(user: any) {
+    // This is the critical fix. Ensure the session object is structured correctly.
     const session: Session = {
         user: {
             id: user.id,
             name: user.name,
             email: user.email,
-            role: user.role,
+            role: user.role, // The role must be included here.
         },
-        permissions: [], // This was missing, causing the redirect loop.
+        permissions: [], // Start with an empty array. We can enhance this later if needed.
     };
 
     cookies().set(sessionCookieName, JSON.stringify(session), {
