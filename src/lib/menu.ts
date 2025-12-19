@@ -119,9 +119,16 @@ export const menu: MenuItem[] = [
     label: "Roles & Permissions",
     children: [
         { label: "Manage Roles", href: "/roles" },
+        { label: "Add New Role", href: "/roles/create" },
     ]
   },
-  { icon: Landmark, label: "Branches", href: "/branches" },
-  { icon: Building, label: "Departments", href: "/departments" },
+  {
+    icon: Building,
+    label: "Branches & Departments",
+    children: [
+      { label: "Branches", href: "/branches", icon: Landmark },
+      { label: "Departments", href: "/departments", icon: Building2 },
+    ],
+  },
   { icon: Settings, label: "Settings", href: "/settings" },
 ];
