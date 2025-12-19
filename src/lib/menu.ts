@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   Building2,
@@ -83,7 +82,6 @@ export const menu: MenuItem[] = [
     children: [
       { label: "Active Customers", href: "/reports/system/active" },
       { label: "Inactive Customers", href: "/reports/system/inactive" },
-      { label: "Incomplete Registrations", href: "/reports/system/incomplete" },
       { label: "Failed New Customers", href: "/reports/system/failed" },
       { label: "Dormant Customers", href: "/reports/system/dormant" },
     ],
