@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Building2,
@@ -100,7 +101,13 @@ export const menu: MenuItem[] = [
       { label: "Add New User", href: "/users/create" },
     ],
   },
-  { icon: MessageSquare, label: "OTP Sms", href: "/otp" },
+  { 
+    icon: MessageSquare, 
+    label: "Authentications Logs",
+    children: [
+        { label: "OTP SMS", href: "/otp" },
+    ]
+  },
   { 
     icon: SlidersHorizontal, 
     label: "Limits & Charges",
