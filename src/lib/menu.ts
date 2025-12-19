@@ -82,7 +82,6 @@ export const menu: MenuItem[] = [
     children: [
       { label: "Active Customers", href: "/reports/system/active" },
       { label: "Inactive Customers", href: "/reports/system/inactive" },
-      { label: "Failed New Customers", href: "/reports/system/failed" },
     ],
   },
   {
