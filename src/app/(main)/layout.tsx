@@ -3,6 +3,8 @@
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Watermark } from "@/components/layout/Watermark";
+import { redirect } from 'next/navigation';
+
 
 export default function MainLayout({
   children,
