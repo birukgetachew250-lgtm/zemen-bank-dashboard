@@ -10,41 +10,26 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   const sessionCookie = request.cookies.get('zemen-admin-session');
-  let session = null;
-  if (sessionCookie) {
-    try {
-      session = JSON.parse(sessionCookie.value);
-    } catch (e) {
-      console.error("Failed to parse session cookie", e);
-    }
-  }
 
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
-  // Hardcode access for admin@zemen.com
-  const isAdminUser = session?.user?.email === 'admin@zemen.com';
-
-  if (!session && isProtectedRoute) {
+  // If there's no session cookie and the user is trying to access a protected route, redirect to login.
+  if (!sessionCookie && isProtectedRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('redirectedFrom', pathname);
     return NextResponse.redirect(url);
   }
 
-  if (session && !isAdminUser && isProtectedRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    url.searchParams.set('redirectedFrom', pathname);
-    return NextResponse.redirect(url);
-  }
-  
-  if (session && isPublicRoute) {
+  // If there IS a session cookie and the user is on a public route (like /login), redirect to the dashboard.
+  if (sessionCookie && isPublicRoute) {
      const url = request.nextUrl.clone();
      url.pathname = '/dashboard';
      return NextResponse.redirect(url);
   }
 
+  // Otherwise, allow the request to proceed.
   return NextResponse.next();
 }
 
