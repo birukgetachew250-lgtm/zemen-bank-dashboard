@@ -1,6 +1,4 @@
 
-
-import { db } from "@/lib/db";
 import { DepartmentManagementClient } from "@/components/departments/DepartmentManagementClient";
 import type { Branch } from "../branches/page";
 
@@ -12,27 +10,26 @@ export interface Department {
   branchName?: string;
 }
 
-function getDepartments() {
-  try {
-    return db.prepare(`
-      SELECT d.*, b.name as branchName 
-      FROM departments d 
-      JOIN branches b ON d.branchId = b.id 
-      ORDER BY b.name, d.name ASC
-    `).all() as Department[];
-  } catch (e) {
-    console.error("Failed to fetch departments:", e);
-    return [];
-  }
+const mockBranches: Branch[] = [
+    { id: 'br_1', name: 'Bole Branch', location: 'Bole, Addis Ababa', createdAt: new Date().toISOString() },
+    { id: 'br_2', name: 'Head Office', location: 'HQ, Addis Ababa', createdAt: new Date().toISOString() },
+    { id: 'br_3', name: 'Arada Branch', location: 'Arada, Addis Ababa', createdAt: new Date().toISOString() },
+];
+
+const mockDepartments: Department[] = [
+    { id: 'dept_1', name: 'IT Department', branchId: 'br_2', createdAt: new Date().toISOString(), branchName: 'Head Office' },
+    { id: 'dept_2', name: 'Branch Operations', branchId: 'br_1', createdAt: new Date().toISOString(), branchName: 'Bole Branch' },
+    { id: 'dept_3', name: 'Human Resources', branchId: 'br_2', createdAt: new Date().toISOString(), branchName: 'Head Office' },
+    { id: 'dept_4', name: 'Customer Service', branchId: 'br_3', createdAt: new Date().toISOString(), branchName: 'Arada Branch' },
+];
+
+
+function getDepartments(): Department[] {
+  return mockDepartments;
 }
 
-function getBranches() {
-    try {
-        return db.prepare("SELECT * FROM branches ORDER BY name ASC").all() as Branch[];
-    } catch (e) {
-        console.error("Failed to fetch branches:", e);
-        return [];
-    }
+function getBranches(): Branch[] {
+    return mockBranches;
 }
 
 export default function DepartmentsPage() {

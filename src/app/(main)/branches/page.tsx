@@ -1,5 +1,4 @@
 
-import { db } from "@/lib/db";
 import { BranchManagementClient } from "@/components/branches/BranchManagementClient";
 
 export interface Branch {
@@ -9,15 +8,14 @@ export interface Branch {
   createdAt: string;
 }
 
+const mockBranches: Branch[] = [
+    { id: 'br_1', name: 'Bole Branch', location: 'Bole, Addis Ababa', createdAt: new Date().toISOString() },
+    { id: 'br_2', name: 'Head Office', location: 'HQ, Addis Ababa', createdAt: new Date().toISOString() },
+    { id: 'br_3', name: 'Arada Branch', location: 'Arada, Addis Ababa', createdAt: new Date().toISOString() },
+];
+
 function getBranches(): Branch[] {
-  try {
-    const result = db.prepare("SELECT * FROM branches ORDER BY name ASC").all();
-    // Ensure we always return an array, even if the result is null or undefined.
-    return (result as Branch[]) || [];
-  } catch (e) {
-    console.error("Failed to fetch branches:", e);
-    return [];
-  }
+  return mockBranches;
 }
 
 export default function BranchesPage() {
