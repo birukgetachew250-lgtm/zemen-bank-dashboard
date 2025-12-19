@@ -3,7 +3,7 @@
 
 import { Suspense, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Loader2, User, Phone, Mail, Fingerprint } from 'lucide-react';
+import { Loader2, User, Phone, Mail, Fingerprint, ShieldOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -35,8 +35,10 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 
 const authMethods = [
+  { value: 'PIN', label: 'PIN' },
   { value: 'SMSOTP', label: 'SMS OTP' },
   { value: 'GAUTH', label: 'Google Authenticator' },
   { value: 'SQ', label: 'Security Question' },
@@ -45,10 +47,7 @@ const authMethods = [
 
 const overviewFormSchema = z.object({
   mainAuthMethod: z.string().min(1, 'Main authentication method is required.'),
-  twoFactorAuthMethod: z.string().min(1, '2FA method is required.'),
-}).refine(data => data.mainAuthMethod !== data.twoFactorAuthMethod, {
-  message: '2FA method must be different from the main authentication method.',
-  path: ['twoFactorAuthMethod'],
+  twoFactorAuthMethod: z.string(),
 });
 
 type OverviewFormValues = z.infer<typeof overviewFormSchema>;
@@ -63,11 +62,9 @@ function OverviewContent() {
     resolver: zodResolver(overviewFormSchema),
     defaultValues: {
       mainAuthMethod: '',
-      twoFactorAuthMethod: '',
+      twoFactorAuthMethod: 'None',
     },
   });
-
-  const mainAuthWatcher = form.watch('mainAuthMethod');
 
   const customerString = searchParams.get('customer');
   const accountsString = searchParams.get('accounts');
@@ -199,34 +196,13 @@ function OverviewContent() {
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="twoFactorAuthMethod"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Two-Factor (2FA) Method</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a 2FA method" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                             {authMethods.map(method => (
-                                <SelectItem 
-                                    key={method.value} 
-                                    value={method.value}
-                                    disabled={method.value === mainAuthWatcher}
-                                >
-                                {method.label}
-                                </SelectItem>
-                            ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                 <div className="space-y-2">
+                    <Label>Two-Factor (2FA) Method</Label>
+                    <div className="flex items-center gap-2 h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">
+                       <ShieldOff className="h-4 w-4" />
+                       <span>None</span>
+                    </div>
+                </div>
             </div>
         </div>
       </CardContent>
@@ -264,3 +240,5 @@ export default function OverviewPage() {
         </Suspense>
     );
 }
+
+    
