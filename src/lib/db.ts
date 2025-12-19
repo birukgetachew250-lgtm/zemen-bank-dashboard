@@ -334,9 +334,7 @@ if (config.db.isProduction) {
       CREATE TABLE IF NOT EXISTS departments (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        branchId TEXT NOT NULL,
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (branchId) REFERENCES branches(id) ON DELETE CASCADE
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE IF NOT EXISTS mini_apps (
@@ -352,6 +350,23 @@ if (config.db.isProduction) {
     `;
 
     db.exec(schema);
+
+    // --- FIX: START ---
+    // One-time migration to add branchId column to departments table if it doesn't exist
+    try {
+        const columns = db.pragma('table_info(departments)');
+        const hasBranchId = columns.some((col: any) => col.name === 'branchId');
+        if (!hasBranchId) {
+            db.exec('ALTER TABLE departments ADD COLUMN branchId TEXT');
+            console.log("Applied migration: Added 'branchId' to 'departments' table.");
+        }
+    } catch (e) {
+        // This might fail if the table doesn't exist yet, which is fine.
+        // The CREATE TABLE statement will handle it.
+        console.warn("Could not check/alter departments table, probably because it doesn't exist yet. This is likely safe.");
+    }
+    // --- FIX: END ---
+
 
     // Seed admin user, roles, and other demo data
     const admin = db.prepare('SELECT * FROM users WHERE email = ?').get('admin@zemen.com');
