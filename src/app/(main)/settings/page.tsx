@@ -56,7 +56,9 @@ export default function SettingsPage() {
 
   useEffect(() => {
     document.documentElement.classList.remove("light", "dark");
-    document.documentElement.classList.add(theme);
+    if (theme) {
+      document.documentElement.classList.add(theme);
+    }
   }, [theme]);
 
   function onSubmit(data: SettingsFormValues) {
