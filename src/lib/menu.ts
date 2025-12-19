@@ -24,6 +24,7 @@ import {
   Tags,
   Clock,
   ShieldCheck,
+  AlertTriangle,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -43,6 +44,7 @@ export const menu: MenuItem[] = [
       { label: "Create Corporate", href: "/corporates/create" },
       { label: "Existing Corporates", href: "/corporates" },
       { label: "Corporate Transactions", href: "/corporates/transactions" },
+      { label: "Exceptional Limits", href: "/corporates/exceptional-limits", icon: AlertTriangle },
     ],
   },
   {
