@@ -3,6 +3,7 @@
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -16,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, PlusCircle, Trash2 } from "lucide-react";
 
 interface Corporate {
   id: string;
@@ -42,6 +43,7 @@ const getStatusVariant = (status: string) => {
 
 export function CorporateClientPage({ corporates }: CorporateClientPageProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
   
   const filteredCorporates = useMemo(() => {
     if (!searchTerm) return corporates;
@@ -56,12 +58,18 @@ export function CorporateClientPage({ corporates }: CorporateClientPageProps) {
     <Card className="w-full">
       <CardHeader className="flex-row items-center justify-between">
         <CardTitle>Existing Corporates</CardTitle>
-        <Input 
-            placeholder="Search by name or industry..."
-            className="max-w-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        <div className="flex items-center gap-4">
+            <Input 
+                placeholder="Search by name or industry..."
+                className="max-w-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Button onClick={() => router.push('/corporates/create')}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create Corporate
+            </Button>
+        </div>
       </CardHeader>
       <CardContent>
          <div className="rounded-md border">
@@ -77,7 +85,7 @@ export function CorporateClientPage({ corporates }: CorporateClientPageProps) {
             </TableHeader>
             <TableBody>
               {filteredCorporates.length > 0 ? filteredCorporates.map((corporate) => (
-                <TableRow key={corporate.id}>
+                <TableRow key={corporate.id} onClick={() => router.push(`/corporates/details?id=${corporate.id}`)} className="cursor-pointer">
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-3">
                         <Image 

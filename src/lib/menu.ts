@@ -40,6 +40,7 @@ export const menu: MenuItem[] = [
     label: "Corporates Management",
     icon: Building2,
     children: [
+      { label: "Create Corporate", href: "/corporates/create" },
       { label: "Existing Corporates", href: "/corporates" },
       { label: "Corporate Transactions", href: "/corporates/transactions" },
     ],
