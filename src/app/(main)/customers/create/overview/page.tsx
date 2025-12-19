@@ -40,7 +40,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 const authMethods = [
-  { value: 'PIN', label: 'PIN' },
   { value: 'SMSOTP', label: 'SMS OTP' },
   { value: 'GAUTH', label: 'Google Authenticator' },
   { value: 'SQ', label: 'Security Question' },
