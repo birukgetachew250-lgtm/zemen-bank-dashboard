@@ -23,6 +23,7 @@ import {
   List,
   Tags,
   Clock,
+  ShieldCheck,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -114,7 +115,7 @@ export const menu: MenuItem[] = [
     ]
   },
   { 
-    icon: UserCheck, 
+    icon: ShieldCheck, 
     label: "Roles & Permissions",
     children: [
         { label: "Manage Roles", href: "/roles" },
