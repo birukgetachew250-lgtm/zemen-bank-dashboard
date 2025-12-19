@@ -30,7 +30,7 @@ export interface MenuItem {
   label: string;
   href?: string;
   open?: boolean;
-  children?: MenuItem[];
+  children?: Omit<MenuItem, 'children' | 'icon'> & { icon?: LucideIcon, href: string }[];
 }
 
 export const menu: MenuItem[] = [
@@ -113,7 +113,13 @@ export const menu: MenuItem[] = [
       { label: "Intervals", href: "/limits/intervals" },
     ]
   },
-  { icon: UserCheck, label: "Roles & Permissions", href: "/roles" },
+  { 
+    icon: UserCheck, 
+    label: "Roles & Permissions",
+    children: [
+        { label: "Manage Roles", href: "/roles" },
+    ]
+  },
   { icon: Landmark, label: "Branches", href: "/branches" },
   { icon: Building, label: "Departments", href: "/departments" },
   { icon: Settings, label: "Settings", href: "/settings" },
