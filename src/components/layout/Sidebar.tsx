@@ -15,29 +15,11 @@ import { cn } from '@/lib/utils';
 import { menu, type MenuItem } from '@/lib/menu';
 import { ScrollArea } from '../ui/scroll-area';
 
-function SidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; pathname: string, userPermissions: string[] }) {
+function SidebarNavItem({ item, pathname }: { item: MenuItem; pathname: string }) {
     const Icon = item.icon;
 
-    // Check if user has permission for this item or is a super admin
-    const isSuperAdmin = userPermissions.includes('approve-all');
-    const hasPermission = isSuperAdmin || !item.permission || userPermissions.includes(item.permission);
-
-    if (!hasPermission) {
-        return null;
-    }
-
     if (item.children) {
-      // Filter children based on permissions
-      const visibleChildren = item.children.filter(child => 
-        isSuperAdmin || !child.permission || userPermissions.includes(child.permission)
-      );
-
-      // If no children are visible, don't render the parent accordion
-      if (visibleChildren.length === 0) {
-        return null;
-      }
-
-      const isChildActive = visibleChildren.some((child) => child.href && pathname.startsWith(child.href)) ?? false;
+      const isChildActive = item.children.some((child) => child.href && pathname.startsWith(child.href)) ?? false;
 
       return (
         <Accordion
@@ -61,7 +43,7 @@ function SidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; p
             </AccordionTrigger>
             <AccordionContent className="pl-4 pt-2 pb-0">
               <div className="flex flex-col space-y-1">
-                {visibleChildren.map((child) => (
+                {item.children.map((child) => (
                   <Link
                     key={child.label}
                     href={child.href || '#'}
@@ -95,7 +77,7 @@ function SidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; p
     );
   }
 
-export function Sidebar({ userPermissions }: { userPermissions: string[] }) {
+export function Sidebar() {
   const pathname = usePathname();
 
   return (
@@ -109,7 +91,7 @@ export function Sidebar({ userPermissions }: { userPermissions: string[] }) {
       <ScrollArea className="flex-1">
         <nav className="grid items-start gap-1 p-2 text-sm font-medium">
           {menu.map((item) => (
-            <SidebarNavItem key={item.label} item={item} pathname={pathname} userPermissions={userPermissions} />
+            <SidebarNavItem key={item.label} item={item} pathname={pathname} />
           ))}
         </nav>
       </ScrollArea>

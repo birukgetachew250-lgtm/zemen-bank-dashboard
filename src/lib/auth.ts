@@ -1,12 +1,11 @@
 
+
 'use server';
 
 import 'server-only';
 import { db } from './db';
 import { cookies } from 'next/headers';
 import type { Role } from '@/app/(main)/roles/page';
-import { getPermissionForPath } from '@/lib/permissions';
-import { redirect } from 'next/navigation';
 
 interface Session {
     user: {
@@ -70,27 +69,4 @@ export async function getSession(): Promise<Session | null> {
 
 export async function deleteSession() {
     cookies().delete(sessionCookieName);
-}
-
-
-export async function verifySessionAndPermissions(pathname: string) {
-    const session = await getSession();
-
-    if (!session) {
-        return; // Let middleware handle redirect for no session
-    }
-
-    const requiredPermission = getPermissionForPath(pathname);
-    if (!requiredPermission) {
-        return; // No specific permission required for this path
-    }
-
-    const userPermissions = session.permissions || [];
-
-    // The "Admin" role in our seed data has "approve-all", which we treat as a super-user permission.
-    const isSuperAdmin = userPermissions.includes('approve-all');
-
-    if (!isSuperAdmin && !userPermissions.includes(requiredPermission)) {
-        redirect('/unauthorized');
-    }
 }
