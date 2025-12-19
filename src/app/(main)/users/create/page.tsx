@@ -7,7 +7,12 @@ import { db } from "@/lib/db";
 
 function getFormData() {
     const branches = db.prepare("SELECT * FROM branches ORDER BY name ASC").all() as Branch[];
-    const departments = db.prepare("SELECT * FROM departments ORDER BY name ASC").all() as Department[];
+    const departments = db.prepare(`
+        SELECT d.*, b.name as branchName 
+        FROM departments d
+        JOIN branches b ON d.branchId = b.id
+        ORDER BY d.name ASC
+    `).all() as Department[];
     const roles = db.prepare("SELECT * FROM roles ORDER BY name ASC").all() as Role[];
     return { branches, departments, roles };
 }

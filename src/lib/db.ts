@@ -334,7 +334,9 @@ if (config.db.isProduction) {
       CREATE TABLE IF NOT EXISTS departments (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        branchId TEXT NOT NULL,
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (branchId) REFERENCES branches(id) ON DELETE CASCADE
       );
 
       CREATE TABLE IF NOT EXISTS mini_apps (
@@ -422,14 +424,17 @@ if (config.db.isProduction) {
     }
 
     if (db.prepare('SELECT COUNT(*) as count FROM departments').get().count === 0) {
-        const insertDepartment = db.prepare('INSERT INTO departments (id, name) VALUES (?, ?)');
+        const insertDepartment = db.prepare('INSERT INTO departments (id, name, branchId) VALUES (?, ?, ?)');
+        
+        const headOffice = db.prepare("SELECT id FROM branches WHERE name = 'Head Office'").get();
+        
         const departments = [
-            { id: `dep_${crypto.randomUUID()}`, name: "Branch Operations" },
-            { id: `dep_${crypto.randomUUID()}`, name: "IT Department" },
+            { id: `dep_${crypto.randomUUID()}`, name: "Branch Operations", branchId: headOffice.id },
+            { id: `dep_${crypto.randomUUID()}`, name: "IT Department", branchId: headOffice.id },
         ];
          db.transaction((items) => {
             if (items && items.length > 0) {
-                items.forEach(item => insertDepartment.run(item.id, item.name))
+                items.forEach(item => insertDepartment.run(item.id, item.name, item.branchId))
             }
         })(departments);
     }

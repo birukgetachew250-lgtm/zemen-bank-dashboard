@@ -1,18 +1,19 @@
 
+
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {
     try {
-        const { name } = await req.json();
+        const { name, branchId } = await req.json();
 
-        if (!name) {
-            return NextResponse.json({ message: 'Department name is required' }, { status: 400 });
+        if (!name || !branchId) {
+            return NextResponse.json({ message: 'Department name and branch are required' }, { status: 400 });
         }
 
         const id = `dep_${crypto.randomUUID()}`;
-        db.prepare('INSERT INTO departments (id, name) VALUES (?, ?)').run(id, name);
+        db.prepare('INSERT INTO departments (id, name, branchId) VALUES (?, ?, ?)').run(id, name, branchId);
 
         return NextResponse.json({ success: true, message: 'Department added successfully', id });
     } catch (error) {

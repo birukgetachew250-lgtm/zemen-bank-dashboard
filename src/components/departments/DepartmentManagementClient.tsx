@@ -39,37 +39,46 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import type { Department } from "@/app/(main)/departments/page";
+import type { Branch } from "@/app/(main)/branches/page";
 import { format } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Label } from "../ui/label";
+import { Badge } from "../ui/badge";
 
 interface DepartmentManagementClientProps {
   initialDepartments: Department[];
+  branches: Branch[];
 }
 
 export function DepartmentManagementClient({
   initialDepartments,
+  branches
 }: DepartmentManagementClientProps) {
   const [departments, setDepartments] = useState(initialDepartments);
   const [isAddDeptOpen, setAddDeptOpen] = useState(false);
   const [isDeleteAlertOpen, setDeleteAlertOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: "department" } | null>(null);
   const [newDeptName, setNewDeptName] = useState("");
+  const [selectedBranchId, setSelectedBranchId] = useState("");
   const { toast } = useToast();
 
   const handleAddDepartment = async () => {
-    if (!newDeptName) {
-        toast({ variant: "destructive", title: "Missing field", description: "Please enter a department name." });
+    if (!newDeptName || !selectedBranchId) {
+        toast({ variant: "destructive", title: "Missing fields", description: "Please provide a department name and select a branch." });
         return;
     }
      const res = await fetch("/api/departments", {
         method: "POST",
-        body: JSON.stringify({ name: newDeptName }),
+        body: JSON.stringify({ name: newDeptName, branchId: selectedBranchId }),
         headers: { "Content-Type": "application/json" },
     });
      if (res.ok) {
         const newDept = await res.json();
-        setDepartments(prev => [...prev, { id: newDept.id, name: newDeptName, createdAt: new Date().toISOString() }].sort((a, b) => a.name.localeCompare(b.name)));
+        const branchName = branches.find(b => b.id === selectedBranchId)?.name;
+        setDepartments(prev => [...prev, { ...newDept, name: newDeptName, branchId: selectedBranchId, branchName, createdAt: new Date().toISOString() }].sort((a, b) => a.name.localeCompare(b.name)));
         toast({ title: "Success", description: "New department added." });
         setNewDeptName("");
+        setSelectedBranchId("");
         setAddDeptOpen(false);
     } else {
         toast({ variant: "destructive", title: "Error", description: "Failed to add department." });
@@ -111,6 +120,7 @@ export function DepartmentManagementClient({
             <TableHeader>
               <TableRow>
                 <TableHead>Department Name</TableHead>
+                <TableHead>Branch</TableHead>
                 <TableHead>Date Created</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -119,6 +129,7 @@ export function DepartmentManagementClient({
               {departments.map((dept) => (
                 <TableRow key={dept.id}>
                   <TableCell className="font-medium">{dept.name}</TableCell>
+                  <TableCell><Badge variant="secondary">{dept.branchName}</Badge></TableCell>
                   <TableCell>{format(new Date(dept.createdAt), "dd MMM yyyy")}</TableCell>
                   <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(dept.id, "department")}>
@@ -137,10 +148,26 @@ export function DepartmentManagementClient({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Department</DialogTitle>
-             <DialogDescription>Enter the name for the new department.</DialogDescription>
+             <DialogDescription>Enter a name and assign the department to a branch.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-             <Input placeholder="Department Name" value={newDeptName} onChange={(e) => setNewDeptName(e.target.value)} />
+             <div className="grid gap-2">
+                <Label htmlFor="branch">Branch</Label>
+                <Select onValueChange={setSelectedBranchId}>
+                    <SelectTrigger id="branch">
+                        <SelectValue placeholder="Select a branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {branches.map(branch => (
+                            <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+             </div>
+             <div className="grid gap-2">
+                <Label htmlFor="dept-name">Department Name</Label>
+                <Input id="dept-name" placeholder="Department Name" value={newDeptName} onChange={(e) => setNewDeptName(e.target.value)} />
+             </div>
           </div>
           <DialogFooter>
              <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>

@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,18 +31,8 @@ const userFormSchema = z.object({
     email: z.string().email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     role: z.string().min(1, "Role is required"),
+    branch: z.string().min(1, "Branch is required"),
     department: z.string().min(1, "Department is required"),
-    branch: z.string().optional(),
-}).refine(data => {
-    // This logic needs to match the department name exactly
-    const selectedDepartment = data.department;
-    if (selectedDepartment === 'Branch Operations') {
-        return !!data.branch;
-    }
-    return true;
-}, {
-    message: "Branch is required for Branch Operations department",
-    path: ["branch"],
 });
 
 
@@ -64,21 +55,36 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
             email: "",
             password: "",
             role: "",
-            department: "",
             branch: "",
+            department: "",
         },
     });
+
+    const branchWatcher = form.watch("branch");
+
+    const filteredDepartments = useMemo(() => {
+        if (!branchWatcher) return [];
+        const selectedBranchName = branches.find(b => b.id === branchWatcher)?.name;
+        if (!selectedBranchName) return [];
+        return departments.filter(d => d.branchName === selectedBranchName);
+    }, [branchWatcher, departments, branches]);
     
-    // Find the actual name of the 'Branch Operations' department to ensure the check works
-    const branchOpsDepartment = departments.find(d => d.name.toLowerCase().includes('branch operation'));
 
-
-    const departmentWatcher = form.watch("department");
     const handleAddUser = async (values: z.infer<typeof userFormSchema>) => {
         setIsLoading(true);
+
+        const branchName = branches.find(b => b.id === values.branch)?.name;
+        const departmentName = departments.find(d => d.id === values.department)?.name;
+
+        const submissionData = {
+            ...values,
+            branch: branchName,
+            department: departmentName
+        };
+
         const res = await fetch("/api/users", {
             method: "POST",
-            body: JSON.stringify(values),
+            body: JSON.stringify(submissionData),
             headers: { "Content-Type": "application/json" },
         });
         const result = await res.json();
@@ -121,24 +127,26 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
                                 </Select><FormMessage />
                             </FormItem>
                         )} />
-                        <FormField control={form.control} name="department" render={({ field }) => (
-                            <FormItem><FormLabel>Department</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a department" /></SelectTrigger></FormControl>
-                                    <SelectContent>{departments.map(dept => (<SelectItem key={dept.id} value={dept.name}>{dept.name}</SelectItem>))}</SelectContent>
+                        <div />
+                         <FormField control={form.control} name="branch" render={({ field }) => (
+                            <FormItem><FormLabel>Branch</FormLabel>
+                                <Select onValueChange={(value) => {
+                                    field.onChange(value);
+                                    form.setValue('department', '');
+                                }} defaultValue={field.value}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a branch" /></SelectTrigger></FormControl>
+                                    <SelectContent>{branches.map(branch => (<SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>))}</SelectContent>
                                 </Select><FormMessage />
                             </FormItem>
                         )} />
-                        {departmentWatcher === (branchOpsDepartment?.name) && (
-                            <FormField control={form.control} name="branch" render={({ field }) => (
-                                <FormItem><FormLabel>Branch</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a branch" /></SelectTrigger></FormControl>
-                                        <SelectContent>{branches.map(branch => (<SelectItem key={branch.id} value={branch.name}>{branch.name}</SelectItem>))}</SelectContent>
-                                    </Select><FormMessage />
-                                </FormItem>
-                            )} />
-                        )}
+                         <FormField control={form.control} name="department" render={({ field }) => (
+                            <FormItem><FormLabel>Department</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!branchWatcher}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder={branchWatcher ? "Select a department" : "Select a branch first"} /></SelectTrigger></FormControl>
+                                    <SelectContent>{filteredDepartments.map(dept => (<SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>))}</SelectContent>
+                                </Select><FormMessage />
+                            </FormItem>
+                        )} />
                     </CardContent>
                     <CardFooter className="flex justify-end gap-2">
                         <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
