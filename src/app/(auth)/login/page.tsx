@@ -55,13 +55,16 @@ export default function LoginPage() {
             body: JSON.stringify(values),
         });
 
+        const result = await response.json();
+
         if (response.ok) {
             toast({ title: 'Login successful!' });
             router.push('/dashboard');
-            router.refresh(); // Important to refresh server-side data like the session
+            // The refresh is important to ensure the new session cookie is picked up by server components
+            // and the layout re-renders with the correct user data.
+            router.refresh(); 
         } else {
-            const error = await response.json();
-            throw new Error(error.message || 'Login failed');
+            throw new Error(result.message || 'Login failed');
         }
     } catch (error: any) {
         toast({
