@@ -40,7 +40,15 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
-const initialLimitRules = [
+interface LimitRule {
+    id: string;
+    category: string;
+    transactionType: string;
+    dailyLimit: number;
+    monthlyLimit: number;
+}
+
+const initialLimitRules: LimitRule[] = [
   { id: 'lim1', category: 'Retail', transactionType: 'Fund Transfer', dailyLimit: 100000, monthlyLimit: 1000000 },
   { id: 'lim2', category: 'Retail', transactionType: 'Bill Payment', dailyLimit: 50000, monthlyLimit: 500000 },
   { id: 'lim3', category: 'Retail', transactionType: 'Airtime/Data', dailyLimit: 10000, monthlyLimit: 100000 },
@@ -60,7 +68,9 @@ const formatCurrency = (amount: number) => {
 export default function LimitsPage() {
   const [limitRules, setLimitRules] = useState(initialLimitRules);
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const [newRule, setNewRule] = useState({
+  const [editingRule, setEditingRule] = useState<LimitRule | null>(null);
+
+  const [ruleData, setRuleData] = useState({
     category: "",
     transactionType: "",
     dailyLimit: "",
@@ -68,31 +78,63 @@ export default function LimitsPage() {
   });
   const { toast } = useToast();
 
-  const handleAddRule = () => {
-    if (!newRule.category || !newRule.transactionType || !newRule.dailyLimit || !newRule.monthlyLimit) {
+  const openAddDialog = () => {
+    setEditingRule(null);
+    setRuleData({ category: "", transactionType: "", dailyLimit: "", monthlyLimit: "" });
+    setDialogOpen(true);
+  };
+  
+  const openEditDialog = (rule: LimitRule) => {
+    setEditingRule(rule);
+    setRuleData({
+        category: rule.category,
+        transactionType: rule.transactionType,
+        dailyLimit: String(rule.dailyLimit),
+        monthlyLimit: String(rule.monthlyLimit),
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSaveRule = () => {
+    if (!ruleData.category || !ruleData.transactionType || !ruleData.dailyLimit || !ruleData.monthlyLimit) {
       toast({
         variant: "destructive",
         title: "Missing Fields",
-        description: "Please fill out all fields to add a new rule."
+        description: "Please fill out all fields to save the rule."
       });
       return;
     }
 
-    const newLimit = {
-      id: `lim${limitRules.length + 1}`,
-      category: newRule.category,
-      transactionType: newRule.transactionType,
-      dailyLimit: parseFloat(newRule.dailyLimit),
-      monthlyLimit: parseFloat(newRule.monthlyLimit),
-    };
+    if (editingRule) {
+        // Update existing rule
+        setLimitRules(prev => prev.map(r => r.id === editingRule.id ? { 
+            ...editingRule, 
+            ...ruleData, 
+            dailyLimit: parseFloat(ruleData.dailyLimit), 
+            monthlyLimit: parseFloat(ruleData.monthlyLimit) 
+        } : r));
+        toast({
+            title: "Rule Updated",
+            description: "The transaction limit rule has been updated successfully.",
+        });
+    } else {
+        // Add new rule
+        const newLimit: LimitRule = {
+          id: `lim${Date.now()}`,
+          category: ruleData.category,
+          transactionType: ruleData.transactionType,
+          dailyLimit: parseFloat(ruleData.dailyLimit),
+          monthlyLimit: parseFloat(ruleData.monthlyLimit),
+        };
+        setLimitRules(prev => [...prev, newLimit]);
+        toast({
+          title: "Rule Added",
+          description: "New transaction limit rule has been added successfully.",
+        });
+    }
     
-    setLimitRules(prev => [...prev, newLimit]);
-    toast({
-      title: "Rule Added",
-      description: "New transaction limit rule has been added successfully.",
-    });
     setDialogOpen(false);
-    setNewRule({ category: "", transactionType: "", dailyLimit: "", monthlyLimit: "" });
+    setEditingRule(null);
   };
 
   return (
@@ -103,7 +145,7 @@ export default function LimitsPage() {
             <CardTitle>Transaction Limits</CardTitle>
             <CardDescription>Manage daily and monthly transaction limits for different customer categories.</CardDescription>
           </div>
-          <Button onClick={() => setDialogOpen(true)}>
+          <Button onClick={openAddDialog}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add New Limit Rule
           </Button>
@@ -132,7 +174,7 @@ export default function LimitsPage() {
                     <TableCell>{formatCurrency(rule.dailyLimit)}</TableCell>
                     <TableCell>{formatCurrency(rule.monthlyLimit)}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(rule)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -147,7 +189,7 @@ export default function LimitsPage() {
       <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Add New Limit Rule</DialogTitle>
+            <DialogTitle>{editingRule ? 'Edit' : 'Add'} Limit Rule</DialogTitle>
             <DialogDescription>
               Define the limits for a customer category and transaction type. Click save when you're done.
             </DialogDescription>
@@ -155,7 +197,7 @@ export default function LimitsPage() {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="category" className="text-right">Category</Label>
-              <Select onValueChange={(value) => setNewRule(prev => ({...prev, category: value}))}>
+              <Select value={ruleData.category} onValueChange={(value) => setRuleData(prev => ({...prev, category: value}))}>
                 <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
@@ -166,7 +208,7 @@ export default function LimitsPage() {
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="transaction-type" className="text-right">Txn Type</Label>
-               <Select onValueChange={(value) => setNewRule(prev => ({...prev, transactionType: value}))}>
+               <Select value={ruleData.transactionType} onValueChange={(value) => setRuleData(prev => ({...prev, transactionType: value}))}>
                 <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
@@ -180,8 +222,8 @@ export default function LimitsPage() {
               <Input
                 id="daily-limit"
                 type="number"
-                value={newRule.dailyLimit}
-                onChange={(e) => setNewRule(prev => ({...prev, dailyLimit: e.target.value}))}
+                value={ruleData.dailyLimit}
+                onChange={(e) => setRuleData(prev => ({...prev, dailyLimit: e.target.value}))}
                 className="col-span-3"
                 placeholder="e.g. 100000"
               />
@@ -191,8 +233,8 @@ export default function LimitsPage() {
               <Input
                 id="monthly-limit"
                 type="number"
-                value={newRule.monthlyLimit}
-                onChange={(e) => setNewRule(prev => ({...prev, monthlyLimit: e.target.value}))}
+                value={ruleData.monthlyLimit}
+                onChange={(e) => setRuleData(prev => ({...prev, monthlyLimit: e.target.value}))}
                 className="col-span-3"
                 placeholder="e.g. 1000000"
               />
@@ -202,7 +244,7 @@ export default function LimitsPage() {
             <DialogClose asChild>
               <Button type="button" variant="outline">Cancel</Button>
             </DialogClose>
-            <Button type="button" onClick={handleAddRule}>Save changes</Button>
+            <Button type="button" onClick={handleSaveRule}>Save changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
