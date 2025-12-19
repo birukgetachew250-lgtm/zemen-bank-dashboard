@@ -81,7 +81,6 @@ export const menu: MenuItem[] = [
     label: "System Reports",
     icon: LineChart,
     children: [
-      { label: "Registered Customers", href: "/reports/system/registered" },
       { label: "Active Customers", href: "/reports/system/active" },
       { label: "Inactive Customers", href: "/reports/system/inactive" },
       { label: "Incomplete Registrations", href: "/reports/system/incomplete" },
