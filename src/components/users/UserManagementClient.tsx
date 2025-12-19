@@ -20,7 +20,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import type { SystemUser } from "@/app/(main)/users/page";
 import type { Role } from "@/app/(main)/roles/page";
 import Image from "next/image";
 import { Badge } from "../ui/badge";
@@ -35,6 +34,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+
+export interface SystemUser {
+  id: string;
+  employeeId: string;
+  name: string;
+  email: string;
+  role: string;
+  branch: string;
+  department: string;
+}
 
 interface UserManagementClientProps {
   initialUsers: SystemUser[];

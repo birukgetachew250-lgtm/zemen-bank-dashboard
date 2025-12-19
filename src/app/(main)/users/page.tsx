@@ -1,36 +1,59 @@
 
-import { db } from "@/lib/db";
-import { Branch } from "../branches/page";
-import { Department } from "../departments/page";
 import { UserManagementClient } from "@/components/users/UserManagementClient";
 import type { Role } from "@/app/(main)/roles/page";
+import { SystemUser } from "@/components/users/UserManagementClient";
 
-export interface SystemUser {
-  id: string;
-  employeeId: string;
-  name: string;
-  email: string;
-  role: string;
-  branch: string;
-  department: string;
+const mockUsers: SystemUser[] = [
+    {
+        id: 'user_ck_admin_001',
+        employeeId: '0001',
+        name: 'Admin User',
+        email: 'admin@zemen.com',
+        role: 'Admin',
+        branch: 'Head Office',
+        department: 'IT Department',
+    },
+    {
+        id: 'user_ck_support_001',
+        employeeId: '0002',
+        name: 'Support Lead',
+        email: 'support.lead@zemen.com',
+        role: 'Support Lead',
+        branch: 'Head Office',
+        department: 'IT Department',
+    }
+];
+
+const mockRoles: Role[] = [
+  {
+    id: 1,
+    name: "Admin",
+    permissions: ["manage-users", "manage-roles", "view-reports", "manage-settings", "approve-all"],
+  },
+  {
+    id: 2,
+    name: "Support Lead",
+    permissions: ["approve-pin-reset", "approve-new-device", "view-customer-audit", "manage-tickets"],
+  },
+  {
+    id: 3,
+    name: "Support Staff",
+    permissions: ["view-customers", "handle-tickets", "request-pin-reset"],
+  },
+  {
+    id: 4,
+    name: "Compliance Officer",
+    permissions: ["view-reports", "view-audit-trails", "flag-transaction"],
+  },
+];
+
+
+function getSystemUsers(): SystemUser[] {
+  return mockUsers;
 }
 
-function getSystemUsers() {
-  try {
-    return db.prepare("SELECT id, employeeId, name, email, role, branch, department FROM users ORDER BY name ASC").all() as SystemUser[];
-  } catch (e) {
-    console.error("Failed to fetch users:", e);
-    return [];
-  }
-}
-
-function getRoles() {
-  try {
-    return db.prepare("SELECT * FROM roles ORDER BY name ASC").all() as Role[];
-  } catch (e) {
-    console.error("Failed to fetch roles:", e);
-    return [];
-  }
+function getRoles(): Role[] {
+    return mockRoles;
 }
 
 export default function UsersPage() {
