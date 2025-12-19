@@ -3,6 +3,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Settings, User } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 
 import {
   DropdownMenu,
@@ -38,20 +39,16 @@ const findCurrentPage = (menuItems: MenuItem[], pathname: string): MenuItem | un
 export function Header() {
   const router = useRouter();
   const pathname = usePathname();
+  const { data: session } = useSession();
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
   const currentPage = findCurrentPage(menu, pathname);
 
   const handleLogout = async () => {
-    const response = await fetch('/api/auth/logout', { method: 'POST' });
-    if (response.ok) {
-      router.push('/login');
-      router.refresh();
-      toast({ title: 'Logged out successfully.' });
-    } else {
-      toast({ variant: 'destructive', title: 'Logout failed.' });
-    }
+    await signOut({ redirect: false });
+    toast({ title: 'Logged out successfully.' });
+    router.push('/login');
   };
 
   return (
@@ -91,16 +88,16 @@ export function Header() {
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9">
                 <AvatarImage src="/images/avatar.png" alt="Admin User" />
-                <AvatarFallback>AU</AvatarFallback>
+                <AvatarFallback>{session?.user?.name?.charAt(0) ?? 'A'}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">Admin User</p>
+                <p className="text-sm font-medium leading-none">{session?.user?.name ?? 'Admin User'}</p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  admin@zemen.com
+                  {session?.user?.email ?? ''}
                 </p>
               </div>
             </DropdownMenuLabel>

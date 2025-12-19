@@ -5,7 +5,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +28,9 @@ import {
 } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -36,6 +40,9 @@ const formSchema = z.object({
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const error = searchParams.get("error");
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -49,26 +56,27 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(values),
-        });
+      const result = await signIn('credentials', {
+        redirect: false, // We will handle redirection manually
+        email: values.email,
+        password: values.password,
+        callbackUrl,
+      });
 
-        const result = await response.json();
-
-        if (response.ok) {
-            toast({ title: 'Login successful!' });
-            // Force a hard redirect to ensure the new session is picked up.
-            window.location.href = '/dashboard';
-        } else {
-            throw new Error(result.message || 'Login failed');
-        }
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+      
+      if (result?.ok) {
+        toast({ title: "Login successful!" });
+        router.push(callbackUrl);
+      }
+      
     } catch (error: any) {
         toast({
             variant: 'destructive',
             title: 'Login Failed',
-            description: error.message,
+            description: "Invalid credentials. Please try again.",
         });
     } finally {
         setIsLoading(false);
@@ -84,6 +92,17 @@ export default function LoginPage() {
         <CardDescription>Enter your credentials to access the dashboard</CardDescription>
       </CardHeader>
       <CardContent>
+        {error && (
+            <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Authentication Error</AlertTitle>
+                <AlertDescription>
+                    {error === 'CredentialsSignin'
+                    ? 'Invalid email or password. Please try again.'
+                    : 'An unexpected error occurred. Please try again.'}
+                </AlertDescription>
+            </Alert>
+        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
