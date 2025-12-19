@@ -57,10 +57,9 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const result = await signIn('credentials', {
-        redirect: false, // We will handle redirection manually
+        redirect: false,
         email: values.email,
         password: values.password,
-        callbackUrl,
       });
 
       if (result?.error) {
@@ -69,7 +68,15 @@ export default function LoginPage() {
       
       if (result?.ok) {
         toast({ title: "Login successful!" });
-        router.push(callbackUrl);
+        // Use window.location to force a full page reload to ensure session is picked up
+        window.location.href = callbackUrl;
+      } else {
+        // This case might be hit if there's an error that doesn't set result.error
+         toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: "An unexpected error occurred. Please try again.",
+        });
       }
       
     } catch (error: any) {
