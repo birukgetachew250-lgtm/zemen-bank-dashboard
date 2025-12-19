@@ -83,7 +83,6 @@ export const menu: MenuItem[] = [
       { label: "Active Customers", href: "/reports/system/active" },
       { label: "Inactive Customers", href: "/reports/system/inactive" },
       { label: "Failed New Customers", href: "/reports/system/failed" },
-      { label: "Dormant Customers", href: "/reports/system/dormant" },
     ],
   },
   {
