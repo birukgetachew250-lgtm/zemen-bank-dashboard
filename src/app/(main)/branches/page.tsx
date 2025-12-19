@@ -9,9 +9,11 @@ export interface Branch {
   createdAt: string;
 }
 
-function getBranches() {
+function getBranches(): Branch[] {
   try {
-    return db.prepare("SELECT * FROM branches ORDER BY name ASC").all() as Branch[];
+    const result = db.prepare("SELECT * FROM branches ORDER BY name ASC").all();
+    // Ensure we always return an array, even if the result is null or undefined.
+    return (result as Branch[]) || [];
   } catch (e) {
     console.error("Failed to fetch branches:", e);
     return [];
