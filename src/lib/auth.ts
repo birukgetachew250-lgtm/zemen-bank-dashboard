@@ -23,16 +23,6 @@ const sessionCookieName = 'zemen-admin-session';
 
 
 export async function createSession(user: any) {
-    const roleData = db.prepare('SELECT permissions FROM roles WHERE name = ?').get(user.role) as Role | undefined;
-    
-    // The permissions are stored as a JSON string in the DB. It needs to be parsed.
-    const permissions = roleData ? JSON.parse(roleData.permissions) : [];
-    
-    // Add "view-dashboard" to all roles by default if it doesn't exist
-    if (!permissions.includes('view-dashboard')) {
-        permissions.push('view-dashboard');
-    }
-
     const session: Session = {
         user: {
             id: user.id,
@@ -40,7 +30,7 @@ export async function createSession(user: any) {
             email: user.email,
             role: user.role,
         },
-        permissions,
+        permissions: [], // This was missing, causing the redirect loop.
     };
 
     cookies().set(sessionCookieName, JSON.stringify(session), {
