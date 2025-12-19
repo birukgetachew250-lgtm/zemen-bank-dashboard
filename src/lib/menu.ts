@@ -43,7 +43,6 @@ export const menu: MenuItem[] = [
     children: [
       { label: "Create Corporate", href: "/corporates/create" },
       { label: "Existing Corporates", href: "/corporates" },
-      { label: "Corporate Transactions", href: "/corporates/transactions" },
       { label: "Exceptional Limits", href: "/corporates/exceptional-limits", icon: AlertTriangle },
     ],
   },
