@@ -112,9 +112,9 @@ export const menu: MenuItem[] = [
     children: [
       { label: "Transaction Limits", href: "/limits" },
       { label: "Transaction Charges", href: "/charges" },
-      { icon: List, label: "Transaction Types", href: "/limits/types" },
-      { icon: Tags, label: "Customer Categories", href: "/limits/categories" },
-      { icon: Clock, label: "Intervals", href: "/limits/intervals" },
+      { label: "Transaction Types", href: "/limits/types" },
+      { label: "Customer Categories", href: "/limits/categories" },
+      { label: "Intervals", href: "/limits/intervals" },
     ]
   },
   { icon: UserCheck, label: "Roles & Permissions", href: "/roles" },
