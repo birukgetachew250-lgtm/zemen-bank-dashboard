@@ -19,7 +19,8 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useEffect } from 'react';
 
 const settingsFormSchema = z.object({
   theme: z.enum(['light', 'dark']),
@@ -29,7 +30,7 @@ const settingsFormSchema = z.object({
     .max(120, { message: 'Must be 120 minutes or less' }),
   notifications: z.object({
     newUserApproval: z.boolean(),
-    transactionAnomaly: z.boolean(),
+    failedLoginAttempts: z.boolean(),
   }),
 });
 
@@ -41,7 +42,7 @@ const defaultValues: Partial<SettingsFormValues> = {
   sessionTimeout: 30,
   notifications: {
     newUserApproval: true,
-    transactionAnomaly: false,
+    failedLoginAttempts: false,
   },
 };
 
@@ -50,6 +51,14 @@ export default function SettingsPage() {
     resolver: zodResolver(settingsFormSchema),
     defaultValues,
   });
+
+  const theme = form.watch('theme');
+
+  useEffect(() => {
+    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.add(theme);
+  }, [theme]);
+
 
   function onSubmit(data: SettingsFormValues) {
     console.log(data);
@@ -89,11 +98,34 @@ export default function SettingsPage() {
                                     control={form.control}
                                     name="theme"
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Theme</FormLabel>
-                                            <FormDescription>Select the application theme.</FormDescription>
-                                            {/* In a real app, this would be more sophisticated */}
-                                            <p className="font-medium text-sm pt-2">Currently: {field.value}</p>
+                                        <FormItem className="space-y-3">
+                                        <FormLabel>Theme</FormLabel>
+                                         <FormDescription>Select the application theme.</FormDescription>
+                                        <FormControl>
+                                            <RadioGroup
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            className="flex flex-col space-y-1"
+                                            >
+                                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                                <FormControl>
+                                                <RadioGroupItem value="light" />
+                                                </FormControl>
+                                                <FormLabel className="font-normal">
+                                                Light
+                                                </FormLabel>
+                                            </FormItem>
+                                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                                <FormControl>
+                                                <RadioGroupItem value="dark" />
+                                                </FormControl>
+                                                <FormLabel className="font-normal">
+                                                Dark
+                                                </FormLabel>
+                                            </FormItem>
+                                            </RadioGroup>
+                                        </FormControl>
+                                        <FormMessage />
                                         </FormItem>
                                     )}
                                 />
@@ -106,7 +138,7 @@ export default function SettingsPage() {
                             <CardHeader>
                                 <CardTitle>Security</CardTitle>
                                 <CardDescription>Manage security-related settings.</CardDescription>
-                            </CardHeader>
+                            </Header>
                             <CardContent className="space-y-6">
                                 <FormField
                                     control={form.control}
@@ -133,7 +165,7 @@ export default function SettingsPage() {
                             <CardHeader>
                                 <CardTitle>Notifications</CardTitle>
                                 <CardDescription>Manage your notification preferences.</CardDescription>
-                            </CardHeader>
+                            </Header>
                             <CardContent className="space-y-6">
                                  <FormField
                                     control={form.control}
@@ -157,13 +189,13 @@ export default function SettingsPage() {
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="notifications.transactionAnomaly"
+                                    name="notifications.failedLoginAttempts"
                                     render={({ field }) => (
                                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                                         <div className="space-y-0.5">
-                                            <FormLabel className="text-base">Anomalous Transactions</FormLabel>
+                                            <FormLabel className="text-base">Failed Login Attempts</FormLabel>
                                             <FormDescription>
-                                                Receive email notifications when a potentially anomalous transaction is detected.
+                                                Receive email notifications for excessive failed login attempts.
                                             </FormDescription>
                                         </div>
                                         <FormControl>
