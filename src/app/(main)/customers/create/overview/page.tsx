@@ -53,13 +53,17 @@ const twoFactorMethods = [
   { value: 'None', label: 'None'},
 ];
 
+const channelOptions = [
+    { value: 'Mobile App', label: 'Mobile App' },
+    { value: 'USSD', label: 'USSD' },
+    { value: 'Both', label: 'Both' },
+]
+
 
 const overviewFormSchema = z.object({
   mainAuthMethod: z.string().min(1, 'Main authentication method is required.'),
   twoFactorAuthMethod: z.string(),
-  channel: z.enum(['Mobile App', 'USSD', 'Both'], {
-    required_error: 'You need to select a channel.',
-  }),
+  channel: z.string().min(1, 'You need to select a channel.'),
 });
 
 type OverviewFormValues = z.infer<typeof overviewFormSchema>;
@@ -75,6 +79,7 @@ function OverviewContent() {
     defaultValues: {
       mainAuthMethod: 'PIN',
       twoFactorAuthMethod: 'SMSOTP',
+      channel: 'Mobile App',
     },
   });
 
@@ -185,36 +190,32 @@ function OverviewContent() {
          <div>
             <h3 className="font-semibold text-lg mb-2">Channel & Security</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-4 border rounded-lg">
-                 <FormField
-                    control={form.control}
-                    name="channel"
-                    render={({ field }) => (
-                        <FormItem className="space-y-3">
-                        <FormLabel>Channel</FormLabel>
-                        <FormControl>
-                            <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex flex-col space-y-2"
-                            >
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl><RadioGroupItem value="Mobile App" /></FormControl>
-                                <FormLabel className="font-normal flex items-center gap-2"><Smartphone /> Mobile App</FormLabel>
+                <div className="space-y-6">
+                    <FormField
+                        control={form.control}
+                        name="channel"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Channel</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a channel" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {channelOptions.map(option => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                        {option.label}
+                                        </SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
                             </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl><RadioGroupItem value="USSD" /></FormControl>
-                                <FormLabel className="font-normal flex items-center gap-2"><Star /> USSD</FormLabel>
-                            </FormItem>
-                             <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl><RadioGroupItem value="Both" /></FormControl>
-                                <FormLabel className="font-normal">Both</FormLabel>
-                            </FormItem>
-                            </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                 />
+                        )}
+                    />
+                </div>
                  <div className="space-y-6">
                     <FormField
                         control={form.control}
