@@ -5,11 +5,16 @@ export default function TransactionTracingPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Transaction Tracing</CardTitle>
-        <CardDescription>Trace transactions end-to-end across multiple microservices.</CardDescription>
+        <CardTitle>Distributed Transaction Tracing</CardTitle>
+        <CardDescription>Trace a transaction's end-to-end journey across all microservices to debug failures.</CardDescription>
       </CardHeader>
       <CardContent>
-        <p>A tool to visualize and trace the lifecycle of a transaction will be available here.</p>
+        <div className="text-center py-12">
+            <h3 className="text-lg font-semibold">Trace Visualization</h3>
+            <p className="text-muted-foreground mt-2">
+                A search interface and waterfall diagram visualizing transaction lifecycles will be implemented here.
+            </p>
+        </div>
       </CardContent>
     </Card>
   );
