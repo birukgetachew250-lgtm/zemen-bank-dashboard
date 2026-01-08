@@ -39,6 +39,8 @@ import {
   Activity,
   Eye,
   UserCheck,
+  KeyRound,
+  Table,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -171,12 +173,12 @@ export const menu: MenuItem[] = [
     ]
   },
   {
-    label: "Administration",
-    icon: UserCog,
+    label: "Security & Access",
+    icon: ShieldCheck,
     children: [
       { 
-        label: "Users & Roles",
-        icon: ShieldCheck, 
+        label: "Admin Users & Roles",
+        icon: UserCog, 
         href: "/roles",
         children: [
             { icon: ShieldCheck, label: "Manage Roles", href: "/roles" },
@@ -185,6 +187,16 @@ export const menu: MenuItem[] = [
             { icon: Users, label: "Add New User", href: "/users/create" },
         ]
       },
+      { icon: Table, label: "Permissions Matrix", href: "/security/permission-matrix" },
+      { icon: KeyRound, label: "Login Audit & Sessions", href: "/security/sessions" },
+      { icon: Shield, label: "MFA / Security Policies", href: "/security/mfa-policies" },
+      { icon: Network, label: "IP Whitelisting", href: "/security/ip-whitelisting" },
+    ]
+  },
+  {
+    label: "Administration",
+    icon: UserCog,
+    children: [
       {
         label: "Structure",
         icon: Building,
