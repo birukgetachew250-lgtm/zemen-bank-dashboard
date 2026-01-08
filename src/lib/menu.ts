@@ -25,6 +25,12 @@ import {
   Clock,
   ShieldCheck,
   AlertTriangle,
+  ArrowRightLeft,
+  Network,
+  Receipt,
+  Globe,
+  ShieldAlert,
+  BookCheck,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -55,6 +61,19 @@ export const menu: MenuItem[] = [
       { label: "Block Customer", href: "/customers/block" },
       { label: "Unblock Customer", href: "/customers/unblock" },
     ],
+  },
+  {
+    label: "Transactions",
+    icon: ArrowRightLeft,
+    children: [
+        { label: "All Transactions", href: "/transactions/all-transactions", icon: List },
+        { label: "P2P & Wallet Transfers", href: "/transactions/p2p-wallet", icon: Users2 },
+        { label: "Interoperability Transfers", href: "/transactions/interoperability", icon: Network },
+        { label: "Bill Payments & Utilities", href: "/transactions/bills-utilities", icon: Receipt },
+        { label: "Remittances", href: "/transactions/remittances", icon: Globe },
+        { label: "Transaction Limits & Overrides", href: "/transactions/limits-overrides", icon: ShieldAlert },
+        { label: "Settlements & Reconciliation", href: "/transactions/settlements", icon: BookCheck },
+    ]
   },
   {
     label: "Mini Apps",
