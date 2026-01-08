@@ -309,8 +309,12 @@ if (config.db.isProduction) {
         id TEXT PRIMARY KEY,
         customerId TEXT,
         amount REAL,
+        fee REAL,
         status TEXT,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        type TEXT,
+        channel TEXT,
+        to_account TEXT,
         is_anomalous BOOLEAN DEFAULT FALSE,
         anomaly_reason TEXT,
         FOREIGN KEY (customerId) REFERENCES customers(id)

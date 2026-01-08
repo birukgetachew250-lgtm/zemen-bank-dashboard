@@ -182,16 +182,23 @@ function seed() {
 
   // Seed Transactions
   const transactions = [];
-  const insertTransaction = db.prepare('INSERT INTO transactions (id, customerId, amount, status, timestamp, is_anomalous, anomaly_reason) VALUES (?, ?, ?, ?, ?, ?, ?)');
+  const insertTransaction = db.prepare('INSERT INTO transactions (id, customerId, amount, fee, status, timestamp, type, channel, to_account, is_anomalous, anomaly_reason) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+  const transactionTypes = ['P2P', 'Bill Payment', 'Airtime', 'Merchant Payment', 'Remittance'];
+  const statuses = ['Successful', 'Failed', 'Pending', 'Reversed'];
+  const channels = ['App', 'USSD', 'Agent', 'EthSwitch'];
 
-  for (let i = 0; i < 100; i++) {
-    const isAnomalous = faker.datatype.boolean(0.1); 
+  for (let i = 0; i < 250; i++) {
+    const isAnomalous = faker.datatype.boolean(0.05); 
     const transaction = {
       id: `txn_${crypto.randomUUID()}`,
       customerId: faker.helpers.arrayElement(customers).id,
-      amount: faker.finance.amount({ min: 10, max: 5000 }),
-      status: faker.helpers.arrayElement(['successful', 'failed']),
-      timestamp: faker.date.recent({ days: 30 }),
+      amount: faker.finance.amount({ min: 10, max: 50000 }),
+      fee: faker.finance.amount({ min: 0, max: 50 }),
+      status: faker.helpers.arrayElement(statuses),
+      timestamp: faker.date.recent({ days: 90 }),
+      type: faker.helpers.arrayElement(transactionTypes),
+      channel: faker.helpers.arrayElement(channels),
+      to_account: faker.finance.accountNumber(12),
       is_anomalous: isAnomalous,
       anomaly_reason: isAnomalous ? faker.lorem.sentence() : null,
     };
@@ -200,7 +207,7 @@ function seed() {
   
   const insertManyTransactions = db.transaction((txns) => {
     for (const txn of txns) {
-      insertTransaction.run(txn.id, txn.customerId, txn.amount, txn.status, txn.timestamp.toISOString(), txn.is_anomalous ? 1 : 0, txn.anomaly_reason);
+      insertTransaction.run(txn.id, txn.customerId, txn.amount, txn.fee, txn.status, txn.timestamp.toISOString(), txn.type, txn.channel, txn.to_account, txn.is_anomalous ? 1 : 0, txn.anomaly_reason);
     }
   });
   insertManyTransactions(transactions);
@@ -216,5 +223,3 @@ try {
 } finally {
   db.close();
 }
-
-    
