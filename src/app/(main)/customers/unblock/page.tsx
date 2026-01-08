@@ -4,7 +4,7 @@ import { CustomerStatusClient } from "@/components/customers/CustomerStatusClien
 export default function UnblockCustomerPage() {
   return (
     <div className="w-full space-y-8">
-      <CustomerStatusClient action="Unblock" />
+      <CustomerStatusClient action="Unsuspend" />
     </div>
   );
 }

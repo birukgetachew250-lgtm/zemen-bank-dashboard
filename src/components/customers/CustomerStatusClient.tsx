@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 interface CustomerStatusClientProps {
-    action: 'Block' | 'Unblock';
+    action: 'Suspend' | 'Unsuspend';
 }
 
 function InfoItem({ label, value, className }: { label: string, value: React.ReactNode, className?: string }) {
@@ -51,10 +51,10 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
   const { toast } = useToast();
   const router = useRouter();
 
-  const targetStatus = action === 'Block' ? 'Block' : 'Active';
+  const targetStatus = action === 'Suspend' ? 'Block' : 'Active';
   const buttonLabel = action;
-  const buttonIcon = action === 'Block' ? <Ban className="mr-2 h-4 w-4" /> : <CheckCircle className="mr-2 h-4 w-4" />;
-  const buttonVariant = action === 'Block' ? 'destructive' : 'default';
+  const buttonIcon = action === 'Suspend' ? <Ban className="mr-2 h-4 w-4" /> : <CheckCircle className="mr-2 h-4 w-4" />;
+  const buttonVariant = action === 'Suspend' ? 'destructive' : 'default';
 
   const handleSearch = async () => {
     if (!cifNumber) {
@@ -102,7 +102,7 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
         }
         
         // Redirect to success page
-        router.push(`/customers/${action.toLowerCase()}/success`);
+        router.push(`/customers/${action === 'Suspend' ? 'block' : 'unblock'}/success`);
 
     } catch (error: any) {
         toast({
@@ -118,18 +118,18 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
   const isActionDisabled = !customer || 
                          isActionLoading ||
                          customer.status === 'Pending' ||
-                         (action === 'Block' && customer.status === 'Block') ||
-                         (action === 'Unblock' && customer.status === 'Active');
+                         (action === 'Suspend' && customer.status === 'Block') ||
+                         (action === 'Unsuspend' && customer.status === 'Active');
                          
   const getAlertMessage = () => {
     if (!customer) return null;
     if (customer.status === 'Pending') {
         return `This customer's registration is still pending approval. Their status cannot be changed.`;
     }
-    if (action === 'Block' && customer.status === 'Block') {
-        return 'This customer is already blocked.';
+    if (action === 'Suspend' && customer.status === 'Block') {
+        return 'This customer is already suspended.';
     }
-    if (action === 'Unblock' && customer.status === 'Active') {
+    if (action === 'Unsuspend' && customer.status === 'Active') {
         return 'This customer is already active.';
     }
     return null;

@@ -4,7 +4,7 @@ import { CustomerStatusClient } from "@/components/customers/CustomerStatusClien
 export default function BlockCustomerPage() {
   return (
     <div className="w-full space-y-8">
-      <CustomerStatusClient action="Block" />
+      <CustomerStatusClient action="Suspend" />
     </div>
   );
 }

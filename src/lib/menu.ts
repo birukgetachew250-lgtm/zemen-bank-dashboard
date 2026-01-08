@@ -68,8 +68,8 @@ export const menu: MenuItem[] = [
         children: [
           { icon: Users, label: "Create Customer", href: "/customers/create" },
           { icon: Users, label: "Existing Customers", href: "/customers" },
-          { icon: UserX, label: "Block Customer", href: "/customers/block" },
-          { icon: UserCheck, label: "Unblock Customer", href: "/customers/unblock" },
+          { icon: UserX, label: "Suspend Customer", href: "/customers/block" },
+          { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/unblock" },
         ],
       },
       {
@@ -119,7 +119,7 @@ export const menu: MenuItem[] = [
           { icon: Users, label: "New Customers", href: "/customers/approve-new" },
           { icon: Users, label: "Updated Customers", href: "/customers/approve-updated" },
           { icon: Users, label: "Customer Accounts", href: "/customers/approve-accounts" },
-          { icon: UserCheck, label: "Unblocked Customers", href: "/customers/approve-unblocked" },
+          { icon: UserCheck, label: "Unsuspended Customers", href: "/customers/approve-unblocked" },
           { icon: ShieldCheck, label: "Pin Resets", href: "/customers/approve-pin-reset" },
           { icon: ShieldCheck, label: "Security Resets", href: "/customers/approve-security" },
         ]
