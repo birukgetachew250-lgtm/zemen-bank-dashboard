@@ -4,7 +4,7 @@
 
 import { Suspense, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Loader2, User, Phone, Mail, Fingerprint, ShieldOff } from 'lucide-react';
+import { Loader2, User, Phone, Mail, Fingerprint, ShieldOff, Smartphone, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -38,17 +38,28 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const authMethods = [
+  { value: 'PIN', label: 'PIN' },
+  { value: 'PASSWORD', label: 'Password' },
+];
+
+const twoFactorMethods = [
   { value: 'SMSOTP', label: 'SMS OTP' },
   { value: 'GAUTH', label: 'Google Authenticator' },
   { value: 'SQ', label: 'Security Question' },
   { value: 'EMAILOTP', label: 'Email OTP' },
+  { value: 'None', label: 'None'},
 ];
+
 
 const overviewFormSchema = z.object({
   mainAuthMethod: z.string().min(1, 'Main authentication method is required.'),
   twoFactorAuthMethod: z.string(),
+  channel: z.enum(['Mobile App', 'USSD', 'Both'], {
+    required_error: 'You need to select a channel.',
+  }),
 });
 
 type OverviewFormValues = z.infer<typeof overviewFormSchema>;
@@ -62,8 +73,8 @@ function OverviewContent() {
   const form = useForm<OverviewFormValues>({
     resolver: zodResolver(overviewFormSchema),
     defaultValues: {
-      mainAuthMethod: '',
-      twoFactorAuthMethod: 'None',
+      mainAuthMethod: 'PIN',
+      twoFactorAuthMethod: 'SMSOTP',
     },
   });
 
@@ -111,7 +122,8 @@ function OverviewContent() {
           accounts: accounts,
           manualData: { 
             signUpMainAuth: data.mainAuthMethod, 
-            signUp2FA: data.twoFactorAuthMethod 
+            signUp2FA: data.twoFactorAuthMethod,
+            channel: data.channel,
           },
         }),
       });
@@ -171,39 +183,88 @@ function OverviewContent() {
         </div>
         <Separator />
          <div>
-            <h3 className="font-semibold text-lg mb-2">Security Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 border rounded-lg">
-                <FormField
+            <h3 className="font-semibold text-lg mb-2">Channel & Security</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 p-4 border rounded-lg">
+                 <FormField
                     control={form.control}
-                    name="mainAuthMethod"
+                    name="channel"
                     render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Main Authentication Method</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a main auth method" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                            {authMethods.map(method => (
-                                <SelectItem key={method.value} value={method.value}>
-                                {method.label}
-                                </SelectItem>
-                            ))}
-                            </SelectContent>
-                        </Select>
+                        <FormItem className="space-y-3">
+                        <FormLabel>Channel</FormLabel>
+                        <FormControl>
+                            <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-1"
+                            >
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl><RadioGroupItem value="Mobile App" /></FormControl>
+                                <FormLabel className="font-normal flex items-center gap-2"><Smartphone /> Mobile App</FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl><RadioGroupItem value="USSD" /></FormControl>
+                                <FormLabel className="font-normal flex items-center gap-2"><Star /> USSD</FormLabel>
+                            </FormItem>
+                             <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl><RadioGroupItem value="Both" /></FormControl>
+                                <FormLabel className="font-normal">Both</FormLabel>
+                            </FormItem>
+                            </RadioGroup>
+                        </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
-                />
-                 <div className="space-y-2">
-                    <Label>Two-Factor (2FA) Method</Label>
-                    <div className="flex items-center gap-2 h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">
-                       <ShieldOff className="h-4 w-4" />
-                       <span>None</span>
-                    </div>
-                </div>
+                 />
+                 <div className="space-y-6">
+                    <FormField
+                        control={form.control}
+                        name="mainAuthMethod"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Main Authentication Method</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a main auth method" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {authMethods.map(method => (
+                                    <SelectItem key={method.value} value={method.value}>
+                                    {method.label}
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="twoFactorAuthMethod"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Two-Factor (2FA) Method</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a 2FA method" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {twoFactorMethods.map(method => (
+                                    <SelectItem key={method.value} value={method.value}>
+                                    {method.label}
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                 </div>
             </div>
         </div>
       </CardContent>

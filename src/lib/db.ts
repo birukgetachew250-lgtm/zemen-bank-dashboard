@@ -186,6 +186,7 @@ if (config.db.isProduction) {
         Status TEXT, 
         SignUp2FA TEXT, 
         SignUpMainAuth TEXT, 
+        Channel TEXT,
         InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
         UpdateDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
         InsertUser TEXT DEFAULT 'system', 
