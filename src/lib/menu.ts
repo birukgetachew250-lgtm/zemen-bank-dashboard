@@ -38,9 +38,13 @@ import {
   Briefcase,
   Activity,
   Eye,
-  UserCheck,
   KeyRound,
   Table,
+  HeartPulse,
+  GaugeCircle,
+  Waypoints,
+  Bell,
+  UserCheck,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -143,6 +147,16 @@ export const menu: MenuItem[] = [
           { icon: Mail, label: "Authentications Logs", href: "/otp" },
         ],
       },
+    ]
+  },
+  {
+    label: "System Monitoring",
+    icon: Activity,
+    children: [
+      { icon: HeartPulse, label: "Microservices Health", href: "/monitoring/health" },
+      { icon: GaugeCircle, label: "Performance Metrics", href: "/monitoring/performance" },
+      { icon: Waypoints, label: "Transaction Tracing", href: "/monitoring/tracing" },
+      { icon: Bell, label: "Alerts & Notifications", href: "/monitoring/alerts" },
     ]
   },
   {
