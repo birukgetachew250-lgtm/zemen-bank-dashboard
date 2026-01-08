@@ -137,14 +137,14 @@ if (config.db.isProduction) {
 
 } else {
     // ---- DEMO/FALLBACK SQLITE DATABASE ----
-    // Place the database in node_modules to prevent Next.js from watching it and restarting on change.
-    const dbDir = path.resolve(process.cwd(), 'node_modules', '.db');
-    if (!fs.existsSync(dbDir)) {
-      fs.mkdirSync(dbDir, { recursive: true });
+    const dbPath = 'zemen.db';
+    if (!fs.existsSync(dbPath)) {
+        console.error(`Database file not found at ${dbPath}. Please run 'npm run seed' to create and populate it.`);
+        // In a real app, you might want to throw an error or handle this differently.
+        // For this demo, we'll proceed, and better-sqlite3 will create an empty file.
     }
-    const dbPath = path.join(dbDir, 'zemen.db');
-    db = new Database(dbPath);
-    console.log(`Using demo SQLite database at ${dbPath}. Run 'npm run seed' to populate it.`);
+    db = new Database(dbPath, { verbose: console.log });
+    console.log(`Using demo SQLite database at ${dbPath}. Run 'npm run seed' to (re)populate it.`);
 }
 
 
