@@ -28,21 +28,19 @@ const db = new Database('zemen.db', { verbose: console.log });
 function seed() {
   console.log('Seeding Zemen DB...');
 
-  // Clear existing data from legacy tables
+  // Drop all tables to ensure a clean slate
   db.exec('DROP TABLE IF EXISTS pending_approvals');
   db.exec('DROP TABLE IF EXISTS transactions');
   db.exec('DROP TABLE IF EXISTS customers');
-  
-  // Clear data from new tables
   db.exec('DROP TABLE IF EXISTS UserSecurities');
   db.exec('DROP TABLE IF EXISTS Accounts');
   db.exec('DROP TABLE IF EXISTS AppUsers');
   db.exec('DROP TABLE IF EXISTS SecurityQuestions');
+  console.log('Dropped existing tables.');
   
-  console.log('Cleared existing data.');
-
-  // Create tables with the correct schema
-    db.exec(`
+  
+  // Recreate tables with the correct schema
+  db.exec(`
       CREATE TABLE IF NOT EXISTS SecurityQuestions (
         Id TEXT PRIMARY KEY, 
         Question TEXT UNIQUE
