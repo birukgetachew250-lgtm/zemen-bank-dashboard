@@ -22,6 +22,9 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Menu as MenuIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
+import { cn } from "@/lib/utils";
+
 
 const findCurrentPage = (menuItems: MenuItem[], pathname: string): MenuItem | undefined => {
     for (const item of menuItems) {
@@ -35,6 +38,61 @@ const findCurrentPage = (menuItems: MenuItem[], pathname: string): MenuItem | un
     }
   };
   
+function MobileSidebarNavItem({ item, pathname }: { item: MenuItem; pathname: string }) {
+  const Icon = item.icon;
+
+  if (item.children) {
+    const isChildActive = item.children.some(child => 
+      child.href && pathname.startsWith(child.href) || 
+      (child.children && child.children.some(subChild => subChild.href && pathname.startsWith(subChild.href)))
+    );
+
+    return (
+      <Accordion
+        type="single"
+        collapsible
+        className="w-full"
+        defaultValue={isChildActive ? `item-${item.label}` : undefined}
+      >
+        <AccordionItem value={`item-${item.label}`} className="border-b-0">
+          <AccordionTrigger
+            className={cn(
+              'flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+              isChildActive && 'bg-sidebar-accent/50 text-sidebar-accent-foreground',
+              'hover:no-underline'
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <Icon className="h-4 w-4" />
+              <span className="truncate">{item.label}</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pl-4 pt-1 pb-0">
+            <div className="flex flex-col space-y-1">
+              {item.children.map((child) => (
+                <MobileSidebarNavItem key={child.label} item={child} pathname={pathname} />
+              ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    );
+  }
+
+  return (
+    <Link
+      href={item.href || '#'}
+      className={cn(
+        'flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+        pathname === item.href && 'bg-sidebar-primary text-sidebar-primary-foreground font-semibold'
+      )}
+    >
+      <Icon className="h-4 w-4" />
+      <span className="truncate">{item.label}</span>
+    </Link>
+  );
+}
+
 export function Header() {
   const router = useRouter();
   const pathname = usePathname();
@@ -69,7 +127,7 @@ export function Header() {
                <ScrollArea className="flex-1">
                 <nav className="grid items-start gap-1 p-2 text-sm font-medium">
                   {menu.map((item) => (
-                    <p key={item.label}>Nav Item</p>
+                    <MobileSidebarNavItem key={item.label} item={item} pathname={pathname} />
                   ))}
                 </nav>
               </ScrollArea>
