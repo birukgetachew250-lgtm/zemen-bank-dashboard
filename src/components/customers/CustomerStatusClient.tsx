@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 interface CustomerStatusClientProps {
-    action: 'Suspend' | 'Unsuspend';
+    action: 'Suspend' | 'Unsuspend' | 'Unblock';
 }
 
 function InfoItem({ label, value, className }: { label: string, value: React.ReactNode, className?: string }) {
@@ -51,7 +51,7 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
   const { toast } = useToast();
   const router = useRouter();
 
-  const targetStatus = action === 'Suspend' ? 'Block' : 'Active';
+  const targetStatus = (action === 'Suspend') ? 'Block' : 'Active';
   const buttonLabel = action;
   const buttonIcon = action === 'Suspend' ? <Ban className="mr-2 h-4 w-4" /> : <CheckCircle className="mr-2 h-4 w-4" />;
   const buttonVariant = action === 'Suspend' ? 'destructive' : 'default';
@@ -119,7 +119,7 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
                          isActionLoading ||
                          customer.status === 'Pending' ||
                          (action === 'Suspend' && customer.status === 'Block') ||
-                         (action === 'Unsuspend' && customer.status === 'Active');
+                         ((action === 'Unsuspend' || action === 'Unblock') && customer.status === 'Active');
                          
   const getAlertMessage = () => {
     if (!customer) return null;
@@ -129,7 +129,7 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
     if (action === 'Suspend' && customer.status === 'Block') {
         return 'This customer is already suspended.';
     }
-    if (action === 'Unsuspend' && customer.status === 'Active') {
+    if ((action === 'Unsuspend' || action === 'Unblock') && customer.status === 'Active') {
         return 'This customer is already active.';
     }
     return null;

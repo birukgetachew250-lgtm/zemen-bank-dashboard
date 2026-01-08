@@ -45,6 +45,7 @@ import {
   Waypoints,
   Bell,
   UserCheck,
+  Ban,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -68,8 +69,9 @@ export const menu: MenuItem[] = [
         children: [
           { icon: Users, label: "Create Customer", href: "/customers/create" },
           { icon: Users, label: "Existing Customers", href: "/customers" },
-          { icon: UserX, label: "Suspend Customer", href: "/customers/block" },
+          { icon: Ban, label: "Suspend Customer", href: "/customers/block" },
           { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/unblock" },
+          { icon: UserCheck, label: "Unblock Customer", href: "/customers/unblock-customer" },
         ],
       },
       {
