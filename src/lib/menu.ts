@@ -31,6 +31,12 @@ import {
   Globe,
   ShieldAlert,
   BookCheck,
+  Siren,
+  FileWarning,
+  FileText,
+  GanttChartSquare,
+  MessagesSquare,
+  Gauge,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -74,6 +80,18 @@ export const menu: MenuItem[] = [
         { label: "Transaction Limits & Overrides", href: "/transactions/limits-overrides", icon: ShieldAlert },
         { label: "Settlements & Reconciliation", href: "/transactions/settlements", icon: BookCheck },
     ]
+  },
+  {
+    label: "Risk & Compliance",
+    icon: ShieldAlert,
+    children: [
+      { label: "Fraud Monitoring", href: "/risk/fraud-monitoring", icon: Siren },
+      { label: "Suspicious Activity Alerts", href: "/risk/suspicious-activity", icon: AlertTriangle },
+      { label: "AML / KYC Flags", href: "/risk/aml-kyc", icon: FileWarning },
+      { label: "NBE Reporting", href: "/risk/nbe-reporting", icon: FileText },
+      { label: "Dispute Resolution", href: "/risk/dispute-resolution", icon: MessagesSquare },
+      { label: "Risk Scoring Dashboard", href: "/risk/risk-scoring", icon: Gauge },
+    ],
   },
   {
     label: "Mini Apps",
