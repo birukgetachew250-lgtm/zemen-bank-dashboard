@@ -1,4 +1,5 @@
 
+
 import {
   LayoutDashboard,
   Building2,
@@ -185,6 +186,16 @@ export const menu: MenuItem[] = [
         ],
       },
     ]
+  },
+   {
+    label: "Integrations",
+    icon: Network,
+    children: [
+      { icon: Building2, label: "Partner Management", href: "/integrations/partner-management" },
+      { icon: Activity, label: "API Monitoring", href: "/integrations/api-monitoring" },
+      { icon: Globe, label: "Third-Party Integrations", href: "/integrations/third-party" },
+      { icon: History, label: "Webhook & Callback Logs", href: "/integrations/webhooks" },
+    ],
   },
   {
     label: "Security & Access",
