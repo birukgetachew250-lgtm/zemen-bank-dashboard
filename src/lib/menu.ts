@@ -37,6 +37,11 @@ import {
   GanttChartSquare,
   MessagesSquare,
   Gauge,
+  PieChart,
+  Target,
+  Wrench,
+  Mail,
+  DownloadCloud,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -88,6 +93,7 @@ export const menu: MenuItem[] = [
       { label: "Fraud Monitoring", href: "/risk/fraud-monitoring", icon: Siren },
       { label: "Suspicious Activity Alerts", href: "/risk/suspicious-activity", icon: AlertTriangle },
       { label: "AML / KYC Flags", href: "/risk/aml-kyc", icon: FileWarning },
+      { label: "Audit Logs", href: "/users/audit", icon: History },
       { label: "NBE Reporting", href: "/risk/nbe-reporting", icon: FileText },
       { label: "Dispute Resolution", href: "/risk/dispute-resolution", icon: MessagesSquare },
       { label: "Risk Scoring Dashboard", href: "/risk/risk-scoring", icon: Gauge },
@@ -119,6 +125,17 @@ export const menu: MenuItem[] = [
     children: [
       { label: "Active Customers", href: "/reports/system/active" },
       { label: "Inactive Customers", href: "/reports/system/inactive" },
+    ],
+  },
+  {
+    label: "Analytics & Reports",
+    icon: BarChart3,
+    children: [
+      { label: "Overview Metrics", href: "/reports/analytics/overview", icon: PieChart },
+      { label: "Financial Inclusion", href: "/reports/analytics/financial-inclusion", icon: Target },
+      { label: "Custom Reports Builder", href: "/reports/analytics/custom-builder", icon: Wrench },
+      { label: "Scheduled Reports", href: "/reports/analytics/scheduled", icon: Mail },
+      { label: "Export Center", href: "/reports/analytics/export-center", icon: DownloadCloud },
     ],
   },
   {
