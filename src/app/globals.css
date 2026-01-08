@@ -30,14 +30,14 @@
     --chart-5: 30 80% 55%;
     --radius: 0.5rem;
     
-    /* Dark Sidebar Theme */
-    --sidebar-background: 240 10% 3.9%;
-    --sidebar-foreground: 0 0% 98%;
+    /* Light Sidebar Theme */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 20%;
     --sidebar-primary: 347 72% 47.3%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 10% 12%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 10% 12%;
+    --sidebar-accent: 0 0% 94%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 0 0% 89.8%;
     --sidebar-ring: 347 72% 47.3%;
   }
   .dark {
