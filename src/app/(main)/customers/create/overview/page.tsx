@@ -184,7 +184,7 @@ function OverviewContent() {
         <Separator />
          <div>
             <h3 className="font-semibold text-lg mb-2">Channel & Security</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 p-4 border rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-4 border rounded-lg">
                  <FormField
                     control={form.control}
                     name="channel"
@@ -195,7 +195,7 @@ function OverviewContent() {
                             <RadioGroup
                             onValueChange={field.onChange}
                             defaultValue={field.value}
-                            className="flex flex-col space-y-1"
+                            className="flex flex-col space-y-2"
                             >
                             <FormItem className="flex items-center space-x-3 space-y-0">
                                 <FormControl><RadioGroupItem value="Mobile App" /></FormControl>
