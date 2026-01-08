@@ -1,5 +1,4 @@
 
-
 import {
   LayoutDashboard,
   Building2,
@@ -59,7 +58,7 @@ export interface MenuItem {
 export const menu: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   {
-    label: "Core Banking",
+    label: "Banking Customers",
     icon: Briefcase,
     children: [
        {
