@@ -489,5 +489,3 @@ if (config.db.isProduction) {
 
 
 export { db };
-
-    
