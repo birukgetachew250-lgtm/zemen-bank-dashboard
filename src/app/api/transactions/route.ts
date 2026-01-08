@@ -65,8 +65,8 @@ export async function GET(req: Request) {
         const todayTo = endOfDay(new Date()).toISOString();
 
         const totalVolumeToday = db.prepare(`SELECT SUM(amount) as total FROM transactions WHERE status = 'Successful' AND timestamp BETWEEN ? AND ?`).get(todayFrom, todayTo)?.total ?? 0;
-        const totalTransactions = db.prepare(`SELECT COUNT(id) as count FROM transactions WHERE timestamp BETWEEN ? AND ?`).get(todayFrom, todayTo)?.count ?? 0;
-        const failedTransactions = db.prepare(`SELECT COUNT(id) as count FROM transactions WHERE status = 'Failed' AND timestamp BETWEEN ? AND ?`).get(todayFrom, todayTo)?.count ?? 0;
+        const totalTransactionsToday = db.prepare(`SELECT COUNT(id) as count FROM transactions WHERE timestamp BETWEEN ? AND ?`).get(todayFrom, todayTo)?.count ?? 0;
+        const failedTransactionsToday = db.prepare(`SELECT COUNT(id) as count FROM transactions WHERE status = 'Failed' AND timestamp BETWEEN ? AND ?`).get(todayFrom, todayTo)?.count ?? 0;
 
         const data = transactions.map((row: any) => ({
             id: row.id,
@@ -90,15 +90,21 @@ export async function GET(req: Request) {
             transactions: data,
             summary: {
                 totalVolume: totalVolumeToday,
-                totalTransactions: totalTransactions,
-                failedTransactions: failedTransactions
+                totalTransactions: totalTransactionsToday,
+                failedTransactions: failedTransactionsToday
             }
         });
 
     } catch (error) {
         console.error('Failed to fetch transactions:', error);
-        return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ 
+            message: 'Internal Server Error',
+            transactions: [],
+            summary: {
+                totalVolume: 0,
+                totalTransactions: 0,
+                failedTransactions: 0
+            }
+        }, { status: 500 });
     }
 }
-
-    

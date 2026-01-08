@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -65,7 +66,7 @@ const transactionStatuses = ['All', 'Successful', 'Failed', 'Pending', 'Reversed
 export function AllTransactionsClient({ initialTransactions }: AllTransactionsClientProps) {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [summary, setSummary] = useState({ totalVolume: 0, totalTransactions: 0, failedTransactions: 0 });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
     query: "",
     status: "All",
@@ -85,20 +86,19 @@ export function AllTransactionsClient({ initialTransactions }: AllTransactionsCl
     try {
       const response = await fetch(`/api/transactions?${params.toString()}`);
       const data = await response.json();
-      setTransactions(data.transactions);
-      setSummary(data.summary);
+      setTransactions(data.transactions || []);
+      setSummary(data.summary || { totalVolume: 0, totalTransactions: 0, failedTransactions: 0 });
     } catch (error) {
       console.error("Failed to fetch transactions", error);
+      setTransactions([]);
+      setSummary({ totalVolume: 0, totalTransactions: 0, failedTransactions: 0 });
     } finally {
       setIsLoading(false);
     }
   }, [filters]);
   
   useEffect(() => {
-    // Initial fetch for summary data for "Today"
     fetchTransactions();
-    // We don't want to re-run this on every render, just once initially.
-    // The main fetch is triggered by the filter button.
   }, []);
 
 
@@ -264,5 +264,3 @@ export function AllTransactionsClient({ initialTransactions }: AllTransactionsCl
     </div>
   );
 }
-
-    
