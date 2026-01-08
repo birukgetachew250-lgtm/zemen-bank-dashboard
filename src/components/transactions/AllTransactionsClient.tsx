@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -24,7 +23,6 @@ import {
   ArrowUpDown,
   CircleDollarSign,
   Download,
-  FileWarning,
   CheckCircle2,
   XCircle,
   Loader2,
@@ -95,10 +93,18 @@ export function AllTransactionsClient({ initialTransactions }: AllTransactionsCl
       setIsLoading(false);
     }
   }, [filters]);
-
+  
   useEffect(() => {
+    // Initial fetch for summary data for "Today"
     fetchTransactions();
-  }, [fetchTransactions]);
+    // We don't want to re-run this on every render, just once initially.
+    // The main fetch is triggered by the filter button.
+  }, []);
+
+
+  const handleFilter = () => {
+    fetchTransactions();
+  }
 
   const successRate = summary.totalTransactions > 0 ? ((summary.totalTransactions - summary.failedTransactions) / summary.totalTransactions) * 100 : 100;
 
@@ -119,21 +125,21 @@ export function AllTransactionsClient({ initialTransactions }: AllTransactionsCl
                         <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">ETB {summary.totalVolume.toLocaleString()}</div>
+                        <div className="text-2xl font-bold">ETB {summary.totalVolume.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+                        <CardTitle className="text-sm font-medium">Success Rate (Today)</CardTitle>
                         <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{successRate.toFixed(2)}%</div>
+                        <div className="text-2xl font-bold">{successRate.toFixed(1)}%</div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
+                        <CardTitle className="text-sm font-medium">Total Transactions (Today)</CardTitle>
                         <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -142,7 +148,7 @@ export function AllTransactionsClient({ initialTransactions }: AllTransactionsCl
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Failed Transactions</CardTitle>
+                        <CardTitle className="text-sm font-medium">Failed Transactions (Today)</CardTitle>
                         <XCircle className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -158,7 +164,7 @@ export function AllTransactionsClient({ initialTransactions }: AllTransactionsCl
                 placeholder="Search by Txn ID, Phone, Account..."
                 value={filters.query}
                 onChange={(e) => setFilters(prev => ({...prev, query: e.target.value}))}
-                onKeyDown={(e) => e.key === 'Enter' && fetchTransactions()}
+                onKeyDown={(e) => e.key === 'Enter' && handleFilter()}
               />
             </div>
             <DateRangePicker
@@ -181,7 +187,7 @@ export function AllTransactionsClient({ initialTransactions }: AllTransactionsCl
                  {transactionStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button onClick={fetchTransactions} disabled={isLoading} className="w-full md:w-auto">
+            <Button onClick={handleFilter} disabled={isLoading} className="w-full md:w-auto">
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Search className="mr-2 h-4 w-4" />}
               Filter
             </Button>
@@ -253,10 +259,10 @@ export function AllTransactionsClient({ initialTransactions }: AllTransactionsCl
               </TableBody>
             </Table>
           </div>
-          {/* Pagination would go here */}
         </CardContent>
       </Card>
     </div>
   );
 }
 
+    

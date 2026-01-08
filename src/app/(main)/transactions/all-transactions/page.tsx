@@ -1,4 +1,3 @@
-
 import { AllTransactionsClient } from "@/components/transactions/AllTransactionsClient";
 import { Transaction } from "@/types/transaction";
 import { db } from "@/lib/db";
@@ -58,7 +57,5 @@ export default async function AllTransactionsPage() {
         </div>
     );
 }
-
-
 
     

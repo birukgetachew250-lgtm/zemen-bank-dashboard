@@ -1,7 +1,6 @@
-
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { subDays, parseISO } from 'date-fns';
+import { subDays, parseISO, startOfDay, endOfDay } from 'date-fns';
 
 export async function GET(req: Request) {
     try {
@@ -26,15 +25,16 @@ export async function GET(req: Request) {
 
         if (from) {
             whereClauses.push("t.timestamp >= ?");
-            params.push(parseISO(from).toISOString());
+            params.push(startOfDay(parseISO(from)).toISOString());
         } else {
+             // Default to last 30 days if no date range
             whereClauses.push("t.timestamp >= ?");
             params.push(subDays(new Date(), 30).toISOString());
         }
 
         if (to) {
             whereClauses.push("t.timestamp <= ?");
-            params.push(parseISO(to).toISOString());
+            params.push(endOfDay(parseISO(to)).toISOString());
         }
 
         if (status && status !== 'All') {
@@ -57,13 +57,16 @@ export async function GET(req: Request) {
             sql += ` WHERE ${whereClauses.join(' AND ')}`;
         }
         
-        sql += " ORDER BY t.timestamp DESC";
+        sql += " ORDER BY t.timestamp DESC LIMIT 100"; // Add a limit
         
         const transactions = db.prepare(sql).all(...params);
 
-        const totalVolume = db.prepare(`SELECT SUM(amount) as total FROM transactions WHERE status = 'Successful'`).get()?.total ?? 0;
-        const totalTransactions = db.prepare(`SELECT COUNT(id) as count FROM transactions`).get()?.count ?? 0;
-        const failedTransactions = db.prepare(`SELECT COUNT(id) as count FROM transactions WHERE status = 'Failed'`).get()?.count ?? 0;
+        const todayFrom = startOfDay(new Date()).toISOString();
+        const todayTo = endOfDay(new Date()).toISOString();
+
+        const totalVolumeToday = db.prepare(`SELECT SUM(amount) as total FROM transactions WHERE status = 'Successful' AND timestamp BETWEEN ? AND ?`).get(todayFrom, todayTo)?.total ?? 0;
+        const totalTransactions = db.prepare(`SELECT COUNT(id) as count FROM transactions WHERE timestamp BETWEEN ? AND ?`).get(todayFrom, todayTo)?.count ?? 0;
+        const failedTransactions = db.prepare(`SELECT COUNT(id) as count FROM transactions WHERE status = 'Failed' AND timestamp BETWEEN ? AND ?`).get(todayFrom, todayTo)?.count ?? 0;
 
         const data = transactions.map((row: any) => ({
             id: row.id,
@@ -86,9 +89,9 @@ export async function GET(req: Request) {
         return NextResponse.json({
             transactions: data,
             summary: {
-                totalVolume,
-                totalTransactions,
-                failedTransactions
+                totalVolume: totalVolumeToday,
+                totalTransactions: totalTransactions,
+                failedTransactions: failedTransactions
             }
         });
 
@@ -98,3 +101,4 @@ export async function GET(req: Request) {
     }
 }
 
+    
