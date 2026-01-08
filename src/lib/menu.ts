@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Building2,
@@ -37,6 +38,7 @@ import {
   Briefcase,
   Activity,
   Eye,
+  UserCheck,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -58,10 +60,10 @@ export const menu: MenuItem[] = [
         icon: Users,
         href: "/customers",
         children: [
-          { label: "Create Customer", href: "/customers/create" },
-          { label: "Existing Customers", href: "/customers" },
-          { label: "Block Customer", href: "/customers/block" },
-          { label: "Unblock Customer", href: "/customers/unblock" },
+          { icon: Users, label: "Create Customer", href: "/customers/create" },
+          { icon: Users, label: "Existing Customers", href: "/customers" },
+          { icon: UserX, label: "Block Customer", href: "/customers/block" },
+          { icon: UserCheck, label: "Unblock Customer", href: "/customers/unblock" },
         ],
       },
       {
@@ -69,22 +71,23 @@ export const menu: MenuItem[] = [
         icon: Building2,
         href: "/corporates",
         children: [
-          { label: "Create Corporate", href: "/corporates/create" },
-          { label: "Existing Corporates", href: "/corporates" },
-          { label: "Exceptional Limits", href: "/corporates/exceptional-limits" },
+          { icon: Building2, label: "Create Corporate", href: "/corporates/create" },
+          { icon: Building2, label: "Existing Corporates", href: "/corporates" },
+          { icon: SlidersHorizontal, label: "Exceptional Limits", href: "/corporates/exceptional-limits" },
         ],
       },
       {
         label: "Transactions",
         icon: ArrowRightLeft,
-        href: "/transactions",
+        href: "/transactions/all-transactions",
         children: [
-            { label: "All Transactions", href: "/transactions/all-transactions" },
-            { label: "P2P & Wallet Transfers", href: "/transactions/p2p-wallet" },
-            { label: "Interoperability", href: "/transactions/interoperability" },
-            { label: "Bill Payments", href: "/transactions/bills-utilities" },
-            { label: "Remittances", href: "/transactions/remittances" },
-            { label: "Settlements", href: "/transactions/settlements" },
+            { icon: List, label: "All Transactions", href: "/transactions/all-transactions" },
+            { icon: Users2, label: "P2P & Wallet Transfers", href: "/transactions/p2p-wallet" },
+            { icon: Network, label: "Interoperability", href: "/transactions/interoperability" },
+            { icon: Receipt, label: "Bill Payments", href: "/transactions/bills-utilities" },
+            { icon: Globe, label: "Remittances", href: "/transactions/remittances" },
+            { icon: SlidersHorizontal, label: "Transaction Limits & Overrides", href: "/transactions/limits-overrides" },
+            { icon: BookCheck, label: "Settlements", href: "/transactions/settlements" },
         ]
       },
        {
@@ -92,27 +95,27 @@ export const menu: MenuItem[] = [
         icon: AppWindow,
         href: "/mini-apps",
         children: [
-          { label: "Existing Mini Apps", href: "/mini-apps" },
-          { label: "Add New Mini App", href: "/mini-apps/create" },
+          { icon: AppWindow, label: "Existing Mini Apps", href: "/mini-apps" },
+          { icon: AppWindow, label: "Add New Mini App", href: "/mini-apps/create" },
         ]
       },
     ]
   },
   {
     label: "Oversight",
-    icon: Activity,
+    icon: Eye,
     children: [
       {
         label: "Approvals",
         icon: CheckSquare,
         href: "/customers/approve-new",
         children: [
-          { label: "New Customers", href: "/customers/approve-new" },
-          { label: "Updated Customers", href: "/customers/approve-updated" },
-          { label: "Customer Accounts", href: "/customers/approve-accounts" },
-          { label: "Unblocked Customers", href: "/customers/approve-unblocked" },
-          { label: "Pin Resets", href: "/customers/approve-pin-reset" },
-          { label: "Security Resets", href: "/customers/approve-security" },
+          { icon: Users, label: "New Customers", href: "/customers/approve-new" },
+          { icon: Users, label: "Updated Customers", href: "/customers/approve-updated" },
+          { icon: Users, label: "Customer Accounts", href: "/customers/approve-accounts" },
+          { icon: UserCheck, label: "Unblocked Customers", href: "/customers/approve-unblocked" },
+          { icon: ShieldCheck, label: "Pin Resets", href: "/customers/approve-pin-reset" },
+          { icon: ShieldCheck, label: "Security Resets", href: "/customers/approve-security" },
         ]
       },
       {
@@ -120,12 +123,12 @@ export const menu: MenuItem[] = [
         icon: ShieldAlert,
         href: "/risk/fraud-monitoring",
         children: [
-          { label: "Fraud Monitoring", href: "/risk/fraud-monitoring" },
-          { label: "Suspicious Activity", href: "/risk/suspicious-activity" },
-          { label: "AML / KYC Flags", href: "/risk/aml-kyc" },
-          { label: "NBE Reporting", href: "/risk/nbe-reporting" },
-          { label: "Dispute Resolution", href: "/risk/dispute-resolution" },
-          { label: "Risk Scoring", href: "/risk/risk-scoring" },
+          { icon: Siren, label: "Fraud Monitoring", href: "/risk/fraud-monitoring" },
+          { icon: AlertTriangle, label: "Suspicious Activity", href: "/risk/suspicious-activity" },
+          { icon: FileWarning, label: "AML / KYC Flags", href: "/risk/aml-kyc" },
+          { icon: FileText, label: "NBE Reporting", href: "/risk/nbe-reporting" },
+          { icon: MessagesSquare, label: "Dispute Resolution", href: "/risk/dispute-resolution" },
+          { icon: Gauge, label: "Risk Scoring", href: "/risk/risk-scoring" },
         ],
       },
        {
@@ -133,9 +136,9 @@ export const menu: MenuItem[] = [
         icon: History,
         href: "/customers/audit",
         children: [
-          { label: "Customers Audit", href: "/customers/audit" },
-          { label: "System Users Audit", href: "/users/audit" },
-          { label: "Authentications Logs", href: "/otp" },
+          { icon: Users, label: "Customers Audit", href: "/customers/audit" },
+          { icon: UserCog, label: "System Users Audit", href: "/users/audit" },
+          { icon: Mail, label: "Authentications Logs", href: "/otp" },
         ],
       },
     ]
@@ -149,20 +152,20 @@ export const menu: MenuItem[] = [
         icon: LineChart,
         href: "/reports/system/active",
         children: [
-          { label: "Active Customers", href: "/reports/system/active" },
-          { label: "Inactive Customers", href: "/reports/system/inactive" },
+          { icon: UserCheck, label: "Active Customers", href: "/reports/system/active" },
+          { icon: UserX, label: "Inactive Customers", href: "/reports/system/inactive" },
         ],
       },
       {
-        label: "Analytics",
+        label: "Analytics & Reports",
         icon: PieChart,
         href: "/reports/analytics/overview",
         children: [
-          { label: "Overview Metrics", href: "/reports/analytics/overview" },
-          { label: "Financial Inclusion", href: "/reports/analytics/financial-inclusion" },
-          { label: "Custom Builder", href: "/reports/analytics/custom-builder" },
-          { label: "Scheduled Reports", href: "/reports/analytics/scheduled" },
-          { label: "Export Center", href: "/reports/analytics/export-center" },
+          { icon: Target, label: "Overview Metrics", href: "/reports/analytics/overview" },
+          { icon: Users, label: "Financial Inclusion", href: "/reports/analytics/financial-inclusion" },
+          { icon: Wrench, label: "Custom Builder", href: "/reports/analytics/custom-builder" },
+          { icon: Mail, label: "Scheduled Reports", href: "/reports/analytics/scheduled" },
+          { icon: DownloadCloud, label: "Export Center", href: "/reports/analytics/export-center" },
         ],
       },
     ]
@@ -176,10 +179,10 @@ export const menu: MenuItem[] = [
         icon: ShieldCheck, 
         href: "/roles",
         children: [
-            { label: "Manage Roles", href: "/roles" },
-            { label: "Add New Role", href: "/roles/create" },
-            { label: "Manage Users", href: "/users" },
-            { label: "Add New User", href: "/users/create" },
+            { icon: ShieldCheck, label: "Manage Roles", href: "/roles" },
+            { icon: ShieldCheck, label: "Add New Role", href: "/roles/create" },
+            { icon: Users, label: "Manage Users", href: "/users" },
+            { icon: Users, label: "Add New User", href: "/users/create" },
         ]
       },
       {
@@ -187,8 +190,8 @@ export const menu: MenuItem[] = [
         icon: Building,
         href: "/branches",
         children: [
-          { label: "Branches", href: "/branches" },
-          { label: "Departments", href: "/departments" },
+          { icon: Building, label: "Branches", href: "/branches" },
+          { icon: Building2, label: "Departments", href: "/departments" },
         ],
       },
        { 
@@ -196,11 +199,11 @@ export const menu: MenuItem[] = [
         icon: SlidersHorizontal, 
         href: "/limits",
         children: [
-          { label: "Transaction Limits", href: "/limits" },
-          { label: "Transaction Charges", href: "/charges" },
-          { label: "Transaction Types", href: "/limits/types" },
-          { label: "Customer Categories", href: "/limits/categories" },
-          { label: "Intervals", href: "/limits/intervals" },
+          { icon: SlidersHorizontal, label: "Transaction Limits", href: "/limits" },
+          { icon: SlidersHorizontal, label: "Transaction Charges", href: "/charges" },
+          { icon: List, label: "Transaction Types", href: "/limits/types" },
+          { icon: Users, label: "Customer Categories", href: "/limits/categories" },
+          { icon: History, label: "Intervals", href: "/limits/intervals" },
         ]
       },
     ]
