@@ -24,7 +24,7 @@ export default function BlockCustomerSuccessPage() {
           </CardDescription>
         </CardHeader>
         <CardFooter className="flex-col gap-4">
-          <Button className="w-full" onClick={() => router.push('/dashboard')}>
+          <Button className="w-full" onClick={() => router.push('/')}>
             Back to Dashboard
           </Button>
           <Button variant="outline" className="w-full" onClick={() => router.push('/customers/block')}>

@@ -60,7 +60,7 @@ export default async function MainLayout({
   const session = await getSession();
 
   if (!session?.isLoggedIn) {
-    redirect('/login');
+    redirect('/');
   }
 
   return (

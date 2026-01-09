@@ -26,7 +26,7 @@ function hasPermission(userPermissions: string[], requiredPermission: string): b
 function SidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; pathname: string, userPermissions: string[] }) {
     const Icon = item.icon;
 
-    if (!hasPermission(userPermissions, item.label)) {
+    if (item.label !== "Dashboard" && !hasPermission(userPermissions, item.label)) {
         return null;
     }
 
@@ -36,7 +36,8 @@ function SidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; p
 
       // If no children are accessible, don't render the parent
       if (accessibleChildren.length === 0) {
-          return null;
+          // Exception for top-level items that also have a direct href
+          if (!item.href) return null;
       }
         
       const isChildActive = accessibleChildren.some(child => 
@@ -96,7 +97,7 @@ export function Sidebar({ userPermissions }: { userPermissions: string[] }) {
   return (
     <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border">
       <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
+        <Link href="/" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
           <Image src="/images/logo.png" alt="Zemen Bank" width={32} height={32} />
           <span className="">Zemen Admin</span>
         </Link>
@@ -111,5 +112,3 @@ export function Sidebar({ userPermissions }: { userPermissions: string[] }) {
     </aside>
   );
 }
-
-    

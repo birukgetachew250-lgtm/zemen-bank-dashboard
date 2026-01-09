@@ -59,7 +59,7 @@ export interface MenuItem {
 }
 
 export const menu: MenuItem[] = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/" },
   {
     label: "Banking Users",
     icon: Briefcase,
