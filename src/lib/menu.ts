@@ -47,6 +47,7 @@ import {
   UserCheck,
   Ban,
   Plug,
+  DatabaseZap,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -205,20 +206,17 @@ export const menu: MenuItem[] = [
     icon: ShieldCheck,
     children: [
       { 
-        label: "Admin Users & Roles",
+        label: "Users & Roles",
         icon: UserCog, 
         href: "/roles",
         children: [
             { icon: ShieldCheck, label: "Manage Roles", href: "/roles" },
-            { icon: ShieldCheck, label: "Add New Role", href: "/roles/create" },
             { icon: Users, label: "Manage Users", href: "/users" },
-            { icon: Users, label: "Add New User", href: "/users/create" },
         ]
       },
       { icon: Table, label: "Permissions Matrix", href: "/security/permission-matrix" },
-      { icon: KeyRound, label: "Login Audit & Sessions", href: "/security/sessions" },
+      { icon: KeyRound, label: "Login & Activity Logs", href: "/security/sessions" },
       { icon: Shield, label: "MFA / Security Policies", href: "/security/mfa-policies" },
-      { icon: Network, label: "IP Whitelisting", href: "/security/ip-whitelisting" },
     ]
   },
   {
@@ -248,5 +246,13 @@ export const menu: MenuItem[] = [
       },
     ]
   },
-  { icon: Settings, label: "Settings", href: "/settings" },
+  { 
+    icon: Settings, 
+    label: "Settings", 
+    href: "/settings",
+    children: [
+        { icon: Settings, label: "General Settings", href: "/settings" },
+        { icon: DatabaseZap, label: "Backup & Restore", href: "/settings/backup" },
+    ]
+  },
 ];

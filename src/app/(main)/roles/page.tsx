@@ -20,55 +20,49 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, PlusCircle, Trash2 } from "lucide-react";
+import { Edit, PlusCircle, Trash2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export interface Role {
     id: number;
     name: string;
-    permissions: string[];
+    userCount: number;
+    description: string;
 }
 
 
 const initialRoles: Role[] = [
   {
     id: 1,
-    name: "Admin",
-    permissions: ["manage-users", "manage-roles", "view-reports", "manage-settings", "approve-all"],
+    name: "Super Admin",
+    userCount: 2,
+    description: "Full access to all system features, including security settings.",
   },
   {
     id: 2,
-    name: "Support Lead",
-    permissions: ["approve-pin-reset", "approve-new-device", "view-customer-audit", "manage-tickets"],
+    name: "Operations Lead",
+    userCount: 5,
+    description: "Manages day-to-day customer and transaction approvals.",
   },
   {
     id: 3,
     name: "Support Staff",
-    permissions: ["view-customers", "handle-tickets", "request-pin-reset"],
+    userCount: 15,
+    description: "Handles customer inquiries and first-level support tickets.",
   },
   {
     id: 4,
     name: "Compliance Officer",
-    permissions: ["view-reports", "view-audit-trails", "flag-transaction"],
+    userCount: 3,
+    description: "Audits trails, reviews high-risk transactions, and generates NBE reports.",
   },
+  {
+    id: 5,
+    name: "Read-Only Auditor",
+    userCount: 4,
+    description: "View-only access to all transactional and user data for auditing purposes.",
+  }
 ];
-
-const permissionLabels: { [key: string]: string } = {
-    "manage-users": "Manage Users",
-    "manage-roles": "Manage Roles",
-    "view-reports": "View Reports",
-    "manage-settings": "Manage Settings",
-    "approve-all": "Approve All Requests",
-    "approve-pin-reset": "Approve PIN Reset",
-    "approve-new-device": "Approve New Device",
-    "view-customer-audit": "View Customer Audit",
-    "manage-tickets": "Manage Tickets",
-    "view-customers": "View Customers",
-    "handle-tickets": "Handle Tickets",
-    "request-pin-reset": "Request PIN Reset",
-    "view-audit-trails": "View Audit Trails",
-    "flag-transaction": "Flag Transaction",
-}
 
 
 export default function RolesAndPermissionsPage() {
@@ -77,7 +71,6 @@ export default function RolesAndPermissionsPage() {
   const { toast } = useToast();
   
   const handleEditRole = (role: Role) => {
-    // Navigate to the create page with a query param for editing
     router.push(`/roles/create?roleId=${role.id}`);
   };
 
@@ -101,7 +94,8 @@ export default function RolesAndPermissionsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Role</TableHead>
-                  <TableHead>Permissions Summary</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Users</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -109,14 +103,11 @@ export default function RolesAndPermissionsPage() {
                 {roles.map((role) => (
                   <TableRow key={role.id}>
                     <TableCell className="font-semibold w-1/4">{role.name}</TableCell>
+                    <TableCell className="text-muted-foreground w-1/2">{role.description}</TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-2">
-                        {role.permissions.slice(0, 7).map((permission) => (
-                          <Badge key={permission} variant="secondary" className="font-normal">
-                            {permissionLabels[permission] || permission}
-                          </Badge>
-                        ))}
-                        {role.permissions.length > 7 && <Badge variant="outline">+{role.permissions.length - 7} more</Badge>}
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        {role.userCount}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
