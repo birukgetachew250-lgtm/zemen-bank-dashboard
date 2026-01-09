@@ -86,29 +86,29 @@ export const menu: MenuItem[] = [
           { icon: SlidersHorizontal, label: "Exceptional Limits", href: "/corporates/exceptional-limits" },
         ],
       },
-      {
-        label: "Transactions",
-        icon: ArrowRightLeft,
-        href: "/transactions/all-transactions",
-        children: [
-            { icon: List, label: "All Transactions", href: "/transactions/all-transactions" },
-            { icon: Users2, label: "P2P & Wallet Transfers", href: "/transactions/p2p-wallet" },
-            { icon: Network, label: "Interoperability", href: "/transactions/interoperability" },
-            { icon: Receipt, label: "Bill Payments", href: "/transactions/bills-utilities" },
-            { icon: Globe, label: "Remittances", href: "/transactions/remittances" },
-            { icon: SlidersHorizontal, label: "Transaction Limits & Overrides", href: "/transactions/limits-overrides" },
-            { icon: BookCheck, label: "Settlements", href: "/transactions/settlements" },
-        ]
-      },
-       {
-        label: "Mini Apps",
-        icon: AppWindow,
-        href: "/mini-apps",
-        children: [
-          { icon: AppWindow, label: "Existing Mini Apps", href: "/mini-apps" },
-          { icon: AppWindow, label: "Add New Mini App", href: "/mini-apps/create" },
-        ]
-      },
+    ]
+  },
+  {
+    label: "Transactions",
+    icon: ArrowRightLeft,
+    href: "/transactions/all-transactions",
+    children: [
+        { icon: List, label: "All Transactions", href: "/transactions/all-transactions" },
+        { icon: Users2, label: "P2P & Wallet Transfers", href: "/transactions/p2p-wallet" },
+        { icon: Network, label: "Interoperability", href: "/transactions/interoperability" },
+        { icon: Receipt, label: "Bill Payments", href: "/transactions/bills-utilities" },
+        { icon: Globe, label: "Remittances", href: "/transactions/remittances" },
+        { icon: SlidersHorizontal, label: "Transaction Limits & Overrides", href: "/transactions/limits-overrides" },
+        { icon: BookCheck, label: "Settlements", href: "/transactions/settlements" },
+    ]
+  },
+   {
+    label: "Mini Apps",
+    icon: AppWindow,
+    href: "/mini-apps",
+    children: [
+      { icon: AppWindow, label: "Existing Mini Apps", href: "/mini-apps" },
+      { icon: AppWindow, label: "Add New Mini App", href: "/mini-apps/create" },
     ]
   },
   {
@@ -168,19 +168,12 @@ export const menu: MenuItem[] = [
     icon: BarChart3,
     href: "/reports/analytics/overview",
     children: [
-      {
-        label: "Analytics & Reports",
-        icon: Target,
-        href: "/reports/analytics/overview",
-        children: [
-            { icon: Target, label: "Overview Metrics", href: "/reports/analytics/overview" },
-            { icon: PieChart, label: "Transaction Reports", href: "/reports/transactions"},
-            { icon: Users, label: "Financial Inclusion", href: "/reports/analytics/financial-inclusion" },
-            { icon: Wrench, label: "Custom Builder", href: "/reports/analytics/custom-builder" },
-            { icon: Mail, label: "Scheduled Reports", href: "/reports/analytics/scheduled" },
-            { icon: DownloadCloud, label: "Export Center", href: "/reports/analytics/export-center" },
-        ]
-      },
+        { icon: Target, label: "Overview Metrics", href: "/reports/analytics/overview" },
+        { icon: PieChart, label: "Transaction Reports", href: "/reports/transactions"},
+        { icon: Users, label: "Financial Inclusion", href: "/reports/analytics/financial-inclusion" },
+        { icon: Wrench, label: "Custom Builder", href: "/reports/analytics/custom-builder" },
+        { icon: Mail, label: "Scheduled Reports", href: "/reports/analytics/scheduled" },
+        { icon: DownloadCloud, label: "Export Center", href: "/reports/analytics/export-center" },
     ]
   },
    {
