@@ -22,11 +22,13 @@ interface AlertItem {
   message: string;
   status: 'Active' | 'Resolved';
 }
+// Using static dates to prevent hydration errors
+const now = new Date("2024-07-29T10:30:00.000Z");
 const mockAlerts: AlertItem[] = [
-  { id: 'al1', timestamp: new Date(), severity: 'Critical', service: 'Remittance Gateway', message: 'Service is down. No response for 5m.', status: 'Active' },
-  { id: 'al2', timestamp: new Date(Date.now() - 5 * 60000), severity: 'Warning', service: 'Payments Service', message: 'Latency p99 over 800ms.', status: 'Active' },
-  { id: 'al3', timestamp: new Date(Date.now() - 10 * 60000), severity: 'Warning', service: 'Fraud Detection Engine', message: 'High rate of false positives.', status: 'Resolved' },
-  { id: 'al4', timestamp: new Date(Date.now() - 30 * 60000), severity: 'Info', service: 'Auth Service', message: 'New version 1.2.4 deployed.', status: 'Resolved' },
+  { id: 'al1', timestamp: now, severity: 'Critical', service: 'Remittance Gateway', message: 'Service is down. No response for 5m.', status: 'Active' },
+  { id: 'al2', timestamp: new Date(now.getTime() - 5 * 60000), severity: 'Warning', service: 'Payments Service', message: 'Latency p99 over 800ms.', status: 'Active' },
+  { id: 'al3', timestamp: new Date(now.getTime() - 10 * 60000), severity: 'Warning', service: 'Fraud Detection Engine', message: 'High rate of false positives.', status: 'Resolved' },
+  { id: 'al4', timestamp: new Date(now.getTime() - 30 * 60000), severity: 'Info', service: 'Auth Service', message: 'New version 1.2.4 deployed.', status: 'Resolved' },
 ];
 
 type LogLevel = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
@@ -39,10 +41,10 @@ interface LogItem {
   traceId?: string;
 }
 const mockLogs: LogItem[] = [
-    { id: 'log1', timestamp: new Date(), level: 'ERROR', service: 'interop-switch', message: 'Connection timeout to provider XYZ', traceId: 'trace-456-def' },
-    { id: 'log2', timestamp: new Date(Date.now() - 1 * 60000), level: 'WARN', service: 'wallets', message: 'Balance below threshold for account 12345' },
-    { id: 'log3', timestamp: new Date(Date.now() - 2 * 60000), level: 'INFO', service: 'auth', message: 'User 5678 logged in successfully', traceId: 'trace-123-abc' },
-    { id: 'log4', timestamp: new Date(Date.now() - 3 * 60000), level: 'DEBUG', service: 'transfers', message: 'Payload received for transfer' },
+    { id: 'log1', timestamp: new Date(now.getTime() - 1000), level: 'ERROR', service: 'interop-switch', message: 'Connection timeout to provider XYZ', traceId: 'trace-456-def' },
+    { id: 'log2', timestamp: new Date(now.getTime() - 1 * 60000), level: 'WARN', service: 'wallets', message: 'Balance below threshold for account 12345' },
+    { id: 'log3', timestamp: new Date(now.getTime() - 2 * 60000), level: 'INFO', service: 'auth', message: 'User 5678 logged in successfully', traceId: 'trace-123-abc' },
+    { id: 'log4', timestamp: new Date(now.getTime() - 3 * 60000), level: 'DEBUG', service: 'transfers', message: 'Payload received for transfer' },
 ];
 
 const severityConfig: { [key in AlertSeverity]: { Icon: React.ElementType, color: string } } = {
