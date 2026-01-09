@@ -3,18 +3,18 @@ import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Watermark } from "@/components/layout/Watermark";
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
+import { getSession } from "@/lib/session";
 
-const getSession = async () => {
-    const cookieStore = cookies();
-    const userId = cookieStore.get('session_user_id')?.value;
+const getSessionData = async () => {
+    const session = await getSession();
+    const userId = session.userId;
 
     if (!userId) {
         return { isLoggedIn: false, user: null, permissions: [] };
     }
     
-    const user = await db.user.findUnique({ where: { id: parseInt(userId, 10) } });
+    const user = await db.user.findUnique({ where: { id: userId } });
 
     if (!user) {
         return { isLoggedIn: false, user: null, permissions: [] };
@@ -54,7 +54,7 @@ export default async function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
+  const session = await getSessionData();
 
   if (!session?.isLoggedIn) {
     redirect('/');

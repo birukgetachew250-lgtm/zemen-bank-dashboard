@@ -1,15 +1,12 @@
 
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { getSession } from '@/lib/session';
 
 export async function POST() {
   try {
-    // Clear the session cookie
-    cookies().set('session_user_id', '', {
-      httpOnly: true,
-      maxAge: 0,
-      path: '/',
-    });
+    // Use iron-session to destroy the session
+    const session = await getSession();
+    session.destroy();
 
     return NextResponse.json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
@@ -17,5 +14,3 @@ export async function POST() {
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
-
-    
