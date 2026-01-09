@@ -10,6 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { PlusCircle, Search, LogOut } from "lucide-react";
 import { format, formatDistanceToNow } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 
 
 const mockLogs = [
