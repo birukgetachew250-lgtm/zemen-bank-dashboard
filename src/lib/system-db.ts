@@ -1,6 +1,6 @@
 'server-only';
 
-import { PrismaClient as SystemPrismaClient } from '@prisma/client';
+import { PrismaClient as SystemPrismaClient } from '@prisma/client/system';
 
 const systemPrismaClientSingleton = () => {
   return new SystemPrismaClient({
@@ -17,4 +17,6 @@ declare global {
 
 export const systemDb = globalThis.systemDb ?? systemPrismaClientSingleton();
 
-if (process.env.NODE_ENV !== 'production') globalThis.systemDb = systemDb;
+if (process.env.NODE_ENV !== 'production') {
+  globalThis.systemDb = systemDb;
+}
