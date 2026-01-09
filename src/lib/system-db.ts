@@ -1,6 +1,6 @@
 'server-only';
 
-import { PrismaClient as SystemPrismaClient } from '@prisma/client/system';
+import { PrismaClient as SystemPrismaClient } from '@prisma/client';
 
 const systemPrismaClientSingleton = () => {
   return new SystemPrismaClient({

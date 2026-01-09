@@ -1,21 +1,26 @@
-diff --git a/node_modules/@prisma/client/index.js b/node_modules/@prisma/client/index.js
-index 47a469a4c07c13289094767140e736a31cc9174e..5418b289c8a8163f538d684091a1347690623a1a 100644
---- a/node_modules/@prisma/client/index.js
-+++ b/node_modules/@prisma/client/index.js
-@@ -102,4 +102,5 @@
- }
- 
- module.exports.Prisma.TransactionClient = () => { throw new Error(`@prisma/client/runtime/library is not available in --target=edge`) }
--module.exports.PrismaClient = PrismaClient
-+module.exports.PrismaClient = PrismaClient;
-+module.exports.SystemPrismaClient = require('./system').PrismaClient;
 diff --git a/node_modules/@prisma/client/index.d.ts b/node_modules/@prisma/client/index.d.ts
-index e850785f83c1d9b3a0e5b8b603a11b6d137ed789..a388b19280d5256e297800a747978d234a9b23f5 100644
+index 73878b2..41f3e79 100644
 --- a/node_modules/@prisma/client/index.d.ts
 +++ b/node_modules/@prisma/client/index.d.ts
-@@ -107,3 +107,4 @@
- export declare const Prisma: PrismaNamespace;
+@@ -3,6 +3,7 @@
+ export { type Decimal } from './runtime/library';
+ export { DMMF };
+ export { type PrismaPromise } from './runtime/library';
++export { PrismaClient as SystemPrismaClient } from '.prisma/client/system';
  
- export declare type PrismaClient<T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions, U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never, GlobalReject extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined = T['rejectOnNotFound'], GlobalErrFormat extends Prisma.ErrorFormat = T['errorFormat'] > = __Internals.GlobalRejectextends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined = T['rejectOnNotFound'], GlobalErrFormat extends Prisma.ErrorFormat = T['errorFormat'] >
-+export declare const SystemPrismaClient: typeof import('./system').PrismaClient;
+ /**
+  * ##  Prisma Client ʲˢ
+diff --git a/node_modules/@prisma/client/index.js b/node_modules/@prisma/client/index.js
+index 728aa02..c71fccb 100644
+--- a/node_modules/@prisma/client/index.js
++++ b/node_modules/@prisma/client/index.js
+@@ -3,6 +3,7 @@
+ Object.defineProperty(exports, "PrismaClient", {
+   enumerable: true,
+   get: function () {
+-    return universal.PrismaClient
++    return universal.PrismaClient;
+   }
+ });
++exports.SystemPrismaClient = require('.prisma/client/system').PrismaClient;
 \ No newline at end of file
