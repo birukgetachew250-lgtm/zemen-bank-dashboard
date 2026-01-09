@@ -28,11 +28,11 @@ import { cn } from "@/lib/utils";
 
 const findCurrentPage = (menuItems: MenuItem[], pathname: string): MenuItem | undefined => {
     // Special case for root
-    if (pathname === '/') {
-        return menu.find(item => item.href === '/');
+    if (pathname === '/dashboard') {
+        return menu.find(item => item.href === '/dashboard');
     }
     for (const item of menuItems) {
-      if (item.href && item.href !== '/' && pathname.startsWith(item.href)) {
+      if (item.href && item.href !== '/dashboard' && pathname.startsWith(item.href)) {
         return item;
       }
       if (item.children) {
@@ -108,7 +108,7 @@ export function Header({ user }: { user: any }) {
   const handleLogout = async () => {
     await signOut({ redirect: false });
     toast({ title: 'Logged out successfully.' });
-    router.push('/');
+    router.push('/login');
   };
 
   return (
@@ -123,7 +123,7 @@ export function Header({ user }: { user: any }) {
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col p-0">
                <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
-                <Link href="/" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
+                <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
                   <Image src="/images/logo.png" alt="Zemen Bank" width={32} height={32} />
                   <span className="">Zemen Admin</span>
                 </Link>

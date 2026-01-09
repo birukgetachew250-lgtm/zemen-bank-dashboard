@@ -57,7 +57,7 @@ export default async function MainLayout({
   const session = await getSessionData();
 
   if (!session?.isLoggedIn) {
-    redirect('/');
+    redirect('/login');
   }
 
   return (

@@ -97,7 +97,7 @@ export function Sidebar({ userPermissions }: { userPermissions: string[] }) {
   return (
     <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border">
       <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
+        <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
           <Image src="/images/logo.png" alt="Zemen Bank" width={32} height={32} />
           <span className="">Zemen Admin</span>
         </Link>
