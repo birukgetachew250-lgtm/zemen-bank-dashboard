@@ -1,32 +1,36 @@
 
 import type { Branch } from "@/app/(main)/branches/page";
 import type { Department } from "@/app/(main)/departments/page";
-import type { Role } from "@/app/(main)/roles/page";
 import { CreateUserForm } from "@/components/users/CreateUserForm";
+import { db } from "@/lib/db";
 
-const mockBranches: Branch[] = [
-    { id: 'br_1', name: 'Bole Branch', location: 'Bole, Addis Ababa', createdAt: new Date().toISOString() },
-    { id: 'br_2', name: 'Head Office', location: 'HQ, Addis Ababa', createdAt: new Date().toISOString() },
-    { id: 'br_3', name: 'Arada Branch', location: 'Arada, Addis Ababa', createdAt: new Date().toISOString() },
-];
-
-const mockDepartments: Department[] = [
-    { id: 'dept_1', name: 'IT Department', branchId: 'br_2', createdAt: new Date().toISOString(), branchName: 'Head Office' },
-    { id: 'dept_2', name: 'Branch Operations', branchId: 'br_1', createdAt: new Date().toISOString(), branchName: 'Bole Branch' },
-    { id: 'dept_3', name: 'Human Resources', branchId: 'br_2', createdAt: new Date().toISOString(), branchName: 'Head Office' },
-    { id: 'dept_4', name: 'Customer Service', branchId: 'br_3', createdAt: new Date().toISOString(), branchName: 'Arada Branch' },
-];
-
-const mockRoles: Role[] = [
-  { id: 1, name: "Admin", permissions: [] },
-  { id: 2, name: "Support Lead", permissions: [] },
-  { id: 3, name: "Support Staff", permissions: [] },
-  { id: 4, name: "Compliance Officer", permissions: [] },
-];
-
+interface Role {
+    id: number;
+    name: string;
+    userCount: number;
+    description: string;
+}
 
 function getFormData() {
-    return { branches: mockBranches, departments: mockDepartments, roles: mockRoles };
+    const branches = (db.prepare('SELECT * FROM branches ORDER BY name ASC').all() as Branch[]) || [];
+    const departments = (db.prepare('SELECT d.*, b.name as branchName FROM departments d JOIN branches b ON d.branchId = b.id ORDER BY d.name ASC').all() as Department[]) || [];
+    const roles = (db.prepare('SELECT * FROM roles ORDER BY name ASC').all() as Role[]) || [];
+    
+    // Add default roles if none exist
+    if (roles.length === 0) {
+        return {
+            branches,
+            departments,
+            roles: [
+                { id: 1, name: "Admin", userCount: 0, description: '...' },
+                { id: 2, name: "Support Lead", userCount: 0, description: '...' },
+                { id: 3, name: "Support Staff", userCount: 0, description: '...' },
+                { id: 4, name: "Compliance Officer", userCount: 0, description: '...' },
+            ]
+        }
+    }
+
+    return { branches, departments, roles };
 }
 
 export default function CreateUserPage() {

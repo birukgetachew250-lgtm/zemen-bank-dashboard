@@ -1,19 +1,18 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { PlusCircle, Search, LogOut } from "lucide-react";
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-
 
 const mockLogs = [
     { id: 'log_1', ts: new Date(Date.now() - 2 * 60000), user: 'admin@zemenbank.com', action: 'LOGIN_SUCCESS', ip: '196.188.1.5', device: 'Chrome on macOS', status: 'Success' },

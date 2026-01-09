@@ -2,54 +2,24 @@
 import { UserManagementClient } from "@/components/users/UserManagementClient";
 import type { Role } from "@/app/(main)/roles/page";
 import { SystemUser } from "@/components/users/UserManagementClient";
+import { db } from "@/lib/db";
 
-const mockUsers: SystemUser[] = [
-    {
-        id: 'user_ck_admin_001',
-        employeeId: '0001',
-        name: 'Admin User',
-        email: 'admin@zemen.com',
-        role: 'Admin',
-        branch: 'Head Office',
-        department: 'IT Department',
-    },
-    {
-        id: 'user_ck_support_001',
-        employeeId: '0002',
-        name: 'Support Lead',
-        email: 'support.lead@zemen.com',
-        role: 'Support Lead',
-        branch: 'Head Office',
-        department: 'IT Department',
-    }
-];
-
+// Mock roles remain for now, as roles aren't in the DB yet
 const mockRoles: Role[] = [
-  {
-    id: 1,
-    name: "Admin",
-    permissions: ["manage-users", "manage-roles", "view-reports", "manage-settings", "approve-all"],
-  },
-  {
-    id: 2,
-    name: "Support Lead",
-    permissions: ["approve-pin-reset", "approve-new-device", "view-customer-audit", "manage-tickets"],
-  },
-  {
-    id: 3,
-    name: "Support Staff",
-    permissions: ["view-customers", "handle-tickets", "request-pin-reset"],
-  },
-  {
-    id: 4,
-    name: "Compliance Officer",
-    permissions: ["view-reports", "view-audit-trails", "flag-transaction"],
-  },
+  { id: 1, name: "Admin", userCount: 1, description: '...' },
+  { id: 2, name: "Support Lead", userCount: 1, description: '...' },
+  { id: 3, name: "Support Staff", userCount: 0, description: '...' },
+  { id: 4, name: "Compliance Officer", userCount: 0, description: '...' },
 ];
-
 
 function getSystemUsers(): SystemUser[] {
-  return mockUsers;
+  try {
+    const data = db.prepare("SELECT * FROM users ORDER BY name ASC").all();
+    return data as SystemUser[];
+  } catch (e) {
+    console.error("Failed to fetch users from DB:", e);
+    return [];
+  }
 }
 
 function getRoles(): Role[] {
