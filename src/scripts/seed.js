@@ -495,10 +495,14 @@ function seed() {
   console.log('Seeding complete!');
 }
 
-try {
-  seed();
-} catch (error) {
-  console.error('Failed to seed database:', error);
-} finally {
-  db.close();
+async function main() {
+    try {
+        await seed();
+    } catch (error) {
+        console.error('Failed to seed database:', error);
+    } finally {
+        await sqlite.close();
+    }
 }
+
+main();
