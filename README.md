@@ -26,6 +26,26 @@ To get the application running on your local machine, follow these steps:
 
 Your application should now be running at `http://localhost:3000`.
 
+## Database Connection
+
+The application is configured to work with two different database setups:
+
+-   **Development (Default)**: Uses a local SQLite file (`zemen.db`) managed via Prisma. The `npm run seed` command populates this file.
+-   **Production**: Connects to a live Oracle database for core banking data. Connection strings are specified in the `.env` file.
+
+### Testing the Production Database Connection
+
+If you are encountering database errors when running in production mode (e.g., with `npm run seed:prod`), you can test the connection to the Oracle database directly using a dedicated script.
+
+1.  **Set Environment**: Ensure your `.env` file contains the correct connection string for `USER_MODULE_DB_CONNECTION_STRING`.
+2.  **Run Test**: Execute the following command in your terminal.
+
+    ```bash
+    npm run test:db
+    ```
+
+This script will attempt to connect to the Oracle database using the credentials provided and will report either success or a detailed error message to help you diagnose the issue.
+
 ## Production Seeding (User Management)
 
 To seed the initial admin users and roles into your **production** database (defined by `DASH_PROD_MODULE_DATABASE_URL`), you must use a separate, dedicated script.
