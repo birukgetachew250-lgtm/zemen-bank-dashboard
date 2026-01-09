@@ -3,35 +3,23 @@ import { Suspense } from "react";
 import { MiniAppForm } from "@/components/mini-apps/MiniAppForm";
 import { Loader2 } from "lucide-react";
 import type { MiniApp } from "@/components/mini-apps/MiniAppManagementClient";
-import crypto from 'crypto';
-
-const mockMiniApps: MiniApp[] = [
-    { 
-        id: "mapp_mock_1", 
-        name: "Cinema Ticket", 
-        url: "https://cinema.example.com", 
-        logo_url: "https://picsum.photos/seed/cinema/100/100", 
-        username: "cinema_api", 
-        password: "secure_password_1", 
-        encryption_key: crypto.randomBytes(32).toString('hex') 
-    },
-    { 
-        id: "mapp_mock_2", 
-        name: "Event Booking", 
-        url: "https://events.example.com", 
-        logo_url: "https://picsum.photos/seed/events/100/100", 
-        username: "event_api_user", 
-        password: "secure_password_2", 
-        encryption_key: crypto.randomBytes(32).toString('hex') 
-    }
-];
+import { db } from "@/lib/db";
+import config from "@/lib/config";
 
 async function getMiniApp(id: string | undefined): Promise<MiniApp | null> {
     if (!id) return null;
-    // Simulating an async operation and finding the app from mock data
-    await new Promise(resolve => setTimeout(resolve, 100));
-    const miniApp = mockMiniApps.find(app => app.id === id) || null;
-    return miniApp;
+    try {
+        let app;
+        if (config.db.isProduction) {
+            app = await db.prepare('SELECT * FROM "USER_MODULE"."mini_apps" WHERE "id" = :1').get(id);
+        } else {
+            app = db.prepare('SELECT * FROM mini_apps WHERE id = ?').get(id);
+        }
+        return app as MiniApp | null;
+    } catch(e) {
+        console.error(`Failed to fetch mini-app with id ${id}:`, e);
+        return null;
+    }
 }
 
 export default function CreateMiniAppPage({ searchParams }: { searchParams: { id?: string }}) {

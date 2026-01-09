@@ -412,6 +412,60 @@ function seed() {
   insertManyTransactions(transactions);
   console.log(`Seeded ${transactions.length} transactions.`);
   
+  // Seed Corporates
+  const corporates = [
+    { id: "corp_1", name: "Dangote Cement", industry: "Manufacturing", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/dangote/40/40" },
+    { id: "corp_2", name: "MTN Nigeria", industry: "Telecommunications", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/mtn/40/40" },
+    { id: "corp_3", name: "Zenith Bank", industry: "Finance", status: "Inactive", internet_banking_status: "Disabled", logo_url: "https://picsum.photos/seed/zenith/40/40" },
+    { id: "corp_4", name: "Jumia Group", industry: "E-commerce", status: "Active", internet_banking_status: "Pending", logo_url: "https://picsum.photos/seed/jumia/40/40" },
+  ];
+  const insertCorporate = db.prepare('INSERT INTO corporates (id, name, industry, status, internet_banking_status, logo_url) VALUES (?, ?, ?, ?, ?, ?)');
+  const insertManyCorporates = db.transaction((corps) => {
+    for (const c of corps) insertCorporate.run(c.id, c.name, c.industry, c.status, c.internet_banking_status, c.logo_url);
+  });
+  insertManyCorporates(corporates);
+  console.log(`Seeded ${corporates.length} corporates.`);
+
+  // Seed Branches
+  const branches = [
+    { id: 'br_1', name: 'Bole Branch', location: 'Bole, Addis Ababa' },
+    { id: 'br_2', name: 'Head Office', location: 'HQ, Addis Ababa' },
+    { id: 'br_3', name: 'Arada Branch', location: 'Arada, Addis Ababa' },
+  ];
+  const insertBranch = db.prepare('INSERT INTO branches (id, name, location) VALUES (?, ?, ?)');
+  const insertManyBranches = db.transaction((brs) => {
+    for (const b of brs) insertBranch.run(b.id, b.name, b.location);
+  });
+  insertManyBranches(branches);
+  console.log(`Seeded ${branches.length} branches.`);
+
+  // Seed Departments
+  const departments = [
+    { id: 'dept_1', name: 'IT Department', branchId: 'br_2' },
+    { id: 'dept_2', name: 'Branch Operations', branchId: 'br_1' },
+    { id: 'dept_3', name: 'Human Resources', branchId: 'br_2' },
+    { id: 'dept_4', name: 'Customer Service', branchId: 'br_3' },
+  ];
+  const insertDepartment = db.prepare('INSERT INTO departments (id, name, branchId) VALUES (?, ?, ?)');
+  const insertManyDepartments = db.transaction((depts) => {
+    for (const d of depts) insertDepartment.run(d.id, d.name, d.branchId);
+  });
+  insertManyDepartments(departments);
+  console.log(`Seeded ${departments.length} departments.`);
+
+  // Seed Mini Apps
+  const miniApps = [
+    { id: `mapp_${crypto.randomUUID()}`, name: "Cinema Ticket", url: "https://cinema.example.com", logo_url: "https://picsum.photos/seed/cinema/100/100", username: "cinema_api", password: "secure_password_1" },
+    { id: `mapp_${crypto.randomUUID()}`, name: "Event Booking", url: "https://events.example.com", logo_url: "https://picsum.photos/seed/events/100/100", username: "event_api_user", password: "secure_password_2" },
+  ];
+  const insertMiniApp = db.prepare('INSERT INTO mini_apps (id, name, url, logo_url, username, password, encryption_key) VALUES (?, ?, ?, ?, ?, ?, ?)');
+  const insertManyMiniApps = db.transaction((apps) => {
+    for (const app of apps) insertMiniApp.run(app.id, app.name, app.url, app.logo_url, app.username, app.password, crypto.randomBytes(32).toString('hex'));
+  });
+  insertManyMiniApps(miniApps);
+  console.log(`Seeded ${miniApps.length} mini apps.`);
+
+
   console.log('Seeding complete!');
 }
 
@@ -422,5 +476,3 @@ try {
 } finally {
   db.close();
 }
-
-    

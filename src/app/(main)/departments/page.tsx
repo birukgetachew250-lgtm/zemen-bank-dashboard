@@ -1,6 +1,8 @@
 
 import { DepartmentManagementClient } from "@/components/departments/DepartmentManagementClient";
 import type { Branch } from "../branches/page";
+import { db } from "@/lib/db";
+import config from "@/lib/config";
 
 export interface Department {
   id: string;
@@ -23,18 +25,42 @@ const mockDepartments: Department[] = [
     { id: 'dept_4', name: 'Customer Service', branchId: 'br_3', createdAt: new Date().toISOString(), branchName: 'Arada Branch' },
 ];
 
-
-function getDepartments(): Department[] {
-  return mockDepartments;
+async function getDepartments(): Promise<Department[]> {
+  try {
+    let data;
+    if (config.db.isProduction) {
+        data = await db.prepare('SELECT d."id", d."name", d."branchId", d."createdAt", b."name" as "branchName" FROM "USER_MODULE"."departments" d JOIN "USER_MODULE"."branches" b ON d."branchId" = b."id" ORDER BY d."name" ASC').all();
+    } else {
+        data = db.prepare("SELECT d.*, b.name as branchName FROM departments d JOIN branches b ON d.branchId = b.id ORDER BY d.name ASC").all();
+    }
+    return data as Department[];
+  } catch(e) {
+    console.error("Failed to fetch departments from DB:", e);
+    return [];
+  }
 }
 
-function getBranches(): Branch[] {
-    return mockBranches;
+async function getBranches(): Promise<Branch[]> {
+    try {
+        let data;
+        if (config.db.isProduction) {
+            data = await db.prepare('SELECT "id", "name", "location", "createdAt" FROM "USER_MODULE"."branches" ORDER BY "name" ASC').all();
+        } else {
+            data = db.prepare("SELECT id, name, location, createdAt FROM branches ORDER BY name ASC").all();
+        }
+        return data as Branch[];
+    } catch (e) {
+        console.error("Failed to fetch branches from DB:", e);
+        return [];
+    }
 }
 
-export default function DepartmentsPage() {
-  const departments = getDepartments();
-  const branches = getBranches();
+export default async function DepartmentsPage() {
+  const departmentsData = await getDepartments();
+  const branchesData = await getBranches();
+
+  const departments = departmentsData.length > 0 ? departmentsData : mockDepartments;
+  const branches = branchesData.length > 0 ? branchesData : mockBranches;
 
   return (
     <div className="w-full h-full">
