@@ -61,7 +61,7 @@ export interface MenuItem {
 export const menu: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   {
-    label: "Banking Customers",
+    label: "Banking Users",
     icon: Briefcase,
     children: [
        {
@@ -125,7 +125,7 @@ export const menu: MenuItem[] = [
           { icon: Users, label: "Updated Customers", href: "/customers/approve-updated" },
           { icon: Users, label: "Customer Accounts", href: "/customers/approve-accounts" },
           { icon: UserCheck, label: "Unsuspended Customers", href: "/customers/approve-unblocked" },
-          { icon: ShieldCheck, label: "Pin Resets", href: "/customers/approve-pin-reset" },
+          { icon: KeyRound, label: "Pin Resets", href: "/customers/approve-pin-reset" },
           { icon: ShieldCheck, label: "Security Resets", href: "/customers/approve-security" },
         ]
       },
@@ -175,16 +175,6 @@ export const menu: MenuItem[] = [
         { icon: Wrench, label: "Custom Builder", href: "/reports/analytics/custom-builder" },
         { icon: Mail, label: "Scheduled Reports", href: "/reports/analytics/scheduled" },
         { icon: DownloadCloud, label: "Export Center", href: "/reports/analytics/export-center" },
-        {
-          label: "System Reports",
-          icon: BarChart3,
-          href: "/reports/system/active",
-          children: [
-              { icon: UserCheck, label: "Active Customers", href: "/reports/system/active" },
-              { icon: UserX, label: "Inactive/Dormant", href: "/reports/system/inactive" },
-              { icon: Users, label: "Registered Customers", href: "/reports/system/registered" },
-          ]
-        },
     ]
   },
    {
