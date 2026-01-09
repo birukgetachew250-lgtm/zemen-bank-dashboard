@@ -50,11 +50,13 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     const result = await signIn('credentials', {
-      redirect: false,
+      redirect: true,
+      callbackUrl: '/',
       email: values.email,
       password: values.password,
     });
 
+    // If redirect is true, we won't hit this code unless there's an error.
     if (result?.error) {
       toast({
         variant: 'destructive',
@@ -62,13 +64,6 @@ export default function LoginPage() {
         description: 'Invalid email or password.',
       });
       setIsLoading(false);
-    } else if (result?.ok) {
-      toast({
-        title: 'Login Successful',
-        description: 'Welcome back!',
-      });
-      router.push('/');
-      router.refresh();
     }
   };
 
