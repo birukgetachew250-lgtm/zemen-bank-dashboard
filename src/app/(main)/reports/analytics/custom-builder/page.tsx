@@ -5,9 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { BarChart, LineChart, PieChart, Save, Share2, PlusCircle, Trash2, Calendar, Users, MapPin, ArrowRightLeft } from 'lucide-react';
+import { BarChart as BarChartIcon, LineChart, PieChart, Save, Share2, PlusCircle, Trash2, Calendar, Users, MapPin, ArrowRightLeft } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ResponsiveContainer, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 const dimensions = [
   { id: 'date', name: 'Date', icon: Calendar },
@@ -19,7 +19,7 @@ const metrics = [
   { id: 'txValue', name: 'Transaction Value', icon: Users },
 ];
 const chartTypes = [
-  { id: 'bar', name: 'Bar Chart', icon: BarChart },
+  { id: 'bar', name: 'Bar Chart', icon: BarChartIcon },
   { id: 'line', name: 'Line Chart', icon: LineChart },
   { id: 'pie', name: 'Pie Chart', icon: PieChart },
 ];
