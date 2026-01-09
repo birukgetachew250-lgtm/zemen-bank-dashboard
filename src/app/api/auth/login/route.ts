@@ -32,9 +32,7 @@ export async function POST(req: Request) {
     // IMPORTANT: Session Management
     // For this demo, we will set a simple cookie to simulate a session.
     // In a production app, use a secure, signed, HTTP-only cookie with libraries like 'iron-session' or 'next-auth'.
-    cookies().set({
-      name: 'session_user_id',
-      value: user.id.toString(),
+    cookies().set('session_user_id', user.id.toString(), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24, // 1 day
