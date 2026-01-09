@@ -1,4 +1,5 @@
 
+
 const Database = require('better-sqlite3');
 const { faker } = require('@faker-js/faker');
 const crypto = require('crypto');
@@ -47,12 +48,6 @@ function seed() {
         role TEXT NOT NULL,
         branch TEXT,
         department TEXT NOT NULL
-      );
-      
-      CREATE TABLE IF NOT EXISTS roles (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE,
-        permissions TEXT NOT NULL 
       );
 
       CREATE TABLE IF NOT EXISTS AppUsers (
@@ -465,32 +460,7 @@ function seed() {
   });
   insertManyMiniApps(miniApps);
   console.log(`Seeded ${miniApps.length} mini apps.`);
-
-  // Seed Roles with permissions
-    const defaultRoles = [
-        { 
-            id: 'role_super_admin', 
-            name: 'Super Admin', 
-            permissions: JSON.stringify(['all']) // Special case for full access
-        },
-        { 
-            id: 'role_ops_lead', 
-            name: 'Operations Lead', 
-            permissions: JSON.stringify(['Dashboard', 'Banking Users', 'Transactions', 'Mini Apps', 'Oversight'])
-        },
-        {
-            id: 'role_compliance',
-            name: 'Compliance Officer',
-            permissions: JSON.stringify(['Oversight', 'Reporting'])
-        }
-    ];
-    const insertRole = db.prepare('INSERT INTO roles (id, name, permissions) VALUES (?, ?, ?)');
-    const insertManyRoles = db.transaction((roles) => {
-        for (const role of roles) insertRole.run(role.id, role.name, role.permissions);
-    });
-    insertManyRoles(defaultRoles);
-    console.log(`Seeded ${defaultRoles.length} roles.`);
-
+  
     // Seed System Users
     const systemUsers = [
         {
@@ -532,5 +502,3 @@ try {
 } finally {
   db.close();
 }
-
-    

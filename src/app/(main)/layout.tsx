@@ -21,9 +21,26 @@ const getSession = async () => {
         return { isLoggedIn: false, user: null, permissions: [] };
     }
     
-    // Fetch permissions for the user's role
-    const role = db.prepare('SELECT permissions FROM roles WHERE name = ?').get(user.role);
-    const permissions = role ? JSON.parse(role.permissions) : [];
+    // In a real app, you'd fetch permissions from a dedicated roles/permissions table.
+    // For this demo, we'll assign permissions based on the role name.
+    let permissions = [];
+    switch (user.role) {
+        case 'Super Admin':
+            permissions = ['all'];
+            break;
+        case 'Operations Lead':
+            permissions = ['Dashboard', 'Banking Users', 'Transactions', 'Mini Apps', 'Oversight'];
+            break;
+        case 'Compliance Officer':
+            permissions = ['Oversight', 'Reporting'];
+            break;
+        case 'Support Staff':
+             permissions = ['Dashboard', 'Banking Users'];
+             break;
+        default:
+            permissions = ['Dashboard'];
+            break;
+    }
     
     const { password, ...userWithoutPassword } = user;
 
@@ -62,5 +79,3 @@ export default async function MainLayout({
       </div>
   );
 }
-
-    
