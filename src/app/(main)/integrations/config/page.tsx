@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label';
+import { Label } from '@/components/ui/label';
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle, XCircle, Power, Edit, Save, TestTube2, RotateCw } from "lucide-react";
@@ -149,8 +149,8 @@ const ConfigItem = ({ label, children }: { label: string, children: React.ReactN
 
 const FormLabel = ({ children }: { children: React.ReactNode}) => (
     <p className="text-sm font-medium leading-none">{children}</p>
-)
+);
 
 const FormDescription = ({ children }: { children: React.ReactNode}) => (
     <p className="text-sm text-muted-foreground">{children}</p>
-)
+);
