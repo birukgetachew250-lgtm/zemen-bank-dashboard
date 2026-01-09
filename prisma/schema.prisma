@@ -1,23 +1,42 @@
+
 datasource db {
   provider = "sqlite"
   url      = "file:./zemen.db"
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
-// User Management Module
+model Branch {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  location    String
+  createdAt   DateTime     @default(now())
+  departments Department[]
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  branchId  String
+  createdAt DateTime @default(now())
+
+  @@unique([name, branchId])
+}
 
 model User {
-  id         Int    @id @default(autoincrement())
-  employeeId String @unique
+  id         Int      @id @default(autoincrement())
+  employeeId String   @unique
   name       String
-  email      String @unique
-  password   String // In a real app, this should be a hashed password
+  email      String   @unique
+  password   String // In a real app, this would be a hash
   role       String
   branch     String?
   department String
+  createdAt  DateTime @default(now())
 }
 
 model Role {
@@ -26,141 +45,14 @@ model Role {
   description String
 }
 
-model Branch {
-  id         String       @id @default(uuid())
-  name       String       @unique
-  location   String
-  createdAt  DateTime     @default(now())
-  Department Department[]
-}
-
-model Department {
-  id        String @id @default(uuid())
-  name      String
-  branch    Branch @relation(fields: [branchId], references: [id])
-  branchId  String
-  createdAt DateTime @default(now())
-}
-
 model MiniApp {
   id             String @id @default(uuid())
-  name           String
+  name           String @unique
   url            String
-  logo_url       String?
+  logo_url       String
   username       String
   password       String
   encryption_key String
-}
-
-// System Module Tables
-
-model AppUser {
-  Id               String   @id
-  CIFNumber        String   @unique
-  FirstName        String?
-  SecondName       String?
-  LastName         String?
-  Email            String?
-  PhoneNumber      String?  @unique
-  Status           String?
-  LastLoginDate    DateTime @default(now())
-  SignUpMainAuth   String?
-  SignUp2FA        String?
-  AddressLine1     String?
-  AddressLine2     String?
-  AddressLine3     String?
-  AddressLine4     String?
-  Nationality      String?
-  BranchCode       String?
-  BranchName       String?
-  Channel          String?
-  InsertDate       DateTime @default(now())
-  UpdateDate       DateTime @updatedAt
-  UserSecurity     UserSecurity?
-}
-
-model Account {
-  Id            String   @id
-  CIFNumber     String
-  AccountNumber String   @unique
-  FirstName     String?
-  SecondName    String?
-  LastName      String?
-  AccountType   String?
-  Currency      String?
-  Status        String?
-  BranchCode    String?
-  BranchName    String?
-  InsertDate    DateTime @default(now())
-  UpdateDate    DateTime @updatedAt
-}
-
-model UserSecurity {
-  UserId             String   @id
-  user               AppUser  @relation(fields: [UserId], references: [Id])
-  CIFNumber          String   @unique
-  PinHash            String?
-  PasswordHash       String?
-  Status             String?
-  SecurityQuestionId Int?
-  SecurityAnswer     String?
-  InsertDate         DateTime @default(now())
-  UpdateDate         DateTime @updatedAt
-}
-
-model SecurityQuestion {
-  id       Int    @id @default(autoincrement())
-  question String
-}
-
-model OtpCode {
-  Id         String   @id
-  UserId     String
-  Purpose    String
-  OtpType    String
-  Code       String
-  IsUsed     Boolean
-  Attempts   Int
-  InsertDate DateTime @default(now())
-  UpdateDate DateTime @updatedAt
-  ExpiresAt  DateTime
-}
-
-model Transaction {
-  id             String  @id @default(uuid())
-  customerId     String
-  customer       Customer @relation(fields: [customerId], references: [id])
-  timestamp      DateTime
-  type           String
-  amount         Float
-  fee            Float
-  status         String
-  channel        String
-  to_account     String
-  is_anomalous   Boolean?
-  anomaly_reason String?
-}
-
-model PendingApproval {
-  id            String   @id @default(uuid())
-  customerId    String
-  customer      Customer @relation(fields: [customerId], references: [id])
-  type          String
-  status        String   @default("pending")
-  requestedAt   DateTime @default(now())
-  customerName  String
-  customerPhone String
-  details       String?
-}
-
-model Customer {
-  id              String            @id @default(uuid())
-  name            String
-  phone           String            @unique
-  status          String
-  registeredAt    DateTime          @default(now())
-  transactions    Transaction[]
-  pendingApprovals PendingApproval[]
 }
 
 model Corporate {
@@ -169,5 +61,113 @@ model Corporate {
   industry                String
   status                  String
   internet_banking_status String
-  logo_url                String?
+  logo_url                String
+}
+
+// Models from the old system.prisma, now merged
+model Customer {
+  id               Int                @id @default(autoincrement())
+  name             String
+  phone            String             @unique
+  status           String
+  registeredAt     DateTime           @default(now())
+  pendingApprovals PendingApproval[]
+  transactions     Transaction[]
+}
+
+model PendingApproval {
+  id            Int      @id @default(autoincrement())
+  customerId    Int
+  customer      Customer @relation(fields: [customerId], references: [id])
+  type          String
+  requestedAt   DateTime @default(now())
+  status        String   @default("pending")
+  customerName  String
+  customerPhone String
+  details       String?
+}
+
+model Transaction {
+  id             String   @id @default(uuid())
+  customerId     Int
+  customer       Customer @relation(fields: [customerId], references: [id])
+  amount         Float
+  fee            Float
+  status         String
+  timestamp      DateTime @default(now())
+  type           String
+  channel        String
+  to_account     String
+  is_anomalous   Boolean  @default(false)
+  anomaly_reason String?
+}
+
+model AppUser {
+  Id               String    @id
+  CIFNumber        String    @unique
+  FirstName        String?
+  SecondName       String?
+  LastName         String?
+  Email            String?
+  PhoneNumber      String?   @unique
+  Status           String?
+  SignUpMainAuth   String?
+  SignUp2FA        String?
+  Channel          String?
+  InsertDate       DateTime  @default(now())
+  UpdateDate       DateTime  @updatedAt
+  AddressLine1     String?
+  AddressLine2     String?
+  AddressLine3     String?
+  AddressLine4     String?
+  Nationality      String?
+  BranchCode       String?
+  BranchName       String?
+}
+
+model Account {
+  Id            String   @id
+  CIFNumber     String
+  AccountNumber String
+  FirstName     String?
+  SecondName    String?
+  LastName      String?
+  AccountType   String?
+  Currency      String?
+  Status        String?
+  BranchName    String?
+  InsertDate    DateTime @default(now())
+  UpdateDate    DateTime @updatedAt
+  
+  @@index([CIFNumber])
+}
+
+model SecurityQuestion {
+  Id          Int      @id @default(autoincrement())
+  question    String
+  UserSecurity UserSecurity[]
+}
+
+model UserSecurity {
+  Id                 String  @id @default(uuid())
+  UserId             String  @unique
+  CIFNumber          String  @unique
+  PinHash            String?
+  Status             String?
+  SecurityQuestionId Int?
+  SecurityQuestion   SecurityQuestion? @relation(fields: [SecurityQuestionId], references: [Id])
+  SecurityAnswer     String?
+}
+
+model OtpCode {
+  Id         Int      @id @default(autoincrement())
+  UserId     String
+  Purpose    String
+  OtpType    String   @default("numeric")
+  Code       String
+  IsUsed     Boolean  @default(false)
+  ExpiresAt  DateTime
+  Attempts   Int      @default(0)
+  InsertDate DateTime @default(now())
+  UpdateDate DateTime @updatedAt
 }

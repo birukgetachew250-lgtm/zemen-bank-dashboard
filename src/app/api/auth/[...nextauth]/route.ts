@@ -15,15 +15,14 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!config.db.isProduction) {
           // DEMO MODE: Bypass auth and log in as default admin
-          const user = await db.user.findFirst({
-            where: { role: 'Super Admin' },
-          });
-          if (user) {
-            const { password, ...userWithoutPassword } = user;
-            return userWithoutPassword;
+          // This avoids DB query issues in local SQLite vs production schema.
+          if (credentials?.email === 'admin@zemen.com' && credentials?.password === 'password') {
+            return { id: '1', name: 'Demo Admin', email: 'admin@zemen.com', role: 'Super Admin'};
           }
-          // Fallback if no admin user found in demo
-          return { id: '1', name: 'Demo Admin', email: 'admin@zemen.com', role: 'Super Admin'};
+           if (credentials?.email === 'ops@zemen.com' && credentials?.password === 'password') {
+            return { id: '2', name: 'Demo Ops', email: 'ops@zemen.com', role: 'Operations Lead'};
+          }
+          return null;
         }
 
         // PRODUCTION MODE: Real authentication
@@ -70,7 +69,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       // Add token details to the session object
       if (session.user) {
-        session.user.id = token.id as number;
+        session.user.id = token.id as string;
         session.user.role = token.role as string;
       }
       return session;

@@ -6,7 +6,7 @@ declare module "next-auth" {
    */
   interface Session {
     user: {
-      id: number;
+      id: string; // Changed from number to string to accommodate mock and real user IDs
       role: string;
     } & DefaultSession["user"];
   }
