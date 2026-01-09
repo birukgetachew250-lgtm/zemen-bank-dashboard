@@ -13,19 +13,6 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!config.db.isProduction) {
-          // DEMO MODE: Bypass auth and log in as default admin
-          // This avoids DB query issues in local SQLite vs production schema.
-          if (credentials?.email === 'admin@zemen.com' && credentials?.password === 'password') {
-            return { id: '1', name: 'Demo Admin', email: 'admin@zemen.com', role: 'Super Admin'};
-          }
-           if (credentials?.email === 'ops@zemen.com' && credentials?.password === 'password') {
-            return { id: '2', name: 'Demo Ops', email: 'ops@zemen.com', role: 'Operations Lead'};
-          }
-          return null;
-        }
-
-        // PRODUCTION MODE: Real authentication
         if (!credentials?.email || !credentials?.password) {
           return null;
         }

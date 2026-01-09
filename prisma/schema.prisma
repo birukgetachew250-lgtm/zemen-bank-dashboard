@@ -5,7 +5,7 @@ datasource db {
 }
 
 generator client {
-  provider      = "prisma-client-js"
+  provider = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
@@ -13,15 +13,17 @@ model Branch {
   id          String       @id @default(uuid())
   name        String       @unique
   location    String
-  createdAt   DateTime     @default(now())
   departments Department[]
+  users       User[]
+  createdAt   DateTime     @default(now())
 }
 
 model Department {
   id        String   @id @default(uuid())
   name      String
-  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  branch    Branch   @relation(fields: [branchId], references: [id])
   branchId  String
+  users     User[]
   createdAt DateTime @default(now())
 
   @@unique([name, branchId])
@@ -32,11 +34,13 @@ model User {
   employeeId String   @unique
   name       String
   email      String   @unique
-  password   String // In a real app, this would be a hash
+  password   String
   role       String
   branch     String?
   department String
   createdAt  DateTime @default(now())
+  branchInfo Branch?  @relation(fields: [branch], references: [name])
+  deptInfo   Department? @relation(fields: [department, branch], references: [name, branchId])
 }
 
 model Role {
@@ -45,90 +49,90 @@ model Role {
   description String
 }
 
-model MiniApp {
-  id             String @id @default(uuid())
-  name           String @unique
-  url            String
-  logo_url       String
-  username       String
-  password       String
-  encryption_key String
+model SecurityQuestion {
+  id             Int            @id @default(autoincrement())
+  question       String
+  userSecurities UserSecurity[]
 }
 
-model Corporate {
-  id                      String @id
-  name                    String
-  industry                String
-  status                  String
-  internet_banking_status String
-  logo_url                String
+model OtpCode {
+  Id         String   @id @default(uuid())
+  UserId     String
+  OTP        String
+  Purpose    String
+  OtpType    String
+  ExpiresAt  DateTime
+  Attempts   Int      @default(0)
+  IsUsed     Boolean  @default(false)
+  InsertDate DateTime @default(now())
+  UpdateDate DateTime @updatedAt
 }
 
-// Models from the old system.prisma, now merged
-model Customer {
-  id               Int                @id @default(autoincrement())
-  name             String
-  phone            String             @unique
-  status           String
-  registeredAt     DateTime           @default(now())
-  pendingApprovals PendingApproval[]
-  transactions     Transaction[]
-}
-
-model PendingApproval {
-  id            Int      @id @default(autoincrement())
-  customerId    Int
-  customer      Customer @relation(fields: [customerId], references: [id])
-  type          String
-  requestedAt   DateTime @default(now())
-  status        String   @default("pending")
-  customerName  String
-  customerPhone String
-  details       String?
-}
-
+// System-related models
 model Transaction {
-  id             String   @id @default(uuid())
+  id             String    @id @default(uuid())
   customerId     Int
-  customer       Customer @relation(fields: [customerId], references: [id])
+  customer       Customer  @relation(fields: [customerId], references: [id])
   amount         Float
   fee            Float
   status         String
-  timestamp      DateTime @default(now())
+  timestamp      DateTime  @default(now())
   type           String
   channel        String
   to_account     String
-  is_anomalous   Boolean  @default(false)
+  is_anomalous   Boolean   @default(false)
   anomaly_reason String?
 }
 
+model Customer {
+  id              Int               @id @default(autoincrement())
+  name            String
+  phone           String            @unique
+  status          String
+  registeredAt    DateTime          @default(now())
+  transactions    Transaction[]
+  pendingApprovals PendingApproval[]
+}
+
+model PendingApproval {
+  id             Int      @id @default(autoincrement())
+  customerId     Int
+  customer       Customer @relation(fields: [customerId], references: [id])
+  type           String
+  status         String   @default("pending")
+  requestedAt    DateTime @default(now())
+  customerName   String
+  customerPhone  String
+  details        String?
+}
+
 model AppUser {
-  Id               String    @id
-  CIFNumber        String    @unique
-  FirstName        String?
-  SecondName       String?
-  LastName         String?
-  Email            String?
-  PhoneNumber      String?   @unique
-  Status           String?
-  SignUpMainAuth   String?
-  SignUp2FA        String?
-  Channel          String?
-  InsertDate       DateTime  @default(now())
-  UpdateDate       DateTime  @updatedAt
-  AddressLine1     String?
-  AddressLine2     String?
-  AddressLine3     String?
-  AddressLine4     String?
-  Nationality      String?
-  BranchCode       String?
-  BranchName       String?
+  Id                 String   @id @default(uuid())
+  CIFNumber          String   @unique
+  FirstName          String?
+  SecondName         String?
+  LastName           String?
+  Email              String?
+  PhoneNumber        String?
+  Status             String
+  SignUpMainAuth     String?
+  SignUp2FA          String?
+  AddressLine1       String?
+  AddressLine2       String?
+  AddressLine3       String?
+  AddressLine4       String?
+  Nationality        String?
+  BranchCode         String?
+  BranchName         String?
+  Channel            String?
+  InsertDate         DateTime @default(now())
+  UpdateDate         DateTime @updatedAt
 }
 
 model Account {
-  Id            String   @id
+  Id            String  @id @default(uuid())
   CIFNumber     String
-  AccountNumber String
+  AccountNumber String? @unique
   FirstName     String?
   SecondName    String?
   LastName      String?
@@ -136,38 +140,33 @@ model Account {
   Currency      String?
   Status        String?
   BranchName    String?
-  InsertDate    DateTime @default(now())
-  UpdateDate    DateTime @updatedAt
-  
-  @@index([CIFNumber])
-}
-
-model SecurityQuestion {
-  Id          Int      @id @default(autoincrement())
-  question    String
-  UserSecurity UserSecurity[]
 }
 
 model UserSecurity {
-  Id                 String  @id @default(uuid())
-  UserId             String  @unique
-  CIFNumber          String  @unique
-  PinHash            String?
+  UserId             String            @id
+  CIFNumber          String            @unique
   Status             String?
+  PinHash            String?
+  SecurityQuestion   SecurityQuestion? @relation(fields: [SecurityQuestionId], references: [id])
   SecurityQuestionId Int?
-  SecurityQuestion   SecurityQuestion? @relation(fields: [SecurityQuestionId], references: [Id])
   SecurityAnswer     String?
 }
 
-model OtpCode {
-  Id         Int      @id @default(autoincrement())
-  UserId     String
-  Purpose    String
-  OtpType    String   @default("numeric")
-  Code       String
-  IsUsed     Boolean  @default(false)
-  ExpiresAt  DateTime
-  Attempts   Int      @default(0)
-  InsertDate DateTime @default(now())
-  UpdateDate DateTime @updatedAt
+model Corporate {
+  id                      String @id @default(uuid())
+  name                    String
+  industry                String
+  status                  String
+  internet_banking_status String
+  logo_url                String?
+}
+
+model MiniApp {
+  id             String  @id @default(uuid())
+  name           String
+  url            String
+  logo_url       String?
+  username       String
+  password       String
+  encryption_key String
 }
