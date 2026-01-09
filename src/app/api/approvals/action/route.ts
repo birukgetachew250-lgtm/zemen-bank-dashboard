@@ -24,6 +24,10 @@ export async function POST(req: Request) {
             if (action === 'approve') {
                 if (approval.type === 'new-customer' || approval.type === 'unblock') {
                     db.prepare("UPDATE customers SET status = 'active' WHERE id = ?").run(approval.customerId);
+                } else if (approval.type === 'pin-reset') {
+                    // In a real app, this would trigger the actual PIN reset mechanism (e.g., sending SMS)
+                    // For now, we just log that it was approved.
+                    console.log(`PIN reset approved for customer ${approval.customerId}`);
                 }
                 // Add other specific 'approve' actions for different approval types here
             } else { // action === 'reject'
