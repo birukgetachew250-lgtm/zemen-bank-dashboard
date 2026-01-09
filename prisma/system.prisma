@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@prisma/client-system"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("SYSTEM_MODULE_DB_URL")
+}
+
+model Customer {
+  id    String @id @default(cuid())
+  name  String
+  phone String @unique
+  status String
+  transactions Transaction[]
+  pending_approvals PendingApproval[]
+  registeredAt DateTime @default(now())
+}
+
+model Transaction {
+  id              String   @id @default(cuid())
+  timestamp       DateTime @default(now())
+  type            String
+  amount          Float
+  fee             Float
+  status          String
+  channel         String
+  from_account    String?
+  to_account      String
+  is_anomalous    Boolean  @default(false)
+  anomaly_reason  String?
+
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId String
+}
+
+model PendingApproval {
+  id            String   @id @default(cuid())
+  type          String
+  requestedAt   DateTime @default(now())
+  status        String   @default("pending")
+  details       Json?
+
+  customer      Customer @relation(fields: [customerId], references: [id])
+  customerId    String
+
+  customerName  String
+  customerPhone String
+}

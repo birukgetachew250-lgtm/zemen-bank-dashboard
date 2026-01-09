@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { systemDb } from '@/lib/system-db';
 import { subDays, startOfDay, endOfDay } from 'date-fns';
 
 function getDatesFromRange(range: string): { from: Date, to: Date } {
@@ -39,9 +39,9 @@ export async function GET(
                 },
             };
 
-            const total = await db.transaction.count({ where: whereClause });
-            const successful = await db.transaction.count({ where: { ...whereClause, status: 'Successful' } });
-            const failed = await db.transaction.count({ where: { ...whereClause, status: 'Failed' } });
+            const total = await systemDb.transaction.count({ where: whereClause });
+            const successful = await systemDb.transaction.count({ where: { ...whereClause, status: 'Successful' } });
+            const failed = await systemDb.transaction.count({ where: { ...whereClause, status: 'Failed' } });
             
             return NextResponse.json({ total, successful, failed });
 

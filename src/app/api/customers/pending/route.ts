@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { systemDb } from '@/lib/system-db';
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     }
 
     try {
-        const rows = await db.pendingApproval.findMany({
+        const rows = await systemDb.pendingApproval.findMany({
             where: { 
                 type: type,
                 status: 'pending'

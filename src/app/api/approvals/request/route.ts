@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { systemDb } from '@/lib/system-db';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {
@@ -11,32 +11,32 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'CIF and approval type are required' }, { status: 400 });
         }
         
-        // Ensure legacy customer record exists for approvals page compatibility
-        const legacyCustomerId = `cust_${cif}`;
-        let customer = db.prepare('SELECT id FROM customers WHERE id = ?').get(legacyCustomerId);
+        let customer = await systemDb.customer.findFirst({ where: { phone: customerPhone } });
+        
         if (!customer) {
-             db.prepare('INSERT INTO customers (id, name, phone, status) VALUES (?, ?, ?, ?)')
-               .run(legacyCustomerId, customerName, customerPhone, 'active'); // Assume active if they exist
+             customer = await systemDb.customer.create({
+                 data: {
+                    name: customerName,
+                    phone: customerPhone,
+                    status: 'Active', // Assume active if they exist
+                 }
+             });
         }
 
-        const approvalId = `appr_${crypto.randomUUID()}`;
-        
-        // Combine provided details with the mandatory CIF
         const finalDetails = JSON.stringify({
             cif: cif,
             ...(details || {})
         });
         
-        db.prepare(
-            'INSERT INTO pending_approvals (id, customerId, type, customerName, customerPhone, details) VALUES (?, ?, ?, ?, ?, ?)'
-        ).run(
-            approvalId, 
-            legacyCustomerId, 
-            type, 
-            customerName, 
-            customerPhone, 
-            finalDetails
-        );
+        await systemDb.pendingApproval.create({
+            data: {
+                customerId: customer.id,
+                type: type, 
+                customerName: customerName, 
+                customerPhone: customerPhone, 
+                details: finalDetails
+            }
+        });
 
         return NextResponse.json({ success: true, message: 'Request submitted for approval' });
 
