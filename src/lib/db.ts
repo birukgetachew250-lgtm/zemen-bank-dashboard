@@ -1,8 +1,7 @@
 
-
 'server-only';
 
-import Database from 'better-sqlite3';
+import sqlite3 from 'sqlite3';
 import oracledb from 'oracledb';
 import path from 'path';
 import fs from 'fs';
@@ -136,15 +135,84 @@ if (config.db.isProduction) {
     );
 
 } else {
-    // ---- DEMO/FALLBACK SQLITE DATABASE ----
+    // ---- DEMO/FALLBACK SQLITE DATABASE using sqlite3 ----
     const dbPath = 'zemen.db';
+    const sqlite = sqlite3.verbose();
+    
     if (!fs.existsSync(dbPath)) {
         console.error(`Database file not found at ${dbPath}. Please run 'npm run seed' to create and populate it.`);
-        // In a real app, you might want to throw an error or handle this differently.
-        // For this demo, we'll proceed, and better-sqlite3 will create an empty file.
     }
-    db = new Database(dbPath, { verbose: console.log });
-    console.log(`Using demo SQLite database at ${dbPath}. Run 'npm run seed' to (re)populate it.`);
+
+    const instance = new sqlite.Database(dbPath, (err) => {
+        if (err) {
+            console.error('Failed to open SQLite database:', err.message);
+            throw err;
+        }
+        console.log(`Using demo SQLite database at ${dbPath}. Run 'npm run seed' to (re)populate it.`);
+    });
+    
+    // Create a wrapper to mimic the better-sqlite3 API for compatibility
+    db = {
+        prepare: (sql: string) => {
+            return {
+                get: (...params: any[]) => {
+                    return new Promise((resolve, reject) => {
+                        instance.get(sql, params, (err, row) => {
+                            if (err) reject(err);
+                            else resolve(row);
+                        });
+                    });
+                },
+                all: (...params: any[]) => {
+                    return new Promise((resolve, reject) => {
+                        instance.all(sql, params, (err, rows) => {
+                            if (err) reject(err);
+                            else resolve(rows);
+                        });
+                    });
+                },
+                run: (...params: any[]) => {
+                    return new Promise((resolve, reject) => {
+                        instance.run(sql, params, function(err) {
+                            if (err) reject(err);
+                            else resolve({ changes: this.changes });
+                        });
+                    });
+                },
+                 // Add a transaction method that mimics better-sqlite3
+                transaction: (fn: (...args: any[]) => any) => {
+                    return (...args: any[]) => {
+                        return new Promise<void>((resolve, reject) => {
+                            instance.serialize(() => {
+                                instance.run('BEGIN TRANSACTION');
+                                try {
+                                    fn(...args);
+                                    instance.run('COMMIT', (err) => {
+                                      if (err) throw err;
+                                      resolve();
+                                    });
+                                } catch (e) {
+                                    console.error('Transaction failed, rolling back.', e);
+                                    instance.run('ROLLBACK', (err) => {
+                                      if (err) reject(err);
+                                      else reject(e);
+                                    });
+                                }
+                            });
+                        });
+                    };
+                }
+            };
+        },
+        close: () => {
+             return new Promise<void>((resolve, reject) => {
+                instance.close((err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+             });
+        }
+    };
 }
 
 
