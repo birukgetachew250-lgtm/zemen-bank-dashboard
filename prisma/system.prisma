@@ -1,28 +1,66 @@
 // This is your Prisma schema file for the system database.
-
-generator system {
-  provider      = "prisma-client-js"
-  output        = "../node_modules/.prisma/client/system"
-  binaryTargets = ["native"]
-}
+// It is separate from your main application's user/admin schema.
 
 datasource db {
   provider = "postgresql"
   url      = env("SYSTEM_MODULE_DB_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+// Customer model (for reference, could be in a separate schema)
+model Customer {
+  id           String            @id @default(cuid())
+  name         String
+  phone        String            @unique
+  status       String // e.g., 'Active', 'Inactive', 'Registered'
+  registeredAt DateTime          @default(now())
+  transactions Transaction[]
+  approvals    PendingApproval[]
+}
+
+model Transaction {
+  id             String   @id @default(cuid())
+  customerId     String
+  customer       Customer @relation(fields: [customerId], references: [id])
+  amount         Float
+  fee            Float
+  status         String // 'Successful', 'Failed', 'Pending'
+  timestamp      DateTime
+  type           String // e.g., 'P2P', 'Bill Payment'
+  channel        String // 'App', 'USSD'
+  to_account     String
+  is_anomalous   Boolean  @default(false)
+  anomaly_reason String?
+}
+
+model PendingApproval {
+  id            String   @id @default(cuid())
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id])
+  type          String // 'new-customer', 'pin-reset', 'unblock-user'
+  requestedAt   DateTime @default(now())
+  status        String   @default("pending") // 'pending', 'approved', 'rejected'
+  details       Json?
+  customerName  String
+  customerPhone String
+}
+
 model AppUser {
-  Id               String   @id
-  CIFNumber        String   @unique
+  Id               String    @id @default(cuid())
+  CIFNumber        String    @unique
   FirstName        String
-  SecondName       String
+  SecondName       String?
   LastName         String
-  Email            String
-  PhoneNumber      String   @unique
+  Email            String    @unique
+  PhoneNumber      String    @unique
   Status           String
   Channel          String?
-  SignUpMainAuth   String?
-  SignUp2FA        String?
+  SignUpMainAuth   String
+  SignUp2FA        String
   BranchCode       String?
   BranchName       String?
   AddressLine1     String?
@@ -30,91 +68,58 @@ model AppUser {
   AddressLine3     String?
   AddressLine4     String?
   Nationality      String?
-  LastLoginDate    DateTime @default(now())
-  LoginAttempt     Int      @default(0)
-  InsertDate       DateTime @default(now())
-  UpdateDate       DateTime @updatedAt
-  userSecurity     UserSecurity?
+  UserSecurity     UserSecurity?
+  InsertDate       DateTime  @default(now())
+  UpdateDate       DateTime  @updatedAt
 }
 
 model Account {
-  Id            String   @id
+  Id            String    @id @default(cuid())
   CIFNumber     String
-  AccountNumber String   @unique
+  AccountNumber String    @unique
   FirstName     String
-  SecondName    String
+  SecondName    String?
   LastName      String
   AccountType   String
   Currency      String
   Status        String
   BranchName    String?
-  InsertDate    DateTime @default(now())
-  UpdateDate    DateTime @updatedAt
-}
-
-model OtpCode {
-  Id         String   @id
-  UserId     String
-  OtpType    String // e.g., 'SMS', 'EMAIL'
-  Code       String
-  Purpose    String // e.g., 'LOGIN', 'TRANSACTION'
-  IsUsed     Boolean  @default(false)
-  Attempts   Int      @default(0)
-  ExpiresAt  DateTime
-  InsertDate DateTime @default(now())
-  UpdateDate DateTime @updatedAt
+  InsertDate    DateTime  @default(now())
+  UpdateDate    DateTime  @updatedAt
 }
 
 model UserSecurity {
-  UserId             String        @id
-  CIFNumber          String        @unique
-  Status             String
-  PinHash            String?
-  PasswordHash       String?
-  SecurityQuestionId String?
-  SecurityAnswer     String?
-  InsertDate         DateTime      @default(now())
-  UpdateDate         DateTime      @updatedAt
-  appUser            AppUser       @relation(fields: [UserId], references: [Id])
+  Id                   String     @id @default(cuid())
+  UserId               String     @unique
+  User                 AppUser    @relation(fields: [UserId], references: [Id])
+  CIFNumber            String     @unique
+  Status               String
+  PinHash              String?
+  PasswordHash         String?
+  SecurityQuestionId   String?
+  SecurityQuestion     SecurityQuestion? @relation(fields: [SecurityQuestionId], references: [Id])
+  SecurityAnswer       String?
+  IncorrectPinAttempts Int        @default(0)
+  LastPinChanged       DateTime?
+  InsertDate           DateTime   @default(now())
+  UpdateDate           DateTime   @updatedAt
 }
 
-
-model Transaction {
-  id             String   @id @default(cuid())
-  customerId     String
-  amount         Float
-  fee            Float
-  status         String
-  timestamp      DateTime
-  type           String
-  channel        String
-  to_account     String
-  is_anomalous   Boolean  @default(false)
-  anomaly_reason String?
-
-  customer Customer @relation(fields: [customerId], references: [id])
+model SecurityQuestion {
+  Id      String   @id @default(cuid())
+  Question String  @unique
+  UserSecurities UserSecurity[]
 }
 
-model Customer {
-  id              String            @id @default(cuid())
-  name            String
-  phone           String            @unique
-  status          String
-  registeredAt    DateTime          @default(now())
-  transactions    Transaction[]
-  pendingApprovals PendingApproval[]
-}
-
-model PendingApproval {
-  id            String   @id @default(cuid())
-  customerId    String
-  customerName  String
-  customerPhone String
-  type          String
-  status        String   @default("pending")
-  requestedAt   DateTime @default(now())
-  resolvedAt    DateTime?
-  details       Json?
-
-  customer Customer @relation(fields: [customerId], references: [id])
+model OtpCode {
+    Id         String   @id @default(cuid())
+    UserId     String
+    Purpose    String // e.g. LOGIN, TRANSACTION, PIN_RESET
+    OtpType    String // e.g. SMS, EMAIL
+    Code       String
+    IsUsed     Boolean  @default(false)
+    Attempts   Int      @default(0)
+    ExpiresAt  DateTime
+    InsertDate DateTime @default(now())
+    UpdateDate DateTime @updatedAt
 }

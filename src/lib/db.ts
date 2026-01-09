@@ -2,21 +2,21 @@
 
 import { PrismaClient } from '@prisma/client';
 
-declare global {
-  var db: PrismaClient | undefined;
-}
-
-export const db =
-  global.db ||
-  new PrismaClient({
+const prismaClientSingleton = () => {
+  return new PrismaClient({
     log:
       process.env.NODE_ENV === 'development'
         ? ['query', 'error', 'warn']
         : ['error'],
   });
+};
 
-if (process.env.NODE_ENV !== 'production') {
-  global.db = db;
+declare global {
+  var db: undefined | ReturnType<typeof prismaClientSingleton>;
 }
+
+export const db = globalThis.db ?? prismaClientSingleton();
+
+if (process.env.NODE_ENV !== 'production') globalThis.db = db;
 
 export const prisma = db;
