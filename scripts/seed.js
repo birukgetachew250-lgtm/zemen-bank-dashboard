@@ -29,32 +29,15 @@ function seed() {
   console.log('Seeding Zemen DB...');
 
   // Drop all tables to ensure a clean slate
-  const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';").all();
+  const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT IN ('users', 'roles', 'departments', 'branches', '_prisma_migrations');").all();
   for (const table of tables) {
     db.exec(`DROP TABLE IF EXISTS ${table.name}`);
   }
-  console.log('Dropped existing tables.');
+  console.log('Dropped existing non-user-management tables.');
   
   
   // Recreate tables with the correct schema
   db.exec(`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        employeeId TEXT NOT NULL UNIQUE,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL,
-        role TEXT NOT NULL,
-        branch TEXT,
-        department TEXT NOT NULL
-      );
-      
-      CREATE TABLE IF NOT EXISTS roles (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE,
-        permissions TEXT NOT NULL 
-      );
-
       CREATE TABLE IF NOT EXISTS AppUsers (
         Id TEXT PRIMARY KEY, 
         CIFNumber TEXT UNIQUE NOT NULL, 
@@ -211,20 +194,6 @@ function seed() {
         status TEXT,
         internet_banking_status TEXT,
         logo_url TEXT
-      );
-
-      CREATE TABLE IF NOT EXISTS branches (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        location TEXT NOT NULL,
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS departments (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        branchId TEXT,
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE IF NOT EXISTS mini_apps (

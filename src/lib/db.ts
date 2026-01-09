@@ -6,8 +6,14 @@ import oracledb from 'oracledb';
 import path from 'path';
 import fs from 'fs';
 import config from './config';
+import { PrismaClient } from '@prisma/client';
 
-// NOTE: This setup uses SQLite for the demo environment.
+// Prisma Client for User Management
+// This will connect using the USER_MODULE_DATABASE_URL from .env
+export const prisma = new PrismaClient();
+
+
+// NOTE: This setup uses SQLite for the demo environment for all non-user services.
 // In a production environment (when config.db.isProduction is true),
 // you would replace this with a connection to your Oracle databases
 // using the connection strings from config.db.
