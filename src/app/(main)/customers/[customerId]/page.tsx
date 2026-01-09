@@ -26,14 +26,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { User, Landmark, Activity, Smartphone, Shield, Edit, Ban, History, Unlink } from "lucide-react";
-import { systemDb } from "@/lib/system-db";
+import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { decrypt } from "@/lib/crypto";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 const getCustomerById = async (id: string) => {
-    const customerFromDb = await systemDb.appUser.findFirst({
+    const customerFromDb = await db.appUser.findFirst({
         where: {
             OR: [
                 { Id: id },
@@ -72,7 +72,7 @@ const getCustomerById = async (id: string) => {
 
 const getAccountsByCif = async (cif: string) => {
     if (!cif) return [];
-    const accountsFromDb = await systemDb.account.findMany({
+    const accountsFromDb = await db.account.findMany({
         where: { CIFNumber: cif }
     });
     

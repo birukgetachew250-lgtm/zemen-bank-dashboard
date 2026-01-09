@@ -1,9 +1,9 @@
 
 import { NextResponse } from 'next/server';
-import { systemDb } from '@/lib/system-db';
+import { db } from '@/lib/db';
 import crypto from 'crypto';
 import { encrypt } from '@/lib/crypto';
-import { Prisma } from '@prisma/client/system';
+import { Prisma } from '@prisma/client';
 
 export async function POST(req: Request) {
     try {
@@ -16,81 +16,80 @@ export async function POST(req: Request) {
         const appUserId = `user_${crypto.randomUUID()}`;
         const nameParts = customer.full_name.split(' ');
         
-        // Use a transaction across both databases if possible, or handle potential rollbacks.
-        // For simplicity here, we assume they succeed together.
-        
-        // Create user in the system DB
-        await systemDb.appUser.create({
-            data: {
-                Id: appUserId,
+        await db.$transaction(async (tx) => {
+            // Create user in the main DB
+            await tx.appUser.create({
+                data: {
+                    Id: appUserId,
+                    CIFNumber: customer.customer_number,
+                    FirstName: encrypt(nameParts[0])!,
+                    SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1])!,
+                    LastName: encrypt(nameParts[nameParts.length - 1])!,
+                    Email: encrypt(customer.email_id)!,
+                    PhoneNumber: encrypt(customer.mobile_number)!,
+                    Status: 'Registered',
+                    SignUpMainAuth: manualData.signUpMainAuth,
+                    SignUp2FA: manualData.twoFactorAuthMethod,
+                    BranchName: customer.branch,
+                    AddressLine1: customer.address_line_1,
+                    AddressLine2: customer.address_line_2,
+                    AddressLine3: customer.address_line_3,
+                    AddressLine4: customer.address_line_4,
+                    Nationality: customer.country,
+                    Channel: manualData.channel
+                }
+            });
+
+            const accountData = accounts.map((acc: any) => ({
+                Id: `acc_${crypto.randomUUID()}`,
                 CIFNumber: customer.customer_number,
+                AccountNumber: encrypt(acc.CUSTACNO)!,
                 FirstName: encrypt(nameParts[0])!,
                 SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1])!,
                 LastName: encrypt(nameParts[nameParts.length - 1])!,
-                Email: encrypt(customer.email_id)!,
-                PhoneNumber: encrypt(customer.mobile_number)!,
-                Status: 'Registered',
-                SignUpMainAuth: manualData.signUpMainAuth,
-                SignUp2FA: manualData.twoFactorAuthMethod,
-                BranchName: customer.branch,
-                AddressLine1: customer.address_line_1,
-                AddressLine2: customer.address_line_2,
-                AddressLine3: customer.address_line_3,
-                AddressLine4: customer.address_line_4,
-                Nationality: customer.country,
-                Channel: manualData.channel
-            }
-        });
+                AccountType: encrypt(acc.ACCLASSDESC)!,
+                Currency: encrypt(acc.CCY)!,
+                Status: acc.status,
+                BranchName: acc.BRANCH_CODE
+            }));
+            await tx.account.createMany({ data: accountData });
 
-        const accountData = accounts.map((acc: any) => ({
-            Id: `acc_${crypto.randomUUID()}`,
-            CIFNumber: customer.customer_number,
-            AccountNumber: encrypt(acc.CUSTACNO)!,
-            FirstName: encrypt(nameParts[0])!,
-            SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1])!,
-            LastName: encrypt(nameParts[nameParts.length - 1])!,
-            AccountType: encrypt(acc.ACCLASSDESC)!,
-            Currency: encrypt(acc.CCY)!,
-            Status: acc.status,
-            BranchName: acc.BRANCH_CODE
-        }));
-        await systemDb.account.createMany({ data: accountData });
-
-        await systemDb.userSecurity.create({
-            data: {
-                UserId: appUserId,
-                CIFNumber: customer.customer_number,
-                Status: 'Registered'
-            }
-        });
-
-        // Create customer and approval in the system DB
-        let systemCustomer = await systemDb.customer.findFirst({ where: { phone: customer.mobile_number }});
-        if (!systemCustomer) {
-             systemCustomer = await systemDb.customer.create({
+            await tx.userSecurity.create({
                 data: {
-                    name: customer.full_name,
-                    phone: customer.mobile_number,
-                    status: 'Registered'
+                    UserId: appUserId,
+                    CIFNumber: customer.customer_number,
+                    Status: 'Registered'
                 }
             });
-        }
-        
-        const detailsForApproval = { 
-            cif: customer.customer_number, 
-            customerData: customer, 
-            linkedAccounts: accounts, 
-            onboardingData: manualData 
-        };
 
-        await systemDb.pendingApproval.create({
-            data: {
-                customerId: systemCustomer.id,
-                type: 'new-customer',
-                customerName: customer.full_name,
-                customerPhone: customer.mobile_number,
-                details: JSON.stringify(detailsForApproval)
+            // Create legacy customer and approval record
+            let legacyCustomer = await tx.customer.findFirst({ where: { phone: customer.mobile_number }});
+            if (!legacyCustomer) {
+                 legacyCustomer = await tx.customer.create({
+                    data: {
+                        name: customer.full_name,
+                        phone: customer.mobile_number,
+                        status: 'Registered'
+                    }
+                });
             }
+            
+            const detailsForApproval = { 
+                cif: customer.customer_number, 
+                customerData: customer, 
+                linkedAccounts: accounts, 
+                onboardingData: manualData 
+            };
+
+            await tx.pendingApproval.create({
+                data: {
+                    customerId: legacyCustomer.id,
+                    type: 'new-customer',
+                    customerName: customer.full_name,
+                    customerPhone: customer.mobile_number,
+                    details: JSON.stringify(detailsForApproval)
+                }
+            });
         });
 
 

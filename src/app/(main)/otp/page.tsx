@@ -15,16 +15,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { systemDb } from "@/lib/system-db";
+import { db } from "@/lib/db";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import type { OtpCode as OtpCodeType } from "@prisma/client/system";
+import type { OtpCode as OtpCodeType } from "@prisma/client";
 
 
 async function getOtpCodes() {
   try {
-    const data = await systemDb.otpCode.findMany({
+    const data = await db.otpCode.findMany({
       orderBy: { UpdateDate: 'desc' },
       take: 20
     });

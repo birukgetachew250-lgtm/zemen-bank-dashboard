@@ -1,11 +1,11 @@
 
 
 import { NextResponse } from 'next/server';
-import { systemDb } from '@/lib/system-db';
+import { db } from '@/lib/db';
 import { decrypt } from '@/lib/crypto';
 
 const getCustomerByCifOrId = async (id: string) => {
-    const user = await systemDb.appUser.findFirst({
+    const user = await db.appUser.findFirst({
         where: {
             OR: [
                 { Id: id },

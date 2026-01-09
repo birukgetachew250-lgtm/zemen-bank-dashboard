@@ -1,12 +1,12 @@
 import { AllTransactionsClient } from "@/components/transactions/AllTransactionsClient";
 import { Transaction } from "@/types/transaction";
-import { systemDb } from "@/lib/system-db";
+import { db } from "@/lib/db";
 import { subDays } from "date-fns";
 
 async function getInitialTransactions(): Promise<Transaction[]> {
     try {
         const thirtyDaysAgo = subDays(new Date(), 30);
-        const data = await systemDb.transaction.findMany({
+        const data = await db.transaction.findMany({
             where: {
                 timestamp: {
                     gte: thirtyDaysAgo,

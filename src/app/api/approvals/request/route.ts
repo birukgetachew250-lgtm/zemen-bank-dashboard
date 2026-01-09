@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { systemDb } from '@/lib/system-db';
+import { db } from '@/lib/db';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {
@@ -11,10 +11,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'CIF and approval type are required' }, { status: 400 });
         }
         
-        let customer = await systemDb.customer.findFirst({ where: { phone: customerPhone } });
+        let customer = await db.customer.findFirst({ where: { phone: customerPhone } });
         
         if (!customer) {
-             customer = await systemDb.customer.create({
+             customer = await db.customer.create({
                  data: {
                     name: customerName,
                     phone: customerPhone,
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
             ...(details || {})
         });
         
-        await systemDb.pendingApproval.create({
+        await db.pendingApproval.create({
             data: {
                 customerId: customer.id,
                 type: type, 

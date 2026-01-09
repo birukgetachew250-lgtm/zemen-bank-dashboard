@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { systemDb } from '@/lib/system-db';
+import { db } from '@/lib/db';
 
 export async function POST(req: Request) {
     try {
@@ -10,14 +10,14 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Invalid input' }, { status: 400 });
         }
         
-        const approval = await systemDb.pendingApproval.findUnique({ where: { id: approvalId } });
+        const approval = await db.pendingApproval.findUnique({ where: { id: approvalId } });
         
         if (!approval) {
              return NextResponse.json({ message: 'Approval not found' }, { status: 404 });
         }
 
         if (action === 'reject') {
-            await systemDb.pendingApproval.delete({ where: { id: approvalId } });
+            await db.pendingApproval.delete({ where: { id: approvalId } });
             return NextResponse.json({ success: true, message: `Request has been rejected` });
         }
 
@@ -42,13 +42,13 @@ export async function POST(req: Request) {
             // 1. Update user status based on approval type
             switch (approval.type) {
                 case 'new-customer':
-                    await systemDb.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Active' } });
+                    await db.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Active' } });
                     break;
                 case 'suspend-customer':
-                     await systemDb.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Block' } });
+                     await db.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Block' } });
                     break;
                 case 'unsuspend-customer':
-                     await systemDb.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Active' } });
+                     await db.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Active' } });
                     break;
                 case 'pin-reset':
                     console.log(`PIN reset approved for customer CIF ${cif}`);
@@ -57,11 +57,11 @@ export async function POST(req: Request) {
             }
 
             // 2. Delete the approval record
-            await systemDb.pendingApproval.delete({ where: { id: approvalId } });
+            await db.pendingApproval.delete({ where: { id: approvalId } });
 
         } else {
             // Failsafe for if details are missing or malformed
-            await systemDb.pendingApproval.delete({ where: { id: approvalId } });
+            await db.pendingApproval.delete({ where: { id: approvalId } });
         }
 
         return NextResponse.json({ success: true, message: `Request has been approved` });

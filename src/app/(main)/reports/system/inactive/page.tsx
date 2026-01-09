@@ -1,11 +1,11 @@
 
 import { CustomerTable } from "@/components/customers/CustomerTable";
-import { systemDb } from "@/lib/system-db";
+import { db } from "@/lib/db";
 import { format } from "date-fns";
 import { decrypt } from "@/lib/crypto";
 
 async function getCustomers() {
-  const data = await systemDb.appUser.findMany({
+  const data = await db.appUser.findMany({
     where: { 
       OR: [
         { Status: 'Inactive' },

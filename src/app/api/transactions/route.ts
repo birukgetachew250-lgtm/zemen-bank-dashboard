@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { systemDb } from '@/lib/system-db';
+import { db } from '@/lib/db';
 import { subDays, parseISO, startOfDay, endOfDay } from 'date-fns';
 
 export async function GET(req: Request) {
@@ -46,7 +46,7 @@ export async function GET(req: Request) {
             ];
         }
 
-        const transactions = await systemDb.transaction.findMany({
+        const transactions = await db.transaction.findMany({
             where,
             include: {
                 customer: {
@@ -62,13 +62,13 @@ export async function GET(req: Request) {
             lte: endOfDay(new Date())
         };
 
-        const totalVolumeToday = await systemDb.transaction.aggregate({
+        const totalVolumeToday = await db.transaction.aggregate({
             _sum: { amount: true },
             where: { status: 'Successful', timestamp: todayRange }
         });
         
-        const totalTransactionsToday = await systemDb.transaction.count({ where: { timestamp: todayRange } });
-        const failedTransactionsToday = await systemDb.transaction.count({ where: { status: 'Failed', timestamp: todayRange } });
+        const totalTransactionsToday = await db.transaction.count({ where: { timestamp: todayRange } });
+        const failedTransactionsToday = await db.transaction.count({ where: { status: 'Failed', timestamp: todayRange } });
 
         const data = transactions.map((row: any) => ({
             id: row.id,

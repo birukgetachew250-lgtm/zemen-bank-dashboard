@@ -8,15 +8,15 @@ import {
 } from "@/components/ui/card";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Users, Link, UserCheck } from "lucide-react";
-import { systemDb } from "@/lib/system-db";
+import { db } from "@/lib/db";
 import { ExistingCustomerClient } from "@/components/customers/ExistingCustomerClient";
 import config from "@/lib/config";
 
 async function getAppUserStats() {
   try {
-    const totalUsers = await systemDb.appUser.count();
-    const linkedAccounts = await systemDb.account.count();
-    const activeUsers = await systemDb.appUser.count({ where: { Status: 'Active' } });
+    const totalUsers = await db.appUser.count();
+    const linkedAccounts = await db.account.count();
+    const activeUsers = await db.appUser.count({ where: { Status: 'Active' } });
 
     return {
         totalUsers: totalUsers.toLocaleString(),

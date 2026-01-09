@@ -1,10 +1,10 @@
 
 import { CustomerTable } from "@/components/customers/CustomerTable";
-import { systemDb } from "@/lib/system-db";
+import { db } from "@/lib/db";
 import { format } from "date-fns";
 
 async function getCustomers() {
-  const data = await systemDb.customer.findMany({
+  const data = await db.customer.findMany({
     where: { status: 'Registered' },
     orderBy: { registeredAt: 'desc' }
   });
