@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
+import { AuthProvider } from "./providers";
 
 export const metadata: Metadata = {
   title: "Zemen Admin Center",
@@ -28,7 +29,9 @@ export default function RootLayout({
         <link rel="icon" href="/images/logo.png" sizes="any" />
       </head>
       <body className="font-body antialiased h-full flex flex-col">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <Toaster />
       </body>
     </html>

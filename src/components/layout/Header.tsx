@@ -3,7 +3,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Settings, User } from "lucide-react";
-
+import { signOut, useSession } from "next-auth/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -106,11 +106,9 @@ export function Header({ user }: { user: any }) {
   const currentPage = findCurrentPage(menu, pathname);
 
   const handleLogout = async () => {
-    // This is a client component, so we make an API call to clear the cookie
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await signOut({ redirect: false });
     toast({ title: 'Logged out successfully.' });
     router.push('/');
-    router.refresh();
   };
 
   return (

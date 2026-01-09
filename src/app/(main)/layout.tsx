@@ -3,18 +3,18 @@ import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Watermark } from "@/components/layout/Watermark";
 import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { db } from '@/lib/db';
-import { getSession } from "@/lib/session";
 
 const getSessionData = async () => {
-    const session = await getSession();
-    const userId = session.userId;
+    const session = await getServerSession(authOptions);
 
-    if (!userId) {
+    if (!session?.user?.email) {
         return { isLoggedIn: false, user: null, permissions: [] };
     }
     
-    const user = await db.user.findUnique({ where: { id: userId } });
+    const user = await db.user.findUnique({ where: { email: session.user.email } });
 
     if (!user) {
         return { isLoggedIn: false, user: null, permissions: [] };
