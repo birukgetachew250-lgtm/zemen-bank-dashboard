@@ -168,15 +168,6 @@ export const menu: MenuItem[] = [
     icon: BarChart3,
     children: [
       {
-        label: "System Reports",
-        icon: LineChart,
-        href: "/reports/system/active",
-        children: [
-          { icon: UserCheck, label: "Active Customers", href: "/reports/system/active" },
-          { icon: UserX, label: "Inactive Customers", href: "/reports/system/inactive" },
-        ],
-      },
-      {
         label: "Analytics & Reports",
         icon: PieChart,
         href: "/reports/analytics/overview",
