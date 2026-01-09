@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DASH_PROD_MODULE_DATABASE_URL")
+  url      = env("DASH_MODULE_DATABASE_URL")
 }
 
 model User {
