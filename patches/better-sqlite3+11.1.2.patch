@@ -1,0 +1,12 @@
+patch-package
+--- a/node_modules/better-sqlite3/lib/database.js
++++ b/node_modules/better-sqlite3/lib/database.js
+@@ -1,5 +1,5 @@
+ 'use strict';
+-const path = require('path');
+-const binding = require('node-gyp-build')(path.resolve(__dirname, '..'));
++const path = require('path-browserify');
++const binding = require('../build/Release/better_sqlite3.node');
+ const fs = require('fs');
+ const {
+ 	Statement,
