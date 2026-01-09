@@ -49,6 +49,12 @@ function seed() {
         branch TEXT,
         department TEXT NOT NULL
       );
+      
+      CREATE TABLE IF NOT EXISTS roles (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        permissions TEXT NOT NULL 
+      );
 
       CREATE TABLE IF NOT EXISTS AppUsers (
         Id TEXT PRIMARY KEY, 
@@ -348,9 +354,9 @@ function seed() {
   console.log(`Seeded ${userSecurities.length} user securities.`);
 
   // Seed Pending Approvals
-  const approvalTypes = ['unblock', 'pin-reset', 'new-customer', 'updated-customer', 'customer-account', 'reset-security-questions', 'suspend-customer', 'unsuspend-customer'];
+  const approvalTypes = ['unblock', 'pin-reset', 'new-customer', 'updated-customer', 'customer-account', 'reset-security-questions'];
   const pendingApprovals = [];
-  const insertApproval = db.prepare('INSERT INTO pending_approvals (id, customerId, type, requestedAt, customerName, customerPhone, details) VALUES (?, ?, ?, ?, ?, ?, ?)');
+  const insertApproval = db.prepare('INSERT INTO pending_approvals (id, customerId, type, requestedAt, customerName, customerPhone) VALUES (?, ?, ?, ?, ?, ?)');
 
   for (let i = 0; i < 15; i++) {
     const randomCustomer = faker.helpers.arrayElement(customers);
@@ -361,14 +367,13 @@ function seed() {
       requestedAt: faker.date.recent({ days: 10 }),
       customerName: randomCustomer.name,
       customerPhone: randomCustomer.phone,
-      details: JSON.stringify({ cif: randomCustomer.id.replace('cust_', '') })
     };
     pendingApprovals.push(approval);
   }
 
   const insertManyApprovals = db.transaction((approvals) => {
     for (const approval of approvals) {
-      insertApproval.run(approval.id, approval.customerId, approval.type, approval.requestedAt.toISOString(), approval.customerName, approval.customerPhone, approval.details);
+      insertApproval.run(approval.id, approval.customerId, approval.type, approval.requestedAt.toISOString(), approval.customerName, approval.customerPhone);
     }
   });
   insertManyApprovals(pendingApprovals);
@@ -407,102 +412,15 @@ function seed() {
   insertManyTransactions(transactions);
   console.log(`Seeded ${transactions.length} transactions.`);
   
-  // Seed Corporates
-  const corporates = [
-    { id: "corp_1", name: "Dangote Cement", industry: "Manufacturing", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/dangote/40/40" },
-    { id: "corp_2", name: "MTN Nigeria", industry: "Telecommunications", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/mtn/40/40" },
-    { id: "corp_3", name: "Zenith Bank", industry: "Finance", status: "Inactive", internet_banking_status: "Disabled", logo_url: "https://picsum.photos/seed/zenith/40/40" },
-    { id: "corp_4", name: "Jumia Group", industry: "E-commerce", status: "Active", internet_banking_status: "Pending", logo_url: "https://picsum.photos/seed/jumia/40/40" },
-  ];
-  const insertCorporate = db.prepare('INSERT INTO corporates (id, name, industry, status, internet_banking_status, logo_url) VALUES (?, ?, ?, ?, ?, ?)');
-  const insertManyCorporates = db.transaction((corps) => {
-    for (const c of corps) insertCorporate.run(c.id, c.name, c.industry, c.status, c.internet_banking_status, c.logo_url);
-  });
-  insertManyCorporates(corporates);
-  console.log(`Seeded ${corporates.length} corporates.`);
-
-  // Seed Branches
-  const branches = [
-    { id: 'br_1', name: 'Bole Branch', location: 'Bole, Addis Ababa' },
-    { id: 'br_2', name: 'Head Office', location: 'HQ, Addis Ababa' },
-    { id: 'br_3', name: 'Arada Branch', location: 'Arada, Addis Ababa' },
-  ];
-  const insertBranch = db.prepare('INSERT INTO branches (id, name, location) VALUES (?, ?, ?)');
-  const insertManyBranches = db.transaction((brs) => {
-    for (const b of brs) insertBranch.run(b.id, b.name, b.location);
-  });
-  insertManyBranches(branches);
-  console.log(`Seeded ${branches.length} branches.`);
-
-  // Seed Departments
-  const departments = [
-    { id: 'dept_1', name: 'IT Department', branchId: 'br_2' },
-    { id: 'dept_2', name: 'Branch Operations', branchId: 'br_1' },
-    { id: 'dept_3', name: 'Human Resources', branchId: 'br_2' },
-    { id: 'dept_4', name: 'Customer Service', branchId: 'br_3' },
-    { id: 'dept_5', name: 'Compliance Department', branchId: 'br_2'},
-  ];
-  const insertDepartment = db.prepare('INSERT INTO departments (id, name, branchId) VALUES (?, ?, ?)');
-  const insertManyDepartments = db.transaction((depts) => {
-    for (const d of depts) insertDepartment.run(d.id, d.name, d.branchId);
-  });
-  insertManyDepartments(departments);
-  console.log(`Seeded ${departments.length} departments.`);
-
-  // Seed Mini Apps
-  const miniApps = [
-    { id: `mapp_${crypto.randomUUID()}`, name: "Cinema Ticket", url: "https://cinema.example.com", logo_url: "https://picsum.photos/seed/cinema/100/100", username: "cinema_api", password: "secure_password_1" },
-    { id: `mapp_${crypto.randomUUID()}`, name: "Event Booking", url: "https://events.example.com", logo_url: "https://picsum.photos/seed/events/100/100", username: "event_api_user", password: "secure_password_2" },
-  ];
-  const insertMiniApp = db.prepare('INSERT INTO mini_apps (id, name, url, logo_url, username, password, encryption_key) VALUES (?, ?, ?, ?, ?, ?, ?)');
-  const insertManyMiniApps = db.transaction((apps) => {
-    for (const app of apps) insertMiniApp.run(app.id, app.name, app.url, app.logo_url, app.username, app.password, crypto.randomBytes(32).toString('hex'));
-  });
-  insertManyMiniApps(miniApps);
-  console.log(`Seeded ${miniApps.length} mini apps.`);
-  
-    // Seed System Users
-    const systemUsers = [
-        {
-            id: 'user_admin',
-            employeeId: '0001',
-            name: 'Admin User',
-            email: 'admin@zemen.com',
-            password: 'password', // Simple password for demo purposes
-            role: 'Super Admin',
-            branch: 'Head Office',
-            department: 'IT Department'
-        },
-        {
-            id: 'user_compliance',
-            employeeId: '0002',
-            name: 'Tirunesh Dibaba',
-            email: 'compliance@zemen.com',
-            password: 'password',
-            role: 'Compliance Officer',
-            branch: 'Head Office',
-            department: 'Compliance Department'
-        }
-    ];
-    const insertUser = db.prepare('INSERT INTO users (id, employeeId, name, email, password, role, branch, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-    const insertManyUsers = db.transaction((users) => {
-        for (const user of users) insertUser.run(user.id, user.employeeId, user.name, user.email, user.password, user.role, user.branch, user.department);
-    });
-    insertManyUsers(systemUsers);
-    console.log(`Seeded ${systemUsers.length} system users.`);
-
-
   console.log('Seeding complete!');
 }
 
-async function main() {
-    try {
-        await seed();
-    } catch (error) {
-        console.error('Failed to seed database:', error);
-    } finally {
-        await sqlite.close();
-    }
+try {
+  seed();
+} catch (error) {
+  console.error('Failed to seed database:', error);
+} finally {
+  db.close();
 }
 
-main();
+    
