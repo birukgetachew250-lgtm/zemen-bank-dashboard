@@ -8,30 +8,33 @@ import fs from 'fs';
 import config from './config';
 import { PrismaClient } from '@prisma/client';
 
-// Prisma Client for User Management
-// This will connect using the USER_MODULE_DATABASE_URL from .env
+// =================================================================
+// USER MANAGEMENT DATABASE (Prisma)
+// =================================================================
+// Prisma is used for the User Management microservice.
+// It connects to the database specified by USER_MODULE_DATABASE_URL in .env.
+// This handles the 'users' and 'roles' tables for the admin panel itself.
 export const prisma = new PrismaClient();
 
 
-// NOTE: This setup uses SQLite for the demo environment for all non-user services.
-// In a production environment (when config.db.isProduction is true),
-// you would replace this with a connection to your Oracle databases
-// using the connection strings from config.db.
+// =================================================================
+// MAIN APPLICATION DATABASE (Oracle / SQLite)
+// =================================================================
+// The 'db' object below is used for all other application data,
+// such as AppUsers (customers), Accounts, Transactions, etc.
+// It connects to a production Oracle database OR a local SQLite file for demo purposes.
 
 let db: any;
 
 if (config.db.isProduction) {
-    // ---- PRODUCTION DATABASE CONNECTION ----
+    // ---- PRODUCTION DATABASE CONNECTION (Oracle) ----
+    // This block runs when IS_PRODUCTION_DB in .env is 'true'.
+    // It uses the DB_USER, DB_PASSWORD, and DB_CONNECT_STRING variables.
     console.log("Production mode enabled. Initializing Oracle connection logic...");
 
     // Set oracledb defaults
     oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
-    // This is a placeholder for a more robust connection pool.
-    // In a real app, you would manage connections more carefully.
-    // For now, we are creating a mock of the 'better-sqlite3' API
-    // to minimize changes in the data access code.
-    
     // This is a simplified mock of the 'better-sqlite3' API for demonstration.
     // A real implementation would require a full translation layer or different DAO logic.
     db = {
@@ -141,7 +144,8 @@ if (config.db.isProduction) {
     );
 
 } else {
-    // ---- DEMO/FALLBACK SQLITE DATABASE using sqlite3 ----
+    // ---- DEMO/FALLBACK DATABASE (SQLite) ----
+    // This block runs for local development when IS_PRODUCTION_DB is 'false' or not set.
     const dbPath = 'zemen.db';
     const sqlite = sqlite3.verbose();
     
@@ -178,7 +182,7 @@ if (config.db.isProduction) {
                     });
                 },
                 run: (...params: any[]) => {
-                    return new Promise((resolve, reject) => {
+                    return new Promise<any>((resolve, reject) => {
                         instance.run(sql, params, function(err) {
                             if (err) reject(err);
                             else resolve({ changes: this.changes });
