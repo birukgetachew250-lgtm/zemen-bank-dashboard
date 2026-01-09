@@ -1,9 +1,10 @@
-const { PrismaClient: AdminPrismaClient } = require('@prisma/client');
-const { PrismaClient: SystemPrismaClient } = require('@prisma/client-system');
+
+const { PrismaClient } = require('@prisma/client');
+const { PrismaClient: SystemPrismaClient } = require('@prisma/client/system');
 const { faker } = require('@faker-js/faker');
 const crypto = require('crypto');
 
-const adminDb = new AdminPrismaClient();
+const adminDb = new PrismaClient();
 const systemDb = new SystemPrismaClient();
 
 async function main() {

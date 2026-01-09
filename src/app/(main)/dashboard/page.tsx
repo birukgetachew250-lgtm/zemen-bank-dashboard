@@ -3,16 +3,16 @@ import { Suspense } from 'react';
 import { UserPlus, Users, UserX, UserCheck, AlertCircle } from 'lucide-react';
 import { StatsCard, StatsCardSkeleton } from '@/components/dashboard/StatsCard';
 import { TransactionsSummary } from '@/components/dashboard/TransactionsSummary';
-import { prisma } from '@/lib/db';
+import { systemDb } from '@/lib/system-db';
 import config from "@/lib/config";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 async function getCustomerStats() {
     try {
-      const total = await prisma.appUser.count();
-      const active = await prisma.appUser.count({ where: { Status: 'Active' } });
-      const inactive = await prisma.appUser.count({ where: { OR: [{ Status: 'Inactive' }, { Status: 'Dormant' }] } });
-      const registered = await prisma.appUser.count({ where: { Status: 'Registered' } });
+      const total = await systemDb.appUser.count();
+      const active = await systemDb.appUser.count({ where: { Status: 'Active' } });
+      const inactive = await systemDb.appUser.count({ where: { OR: [{ Status: 'Inactive' }, { Status: 'Dormant' }] } });
+      const registered = await systemDb.appUser.count({ where: { Status: 'Registered' } });
       return { total, active, inactive, registered };
     } catch (e: any) {
       // Re-throw the error to be caught by the boundary

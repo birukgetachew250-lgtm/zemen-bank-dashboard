@@ -1,10 +1,9 @@
 
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
 import { systemDb } from '@/lib/system-db';
 import crypto from 'crypto';
 import { encrypt } from '@/lib/crypto';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client/system';
 
 export async function POST(req: Request) {
     try {
@@ -20,8 +19,8 @@ export async function POST(req: Request) {
         // Use a transaction across both databases if possible, or handle potential rollbacks.
         // For simplicity here, we assume they succeed together.
         
-        // Create user in the main admin DB
-        await db.appUser.create({
+        // Create user in the system DB
+        await systemDb.appUser.create({
             data: {
                 Id: appUserId,
                 CIFNumber: customer.customer_number,
@@ -55,9 +54,9 @@ export async function POST(req: Request) {
             Status: acc.status,
             BranchName: acc.BRANCH_CODE
         }));
-        await db.account.createMany({ data: accountData });
+        await systemDb.account.createMany({ data: accountData });
 
-        await db.userSecurity.create({
+        await systemDb.userSecurity.create({
             data: {
                 UserId: appUserId,
                 CIFNumber: customer.customer_number,

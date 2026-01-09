@@ -1,11 +1,11 @@
 
 
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { systemDb } from '@/lib/system-db';
 import { decrypt } from '@/lib/crypto';
 
 const getCustomerByCifOrId = async (id: string) => {
-    const user = await prisma.appUser.findFirst({
+    const user = await systemDb.appUser.findFirst({
         where: {
             OR: [
                 { Id: id },

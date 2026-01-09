@@ -1,6 +1,5 @@
 
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
 import { systemDb } from '@/lib/system-db';
 
 export async function POST(req: Request) {
@@ -37,13 +36,13 @@ export async function POST(req: Request) {
             // 1. Update Admin DB
             switch (approval.type) {
                 case 'new-customer':
-                    await db.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Active' } });
+                    await systemDb.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Active' } });
                     break;
                 case 'suspend-customer':
-                     await db.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Block' } });
+                     await systemDb.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Block' } });
                     break;
                 case 'unsuspend-customer':
-                     await db.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Active' } });
+                     await systemDb.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Active' } });
                     break;
                 case 'pin-reset':
                     console.log(`PIN reset approved for customer CIF ${cif}`);

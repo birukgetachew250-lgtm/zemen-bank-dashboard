@@ -26,14 +26,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { User, Landmark, Activity, Smartphone, Shield, Edit, Ban, History, Unlink } from "lucide-react";
-import { prisma } from "@/lib/db";
+import { systemDb } from "@/lib/system-db";
 import { notFound } from "next/navigation";
 import { decrypt } from "@/lib/crypto";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 const getCustomerById = async (id: string) => {
-    const customerFromDb = await prisma.appUser.findFirst({
+    const customerFromDb = await systemDb.appUser.findFirst({
         where: {
             OR: [
                 { Id: id },
@@ -72,7 +72,7 @@ const getCustomerById = async (id: string) => {
 
 const getAccountsByCif = async (cif: string) => {
     if (!cif) return [];
-    const accountsFromDb = await prisma.account.findMany({
+    const accountsFromDb = await systemDb.account.findMany({
         where: { CIFNumber: cif }
     });
     
