@@ -1,5 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// This is your Prisma schema file for the main dashboard and admin database.
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -11,16 +11,16 @@ datasource db {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  employeeId String   @unique
-  name       String
-  email      String   @unique
-  password   String
-  role       String
-  branch     String?
-  department String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  employeeId  String   @unique
+  name        String
+  email       String   @unique
+  password    String // In a real app, this should be a securely hashed password
+  role        String
+  branch      String?
+  department  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Role {
@@ -29,4 +29,34 @@ model Role {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Branch {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  location    String
+  departments Department[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  branchId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MiniApp {
+  id             String @id @default(uuid())
+  name           String
+  url            String
+  logo_url       String?
+  username       String
+  password       String
+  encryption_key String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

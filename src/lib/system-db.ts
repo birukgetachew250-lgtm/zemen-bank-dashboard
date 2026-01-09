@@ -1,19 +1,24 @@
-// src/lib/system-db.ts
 'server-only';
 
-import { PrismaClient } from '@prisma/client-system';
+import { PrismaClient } from '@prisma/client/system';
+import { PrismaLibSQL } from '@prisma/adapter-libsql';
+import { createClient } from '@libsql/client';
 
-// This file is for the second database connection (SYSTEM_MODULE)
-// It uses the Prisma client generated into the '@prisma/client-system' directory.
 
 declare global {
-  // eslint-disable-next-line no-var
   var systemDb: PrismaClient | undefined;
 }
+
+const libsql = createClient({
+  url: process.env.SYSTEM_MODULE_DB_URL!,
+});
+
+const adapter = new PrismaLibSQL(libsql);
 
 export const systemDb =
   global.systemDb ||
   new PrismaClient({
+    adapter,
     log:
       process.env.NODE_ENV === 'development'
         ? ['query', 'error', 'warn']
