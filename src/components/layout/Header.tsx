@@ -93,7 +93,7 @@ function MobileSidebarNavItem({ item, pathname }: { item: MenuItem; pathname: st
   );
 }
 
-export function Header() {
+export function Header({ user }: { user: any }) {
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
@@ -102,9 +102,11 @@ export function Header() {
   const currentPage = findCurrentPage(menu, pathname);
 
   const handleLogout = async () => {
+    // This is a client component, so we make an API call to clear the cookie
+    await fetch('/api/auth/logout', { method: 'POST' });
     toast({ title: 'Logged out successfully.' });
-    // Since there's no login page, we can just redirect to dashboard
-    router.push('/dashboard');
+    router.push('/login');
+    router.refresh();
   };
 
   return (
@@ -143,17 +145,17 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9">
-                <AvatarImage src="/images/avatar.png" alt="Admin User" />
-                <AvatarFallback>A</AvatarFallback>
+                <AvatarImage src="/images/avatar.png" alt={user?.name || 'User'} />
+                <AvatarFallback>{user?.name?.[0] || 'U'}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">Admin User</p>
+                <p className="text-sm font-medium leading-none">{user?.name}</p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  admin@zemen.com
+                  {user?.email}
                 </p>
               </div>
             </DropdownMenuLabel>

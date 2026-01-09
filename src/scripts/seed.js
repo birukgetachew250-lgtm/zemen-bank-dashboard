@@ -445,6 +445,7 @@ function seed() {
     { id: 'dept_2', name: 'Branch Operations', branchId: 'br_1' },
     { id: 'dept_3', name: 'Human Resources', branchId: 'br_2' },
     { id: 'dept_4', name: 'Customer Service', branchId: 'br_3' },
+    { id: 'dept_5', name: 'Compliance Department', branchId: 'br_2'},
   ];
   const insertDepartment = db.prepare('INSERT INTO departments (id, name, branchId) VALUES (?, ?, ?)');
   const insertManyDepartments = db.transaction((depts) => {
@@ -465,6 +466,61 @@ function seed() {
   insertManyMiniApps(miniApps);
   console.log(`Seeded ${miniApps.length} mini apps.`);
 
+  // Seed Roles with permissions
+    const defaultRoles = [
+        { 
+            id: 'role_super_admin', 
+            name: 'Super Admin', 
+            permissions: JSON.stringify(['all']) // Special case for full access
+        },
+        { 
+            id: 'role_ops_lead', 
+            name: 'Operations Lead', 
+            permissions: JSON.stringify(['Dashboard', 'Banking Users', 'Transactions', 'Mini Apps', 'Oversight'])
+        },
+        {
+            id: 'role_compliance',
+            name: 'Compliance Officer',
+            permissions: JSON.stringify(['Oversight', 'Reporting'])
+        }
+    ];
+    const insertRole = db.prepare('INSERT INTO roles (id, name, permissions) VALUES (?, ?, ?)');
+    const insertManyRoles = db.transaction((roles) => {
+        for (const role of roles) insertRole.run(role.id, role.name, role.permissions);
+    });
+    insertManyRoles(defaultRoles);
+    console.log(`Seeded ${defaultRoles.length} roles.`);
+
+    // Seed System Users
+    const systemUsers = [
+        {
+            id: 'user_admin',
+            employeeId: '0001',
+            name: 'Admin User',
+            email: 'admin@zemen.com',
+            password: 'password', // Simple password for demo purposes
+            role: 'Super Admin',
+            branch: 'Head Office',
+            department: 'IT Department'
+        },
+        {
+            id: 'user_compliance',
+            employeeId: '0002',
+            name: 'Tirunesh Dibaba',
+            email: 'compliance@zemen.com',
+            password: 'password',
+            role: 'Compliance Officer',
+            branch: 'Head Office',
+            department: 'Compliance Department'
+        }
+    ];
+    const insertUser = db.prepare('INSERT INTO users (id, employeeId, name, email, password, role, branch, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+    const insertManyUsers = db.transaction((users) => {
+        for (const user of users) insertUser.run(user.id, user.employeeId, user.name, user.email, user.password, user.role, user.branch, user.department);
+    });
+    insertManyUsers(systemUsers);
+    console.log(`Seeded ${systemUsers.length} system users.`);
+
 
   console.log('Seeding complete!');
 }
@@ -476,3 +532,5 @@ try {
 } finally {
   db.close();
 }
+
+    

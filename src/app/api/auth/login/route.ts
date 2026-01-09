@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { cookies } from 'next/headers';
 // In a real app, you'd use a robust library for password hashing like bcrypt
 // For this demo, we'll use a simple comparison.
 // import bcrypt from 'bcrypt'; 
@@ -29,10 +30,14 @@ export async function POST(req: Request) {
     }
 
     // IMPORTANT: Session Management
-    // In a real production app, you would create a secure, signed, HTTP-only cookie
-    // containing session data. Libraries like 'iron-session' or 'next-auth' are ideal for this.
-    // For this demonstration, we are just returning a success message. The client-side
-    // will redirect, and our layout will use a simulated session check.
+    // For this demo, we will set a simple cookie to simulate a session.
+    // In a production app, use a secure, signed, HTTP-only cookie with libraries like 'iron-session' or 'next-auth'.
+    cookies().set('session_user_id', user.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24, // 1 day
+      path: '/',
+    });
     
     const { password: userPassword, ...userWithoutPassword } = user;
 
@@ -43,3 +48,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+    

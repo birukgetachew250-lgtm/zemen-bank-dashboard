@@ -3,14 +3,34 @@ import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Watermark } from "@/components/layout/Watermark";
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { db } from '@/lib/db';
 
-// In a real app, this would involve validating a session token (e.g., from an HTTP-only cookie)
 const getSession = async () => {
-    // For this demonstration, we'll simulate a logged-in user.
-    // In a real implementation, return null if the session is invalid.
+    const cookieStore = cookies();
+    const userId = cookieStore.get('session_user_id')?.value;
+
+    if (!userId) {
+        return { isLoggedIn: false, user: null, permissions: [] };
+    }
+    
+    // In a real app, you would validate the session more thoroughly
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+
+    if (!user) {
+        return { isLoggedIn: false, user: null, permissions: [] };
+    }
+    
+    // Fetch permissions for the user's role
+    const role = db.prepare('SELECT permissions FROM roles WHERE name = ?').get(user.role);
+    const permissions = role ? JSON.parse(role.permissions) : [];
+    
+    const { password, ...userWithoutPassword } = user;
+
     return {
         isLoggedIn: true,
-        user: { name: 'Admin User', email: 'admin@zemen.com' }
+        user: userWithoutPassword,
+        permissions: permissions
     };
 };
 
@@ -28,9 +48,9 @@ export default async function MainLayout({
 
   return (
       <div className="flex h-screen bg-background">
-        <Sidebar />
+        <Sidebar userPermissions={session.permissions} />
         <div className="flex-1 flex flex-col h-screen">
-          <Header />
+          <Header user={session.user} />
           <main className="flex-1 p-4 md:p-6 lg:p-8 relative overflow-y-auto">
             <Watermark />
             {children}
@@ -42,3 +62,5 @@ export default async function MainLayout({
       </div>
   );
 }
+
+    
