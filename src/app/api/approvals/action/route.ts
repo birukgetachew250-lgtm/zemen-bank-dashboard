@@ -22,18 +22,24 @@ export async function POST(req: Request) {
         }
 
         // Handle approval
-        if (approval.details && typeof approval.details === 'object' && 'cif' in approval.details) {
-            const cif = (approval.details as any).cif;
+        let detailsObject = null;
+        try {
+            if (approval.details) {
+                detailsObject = JSON.parse(approval.details);
+            }
+        } catch (e) {
+             console.error("Failed to parse approval details JSON:", e);
+             // If parsing fails, we might still be able to proceed if the action doesn't depend on details.
+        }
+
+        if (detailsObject && 'cif' in detailsObject) {
+            const cif = detailsObject.cif;
             
             if (!cif) {
                 throw new Error(`CIF not found in approval details for approvalId: ${approvalId}`);
             }
-
-            // Using a transaction to ensure both DBs are updated or none are.
-            // Note: Prisma does not support transactions across different database connections.
-            // This is a simplified approach. A production system would use a saga pattern or other mechanism for distributed transactions.
             
-            // 1. Update Admin DB
+            // 1. Update user status based on approval type
             switch (approval.type) {
                 case 'new-customer':
                     await systemDb.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Active' } });
@@ -50,11 +56,11 @@ export async function POST(req: Request) {
                     break;
             }
 
-            // 2. Update System DB (Delete the approval record)
+            // 2. Delete the approval record
             await systemDb.pendingApproval.delete({ where: { id: approvalId } });
 
         } else {
-            // Failsafe for if details are missing
+            // Failsafe for if details are missing or malformed
             await systemDb.pendingApproval.delete({ where: { id: approvalId } });
         }
 

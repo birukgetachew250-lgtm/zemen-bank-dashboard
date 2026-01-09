@@ -1,66 +1,55 @@
-// datasource "db" is the main user management database
-datasource db {
-  provider = "postgresql"
-  url      = env("DASH_PROD_MODULE_DATABASE_URL")
-}
-
+// schema.prisma (Admin DB)
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native"]
+  provider = "prisma-client-js"
 }
 
-// User model for admin panel users
+datasource db {
+  provider = "sqlite"
+  url      = "file:./zemen.db"
+}
+
 model User {
   id         Int      @id @default(autoincrement())
   employeeId String   @unique
   name       String
   email      String   @unique
-  password   String // In a real app, this should be a hash
+  password   String // Hashed in a real app
   role       String
-  department String
   branch     String?
+  department String
   createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
 }
 
-// Role model for defining user roles and permissions
 model Role {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
+  id          Int    @id @default(autoincrement())
+  name        String @unique
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 }
 
-// Branch model
 model Branch {
-  id          String       @id @default(uuid())
-  name        String
-  location    String
+  id         String       @id @unique
+  name       String       @unique
+  location   String
   departments Department[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt  DateTime     @default(now())
 }
 
-// Department model
 model Department {
-  id        String   @id @default(uuid())
+  id        String   @id @unique
   name      String
-  branch    Branch   @relation(fields: [branchId], references: [id])
   branchId  String
+  branch    Branch   @relation(fields: [branchId], references: [id])
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  @@unique([name, branchId])
 }
 
-// Mini App model
 model MiniApp {
-  id             String @id @default(uuid())
-  name           String
+  id             String @id @unique
+  name           String @unique
   url            String
-  logo_url       String
+  logo_url       String?
   username       String
   password       String
   encryption_key String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
 }

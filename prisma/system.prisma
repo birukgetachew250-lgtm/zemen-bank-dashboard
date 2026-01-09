@@ -2,110 +2,124 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/system-client"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("SYSTEM_MODULE_DB_URL")
+  provider = "sqlite"
+  url      = "file:../system.db"
 }
 
-model Customer {
-  id              String             @id @default(cuid())
-  name            String
-  phone           String             @unique
-  status          String
-  registeredAt    DateTime           @default(now())
-  transactions    Transaction[]
-  pendingApprovals PendingApproval[]
-}
-
-model Transaction {
-  id              String         @id @default(cuid())
-  customerId      String
-  amount          Float
-  fee             Float
-  status          String // e.g., 'Successful', 'Failed', 'Pending', 'Reversed'
-  timestamp       DateTime       @default(now())
-  type            String // e.g., 'P2P', 'Bill Payment', 'Airtime'
-  channel         String // e.g., 'App', 'USSD', 'Agent'
-  to_account      String
-  is_anomalous    Boolean        @default(false)
-  anomaly_reason  String?
-  customer        Customer       @relation(fields: [customerId], references: [id])
-}
-
-model PendingApproval {
-  id              String       @id @default(cuid())
-  customerId      String
-  type            String       // e.g., 'new-customer', 'pin-reset', 'unblock-customer'
-  requestedAt     DateTime     @default(now())
-  status          String       @default("pending") // 'pending', 'approved', 'rejected'
-  details         Json?
-  customerName    String?
-  customerPhone   String?
-  customer        Customer     @relation(fields: [customerId], references: [id])
-}
-
-model OtpCode {
-  Id String @id @default(uuid())
-  UserId String
-  Purpose String
-  OtpCode String
-  OtpType String
-  Attempts Int @default(0)
-  IsUsed Boolean @default(false)
-  ExpiresAt DateTime
-  InsertDate DateTime @default(now())
-  UpdateDate DateTime @updatedAt
-}
+// Models for the SYSTEM database (customer-facing data)
 
 model AppUser {
-    Id String @id @default(uuid())
-    CIFNumber String @unique
-    FirstName String
-    SecondName String?
-    LastName String
-    Email String @unique
-    PhoneNumber String @unique
-    Status String
-    SignUpMainAuth String
-    SignUp2FA String
-    Channel String?
-    BranchCode String?
-    BranchName String?
-    AddressLine1 String?
-    AddressLine2 String?
-    AddressLine3 String?
-    AddressLine4 String?
-    Nationality String?
-    InsertDate DateTime @default(now())
-    UpdateDate DateTime @updatedAt
+  Id              String    @id @default(uuid())
+  CIFNumber       String    @unique
+  FirstName       String?
+  SecondName      String?
+  LastName        String?
+  Email           String?   @unique
+  PhoneNumber     String?   @unique
+  Status          String
+  SignUpMainAuth  String
+  SignUp2FA       String
+  AddressLine1    String?
+  AddressLine2    String?
+  AddressLine3    String?
+  AddressLine4    String?
+  Nationality     String?
+  BranchCode      String?
+  BranchName      String?
+  Channel         String?
+  InsertDate      DateTime  @default(now())
+  UpdateDate      DateTime  @updatedAt
+  LastLoginDate   DateTime?
 }
 
+
 model Account {
-    Id String @id @default(uuid())
-    CIFNumber String
-    AccountNumber String @unique
-    FirstName String
-    SecondName String?
-    LastName String
-    AccountType String
-    Currency String
-    Status String
-    BranchCode String?
-    BranchName String?
-    InsertDate DateTime @default(now())
-    UpdateDate DateTime @updatedAt
+  Id            String  @id @default(uuid())
+  CIFNumber     String
+  AccountNumber String  @unique
+  FirstName     String?
+  SecondName    String?
+  LastName      String?
+  AccountType   String?
+  Currency      String?
+  Status        String?
+  BranchCode    String?
+  BranchName    String?
+
+  @@index([CIFNumber])
 }
 
 model UserSecurity {
-    Id String @id @default(uuid())
-    UserId String @unique
-    CIFNumber String @unique
-    Status String
-    PinHash String?
-    SecurityQuestionId String?
-    SecurityAnswer String?
-    InsertDate DateTime @default(now())
-    UpdateDate DateTime @updatedAt
+  Id                 Int       @id @default(autoincrement())
+  UserId             String    @unique
+  CIFNumber          String    @unique
+  Status             String
+  PinHash            String?
+  PasswordHash       String?
+  SecurityQuestionId Int?
+  SecurityAnswer     String?
+  LastPinChangeDate  DateTime?
+  LastLoginDate      DateTime?
+}
+
+
+model Customer {
+  id           String          @id @default(uuid())
+  name         String
+  phone        String          @unique
+  status       String // e.g., 'Active', 'Blocked', 'Pending'
+  registeredAt DateTime        @default(now())
+  transactions Transaction[]
+  approvals    PendingApproval[]
+}
+
+model Transaction {
+  id             String      @id @default(uuid())
+  customerId     String
+  customer       Customer    @relation(fields: [customerId], references: [id])
+  amount         Float
+  fee            Float
+  status         String
+  timestamp      DateTime    @default(now())
+  type           String
+  channel        String
+  from_account   String?
+  to_account     String?
+  is_anomalous   Boolean     @default(false)
+  anomaly_reason String?
+
+  @@index([customerId])
+  @@index([timestamp])
+  @@index([type])
+  @@index([status])
+}
+
+model OtpCode {
+  Id             Int       @id @default(autoincrement())
+  UserId         String
+  OtpCode        String
+  Purpose        String
+  OtpType        String
+  IsUsed         Boolean   @default(false)
+  Attempts       Int       @default(0)
+  InsertDate     DateTime  @default(now())
+  UpdateDate     DateTime  @updatedAt
+  ExpiresAt      DateTime
+}
+
+
+model PendingApproval {
+  id            String   @id @default(uuid())
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id])
+  type          String // e.g., 'new-customer', 'pin-reset', 'unblock-customer'
+  status        String   @default("pending") // pending, approved, rejected
+  requestedAt   DateTime @default(now())
+  customerName  String
+  customerPhone String
+  details       String?
 }

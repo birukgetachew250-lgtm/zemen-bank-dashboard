@@ -76,13 +76,20 @@ export async function POST(req: Request) {
             });
         }
         
+        const detailsForApproval = { 
+            cif: customer.customer_number, 
+            customerData: customer, 
+            linkedAccounts: accounts, 
+            onboardingData: manualData 
+        };
+
         await systemDb.pendingApproval.create({
             data: {
                 customerId: systemCustomer.id,
                 type: 'new-customer',
                 customerName: customer.full_name,
                 customerPhone: customer.mobile_number,
-                details: JSON.stringify({ cif: customer.customer_number, customerData: customer, linkedAccounts: accounts, onboardingData: manualData })
+                details: JSON.stringify(detailsForApproval)
             }
         });
 

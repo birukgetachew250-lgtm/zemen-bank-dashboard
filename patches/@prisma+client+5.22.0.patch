@@ -1,26 +1,30 @@
-diff --git a/node_modules/@prisma/client/index.d.ts b/node_modules/@prisma/client/index.d.ts
-index 73878b2..41f3e79 100644
---- a/node_modules/@prisma/client/index.d.ts
-+++ b/node_modules/@prisma/client/index.d.ts
-@@ -3,6 +3,7 @@
- export { type Decimal } from './runtime/library';
- export { DMMF };
- export { type PrismaPromise } from './runtime/library';
-+export { PrismaClient as SystemPrismaClient } from '.prisma/client/system';
- 
- /**
-  * ##  Prisma Client ʲˢ
 diff --git a/node_modules/@prisma/client/index.js b/node_modules/@prisma/client/index.js
-index 728aa02..c71fccb 100644
+index 708c93258a52865c3b31349f481a5e55e378c933..0c4c442e390c5387413cf20c3a233b25916a0862 100644
 --- a/node_modules/@prisma/client/index.js
 +++ b/node_modules/@prisma/client/index.js
-@@ -3,6 +3,7 @@
- Object.defineProperty(exports, "PrismaClient", {
-   enumerable: true,
-   get: function () {
--    return universal.PrismaClient
-+    return universal.PrismaClient;
-   }
- });
-+exports.SystemPrismaClient = require('.prisma/client/system').PrismaClient;
-\ No newline at end of file
+@@ -102,6 +102,8 @@
+   exports.Prisma.Types = Types
+   exports.Prisma.getExtensionContext = getExtensionContext
+   exports.Prisma.getManagementEngine = getManagementEngine
++
++  exports.SystemPrismaClient = exports.PrismaClient
+ }
+ 
+ exports.Prisma.Promise = PrismaPromise
+diff --git a/node_modules/@prisma/client/index.d.ts b/node_modules/@prisma/client/index.d.ts
+index b8834d85215d58c823058a5e3158e2a3c75fe131..0168345731d87e07663f73bb3f2f0a149f1eb722 100644
+--- a/node_modules/@prisma/client/index.d.ts
++++ b/node_modules/@prisma/client/index.d.ts
+@@ -10714,6 +10714,11 @@
+   export const prisma: PrismaClient
+ 
+ 
++  /**
++   * This is a patched file that adds the SystemPrismaClient to the exports.
++   */
++  export const SystemPrismaClient: typeof PrismaClient
++
+   /**
+    * ### Example
+    *
+
