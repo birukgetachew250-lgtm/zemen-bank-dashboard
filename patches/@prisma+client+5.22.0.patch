@@ -1,0 +1,41 @@
+diff --git a/node_modules/@prisma/client/index.js b/node_modules/@prisma/client/index.js
+index 105a013..884c632 100644
+--- a/node_modules/@prisma/client/index.js
++++ b/node_modules/@prisma/client/index.js
+@@ -3,6 +3,7 @@
+ 
+ Object.defineProperty(exports, "__esModule", { value: true });
+ 
++const system = require('./system')
+ const decompress = require('./decompress');
+ const PrismaClient = require('./wasm');
+ 
+@@ -10,7 +11,7 @@
+ Object.assign(PrismaClient, decompress);
+ 
+ for (const name in PrismaClient) {
+-  Object.defineProperty(exports, name, {
++  Object.defineProperty(exports, name, {enumerable: true,
+     get: () => PrismaClient[name],
+   });
+ }
+diff --git a/node_modules/@prisma/client/package.json b/node_modules/@prisma/client/package.json
+index 580a133..e20256e 100644
+--- a/node_modules/@prisma/client/package.json
++++ b/node_modules/@prisma/client/package.json
+@@ -6,7 +6,13 @@
+   "main": "index.js",
+   "types": "index.d.ts",
+   "browser": "index-browser.js",
+-  "prisma": {
+-    "version": "5.17.0"
++  "exports": {
++    "./package.json": "./package.json",
++    ".": {
++      "types": "./index.d.ts",
++      "default": "./index.js"
++    },
++    "./system": "./system/index.js"
+   }
+ }
++
