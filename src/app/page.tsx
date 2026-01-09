@@ -36,8 +36,8 @@ export default function LoginPage() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: 'admin@zemen.com',
+      password: 'password',
     },
   });
 
@@ -61,10 +61,8 @@ export default function LoginPage() {
         description: 'Welcome back!',
       });
       
-      // On successful login, the server would set a session cookie.
-      // We then redirect the user to the dashboard.
+      router.refresh(); 
       router.push('/');
-      router.refresh(); // Refresh to re-trigger layout session check
 
     } catch (error: any) {
       toast({

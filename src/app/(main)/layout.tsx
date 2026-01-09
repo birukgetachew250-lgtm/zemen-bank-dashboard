@@ -14,15 +14,12 @@ const getSession = async () => {
         return { isLoggedIn: false, user: null, permissions: [] };
     }
     
-    // In a real app, you would validate the session more thoroughly
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
 
     if (!user) {
         return { isLoggedIn: false, user: null, permissions: [] };
     }
     
-    // In a real app, you'd fetch permissions from a dedicated roles/permissions table.
-    // For this demo, we'll assign permissions based on the role name.
     let permissions = [];
     switch (user.role) {
         case 'Super Admin':
