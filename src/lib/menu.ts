@@ -166,19 +166,13 @@ export const menu: MenuItem[] = [
   {
     label: "Reporting",
     icon: BarChart3,
+    href: "/reports/analytics/overview",
     children: [
-      {
-        label: "Analytics & Reports",
-        icon: PieChart,
-        href: "/reports/analytics/overview",
-        children: [
-          { icon: Target, label: "Overview Metrics", href: "/reports/analytics/overview" },
-          { icon: Users, label: "Financial Inclusion", href: "/reports/analytics/financial-inclusion" },
-          { icon: Wrench, label: "Custom Builder", href: "/reports/analytics/custom-builder" },
-          { icon: Mail, label: "Scheduled Reports", href: "/reports/analytics/scheduled" },
-          { icon: DownloadCloud, label: "Export Center", href: "/reports/analytics/export-center" },
-        ],
-      },
+        { icon: Target, label: "Overview Metrics", href: "/reports/analytics/overview" },
+        { icon: Users, label: "Financial Inclusion", href: "/reports/analytics/financial-inclusion" },
+        { icon: Wrench, label: "Custom Builder", href: "/reports/analytics/custom-builder" },
+        { icon: Mail, label: "Scheduled Reports", href: "/reports/analytics/scheduled" },
+        { icon: DownloadCloud, label: "Export Center", href: "/reports/analytics/export-center" },
     ]
   },
    {
