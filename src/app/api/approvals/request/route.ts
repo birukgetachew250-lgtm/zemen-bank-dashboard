@@ -5,7 +5,7 @@ import crypto from 'crypto';
 
 export async function POST(req: Request) {
     try {
-        const { cif, type, customerName, customerPhone } = await req.json();
+        const { cif, type, customerName, customerPhone, details } = await req.json();
 
         if (!cif || !type) {
             return NextResponse.json({ message: 'CIF and approval type are required' }, { status: 400 });
@@ -21,6 +21,12 @@ export async function POST(req: Request) {
 
         const approvalId = `appr_${crypto.randomUUID()}`;
         
+        // Combine provided details with the mandatory CIF
+        const finalDetails = JSON.stringify({
+            cif: cif,
+            ...(details || {})
+        });
+        
         db.prepare(
             'INSERT INTO pending_approvals (id, customerId, type, customerName, customerPhone, details) VALUES (?, ?, ?, ?, ?, ?)'
         ).run(
@@ -29,7 +35,7 @@ export async function POST(req: Request) {
             type, 
             customerName, 
             customerPhone, 
-            JSON.stringify({ requestedBy: 'admin' }) // Placeholder details
+            finalDetails
         );
 
         return NextResponse.json({ success: true, message: 'Request submitted for approval' });

@@ -1,5 +1,18 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import config from '@/lib/config';
+
+// Function to update user status in the correct database
+const updateUserStatus = async (cif: string, status: 'Active' | 'Block') => {
+    let statement;
+    if (config.db.isProduction) {
+        statement = await db.prepare('UPDATE "USER_MODULE"."AppUsers" SET "Status" = :1 WHERE "CIFNumber" = :2');
+        return statement.run(status, cif);
+    } else {
+        statement = db.prepare('UPDATE AppUsers SET Status = ? WHERE CIFNumber = ?');
+        return statement.run(status, cif);
+    }
+};
 
 export async function POST(req: Request) {
     try {
@@ -17,29 +30,45 @@ export async function POST(req: Request) {
 
         const newStatus = action === 'approve' ? 'approved' : 'rejected';
         
-        const transaction = db.transaction(() => {
+        const transaction = db.transaction(async () => {
+            // First, delete the approval request
             db.prepare('DELETE FROM pending_approvals WHERE id = ?').run(approvalId);
             
-            // Handle different approval types
+            // Handle different approval types only if the action is 'approve'
             if (action === 'approve') {
-                if (approval.type === 'new-customer' || approval.type === 'unblock') {
-                    db.prepare("UPDATE customers SET status = 'active' WHERE id = ?").run(approval.customerId);
-                } else if (approval.type === 'pin-reset') {
-                    // In a real app, this would trigger the actual PIN reset mechanism (e.g., sending SMS)
-                    // For now, we just log that it was approved.
-                    console.log(`PIN reset approved for customer ${approval.customerId}`);
+                const details = JSON.parse(approval.details || '{}');
+                const cif = details.cif;
+
+                if (!cif) {
+                    console.error(`CIF not found in approval details for approvalId: ${approvalId}`);
+                    // We don't throw here to avoid rolling back the transaction, 
+                    // the approval is still removed.
+                    return; 
                 }
-                // Add other specific 'approve' actions for different approval types here
+
+                switch (approval.type) {
+                    case 'new-customer':
+                        await updateUserStatus(cif, 'Active');
+                        break;
+                    case 'suspend-customer':
+                        await updateUserStatus(cif, 'Block');
+                        break;
+                    case 'unsuspend-customer':
+                         await updateUserStatus(cif, 'Active');
+                        break;
+                    case 'pin-reset':
+                        // In a real app, this would trigger the actual PIN reset mechanism (e.g., sending SMS)
+                        console.log(`PIN reset approved for customer CIF ${cif}`);
+                        break;
+                    // Add other specific 'approve' actions for different approval types here
+                }
             } else { // action === 'reject'
-                if (approval.type === 'new-customer') {
-                    // Optionally, set customer status to 'rejected' or delete them
-                    db.prepare("UPDATE customers SET status = 'rejected' WHERE id = ?").run(approval.customerId);
-                }
-                 // Add other specific 'reject' actions for different approval types here
+                // Handle rejection logic if needed, e.g., logging or setting a 'rejected' status elsewhere.
+                console.log(`Approval request ${approvalId} for type ${approval.type} was rejected.`);
             }
         });
 
-        transaction();
+        await transaction();
 
         return NextResponse.json({ success: true, message: `Request has been ${newStatus}` });
 

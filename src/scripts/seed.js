@@ -22,28 +22,37 @@ function encrypt(value) {
     return result.toString('base64');
 }
 
-
-const db = new Database('zemen.db', { verbose: console.log });
+const dbPath = 'zemen.db';
+const db = new Database(dbPath, { verbose: console.log });
 
 function seed() {
   console.log('Seeding Zemen DB...');
 
   // Drop all tables to ensure a clean slate
-  db.exec('DROP TABLE IF EXISTS pending_approvals');
-  db.exec('DROP TABLE IF EXISTS transactions');
-  db.exec('DROP TABLE IF EXISTS customers');
-  db.exec('DROP TABLE IF EXISTS UserSecurities');
-  db.exec('DROP TABLE IF EXISTS Accounts');
-  db.exec('DROP TABLE IF EXISTS AppUsers');
-  db.exec('DROP TABLE IF EXISTS SecurityQuestions');
+  const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';").all();
+  for (const table of tables) {
+    db.exec(`DROP TABLE IF EXISTS ${table.name}`);
+  }
   console.log('Dropped existing tables.');
   
   
   // Recreate tables with the correct schema
   db.exec(`
-      CREATE TABLE IF NOT EXISTS SecurityQuestions (
-        Id TEXT PRIMARY KEY, 
-        Question TEXT UNIQUE
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        employeeId TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL,
+        branch TEXT,
+        department TEXT NOT NULL
+      );
+      
+      CREATE TABLE IF NOT EXISTS roles (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        permissions TEXT NOT NULL 
       );
 
       CREATE TABLE IF NOT EXISTS AppUsers (
@@ -54,17 +63,110 @@ function seed() {
         LastName TEXT, 
         Email TEXT, 
         PhoneNumber TEXT, 
-        Status TEXT, 
-        SignUpMainAuth TEXT, 
-        SignUp2FA TEXT, 
-        BranchName TEXT, 
         AddressLine1 TEXT, 
         AddressLine2 TEXT, 
         AddressLine3 TEXT, 
         AddressLine4 TEXT, 
-        Nationality TEXT,
+        Nationality TEXT, 
+        BranchCode TEXT, 
+        BranchName TEXT, 
+        Status TEXT, 
+        SignUp2FA TEXT, 
+        SignUpMainAuth TEXT, 
         Channel TEXT,
-        InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP
+        InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+        UpdateDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+        InsertUser TEXT DEFAULT 'system', 
+        UpdateUser TEXT DEFAULT 'system', 
+        Version TEXT DEFAULT (lower(hex(randomblob(16))))
+      );
+
+      CREATE TABLE IF NOT EXISTS Accounts (
+        Id TEXT PRIMARY KEY, 
+        CIFNumber TEXT NOT NULL, 
+        AccountNumber TEXT, 
+        HashedAccountNumber TEXT, 
+        FirstName TEXT, 
+        SecondName TEXT, 
+        LastName TEXT, 
+        BranchCode TEXT, 
+        BranchName TEXT, 
+        AccountType TEXT, 
+        Currency TEXT, 
+        Status TEXT, 
+        InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+        UpdateDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+        InsertUser TEXT DEFAULT 'system', 
+        UpdateUser TEXT DEFAULT 'system', 
+        Version TEXT DEFAULT (lower(hex(randomblob(16)))),
+        FOREIGN KEY (CIFNumber) REFERENCES AppUsers(CIFNumber) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS SecurityQuestions (
+        Id TEXT PRIMARY KEY, 
+        Question TEXT UNIQUE, 
+        InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+        UpdateDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+        InsertUser TEXT DEFAULT 'system', 
+        UpdateUser TEXT DEFAULT 'system', 
+        Version TEXT DEFAULT (lower(hex(randomblob(16))))
+      );
+
+      CREATE TABLE IF NOT EXISTS UserSecurities (
+        UserId TEXT PRIMARY KEY, 
+        CIFNumber TEXT UNIQUE NOT NULL, 
+        PinHash TEXT, 
+        Status TEXT, 
+        SecurityQuestionId TEXT, 
+        SecurityAnswer TEXT, 
+        IsLoggedIn INTEGER DEFAULT 0, 
+        FailedAttempts INTEGER DEFAULT 0, 
+        LastLoginAttempt DATETIME, 
+        IsLocked INTEGER DEFAULT 0, 
+        UnlockedTime DATETIME, 
+        LockedIntervalMinutes INTEGER, 
+        EncKey TEXT, 
+        EncIV TEXT, 
+        IsBiometricsLogin INTEGER DEFAULT 0, 
+        IsBiometricsPayment INTEGER DEFAULT 0, 
+        DeviceSwitchConsent INTEGER DEFAULT 0, 
+        OnTmpPassword INTEGER DEFAULT 0, 
+        IsActivationUsed INTEGER DEFAULT 0, 
+        ActivationExpiredAt DATETIME DEFAULT CURRENT_TIMESTAMP, 
+        InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+        UpdateDate DATETIME DEFAULT CURRENT_TIMESTAMP, 
+        InsertUser TEXT DEFAULT 'system', 
+        UpdateUser TEXT DEFAULT 'system', 
+        Version TEXT DEFAULT (lower(hex(randomblob(16)))),
+        FOREIGN KEY(UserId) REFERENCES AppUsers(Id),
+        FOREIGN KEY(CIFNumber) REFERENCES AppUsers(CIFNumber),
+        FOREIGN KEY(SecurityQuestionId) REFERENCES SecurityQuestions(Id) ON DELETE SET NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS OtpCodes (
+        Id TEXT,
+        UserId TEXT,
+        CodeHash TEXT,
+        Secret TEXT,
+        OtpType TEXT,
+        Purpose TEXT,
+        IsUsed INTEGER DEFAULT 0,
+        Attempts INTEGER,
+        ExpiresAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+        InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UpdateDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+        InsertUser TEXT DEFAULT 'system',
+        UpdateUser TEXT DEFAULT 'system',
+        Version TEXT
+      );
+
+      CREATE TABLE IF NOT EXISTS OtpUsers (
+          UserId TEXT PRIMARY KEY,
+          Status INTEGER,
+          LockedUntil DATETIME DEFAULT CURRENT_TIMESTAMP,
+          InsertDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+          UpdateDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+          OtpCodeId TEXT
       );
 
       CREATE TABLE IF NOT EXISTS customers (
@@ -86,7 +188,7 @@ function seed() {
         details TEXT, 
         FOREIGN KEY (customerId) REFERENCES customers(id)
       );
-      
+
       CREATE TABLE IF NOT EXISTS transactions (
         id TEXT PRIMARY KEY,
         customerId TEXT,
@@ -102,32 +204,38 @@ function seed() {
         FOREIGN KEY (customerId) REFERENCES customers(id)
       );
 
-       CREATE TABLE IF NOT EXISTS UserSecurities (
-        UserId TEXT PRIMARY KEY, 
-        CIFNumber TEXT UNIQUE NOT NULL, 
-        PinHash TEXT, 
-        Status TEXT, 
-        SecurityQuestionId TEXT, 
-        SecurityAnswer TEXT, 
-        EncKey TEXT, 
-        EncIV TEXT,
-        FOREIGN KEY(UserId) REFERENCES AppUsers(Id),
-        FOREIGN KEY(CIFNumber) REFERENCES AppUsers(CIFNumber),
-        FOREIGN KEY(SecurityQuestionId) REFERENCES SecurityQuestions(Id) ON DELETE SET NULL
+      CREATE TABLE IF NOT EXISTS corporates (
+        id TEXT PRIMARY KEY,
+        name TEXT,
+        industry TEXT,
+        status TEXT,
+        internet_banking_status TEXT,
+        logo_url TEXT
       );
 
-       CREATE TABLE IF NOT EXISTS Accounts (
-        Id TEXT PRIMARY KEY, 
-        CIFNumber TEXT NOT NULL, 
-        AccountNumber TEXT, 
-        FirstName TEXT, 
-        SecondName TEXT, 
-        LastName TEXT, 
-        AccountType TEXT, 
-        Currency TEXT, 
-        Status TEXT, 
-        BranchName TEXT,
-        FOREIGN KEY (CIFNumber) REFERENCES AppUsers(CIFNumber) ON DELETE CASCADE
+      CREATE TABLE IF NOT EXISTS branches (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        location TEXT NOT NULL,
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS departments (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        branchId TEXT,
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS mini_apps (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        url TEXT NOT NULL,
+        logo_url TEXT,
+        username TEXT NOT NULL,
+        password TEXT NOT NULL,
+        encryption_key TEXT NOT NULL,
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);
     console.log('Tables created successfully.');
@@ -245,9 +353,9 @@ function seed() {
   console.log(`Seeded ${userSecurities.length} user securities.`);
 
   // Seed Pending Approvals
-  const approvalTypes = ['unblock', 'pin-reset', 'new-customer', 'updated-customer', 'customer-account', 'reset-security-questions'];
+  const approvalTypes = ['unblock', 'pin-reset', 'new-customer', 'updated-customer', 'customer-account', 'reset-security-questions', 'suspend-customer', 'unsuspend-customer'];
   const pendingApprovals = [];
-  const insertApproval = db.prepare('INSERT INTO pending_approvals (id, customerId, type, requestedAt, customerName, customerPhone) VALUES (?, ?, ?, ?, ?, ?)');
+  const insertApproval = db.prepare('INSERT INTO pending_approvals (id, customerId, type, requestedAt, customerName, customerPhone, details) VALUES (?, ?, ?, ?, ?, ?, ?)');
 
   for (let i = 0; i < 15; i++) {
     const randomCustomer = faker.helpers.arrayElement(customers);
@@ -258,13 +366,14 @@ function seed() {
       requestedAt: faker.date.recent({ days: 10 }),
       customerName: randomCustomer.name,
       customerPhone: randomCustomer.phone,
+      details: JSON.stringify({ cif: randomCustomer.id.replace('cust_', '') })
     };
     pendingApprovals.push(approval);
   }
 
   const insertManyApprovals = db.transaction((approvals) => {
     for (const approval of approvals) {
-      insertApproval.run(approval.id, approval.customerId, approval.type, approval.requestedAt.toISOString(), approval.customerName, approval.customerPhone);
+      insertApproval.run(approval.id, approval.customerId, approval.type, approval.requestedAt.toISOString(), approval.customerName, approval.customerPhone, approval.details);
     }
   });
   insertManyApprovals(pendingApprovals);

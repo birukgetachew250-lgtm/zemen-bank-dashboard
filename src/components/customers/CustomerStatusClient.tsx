@@ -51,10 +51,10 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
   const { toast } = useToast();
   const router = useRouter();
 
-  const targetStatus = (action === 'Suspend') ? 'Block' : 'Active';
-  const buttonLabel = action;
+  const buttonLabel = `Request ${action}`;
   const buttonIcon = action === 'Suspend' ? <Ban className="mr-2 h-4 w-4" /> : <CheckCircle className="mr-2 h-4 w-4" />;
   const buttonVariant = action === 'Suspend' ? 'destructive' : 'default';
+  const approvalType = action === 'Suspend' ? 'suspend-customer' : 'unsuspend-customer';
 
   const handleSearch = async () => {
     if (!cifNumber) {
@@ -91,14 +91,19 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
 
     setIsActionLoading(true);
      try {
-        const response = await fetch('/api/customers/status', {
+        const response = await fetch('/api/approvals/request', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cifNumber: customer.cifNumber, status: targetStatus }),
+            body: JSON.stringify({ 
+                cif: customer.cifNumber, 
+                type: approvalType, 
+                customerName: customer.name, 
+                customerPhone: customer.phoneNumber 
+            }),
         });
         if (!response.ok) {
              const error = await response.json();
-            throw new Error(error.message || `Failed to ${action.toLowerCase()} customer`);
+            throw new Error(error.message || `Failed to request ${action.toLowerCase()}`);
         }
         
         // Redirect to success page
@@ -107,7 +112,7 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
     } catch (error: any) {
         toast({
             variant: "destructive",
-            title: `${action} Failed`,
+            title: `${action} Request Failed`,
             description: error.message,
         });
     } finally {
@@ -143,7 +148,7 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
             <CardHeader>
                 <CardTitle>{action} Customer</CardTitle>
                 <CardDescription>
-                    Enter a CIF number to find a customer and {action.toLowerCase()} their app access.
+                    Enter a CIF number to find a customer and submit a request to {action.toLowerCase()} their app access.
                 </CardDescription>
             </CardHeader>
             <CardContent>

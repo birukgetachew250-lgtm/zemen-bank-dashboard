@@ -73,7 +73,6 @@ export const menu: MenuItem[] = [
           { icon: Users, label: "Existing Customers", href: "/customers" },
           { icon: Ban, label: "Suspend Customer", href: "/customers/block" },
           { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/unblock" },
-          { icon: UserCheck, label: "Unblock Customer", href: "/customers/unblock-customer" },
           { icon: KeyRound, label: "Request Pin Reset", href: "/customers/request-pin-reset" },
         ],
       },
