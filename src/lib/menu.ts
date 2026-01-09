@@ -46,6 +46,7 @@ import {
   Bell,
   UserCheck,
   Ban,
+  Plug,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -192,6 +193,7 @@ export const menu: MenuItem[] = [
     label: "Integrations",
     icon: Network,
     children: [
+      { icon: Plug, label: "Integration Config", href: "/integrations/config" },
       { icon: Building2, label: "Partner Management", href: "/integrations/partner-management" },
       { icon: Activity, label: "API Monitoring", href: "/integrations/api-monitoring" },
       { icon: Globe, label: "Third-Party Integrations", href: "/integrations/third-party" },
