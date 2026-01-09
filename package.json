@@ -17,7 +17,7 @@
     "seed": "node src/scripts/seed.js",
     "seed:prod": "cross-env NODE_ENV=production node src/scripts/seed-prod.js",
     "test:db": "node src/scripts/test-db.js",
-    "postinstall": "prisma generate --schema=./prisma/schema.prisma && prisma generate --schema=./prisma/system.prisma && patch-package"
+    "postinstall": "prisma generate --schema=./prisma/schema.prisma && prisma generate --schema=./prisma/system.prisma"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.20.0",

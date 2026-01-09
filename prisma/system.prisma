@@ -1,6 +1,9 @@
-generator client {
-  provider = "prisma-client-js"
-  output   = "../node_modules/@prisma/client-system"
+// This is your Prisma schema file for the system database.
+
+generator system {
+  provider      = "prisma-client-js"
+  output        = "../node_modules/.prisma/client/system"
+  binaryTargets = ["native"]
 }
 
 datasource db {
@@ -8,43 +11,110 @@ datasource db {
   url      = env("SYSTEM_MODULE_DB_URL")
 }
 
-model Customer {
-  id    String @id @default(cuid())
-  name  String
-  phone String @unique
-  status String
-  transactions Transaction[]
-  pending_approvals PendingApproval[]
-  registeredAt DateTime @default(now())
+model AppUser {
+  Id               String   @id
+  CIFNumber        String   @unique
+  FirstName        String
+  SecondName       String
+  LastName         String
+  Email            String
+  PhoneNumber      String   @unique
+  Status           String
+  Channel          String?
+  SignUpMainAuth   String?
+  SignUp2FA        String?
+  BranchCode       String?
+  BranchName       String?
+  AddressLine1     String?
+  AddressLine2     String?
+  AddressLine3     String?
+  AddressLine4     String?
+  Nationality      String?
+  LastLoginDate    DateTime @default(now())
+  LoginAttempt     Int      @default(0)
+  InsertDate       DateTime @default(now())
+  UpdateDate       DateTime @updatedAt
+  userSecurity     UserSecurity?
 }
 
-model Transaction {
-  id              String   @id @default(cuid())
-  timestamp       DateTime @default(now())
-  type            String
-  amount          Float
-  fee             Float
-  status          String
-  channel         String
-  from_account    String?
-  to_account      String
-  is_anomalous    Boolean  @default(false)
-  anomaly_reason  String?
+model Account {
+  Id            String   @id
+  CIFNumber     String
+  AccountNumber String   @unique
+  FirstName     String
+  SecondName    String
+  LastName      String
+  AccountType   String
+  Currency      String
+  Status        String
+  BranchName    String?
+  InsertDate    DateTime @default(now())
+  UpdateDate    DateTime @updatedAt
+}
 
-  customer   Customer @relation(fields: [customerId], references: [id])
-  customerId String
+model OtpCode {
+  Id         String   @id
+  UserId     String
+  OtpType    String // e.g., 'SMS', 'EMAIL'
+  Code       String
+  Purpose    String // e.g., 'LOGIN', 'TRANSACTION'
+  IsUsed     Boolean  @default(false)
+  Attempts   Int      @default(0)
+  ExpiresAt  DateTime
+  InsertDate DateTime @default(now())
+  UpdateDate DateTime @updatedAt
+}
+
+model UserSecurity {
+  UserId             String        @id
+  CIFNumber          String        @unique
+  Status             String
+  PinHash            String?
+  PasswordHash       String?
+  SecurityQuestionId String?
+  SecurityAnswer     String?
+  InsertDate         DateTime      @default(now())
+  UpdateDate         DateTime      @updatedAt
+  appUser            AppUser       @relation(fields: [UserId], references: [Id])
+}
+
+
+model Transaction {
+  id             String   @id @default(cuid())
+  customerId     String
+  amount         Float
+  fee            Float
+  status         String
+  timestamp      DateTime
+  type           String
+  channel        String
+  to_account     String
+  is_anomalous   Boolean  @default(false)
+  anomaly_reason String?
+
+  customer Customer @relation(fields: [customerId], references: [id])
+}
+
+model Customer {
+  id              String            @id @default(cuid())
+  name            String
+  phone           String            @unique
+  status          String
+  registeredAt    DateTime          @default(now())
+  transactions    Transaction[]
+  pendingApprovals PendingApproval[]
 }
 
 model PendingApproval {
   id            String   @id @default(cuid())
-  type          String
-  requestedAt   DateTime @default(now())
-  status        String   @default("pending")
-  details       Json?
-
-  customer      Customer @relation(fields: [customerId], references: [id])
   customerId    String
-
   customerName  String
   customerPhone String
+  type          String
+  status        String   @default("pending")
+  requestedAt   DateTime @default(now())
+  resolvedAt    DateTime?
+  details       Json?
+
+  customer Customer @relation(fields: [customerId], references: [id])
 }

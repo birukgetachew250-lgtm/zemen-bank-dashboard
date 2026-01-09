@@ -1,15 +1,14 @@
 'server-only';
 
-import { PrismaClient } from '@prisma/client/system';
-
+import { PrismaClient as SystemPrismaClient } from '@prisma/client';
 
 declare global {
-  var systemDb: PrismaClient | undefined;
+  var systemDb: SystemPrismaClient | undefined;
 }
 
 export const systemDb =
   global.systemDb ||
-  new PrismaClient({
+  new SystemPrismaClient({
     log:
       process.env.NODE_ENV === 'development'
         ? ['query', 'error', 'warn']
