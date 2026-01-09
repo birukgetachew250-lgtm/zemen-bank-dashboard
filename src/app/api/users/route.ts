@@ -15,24 +15,28 @@ export async function POST(req: Request) {
              return NextResponse.json({ message: 'Branch is required for users in Branch Operations' }, { status: 400 });
         }
 
-        const existingUserByEmail = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+        const existingUserByEmail = await db.user.findUnique({ where: { email } });
         if (existingUserByEmail) {
             return NextResponse.json({ message: 'User with this email already exists' }, { status: 409 });
         }
 
-        const existingUserByEmployeeId = db.prepare('SELECT * FROM users WHERE employeeId = ?').get(employeeId);
+        const existingUserByEmployeeId = await db.user.findUnique({ where: { employeeId } });
         if (existingUserByEmployeeId) {
             return NextResponse.json({ message: 'User with this Employee ID already exists' }, { status: 409 });
         }
 
-        const id = `user_${crypto.randomUUID()}`;
-
         // In a real app, password should be hashed before storing
-        db.prepare(
-            'INSERT INTO users (id, employeeId, name, email, password, role, branch, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-        ).run(id, employeeId, name, email, password, role, branch, department);
-
-        const newUser: any = { id, employeeId, name, email, role, branch, department };
+        const newUser = await db.user.create({
+            data: {
+                employeeId,
+                name,
+                email,
+                password,
+                role,
+                branch,
+                department
+            }
+        });
 
         return NextResponse.json({ success: true, message: 'User created successfully', user: newUser }, { status: 201 });
 
@@ -50,20 +54,21 @@ export async function DELETE(req: Request) {
             return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
         }
         
-        // Prevent deleting the main admin user
-        if (id === 'user_ck_admin_001') {
+        const user = await db.user.findUnique({ where: { id: parseInt(id, 10) } });
+        // Prevent deleting the main admin user (assuming employeeId is stable)
+        if (user?.employeeId === 'admin001') {
             return NextResponse.json({ message: 'Cannot delete the default admin user' }, { status: 403 });
         }
 
-        const result = db.prepare('DELETE FROM users WHERE id = ?').run(id);
-
-        if (result.changes === 0) {
-            return NextResponse.json({ message: 'User not found' }, { status: 404 });
-        }
+        await db.user.delete({ where: { id: parseInt(id, 10) } });
 
         return NextResponse.json({ success: true, message: 'User deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Failed to delete user:', error);
+        // Handle case where user is not found
+        if (error.code === 'P2025') {
+             return NextResponse.json({ message: 'User not found' }, { status: 404 });
+        }
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }

@@ -14,7 +14,7 @@ const getSession = async () => {
         return { isLoggedIn: false, user: null, permissions: [] };
     }
     
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+    const user = await db.user.findUnique({ where: { id: parseInt(userId, 10) } });
 
     if (!user) {
         return { isLoggedIn: false, user: null, permissions: [] };

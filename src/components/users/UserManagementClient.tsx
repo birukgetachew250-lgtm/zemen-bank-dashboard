@@ -20,7 +20,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import type { Role } from "@/app/(main)/roles/page";
 import Image from "next/image";
 import { Badge } from "../ui/badge";
 import {
@@ -34,19 +33,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import type { User, Role } from "@prisma/client";
 
-export interface SystemUser {
-  id: string;
-  employeeId: string;
-  name: string;
-  email: string;
-  role: string;
-  branch: string;
-  department: string;
-}
 
 interface UserManagementClientProps {
-  initialUsers: SystemUser[];
+  initialUsers: User[];
   roles: Role[];
 }
 
@@ -55,7 +46,7 @@ export function UserManagementClient({
   roles,
 }: UserManagementClientProps) {
   const [users, setUsers] = useState(initialUsers);
-  const [userToDelete, setUserToDelete] = useState<SystemUser | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -72,6 +63,7 @@ export function UserManagementClient({
     if (res.ok) {
       setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
       toast({ title: "Success", description: "User deleted." });
+      router.refresh();
     } else {
       toast({ variant: "destructive", title: "Error", description: result.message || "Failed to delete user." });
     }

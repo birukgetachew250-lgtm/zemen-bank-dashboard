@@ -1,34 +1,33 @@
 
 import { UserManagementClient } from "@/components/users/UserManagementClient";
 import type { Role } from "@/app/(main)/roles/page";
-import { SystemUser } from "@/components/users/UserManagementClient";
 import { db } from "@/lib/db";
 
-// Mock roles remain for now, as roles aren't in the DB yet
-const mockRoles: Role[] = [
-  { id: 1, name: "Admin", userCount: 1, description: '...' },
-  { id: 2, name: "Support Lead", userCount: 1, description: '...' },
-  { id: 3, name: "Support Staff", userCount: 0, description: '...' },
-  { id: 4, name: "Compliance Officer", userCount: 0, description: '...' },
-];
-
-function getSystemUsers(): SystemUser[] {
+async function getSystemUsers() {
   try {
-    const data = db.prepare("SELECT * FROM users ORDER BY name ASC").all();
-    return data as SystemUser[];
+    const data = await db.user.findMany({
+        orderBy: { name: 'asc' }
+    });
+    return data;
   } catch (e) {
     console.error("Failed to fetch users from DB:", e);
     return [];
   }
 }
 
-function getRoles(): Role[] {
-    return mockRoles;
+async function getRoles(): Promise<Role[]> {
+    try {
+        const roles = await db.role.findMany();
+        return roles;
+    } catch(e) {
+        console.error("Failed to fetch roles from DB:", e);
+        return [];
+    }
 }
 
-export default function UsersPage() {
-  const users = getSystemUsers();
-  const roles = getRoles();
+export default async function UsersPage() {
+  const users = await getSystemUsers();
+  const roles = await getRoles();
 
   return (
     <div className="w-full h-full">

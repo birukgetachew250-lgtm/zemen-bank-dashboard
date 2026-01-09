@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Email and password are required.' }, { status: 400 });
     }
 
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    const user = await db.user.findUnique({ where: { email } });
 
     if (!user) {
       return NextResponse.json({ message: 'Invalid email or password.' }, { status: 401 });
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     // IMPORTANT: Session Management
     // For this demo, we will set a simple cookie to simulate a session.
     // In a production app, use a secure, signed, HTTP-only cookie with libraries like 'iron-session' or 'next-auth'.
-    cookies().set('session_user_id', user.id, {
+    cookies().set('session_user_id', user.id.toString(), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24, // 1 day

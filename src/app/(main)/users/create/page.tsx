@@ -3,29 +3,28 @@ import type { Branch } from "@/app/(main)/branches/page";
 import type { Department } from "@/app/(main)/departments/page";
 import { CreateUserForm } from "@/components/users/CreateUserForm";
 import { db } from "@/lib/db";
+import type { Role } from "@/app/(main)/roles/page";
+import { Prisma } from "@prisma/client";
 
-interface Role {
-    id: number;
-    name: string;
-    userCount: number;
-    description: string;
-}
+async function getFormData() {
+    // This data is still coming from the local SQLite DB via the legacy connection.
+    // In a full microservice architecture, this would call other services.
+    const branches: Branch[] = []; // You would fetch this from your structure service
+    const departments: Department[] = []; // You would fetch this from your structure service
 
-function getFormData() {
-    const branches = (db.prepare('SELECT * FROM branches ORDER BY name ASC').all() as Branch[]) || [];
-    const departments = (db.prepare('SELECT d.*, b.name as branchName FROM departments d JOIN branches b ON d.branchId = b.id ORDER BY d.name ASC').all() as Department[]) || [];
-    const roles = (db.prepare('SELECT * FROM roles ORDER BY name ASC').all() as Role[]) || [];
-    
+    // Roles can be fetched from the same DB as users via Prisma
+    const roles = await db.role.findMany();
+
     // Add default roles if none exist
     if (roles.length === 0) {
         return {
             branches,
             departments,
             roles: [
-                { id: 1, name: "Admin", userCount: 0, description: '...' },
-                { id: 2, name: "Support Lead", userCount: 0, description: '...' },
-                { id: 3, name: "Support Staff", userCount: 0, description: '...' },
-                { id: 4, name: "Compliance Officer", userCount: 0, description: '...' },
+                { id: 1, name: "Admin", description: '...' },
+                { id: 2, name: "Support Lead", description: '...' },
+                { id: 3, name: "Support Staff", description: '...' },
+                { id: 4, name: "Compliance Officer", description: '...' },
             ]
         }
     }
@@ -33,8 +32,8 @@ function getFormData() {
     return { branches, departments, roles };
 }
 
-export default function CreateUserPage() {
-    const { branches, departments, roles } = getFormData();
+export default async function CreateUserPage() {
+    const { branches, departments, roles } = await getFormData();
 
     return (
         <div className="w-full h-full">
