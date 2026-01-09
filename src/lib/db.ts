@@ -6,8 +6,11 @@ import { PrismaClient } from '@prisma/client';
 // DATABASE (Prisma)
 // =================================================================
 // Prisma is used for ALL database interactions in this application.
-// It connects to the database specified by USER_MODULE_DATABASE_URL in .env.
-// This single client manages all models: Users, AppUsers, Accounts, Transactions, etc.
+// It connects to the database specified by DASH_MODULE_DATABASE_URL (for dev)
+// or DASH_PROD_MODULE_DATABASE_URL (for prod) in .env.
+// This single client manages all models: User, Role, etc.
+// The main dashboard data (customers, transactions) is assumed to come from a
+// separate local SQLite DB for demo purposes.
 
 // This prevents us from making too many connections to the database in development.
 declare global {
