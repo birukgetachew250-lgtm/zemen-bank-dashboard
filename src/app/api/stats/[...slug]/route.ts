@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { subDays, startOfDay, endOfDay } from 'date-fns';
@@ -31,14 +32,16 @@ export async function GET(
             const range = searchParams.get('range') || 'today';
             const { from, to } = getDatesFromRange(range);
             
-            const total = db.prepare('SELECT COUNT(*) as count FROM transactions WHERE timestamp BETWEEN ? AND ?')
-                .get(from.toISOString(), to.toISOString())?.count ?? 0;
+            const whereClause = {
+                timestamp: {
+                    gte: from,
+                    lte: to,
+                },
+            };
 
-            const successful = db.prepare("SELECT COUNT(*) as count FROM transactions WHERE status = 'successful' AND timestamp BETWEEN ? AND ?")
-                .get(from.toISOString(), to.toISOString())?.count ?? 0;
-
-            const failed = db.prepare("SELECT COUNT(*) as count FROM transactions WHERE status = 'failed' AND timestamp BETWEEN ? AND ?")
-                .get(from.toISOString(), to.toISOString())?.count ?? 0;
+            const total = await db.transaction.count({ where: whereClause });
+            const successful = await db.transaction.count({ where: { ...whereClause, status: 'Successful' } });
+            const failed = await db.transaction.count({ where: { ...whereClause, status: 'Failed' } });
             
             return NextResponse.json({ total, successful, failed });
 

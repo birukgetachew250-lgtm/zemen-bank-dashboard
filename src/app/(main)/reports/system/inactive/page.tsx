@@ -1,17 +1,19 @@
 
 import { CustomerTable } from "@/components/customers/CustomerTable";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { format } from "date-fns";
-import config from "@/lib/config";
 import { decrypt } from "@/lib/crypto";
 
 async function getCustomers() {
-  let data;
-  if (config.db.isProduction) {
-     data = await db.prepare('SELECT "Id", "CIFNumber", "FirstName", "SecondName", "LastName", "PhoneNumber", "Status", "InsertDate" FROM "USER_MODULE"."AppUsers" WHERE "Status" = \'Inactive\' OR "Status" = \'Dormant\' ORDER BY "InsertDate" DESC').all();
-  } else {
-    data = db.prepare("SELECT Id, CIFNumber, FirstName, SecondName, LastName, PhoneNumber, Status, InsertDate FROM AppUsers WHERE Status = 'Inactive' OR Status = 'Dormant' ORDER BY InsertDate DESC").all();
-  }
+  const data = await prisma.appUser.findMany({
+    where: { 
+      OR: [
+        { Status: 'Inactive' },
+        { Status: 'Dormant' }
+      ]
+    },
+    orderBy: { InsertDate: 'desc' }
+  });
 
   if (!data) return [];
 

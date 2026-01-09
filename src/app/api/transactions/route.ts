@@ -1,5 +1,6 @@
+
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { subDays, parseISO, startOfDay, endOfDay } from 'date-fns';
 
 export async function GET(req: Request) {
@@ -11,62 +12,63 @@ export async function GET(req: Request) {
         const type = searchParams.get('type');
         const query = searchParams.get('query');
         
-        let sql = `
-            SELECT 
-                t.id, t.timestamp, t.type, t.amount, t.fee, t.status, t.channel,
-                c.name as from_customer_name, c.phone as from_customer_phone,
-                t.to_account
-            FROM transactions t
-            JOIN customers c ON t.customerId = c.id
-        `;
+        let where: any = {};
         
-        const whereClauses: string[] = [];
-        const params: any[] = [];
-
-        if (from) {
-            whereClauses.push("t.timestamp >= ?");
-            params.push(startOfDay(parseISO(from)).toISOString());
+        // Date range filtering
+        if (from || to) {
+            where.timestamp = {};
+            if (from) {
+                where.timestamp.gte = startOfDay(parseISO(from));
+            }
+            if (to) {
+                where.timestamp.lte = endOfDay(parseISO(to));
+            }
         } else {
-             // Default to last 30 days if no date range
-            whereClauses.push("t.timestamp >= ?");
-            params.push(subDays(new Date(), 30).toISOString());
-        }
-
-        if (to) {
-            whereClauses.push("t.timestamp <= ?");
-            params.push(endOfDay(parseISO(to)).toISOString());
+             where.timestamp = {
+                gte: subDays(new Date(), 30)
+            };
         }
 
         if (status && status !== 'All') {
-            whereClauses.push("t.status = ?");
-            params.push(status);
+            where.status = status;
         }
 
         if (type && type !== 'All') {
-            whereClauses.push("t.type = ?");
-            params.push(type);
+            where.type = type;
         }
 
         if (query) {
-            whereClauses.push("(t.id LIKE ? OR c.phone LIKE ? OR t.to_account LIKE ? OR c.name LIKE ?)");
-            const wildQuery = `%${query}%`;
-            params.push(wildQuery, wildQuery, wildQuery, wildQuery);
+             where.OR = [
+                { id: { contains: query, mode: 'insensitive' } },
+                { to_account: { contains: query, mode: 'insensitive' } },
+                { customer: { name: { contains: query, mode: 'insensitive' } } },
+                { customer: { phone: { contains: query, mode: 'insensitive' } } }
+            ];
         }
 
-        if (whereClauses.length > 0) {
-            sql += ` WHERE ${whereClauses.join(' AND ')}`;
-        }
+        const transactions = await prisma.transaction.findMany({
+            where,
+            include: {
+                customer: {
+                    select: { name: true, phone: true }
+                }
+            },
+            orderBy: { timestamp: 'desc' },
+            take: 100
+        });
         
-        sql += " ORDER BY t.timestamp DESC LIMIT 100"; // Add a limit
+        const todayRange = {
+            gte: startOfDay(new Date()),
+            lte: endOfDay(new Date())
+        };
+
+        const totalVolumeToday = await prisma.transaction.aggregate({
+            _sum: { amount: true },
+            where: { status: 'Successful', timestamp: todayRange }
+        });
         
-        const transactions = db.prepare(sql).all(...params);
-
-        const todayFrom = startOfDay(new Date()).toISOString();
-        const todayTo = endOfDay(new Date()).toISOString();
-
-        const totalVolumeToday = db.prepare(`SELECT SUM(amount) as total FROM transactions WHERE status = 'Successful' AND timestamp BETWEEN ? AND ?`).get(todayFrom, todayTo)?.total ?? 0;
-        const totalTransactionsToday = db.prepare(`SELECT COUNT(id) as count FROM transactions WHERE timestamp BETWEEN ? AND ?`).get(todayFrom, todayTo)?.count ?? 0;
-        const failedTransactionsToday = db.prepare(`SELECT COUNT(id) as count FROM transactions WHERE status = 'Failed' AND timestamp BETWEEN ? AND ?`).get(todayFrom, todayTo)?.count ?? 0;
+        const totalTransactionsToday = await prisma.transaction.count({ where: { timestamp: todayRange } });
+        const failedTransactionsToday = await prisma.transaction.count({ where: { status: 'Failed', timestamp: todayRange } });
 
         const data = transactions.map((row: any) => ({
             id: row.id,
@@ -77,8 +79,8 @@ export async function GET(req: Request) {
             status: row.status,
             channel: row.channel,
             from: {
-                name: row.from_customer_name,
-                account: row.from_customer_phone,
+                name: row.customer.name,
+                account: row.customer.phone,
             },
             to: {
                 name: "Receiver Name", // Mocked
@@ -89,7 +91,7 @@ export async function GET(req: Request) {
         return NextResponse.json({
             transactions: data,
             summary: {
-                totalVolume: totalVolumeToday,
+                totalVolume: totalVolumeToday._sum.amount || 0,
                 totalTransactions: totalTransactionsToday,
                 failedTransactions: failedTransactionsToday
             }

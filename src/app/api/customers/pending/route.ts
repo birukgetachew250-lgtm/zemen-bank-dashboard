@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
@@ -10,7 +11,13 @@ export async function GET(req: Request) {
     }
 
     try {
-        const rows = db.prepare("SELECT * FROM pending_approvals WHERE type = ? AND status = 'pending' ORDER BY requestedAt DESC").all(type);
+        const rows = await db.pendingApproval.findMany({
+            where: { 
+                type: type,
+                status: 'pending'
+            },
+            orderBy: { requestedAt: 'desc' }
+        });
         return NextResponse.json(rows);
     } catch (error) {
         console.error(`Failed to fetch pending approvals for type ${type}:`, error);

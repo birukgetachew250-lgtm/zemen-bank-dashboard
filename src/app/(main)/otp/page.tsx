@@ -1,5 +1,4 @@
 
-
 import {
   Card,
   CardContent,
@@ -16,49 +15,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { db } from "@/lib/db";
-import config from "@/lib/config";
+import { prisma } from "@/lib/db";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import type { OtpCode as OtpCodeType } from "@prisma/client";
 
-interface OtpCode {
-  Id: string;
-  UserId: string;
-  Purpose: string;
-  OtpType: string;
-  IsUsed: number;
-  Attempts: number;
-  ExpiresAt: string;
-}
 
 async function getOtpCodes() {
   try {
-    let data: any[];
-    if (config.db.isProduction) {
-      // For Oracle, use case-sensitive and quoted identifiers
-      data = await db.prepare(
-        'SELECT "Id", "UserId", "Purpose", "OtpType", "IsUsed", "Attempts", "ExpiresAt" FROM "OTP_MODULE"."OtpCodes" ORDER BY "UpdateDate" DESC FETCH FIRST 20 ROWS ONLY'
-      ).all();
-    } else {
-      // For SQLite, use standard identifiers
-      data = db.prepare(
-        'SELECT Id, UserId, Purpose, OtpType, IsUsed, Attempts, ExpiresAt FROM OtpCodes ORDER BY UpdateDate DESC LIMIT 20'
-      ).all();
-    }
-
-    if (!data) return [];
-    
-    // Map Oracle's uppercase field names to our desired camelCase format
-    return data.map((row: any) => ({
-      Id: row.Id || row.ID,
-      UserId: row.UserId || row.USERID,
-      Purpose: row.Purpose || row.PURPOSE,
-      OtpType: row.OtpType || row.OTPTYPE,
-      IsUsed: row.IsUsed ?? row.ISUSED,
-      Attempts: row.Attempts ?? row.ATTEMPTS,
-      ExpiresAt: row.ExpiresAt || row.EXPIRESAT,
-    }));
+    const data = await prisma.otpCode.findMany({
+      orderBy: { UpdateDate: 'desc' },
+      take: 20
+    });
+    return data;
   } catch (error) {
     console.error("Failed to fetch OTP codes:", error);
     if (error instanceof Error) {
@@ -69,7 +39,7 @@ async function getOtpCodes() {
 }
 
 export default async function OtpSmsPage() {
-    let otpCodes: OtpCode[] = [];
+    let otpCodes: OtpCodeType[] = [];
     let error: string | null = null;
 
     try {

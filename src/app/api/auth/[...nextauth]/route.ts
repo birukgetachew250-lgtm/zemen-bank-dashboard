@@ -2,6 +2,7 @@
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { db } from '@/lib/db';
+import config from '@/lib/config';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -12,6 +13,20 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        if (!config.db.isProduction) {
+          // DEMO MODE: Bypass auth and log in as default admin
+          const user = await db.user.findFirst({
+            where: { role: 'Super Admin' },
+          });
+          if (user) {
+            const { password, ...userWithoutPassword } = user;
+            return userWithoutPassword;
+          }
+          // Fallback if no admin user found in demo
+          return { id: '1', name: 'Demo Admin', email: 'admin@zemen.com', role: 'Super Admin'};
+        }
+
+        // PRODUCTION MODE: Real authentication
         if (!credentials?.email || !credentials?.password) {
           return null;
         }

@@ -26,43 +26,44 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { User, Landmark, Activity, Smartphone, Shield, Edit, Ban, History, Unlink } from "lucide-react";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
-import config from "@/lib/config";
 import { decrypt } from "@/lib/crypto";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 const getCustomerById = async (id: string) => {
-    let customerFromDb;
-    if (config.db.isProduction) {
-        customerFromDb = await db.prepare('SELECT "Id", "CIFNumber", "FirstName", "SecondName", "LastName", "Email", "PhoneNumber", "AddressLine1", "AddressLine2", "AddressLine3", "AddressLine4", "Nationality", "BranchCode", "BranchName", "Status", "SignUp2FA", "SignUpMainAuth", "InsertDate" FROM "USER_MODULE"."AppUsers" WHERE "Id" = :1 OR "CIFNumber" = :2').get(id, id);
-    } else {
-        customerFromDb = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
-    }
+    const customerFromDb = await prisma.appUser.findFirst({
+        where: {
+            OR: [
+                { Id: id },
+                { CIFNumber: id }
+            ]
+        }
+    });
 
     if (customerFromDb) {
         const d = customerFromDb;
-        const firstName = decrypt(d.FirstName || d.FIRSTNAME);
-        const secondName = decrypt(d.SecondName || d.SECONDNAME);
-        const lastName = decrypt(d.LastName || d.LASTNAME);
-        const email = decrypt(d.Email || d.EMAIL);
-        const phoneNumber = decrypt(d.PhoneNumber || d.PHONENUMBER);
+        const firstName = decrypt(d.FirstName);
+        const secondName = decrypt(d.SecondName);
+        const lastName = decrypt(d.LastName);
+        const email = decrypt(d.Email);
+        const phoneNumber = decrypt(d.PhoneNumber);
 
         return {
-            id: d.Id || d.ID,
-            cifNumber: d.CIFNumber || d.CIFNUMBER,
+            id: d.Id,
+            cifNumber: d.CIFNumber,
             name: [firstName, secondName, lastName].filter(Boolean).join(' '),
             email: email,
             phoneNumber: phoneNumber,
-            address: [d.AddressLine1 || d.ADDRESSLINE1, d.AddressLine2 || d.ADDRESSLINE2, d.AddressLine3 || d.ADDRESSLINE3, d.AddressLine4 || d.ADDRESSLINE4].filter(Boolean).join(', '),
-            nationality: d.Nationality || d.NATIONALITY,
-            branchCode: d.BranchCode || d.BRANCHCODE,
-            branchName: d.BranchName || d.BRANCHNAME,
-            status: d.Status || d.STATUS,
-            signUp2FA: d.SignUp2FA || d.SIGNUP2FA,
-            signUpMainAuth: d.SignUpMainAuth || d.SIGNUPMAINAUTH,
-            insertDate: d.InsertDate || d.INSERTDATE,
+            address: [d.AddressLine1, d.AddressLine2, d.AddressLine3, d.AddressLine4].filter(Boolean).join(', '),
+            nationality: d.Nationality,
+            branchCode: d.BranchCode,
+            branchName: d.BranchName,
+            status: d.Status,
+            signUp2FA: d.SignUp2FA,
+            signUpMainAuth: d.SignUpMainAuth,
+            insertDate: d.InsertDate.toISOString(),
         }
     }
     return null;
@@ -71,25 +72,18 @@ const getCustomerById = async (id: string) => {
 
 const getAccountsByCif = async (cif: string) => {
     if (!cif) return [];
-    let accountsFromDb;
-    if (config.db.isProduction) {
-        accountsFromDb = await db.prepare('SELECT "Id", "AccountNumber", "AccountType", "Currency", "BranchName", "Status" FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :1').all(cif);
-    } else {
-        accountsFromDb = db.prepare('SELECT * FROM Accounts WHERE CIFNumber = ?').all(cif);
-    }
-
-    if (!accountsFromDb || !Array.isArray(accountsFromDb)) {
-        return [];
-    }
+    const accountsFromDb = await prisma.account.findMany({
+        where: { CIFNumber: cif }
+    });
     
     return accountsFromDb.map((acc: any) => {
         return {
-            id: acc.Id || acc.ID,
-            accountNumber: decrypt(acc.AccountNumber || acc.ACCOUNTNUMBER),
-            accountType: decrypt(acc.AccountType || acc.ACCOUNTTYPE),
-            currency: decrypt(acc.Currency || acc.CURRENCY),
-            branchName: acc.BranchName || acc.BRANCHNAME,
-            status: acc.Status || acc.STATUS,
+            id: acc.Id,
+            accountNumber: decrypt(acc.AccountNumber),
+            accountType: decrypt(acc.AccountType),
+            currency: decrypt(acc.Currency),
+            branchName: acc.BranchName,
+            status: acc.Status,
         }
     });
 }

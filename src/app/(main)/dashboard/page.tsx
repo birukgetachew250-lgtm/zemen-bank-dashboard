@@ -3,34 +3,21 @@ import { Suspense } from 'react';
 import { UserPlus, Users, UserX, UserCheck, AlertCircle } from 'lucide-react';
 import { StatsCard, StatsCardSkeleton } from '@/components/dashboard/StatsCard';
 import { TransactionsSummary } from '@/components/dashboard/TransactionsSummary';
-import { db } from '@/lib/db';
-import config from '@/lib/config';
+import { prisma } from '@/lib/db';
+import config from "@/lib/config";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 async function getCustomerStats() {
-  if (config.db.isProduction) {
-    // Production database queries for Oracle with case-sensitive names and schema
-    const [totalResult, activeResult, inactiveResult, registeredResult] = await Promise.all([
-      db.prepare('SELECT COUNT("Id") as count FROM "USER_MODULE"."AppUsers"').get(),
-      db.prepare("SELECT COUNT(\"Id\") as count FROM \"USER_MODULE\".\"AppUsers\" WHERE \"Status\" = 'Active'").get(),
-      db.prepare("SELECT COUNT(\"Id\") as count FROM \"USER_MODULE\".\"AppUsers\" WHERE \"Status\" = 'Inactive' OR \"Status\" = 'Dormant'").get(),
-      db.prepare("SELECT COUNT(\"Id\") as count FROM \"USER_MODULE\".\"AppUsers\" WHERE \"Status\" = 'Registered'").get(),
-    ]);
-
-    return { 
-      total: totalResult?.count ?? 0, 
-      active: activeResult?.count ?? 0,
-      inactive: inactiveResult?.count ?? 0,
-      registered: registeredResult?.count ?? 0,
-    };
-  } else {
-    // Demo SQLite queries
-    const total = db.prepare("SELECT COUNT(Id) as count FROM AppUsers").get()?.count ?? 0;
-    const active = db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Active'").get()?.count ?? 0;
-    const inactive = db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Inactive' OR Status = 'Dormant'").get()?.count ?? 0;
-    const registered = db.prepare("SELECT COUNT(Id) as count FROM AppUsers WHERE Status = 'Registered'").get()?.count ?? 0;
-    return { total, active, inactive, registered };
-  }
+    try {
+      const total = await prisma.appUser.count();
+      const active = await prisma.appUser.count({ where: { Status: 'Active' } });
+      const inactive = await prisma.appUser.count({ where: { OR: [{ Status: 'Inactive' }, { Status: 'Dormant' }] } });
+      const registered = await prisma.appUser.count({ where: { Status: 'Registered' } });
+      return { total, active, inactive, registered };
+    } catch (e: any) {
+      // Re-throw the error to be caught by the boundary
+      throw new Error(`Failed to fetch stats from the database: ${(e as Error).message}`);
+    }
 }
 
 export default async function DashboardPage() {

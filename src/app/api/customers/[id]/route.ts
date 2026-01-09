@@ -1,37 +1,38 @@
 
 
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import config from '@/lib/config';
+import { prisma } from '@/lib/db';
 import { decrypt } from '@/lib/crypto';
 
 const getCustomerByCifOrId = async (id: string) => {
-    let user;
-    if (config.db.isProduction) {
-        user = await db.prepare('SELECT "Id", "CIFNumber", "FirstName", "SecondName", "LastName", "Email", "PhoneNumber", "AddressLine1", "AddressLine2", "AddressLine3", "AddressLine4", "Nationality", "BranchCode", "BranchName", "Status", "SignUp2FA", "SignUpMainAuth", "InsertDate" FROM "USER_MODULE"."AppUsers" WHERE "Id" = :1 OR "CIFNumber" = :2').get(id, id);
-    } else {
-        user = db.prepare('SELECT * FROM AppUsers WHERE Id = ? OR CIFNumber = ?').get(id, id);
-    }
+    const user = await prisma.appUser.findFirst({
+        where: {
+            OR: [
+                { Id: id },
+                { CIFNumber: id }
+            ]
+        }
+    });
     
     if (user) {
         const d = user;
-        const firstName = decrypt(d.FirstName || d.FIRSTNAME);
-        const secondName = decrypt(d.SecondName || d.SECONDNAME);
-        const lastName = decrypt(d.LastName || d.LASTNAME);
+        const firstName = decrypt(d.FirstName);
+        const secondName = decrypt(d.SecondName);
+        const lastName = decrypt(d.LastName);
 
         return {
-            id: d.Id || d.ID,
-            cifNumber: d.CIFNumber || d.CIFNUMBER,
+            id: d.Id,
+            cifNumber: d.CIFNumber,
             name: [firstName, secondName, lastName].filter(Boolean).join(' '),
             firstName: firstName,
             lastName: lastName,
-            email: decrypt(d.Email || d.EMAIL),
-            phoneNumber: decrypt(d.PhoneNumber || d.PHONENUMBER),
-            address: `${d.AddressLine1 || d.ADDRESSLINE1 || ''}, ${d.AddressLine2 || d.ADDRESSLINE2 || ''}`,
-            nationality: d.Nationality || d.NATIONALITY,
-            branchName: d.BranchName || d.BRANCHNAME,
-            status: d.Status || d.STATUS,
-            insertDate: d.InsertDate || d.INSERTDATE,
+            email: decrypt(d.Email),
+            phoneNumber: decrypt(d.PhoneNumber),
+            address: `${d.AddressLine1 || ''}, ${d.AddressLine2 || ''}`,
+            nationality: d.Nationality,
+            branchName: d.BranchName,
+            status: d.Status,
+            insertDate: d.InsertDate.toISOString(),
         };
     }
     return null;

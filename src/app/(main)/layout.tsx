@@ -6,8 +6,32 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { db } from '@/lib/db';
+import config from "@/lib/config";
 
 const getSessionData = async () => {
+    // DEMO MODE: If not in production, bypass session check and return a mock admin user
+    if (!config.db.isProduction) {
+        const user = await db.user.findFirst({
+            where: { role: 'Super Admin' },
+        });
+
+        if (user) {
+            const { password, ...userWithoutPassword } = user;
+            return {
+                isLoggedIn: true,
+                user: userWithoutPassword,
+                permissions: ['all']
+            };
+        }
+        // Fallback mock user if DB is empty
+        return {
+            isLoggedIn: true,
+            user: { id: 1, name: 'Demo Admin', email: 'admin@zemen.com', role: 'Super Admin' },
+            permissions: ['all']
+        };
+    }
+
+    // PRODUCTION MODE: Standard session validation
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.email) {
