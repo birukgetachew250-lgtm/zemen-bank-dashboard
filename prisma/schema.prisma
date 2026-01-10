@@ -1,158 +1,145 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
-}
 
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-// USER MANAGEMENT MODELS
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+// ================================================= //
+//                USER & AUTH MODELS                 //
+// ================================================= //
 
 model User {
-  id          Int      @id @default(autoincrement())
-  employeeId  String   @unique
-  name        String
-  email       String   @unique
-  password    String
-  role        String
-  branch      String?
-  department  String
-  createdAt   DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  employeeId String   @unique
+  name       String
+  email      String   @unique
+  password   String // Hashed in a real application
+  role       String
+  department String
+  branch     String?
 }
 
 model Role {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
-  createdAt   DateTime @default(now())
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  description String
 }
 
-model Branch {
-  id         String       @id
-  name       String       @unique
-  location   String
-  departments Department[]
-  createdAt  DateTime     @default(now())
-}
-
-model Department {
-  id        String   @id
-  name      String   @unique
-  branch    Branch   @relation(fields: [branchId], references: [id])
-  branchId  String
-  createdAt DateTime @default(now())
-}
-
-
-// CUSTOMER AND TRANSACTION MODELS (Previously in system.prisma)
+// ================================================= //
+//             APP USER & CUSTOMER MODELS            //
+// ================================================= //
 
 model AppUser {
-  Id                   String         @id
-  CIFNumber            String         @unique
-  FirstName            String
-  SecondName           String?
-  LastName             String
-  Email                String
-  PhoneNumber          String
-  Status               String
-  SignUpMainAuth       String
-  SignUp2FA            String
-  Channel              String?
-  BranchCode           String?
-  BranchName           String
-  AddressLine1         String?
-  AddressLine2         String?
-  AddressLine3         String?
-  AddressLine4         String?
-  Nationality          String?
-  InsertDate           DateTime       @default(now())
-  UpdateDate           DateTime       @updatedAt
-  userSecurity         UserSecurity?
+  Id                  String          @id @unique
+  CIFNumber           String          @unique
+  FirstName           String?
+  SecondName          String?
+  LastName            String?
+  Email               String?
+  PhoneNumber         String?
+  Status              String?
+  SignUpDate          DateTime?       @default(now())
+  LastLoginDate       DateTime?
+  LastLoginIp         String?
+  LastLoginDevice     String?
+  SignUpMainAuth      String?
+  SignUp2FA           String?
+  InsertDate          DateTime        @default(now())
+  UpdateDate          DateTime?       @updatedAt
+  BranchCode          String?
+  BranchName          String?
+  AddressLine1        String?
+  AddressLine2        String?
+  AddressLine3        String?
+  AddressLine4        String?
+  Nationality         String?
+  Channel             String?
+  userSecurity        UserSecurity?
 }
 
 model Account {
-  Id            String    @id
+  Id            String  @id @unique
   CIFNumber     String
-  AccountNumber String    @unique
-  FirstName     String
+  AccountNumber String
+  FirstName     String?
   SecondName    String?
-  LastName      String
-  AccountType   String
-  Currency      String
-  Status        String
-  BranchName    String
-  InsertDate    DateTime  @default(now())
-  UpdateDate    DateTime  @updatedAt
-}
+  LastName      String?
+  AccountType   String?
+  Currency      String?
+  Status        String?
+  BranchName    String?
+  BranchCode    String?
 
+  @@index([CIFNumber])
+}
 
 model UserSecurity {
-  UserId             String            @id
-  User               AppUser           @relation(fields: [UserId], references: [Id])
+  Id                 String            @id @default(cuid())
+  UserId             String            @unique
+  user               AppUser           @relation(fields: [UserId], references: [Id])
   CIFNumber          String            @unique
-  Status             String
+  Status             String?
   PinHash            String?
   PasswordHash       String?
-  SecurityQuestion   SecurityQuestion? @relation(fields: [SecurityQuestionId], references: [Id])
   SecurityQuestionId Int?
   SecurityAnswer     String?
-  InsertDate         DateTime          @default(now())
-  UpdateDate         DateTime          @updatedAt
-}
+  securityQuestion   SecurityQuestion? @relation(fields: [SecurityQuestionId], references: [Id])
 
-model OtpCode {
-  Id         Int      @id @default(autoincrement())
-  UserId     String
-  Purpose    String
-  OtpCode    String
-  OtpType    String
-  IsUsed     Boolean  @default(false)
-  Attempts   Int      @default(0)
-  ExpiresAt  DateTime
-  InsertDate DateTime @default(now())
-  UpdateDate DateTime @updatedAt
+  @@index([UserId])
 }
 
 model SecurityQuestion {
-  Id          Int            @id @default(autoincrement())
-  question    String
-  UserSecurity UserSecurity[]
+  Id      Int            @id @default(autoinchour())
+  question String
+  answers UserSecurity[]
 }
 
-model Corporate {
-  id                      String   @id
-  name                    String
-  industry                String
-  status                  String
-  internet_banking_status String
-  logo_url                String?
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+model OtpCode {
+    Id         String   @id @default(cuid())
+    UserId     String
+    Purpose    String
+    OtpType    String // SMS, EMAIL, GAUTH
+    Code       String // Encrypted
+    IsUsed     Boolean  @default(false)
+    Attempts   Int      @default(0)
+    ExpiresAt  DateTime
+    InsertDate DateTime @default(now())
+    UpdateDate DateTime @updatedAt
 }
 
-model MiniApp {
-  id             String  @id @default(uuid())
-  name           String
-  url            String
-  logo_url       String?
-  username       String
-  password       String
-  encryption_key String
-}
+
+// ================================================= //
+//               LEGACY & MOCK MODELS                //
+// ================================================= //
+// These models are for local seeding and might not  //
+// reflect the final microservice architecture.      //
+// ================================================= //
 
 model Customer {
-  id            Int               @id @default(autoincrement())
-  name          String
-  phone         String            @unique
-  status        String
-  registeredAt  DateTime          @default(now())
-  transactions  Transaction[]
+  id             Int               @id @default(autoinchour())
+  name           String
+  phone          String            @unique
+  status         String
+  registeredAt   DateTime          @default(now())
+  transactions   Transaction[]
   pendingApprovals PendingApproval[]
+}
+
+model PendingApproval {
+  id             Int      @id @default(autoinchour())
+  customerId     Int
+  customer       Customer @relation(fields: [customerId], references: [id])
+  type           String // e.g., 'unblock', 'pin-reset', 'new-customer'
+  requestedAt    DateTime @default(now())
+  status         String   @default("pending") // pending, approved, rejected
+  details        String?  // JSON string for extra info
+  customerName   String
+  customerPhone  String
 }
 
 model Transaction {
@@ -162,7 +149,7 @@ model Transaction {
   amount         Float
   fee            Float
   status         String
-  timestamp      DateTime  @default(now())
+  timestamp      DateTime
   type           String
   channel        String
   to_account     String
@@ -170,15 +157,42 @@ model Transaction {
   anomaly_reason String?
 }
 
-model PendingApproval {
-  id            String    @id @default(cuid())
-  customerId    Int
-  customer      Customer  @relation(fields: [customerId], references: [id])
-  type          String
-  status        String    @default("pending")
-  requestedAt   DateTime  @default(now())
-  resolvedAt    DateTime?
-  customerName  String
-  customerPhone String
-  details       String?
+
+// ================================================= //
+//              STRUCTURE & SETTINGS                 //
+// ================================================= //
+
+model Branch {
+  id          String       @id @unique
+  name        String       @unique
+  location    String
+  createdAt   DateTime     @default(now())
+  departments Department[]
+}
+
+model Department {
+  id        String @id @unique
+  name      String @unique
+  branchId  String
+  branch    Branch @relation(fields: [branchId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Corporate {
+    id                      String @id @unique
+    name                    String
+    industry                String
+    status                  String
+    internet_banking_status String
+    logo_url                String
+}
+
+model MiniApp {
+    id              String @id @default(cuid())
+    name            String
+    url             String
+    logo_url        String
+    username        String
+    password        String
+    encryption_key  String
 }
