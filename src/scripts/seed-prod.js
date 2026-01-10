@@ -17,12 +17,12 @@ async function main() {
     }
 
     // Seed Branches
-    const branch1 = await prisma.branch.upsert({
+    await prisma.branch.upsert({
         where: { name: 'Bole Branch' },
         update: {},
         create: { id: 'br_1', name: 'Bole Branch', location: 'Bole, Addis Ababa' },
     });
-    const branch2 = await prisma.branch.upsert({
+    await prisma.branch.upsert({
         where: { name: 'Head Office' },
         update: {},
         create: { id: 'br_2', name: 'Head Office', location: 'HQ, Addis Ababa' },
@@ -30,34 +30,34 @@ async function main() {
     console.log('Upserted 2 branches.');
 
     // Seed Departments
-    const dept1 = await prisma.department.upsert({
+    await prisma.department.upsert({
         where: { name: 'IT Department' },
         update: {},
-        create: { id: 'dept_1', name: 'IT Department', branchId: branch2.id },
+        create: { id: 'dept_1', name: 'IT Department', branchId: 'br_2' },
     });
-    const dept2 = await prisma.department.upsert({
+    await prisma.department.upsert({
         where: { name: 'Branch Operations' },
         update: {},
-        create: { id: 'dept_2', name: 'Branch Operations', branchId: branch1.id },
+        create: { id: 'dept_2', name: 'Branch Operations', branchId: 'br_1' },
     });
     console.log('Upserted 2 departments.');
 
     // Seed Roles
-    const role1 = await prisma.role.upsert({
-        where: { name: 'Super Admin' },
-        update: {},
-        create: { name: 'Super Admin', description: 'Full access to all system features, including security settings.' },
-    });
-    const role2 = await prisma.role.upsert({
-        where: { name: 'Operations Lead' },
-        update: {},
-        create: { name: 'Operations Lead', description: 'Manages day-to-day customer and transaction approvals.' },
-    });
-    await prisma.role.upsert({ where: { name: 'Support Staff'}, update: {}, create: { name: 'Support Staff', description: 'Handles customer inquiries and first-level support tickets.' }});
-    await prisma.role.upsert({ where: { name: 'Compliance Officer'}, update: {}, create: { name: 'Compliance Officer', description: 'Audits trails, reviews high-risk transactions, and generates NBE reports.' }});
-    await prisma.role.upsert({ where: { name: 'Read-Only Auditor'}, update: {}, create: { name: 'Read-Only Auditor', description: 'View-only access to all transactional and user data for auditing purposes.' }});
-
-    console.log('Upserted 5 roles.');
+    const existingRolesCount = await prisma.role.count();
+    if (existingRolesCount > 0) {
+        console.log('Roles already exist, skipping role seeding.');
+    } else {
+        await prisma.role.createMany({
+            data: [
+                { name: 'Super Admin', description: 'Full access to all system features, including security settings.' },
+                { name: 'Operations Lead', description: 'Manages day-to-day customer and transaction approvals.' },
+                { name: 'Support Staff', description: 'Handles customer inquiries and first-level support tickets.' },
+                { name: 'Compliance Officer', description: 'Audits trails, reviews high-risk transactions, and generates NBE reports.' },
+                { name: 'Read-Only Auditor', description: 'View-only access to all transactional and user data for auditing purposes.' },
+            ],
+        });
+        console.log('Seeded 5 roles.');
+    }
     
     // Seed Admin Users
     const existingUsersCount = await prisma.user.count();

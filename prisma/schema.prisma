@@ -1,71 +1,71 @@
-
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider      = "prisma-client-js"
+  provider = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
-// ================================================= //
-//                USER & AUTH MODELS                 //
-// ================================================= //
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ==========================================
+//          USER & ACCESS CONTROL
+// ==========================================
 
 model User {
   id         Int      @id @default(autoincrement())
   employeeId String   @unique
   name       String
   email      String   @unique
-  password   String // Hashed in a real application
+  password   String // In a real app, this would be a hash
   role       String
   department String
   branch     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Role {
   id          Int    @id @default(autoincrement())
   name        String @unique
-  description String
+  description String?
 }
 
-// ================================================= //
-//             APP USER & CUSTOMER MODELS            //
-// ================================================= //
+// ==========================================
+//          BANKING APP USERS
+// ==========================================
 
 model AppUser {
-  Id                  String          @id @unique
-  CIFNumber           String          @unique
-  FirstName           String?
-  SecondName          String?
-  LastName            String?
-  Email               String?
-  PhoneNumber         String?
-  Status              String?
-  SignUpDate          DateTime?       @default(now())
-  LastLoginDate       DateTime?
-  LastLoginIp         String?
-  LastLoginDevice     String?
-  SignUpMainAuth      String?
-  SignUp2FA           String?
-  InsertDate          DateTime        @default(now())
-  UpdateDate          DateTime?       @updatedAt
-  BranchCode          String?
-  BranchName          String?
-  AddressLine1        String?
-  AddressLine2        String?
-  AddressLine3        String?
-  AddressLine4        String?
-  Nationality         String?
-  Channel             String?
-  userSecurity        UserSecurity?
+  Id               String     @id @unique
+  CIFNumber        String     @unique
+  FirstName        String?
+  SecondName       String?
+  LastName         String?
+  Email            String?    @unique
+  PhoneNumber      String?    @unique
+  Status           String?
+  Channel          String?
+  SignUpMainAuth   String?
+  SignUp2FA        String?
+  BranchCode       String?
+  BranchName       String?
+  AddressLine1     String?
+  AddressLine2     String?
+  AddressLine3     String?
+  AddressLine4     String?
+  Nationality      String?
+  InsertDate       DateTime   @default(now())
+  UpdateDate       DateTime   @updatedAt
+  UserSecurity     UserSecurity?
 }
 
 model Account {
   Id            String  @id @unique
   CIFNumber     String
-  AccountNumber String
+  AccountNumber String?
   FirstName     String?
   SecondName    String?
   LastName      String?
@@ -73,38 +73,35 @@ model Account {
   Currency      String?
   Status        String?
   BranchName    String?
-  BranchCode    String?
-
-  @@index([CIFNumber])
 }
 
 model UserSecurity {
-  Id                 String            @id @default(cuid())
-  UserId             String            @unique
-  user               AppUser           @relation(fields: [UserId], references: [Id])
-  CIFNumber          String            @unique
+  UserId             String            @id
+  User               AppUser           @relation(fields: [UserId], references: [Id])
+  CIFNumber          String?           @unique
   Status             String?
   PinHash            String?
+  PinSalt            String?
   PasswordHash       String?
+  PasswordSalt       String?
   SecurityQuestionId Int?
+  SecurityQuestion   SecurityQuestion? @relation(fields: [SecurityQuestionId], references: [Id])
   SecurityAnswer     String?
-  securityQuestion   SecurityQuestion? @relation(fields: [SecurityQuestionId], references: [Id])
-
-  @@index([UserId])
+  LastLoginDate      DateTime?
 }
 
 model SecurityQuestion {
-  Id      Int            @id @default(autoinchour())
-  question String
-  answers UserSecurity[]
+  Id        Int            @id @default(autoincrement())
+  question  String         @unique
+  answers   UserSecurity[]
 }
 
 model OtpCode {
     Id         String   @id @default(cuid())
-    UserId     String
-    Purpose    String
-    OtpType    String // SMS, EMAIL, GAUTH
-    Code       String // Encrypted
+    UserId     String // Typically CIF Number
+    Purpose    String // e.g., 'LOGIN', 'TRANSACTION_CONFIRMATION'
+    OtpType    String // 'SMS' or 'EMAIL'
+    Code       String
     IsUsed     Boolean  @default(false)
     Attempts   Int      @default(0)
     ExpiresAt  DateTime
@@ -112,87 +109,92 @@ model OtpCode {
     UpdateDate DateTime @updatedAt
 }
 
+// ==========================================
+//      TRANSACTIONS & PENDING APPROVALS
+// ==========================================
 
-// ================================================= //
-//               LEGACY & MOCK MODELS                //
-// ================================================= //
-// These models are for local seeding and might not  //
-// reflect the final microservice architecture.      //
-// ================================================= //
-
+// Legacy model for approvals dashboard, to be replaced by AppUser based logic
 model Customer {
-  id             Int               @id @default(autoinchour())
-  name           String
-  phone          String            @unique
-  status         String
-  registeredAt   DateTime          @default(now())
-  transactions   Transaction[]
-  pendingApprovals PendingApproval[]
+  id           Int               @id @default(autoincrement())
+  name         String
+  phone        String            @unique
+  status       String
+  registeredAt DateTime          @default(now())
+  approvals    PendingApproval[]
+  transactions Transaction[]
 }
 
 model PendingApproval {
-  id             Int      @id @default(autoinchour())
-  customerId     Int
-  customer       Customer @relation(fields: [customerId], references: [id])
-  type           String // e.g., 'unblock', 'pin-reset', 'new-customer'
-  requestedAt    DateTime @default(now())
-  status         String   @default("pending") // pending, approved, rejected
-  details        String?  // JSON string for extra info
-  customerName   String
-  customerPhone  String
+  id            String   @id @default(cuid())
+  customerId    Int
+  customer      Customer @relation(fields: [customerId], references: [id])
+  type          String // e.g., 'unblock', 'pin-reset', 'new-customer', 'updated-customer'
+  status        String   @default("pending")
+  requestedAt   DateTime @default(now())
+  approvedBy    String?
+  approvedAt    DateTime?
+  customerName  String
+  customerPhone String
+  details       String?  @db.Text
 }
 
 model Transaction {
-  id             String    @id @default(cuid())
+  id             String   @id @default(cuid())
   customerId     Int
-  customer       Customer  @relation(fields: [customerId], references: [id])
+  customer       Customer @relation(fields: [customerId], references: [id])
   amount         Float
   fee            Float
-  status         String
+  status         String // 'Successful', 'Failed', 'Pending'
   timestamp      DateTime
-  type           String
-  channel        String
+  type           String // 'P2P', 'Bill Payment', etc.
+  channel        String // 'App', 'USSD', etc.
+  from_account   String?
   to_account     String
-  is_anomalous   Boolean   @default(false)
+  is_anomalous   Boolean  @default(false)
   anomaly_reason String?
 }
 
-
-// ================================================= //
-//              STRUCTURE & SETTINGS                 //
-// ================================================= //
+// ==========================================
+//          BANK STRUCTURE
+// ==========================================
 
 model Branch {
-  id          String       @id @unique
-  name        String       @unique
-  location    String
-  createdAt   DateTime     @default(now())
-  departments Department[]
+  id         String       @id @unique
+  name       String       @unique
+  location   String
+  createdAt  DateTime     @default(now())
+  Department Department[]
 }
 
 model Department {
-  id        String @id @unique
-  name      String @unique
+  id        String   @id @unique
+  name      String   @unique
   branchId  String
-  branch    Branch @relation(fields: [branchId], references: [id])
+  Branch    Branch   @relation(fields: [branchId], references: [id])
   createdAt DateTime @default(now())
 }
 
+
+// ==========================================
+//      CORPORATES & MINI APPS
+// ==========================================
+
 model Corporate {
-    id                      String @id @unique
-    name                    String
-    industry                String
-    status                  String
-    internet_banking_status String
-    logo_url                String
+  id                      String  @id @unique
+  name                    String
+  industry                String
+  status                  String // e.g., 'Active', 'Inactive'
+  internet_banking_status String // e.g., 'Active', 'Pending', 'Disabled'
+  logo_url                String?
 }
 
+
 model MiniApp {
-    id              String @id @default(cuid())
-    name            String
-    url             String
-    logo_url        String
-    username        String
-    password        String
-    encryption_key  String
+  id             String @id @default(cuid())
+  name           String @unique
+  url            String
+  logo_url       String?
+  username       String
+  password       String
+  encryption_key String
 }
