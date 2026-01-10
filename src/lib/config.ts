@@ -1,28 +1,18 @@
 
 // A central place to manage environment variables.
 
-// Load environment variables
-const USER_MODULE_DB_CONNECTION_STRING = process.env.USER_MODULE_DB_CONNECTION_STRING;
-const SECURITY_MODULE_DB_CONNECTION_STRING = process.env.SECURITY_MODULE_DB_CONNECTION_STRING;
-const GRPC_URL = process.env.GRPC_URL;
-const ENCRYPTION_MASTER_KEY = process.env.ENCRYPTION_MASTER_KEY;
+// Load environment variables from .env file
+import dotenv from 'dotenv';
+dotenv.config();
 
-
-// Parse boolean flags
-const IS_PRODUCTION_GRPC = process.env.IS_PRODUCTION_GRPC === 'true';
+const IS_PRODUCTION_DB = process.env.IS_PRODUCTION_DB === 'true';
 
 const config = {
     db: {
-        // Specific connection strings for different modules
-        userModuleConnectString: USER_MODULE_DB_CONNECTION_STRING,
-        securityModuleConnectString: SECURITY_MODULE_DB_CONNECTION_STRING,
-    },
-    grpc: {
-        isProduction: IS_PRODUCTION_GRPC,
-        url: GRPC_URL,
+        isProduction: IS_PRODUCTION_DB,
     },
     security: {
-        encryptionMasterKey: ENCRYPTION_MASTER_KEY,
+        encryptionMasterKey: process.env.ENCRYPTION_MASTER_KEY,
     }
 };
 

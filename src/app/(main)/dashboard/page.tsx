@@ -4,7 +4,6 @@ import { UserPlus, Users, UserX, UserCheck, AlertCircle } from 'lucide-react';
 import { StatsCard, StatsCardSkeleton } from '@/components/dashboard/StatsCard';
 import { TransactionsSummary } from '@/components/dashboard/TransactionsSummary';
 import { db } from '@/lib/db';
-import config from "@/lib/config";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 async function getCustomerStats() {

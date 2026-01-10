@@ -16,13 +16,13 @@ To get the application running on your local machine, follow these steps:
 
     ```bash
     # Migrate the main dashboard database (users, roles, etc.)
-    npm run migrate:dev:dash
+    npm run migrate:dev
     ```
 
 3.  **Seed the Databases**: The application uses a local SQLite database for development data. Run the seed script to create this file and populate it with initial mock data.
 
     ```bash
-    npm run seed:dash
+    npm run seed
     ```
 
 4.  **Start the Development Server**: Once the dependencies are installed and the database is seeded, you can start the local development server.
@@ -37,7 +37,7 @@ Your application should now be running at `http://localhost:3000`.
 
 The application is configured to work with two different database setups for the dashboard module:
 
--   **Development (Default)**: Uses a local SQLite file (`zemen.db`) managed via Prisma. The `npm run seed:dash` command populates this file.
+-   **Development (Default)**: Uses a local SQLite file (`zemen.db`) managed via Prisma. The `npm run seed` command populates this file.
 -   **Production**: Connects to a live PostgreSQL database for dashboard data. The connection string is specified in the `.env` file via `DASH_MODULE_PROD_DATABASE_URL`.
 
 ### Testing the Production Database Connection
