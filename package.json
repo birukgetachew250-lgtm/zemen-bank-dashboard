@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit",
     "migrate:dev": "prisma migrate dev --schema=./prisma/schema.prisma",
     "migrate:deploy": "prisma migrate deploy --schema=./prisma/schema.prisma",
+    "migrate:dev:dash": "prisma migrate dev --schema=./prisma/schema.prisma",
     "seed": "node src/scripts/seed.js",
+    "seed:dash": "node src/scripts/seed.js",
     "seed:prod": "cross-env NODE_ENV=production node src/scripts/seed-prod.js",
     "test:db": "node src/scripts/test-db.js",
     "postinstall": "prisma generate"
