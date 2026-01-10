@@ -9,12 +9,10 @@ const ENCRYPTION_MASTER_KEY = process.env.ENCRYPTION_MASTER_KEY;
 
 
 // Parse boolean flags
-const IS_PRODUCTION_DB = process.env.IS_PRODUCTION_DB === 'true';
 const IS_PRODUCTION_GRPC = process.env.IS_PRODUCTION_GRPC === 'true';
 
 const config = {
     db: {
-        isProduction: IS_PRODUCTION_DB,
         // Specific connection strings for different modules
         userModuleConnectString: USER_MODULE_DB_CONNECTION_STRING,
         securityModuleConnectString: SECURITY_MODULE_DB_CONNECTION_STRING,

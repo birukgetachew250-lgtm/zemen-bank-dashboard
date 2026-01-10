@@ -1,5 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider      = "prisma-client-js"
@@ -8,18 +6,21 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./zemen.db"
+  url      = env("DATABASE_URL")
 }
+
+// DASHBOARD-SPECIFIC MODELS
+// These models are for the administration of the dashboard itself.
 
 model User {
   id         Int      @id @default(autoincrement())
   employeeId String   @unique
   name       String
   email      String   @unique
-  password   String // In a real app, this would be a hash
+  password   String // In a real app, this should be a hash
   role       String
-  department String
   branch     String?
+  department String
   createdAt  DateTime @default(now())
 }
 
@@ -30,147 +31,155 @@ model Role {
 }
 
 model Branch {
-  id        String       @id
-  name      String       @unique
-  location  String
-  createdAt DateTime     @default(now())
+  id         String       @id
+  name       String       @unique
+  location   String
+  createdAt  DateTime     @default(now())
   departments Department[]
 }
 
 model Department {
   id        String   @id
   name      String   @unique
-  branchId  String
   branch    Branch   @relation(fields: [branchId], references: [id])
+  branchId  String
   createdAt DateTime @default(now())
 }
 
+
+// MIRRORED/CACHED MODELS FROM OTHER SERVICES
+// These models might mirror data from other microservices for performance or convenience.
+
 model Customer {
-  id           String            @id @default(cuid())
+  id           Int      @id @default(autoincrement())
   name         String
-  phone        String            @unique
-  status       String // e.g., 'Registered', 'Active', 'Inactive', 'Dormant'
-  registeredAt DateTime          @default(now())
-  transactions Transaction[]
-  approvals    PendingApproval[]
+  phone        String   @unique
+  status       String
+  registeredAt DateTime @default(now())
+
+  transactions    Transaction[]
+  pendingApprovals PendingApproval[]
 }
 
 model Transaction {
-  id          String    @id @default(cuid())
-  customerId  String
-  customer    Customer  @relation(fields: [customerId], references: [id])
-  amount      Float
-  fee         Float
-  status      String // 'Successful', 'Failed', 'Pending', 'Reversed'
-  timestamp   DateTime  @default(now())
-  type        String // 'P2P', 'Bill Payment', etc.
-  channel     String // 'App', 'USSD', etc.
-  from_account String?
-  to_account  String?
-  is_anomalous Boolean  @default(false)
+  id        String   @id @default(cuid())
+  customer  Customer @relation(fields: [customerId], references: [id])
+  customerId Int
+  amount    Float
+  fee       Float
+  status    String
+  timestamp DateTime
+  type      String
+  channel   String
+  to_account String
+  is_anomalous Boolean @default(false)
   anomaly_reason String?
 }
 
 model PendingApproval {
-  id            String   @id @default(cuid())
-  customerId    String
-  customer      Customer @relation(fields: [customerId], references: [id])
-  type          String // 'unblock', 'pin-reset', etc.
-  status        String   @default("pending")
-  requestedAt   DateTime @default(now())
-  customerName  String
+  id          String   @id @default(cuid())
+  customer    Customer @relation(fields: [customerId], references: [id])
+  customerId  Int
+  type        String
+  status      String   @default("pending")
+  requestedAt DateTime @default(now())
+  customerName String
   customerPhone String
   details       String?
 }
 
-// Separate models for the legacy system data structure
-// These are not meant to be relational to the above in Prisma,
-// as they would be in a separate microservice/database in a real system.
+model Corporate {
+    id                      String @id
+    name                    String
+    industry                String
+    status                  String
+    internet_banking_status String
+    logo_url                String
+}
+
+model MiniApp {
+    id              String @id @default(cuid())
+    name            String
+    url             String
+    logo_url        String
+    username        String
+    password        String
+    encryption_key  String
+}
+
+
+// CORE BANKING MODELS (for local development/seeding via Prisma)
+// These should not be migrated against the production Oracle DB.
+// They are here to allow local development without a live Oracle connection.
 
 model AppUser {
-  Id                 String       @id
-  CIFNumber          String       @unique
-  FirstName          String?
-  SecondName         String?
-  LastName           String?
-  Email              String?
-  PhoneNumber        String?
-  Status             String?
-  SignUpMainAuth     String?
-  SignUp2FA          String?
-  BranchCode         String?
-  BranchName         String?
-  AddressLine1       String?
-  AddressLine2       String?
-  AddressLine3       String?
-  AddressLine4       String?
-  Nationality        String?
-  InsertDate         DateTime     @default(now())
-  UpdateDate         DateTime     @updatedAt
-  Channel            String?
+  Id              String    @id
+  CIFNumber       String    @unique
+  FirstName       String?
+  SecondName      String?
+  LastName        String?
+  Email           String?
+  PhoneNumber     String?
+  Status          String
+  SignUpDate      DateTime  @default(now())
+  LastActivity    DateTime?
+  SignUpMainAuth  String
+  SignUp2FA       String
+  BranchCode      String?
+  BranchName      String?
+  AddressLine1    String?
+  AddressLine2    String?
+  AddressLine3    String?
+  AddressLine4    String?
+  Nationality     String?
+  Channel         String?
+  InsertDate      DateTime  @default(now())
+  UpdateDate      DateTime  @updatedAt
 }
 
 model Account {
-  Id            String  @id
+  Id            String   @id
   CIFNumber     String
-  AccountNumber String  @unique
+  AccountNumber String   @unique
   FirstName     String?
   SecondName    String?
   LastName      String?
   AccountType   String?
   Currency      String?
-  Status        String?
+  Status        String
+  BranchCode    String?
   BranchName    String?
+  InsertDate    DateTime @default(now())
+  UpdateDate    DateTime @updatedAt
 }
 
 model UserSecurity {
-  UserId                  String  @id
-  CIFNumber               String  @unique
-  Status                  String?
-  PinHash                 String?
-  SecurityQuestionId      Int?
-  SecurityAnswer          String?
-  SecurityQuestionId2     Int?
-  SecurityAnswer2         String?
-  SecurityQuestionId3     Int?
-  SecurityAnswer3         String?
-  SecurityQuestionId4     Int?
-  SecurityAnswer4         String?
+    Id                  String @id @default(cuid())
+    UserId              String
+    CIFNumber           String @unique
+    Status              String
+    PinHash             String?
+    PasswordHash        String?
+    SecurityQuestionId  Int?
+    SecurityAnswer      String?
+    FailedPinAttempts   Int    @default(0)
+    FailedLoginAttempts Int    @default(0)
 }
 
 model SecurityQuestion {
-  Id       Int    @id @default(autoincrement())
-  Question String
+    id       Int    @id @default(autoincrement())
+    question String
 }
 
 model OtpCode {
-  Id         Int      @id @default(autoincrement())
-  UserId     String
-  Purpose    String
-  OtpCode    String
-  OtpType    String // SMS, Email, etc.
-  IsUsed     Boolean  @default(false)
-  Attempts   Int      @default(0)
-  ExpiresAt  DateTime
-  InsertDate DateTime @default(now())
-  UpdateDate DateTime @updatedAt
-}
-
-model Corporate {
-  id                      String @id @default(cuid())
-  name                    String
-  industry                String
-  status                  String // e.g., 'Active', 'Inactive', 'Pending'
-  internet_banking_status String // e.g., 'Active', 'Disabled', 'Pending'
-  logo_url                String?
-}
-
-model MiniApp {
-  id             String  @id @default(cuid())
-  name           String
-  url            String
-  logo_url       String?
-  username       String
-  password       String
-  encryption_key String
+  Id          String @id @default(cuid())
+  UserId      String
+  Purpose     String
+  OtpType     String
+  Code        String
+  IsUsed      Boolean @default(false)
+  Attempts    Int @default(0)
+  ExpiresAt   DateTime
+  InsertDate  DateTime @default(now())
+  UpdateDate  DateTime @updatedAt
 }

@@ -10,7 +10,7 @@ import config from "@/lib/config";
 
 const getSessionData = async () => {
     // DEMO MODE: If not in production, bypass session check and return a mock admin user
-    if (!config.db.isProduction) {
+    if (config.db.isProduction === false) {
         const user = await db.user.findFirst({
             where: { role: 'Super Admin' },
         });
@@ -26,7 +26,7 @@ const getSessionData = async () => {
         // Fallback mock user if DB is empty
         return {
             isLoggedIn: true,
-            user: { id: 1, name: 'Demo Admin', email: 'admin@zemen.com', role: 'Super Admin' },
+            user: { id: "1", name: 'Demo Admin', email: 'admin@zemen.com', role: 'Super Admin' },
             permissions: ['all']
         };
     }
