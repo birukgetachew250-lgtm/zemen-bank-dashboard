@@ -11,23 +11,22 @@ datasource db {
   url      = "file:./zemen.db"
 }
 
-// Banking App Core Models
-
 model User {
   id         Int      @id @default(autoincrement())
   employeeId String   @unique
   name       String
   email      String   @unique
-  password   String // In a real app, this should be a securely hashed password
+  password   String // In a real app, this would be a hash
   role       String
   department String
   branch     String?
+  createdAt  DateTime @default(now())
 }
 
 model Role {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  description String
 }
 
 model Branch {
@@ -35,7 +34,6 @@ model Branch {
   name      String       @unique
   location  String
   createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
   departments Department[]
 }
 
@@ -45,22 +43,49 @@ model Department {
   branchId  String
   branch    Branch   @relation(fields: [branchId], references: [id])
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
-model MiniApp {
-  id             String @id @default(uuid())
-  name           String @unique
-  url            String
-  logo_url       String?
-  username       String
-  password       String
-  encryption_key String
+model Customer {
+  id           String            @id @default(cuid())
+  name         String
+  phone        String            @unique
+  status       String // e.g., 'Registered', 'Active', 'Inactive', 'Dormant'
+  registeredAt DateTime          @default(now())
+  transactions Transaction[]
+  approvals    PendingApproval[]
 }
 
+model Transaction {
+  id          String    @id @default(cuid())
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id])
+  amount      Float
+  fee         Float
+  status      String // 'Successful', 'Failed', 'Pending', 'Reversed'
+  timestamp   DateTime  @default(now())
+  type        String // 'P2P', 'Bill Payment', etc.
+  channel     String // 'App', 'USSD', etc.
+  from_account String?
+  to_account  String?
+  is_anomalous Boolean  @default(false)
+  anomaly_reason String?
+}
 
-// Mobile/Super App Specific Models
-// These would typically be in a separate database in a microservice architecture.
+model PendingApproval {
+  id            String   @id @default(cuid())
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id])
+  type          String // 'unblock', 'pin-reset', etc.
+  status        String   @default("pending")
+  requestedAt   DateTime @default(now())
+  customerName  String
+  customerPhone String
+  details       String?
+}
+
+// Separate models for the legacy system data structure
+// These are not meant to be relational to the above in Prisma,
+// as they would be in a separate microservice/database in a real system.
 
 model AppUser {
   Id                 String       @id
@@ -73,113 +98,79 @@ model AppUser {
   Status             String?
   SignUpMainAuth     String?
   SignUp2FA          String?
-  Nationality        String?
+  BranchCode         String?
+  BranchName         String?
   AddressLine1       String?
   AddressLine2       String?
   AddressLine3       String?
   AddressLine4       String?
+  Nationality        String?
   InsertDate         DateTime     @default(now())
   UpdateDate         DateTime     @updatedAt
-  BranchCode         String?
-  BranchName         String?
   Channel            String?
 }
 
 model Account {
-  Id                 String       @id
-  CIFNumber          String
-  AccountNumber      String?      @unique
-  FirstName          String?
-  SecondName         String?
-  LastName           String?
-  AccountType        String?
-  Currency           String?
-  Status             String?
-  BranchCode         String?
-  BranchName         String?
-  InsertDate         DateTime     @default(now())
-  UpdateDate         DateTime     @updatedAt
+  Id            String  @id
+  CIFNumber     String
+  AccountNumber String  @unique
+  FirstName     String?
+  SecondName    String?
+  LastName      String?
+  AccountType   String?
+  Currency      String?
+  Status        String?
+  BranchName    String?
 }
 
 model UserSecurity {
-    Id                 String       @id @default(uuid())
-    UserId             String
-    CIFNumber          String       @unique
-    PinHash            String?
-    Status             String?
-    SecurityQuestionId String?
-    SecurityAnswer     String?
-    InsertDate         DateTime     @default(now())
-    UpdateDate         DateTime     @updatedAt
+  UserId                  String  @id
+  CIFNumber               String  @unique
+  Status                  String?
+  PinHash                 String?
+  SecurityQuestionId      Int?
+  SecurityAnswer          String?
+  SecurityQuestionId2     Int?
+  SecurityAnswer2         String?
+  SecurityQuestionId3     Int?
+  SecurityAnswer3         String?
+  SecurityQuestionId4     Int?
+  SecurityAnswer4         String?
 }
 
 model SecurityQuestion {
-    Id       String @id @default(uuid())
-    Question String
+  Id       Int    @id @default(autoincrement())
+  Question String
 }
 
 model OtpCode {
-    Id                 String    @id
-    UserId             String
-    Otp                String?
-    Purpose            String?
-    OtpType            String?
-    IsUsed             Boolean   @default(false)
-    Attempts           Int       @default(0)
-    ExpiresAt          DateTime
-    InsertDate         DateTime  @default(now())
-    UpdateDate         DateTime  @updatedAt
-}
-
-
-// Legacy Models (for demo purposes)
-// These represent tables that might exist in a monolithic system
-
-model Customer {
-  id             Int      @id @default(autoincrement())
-  name           String
-  phone          String
-  status         String
-  registeredAt   DateTime @default(now())
-  
-  transactions     Transaction[]
-  pendingApprovals PendingApproval[]
-}
-
-model Transaction {
-  id             String    @id @default(uuid())
-  customerId     Int
-  amount         Float
-  fee            Float
-  status         String
-  timestamp      DateTime
-  type           String
-  channel        String
-  to_account     String
-  is_anomalous   Boolean   @default(false)
-  anomaly_reason String?
-
-  customer Customer @relation(fields: [customerId], references: [id])
-}
-
-model PendingApproval {
-  id            Int      @id @default(autoincrement())
-  customerId    Int
-  type          String
-  status        String   @default("pending")
-  requestedAt   DateTime @default(now())
-  customerName  String
-  customerPhone String
-  details       String?
-
-  customer Customer @relation(fields: [customerId], references: [id])
+  Id         Int      @id @default(autoincrement())
+  UserId     String
+  Purpose    String
+  OtpCode    String
+  OtpType    String // SMS, Email, etc.
+  IsUsed     Boolean  @default(false)
+  Attempts   Int      @default(0)
+  ExpiresAt  DateTime
+  InsertDate DateTime @default(now())
+  UpdateDate DateTime @updatedAt
 }
 
 model Corporate {
-    id                      String @id
-    name                    String @unique
-    industry                String
-    status                  String
-    internet_banking_status String
-    logo_url                String?
+  id                      String @id @default(cuid())
+  name                    String
+  industry                String
+  status                  String // e.g., 'Active', 'Inactive', 'Pending'
+  internet_banking_status String // e.g., 'Active', 'Disabled', 'Pending'
+  logo_url                String?
+}
+
+model MiniApp {
+  id             String  @id @default(cuid())
+  name           String
+  url            String
+  logo_url       String?
+  username       String
+  password       String
+  encryption_key String
 }
