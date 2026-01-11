@@ -11,19 +11,24 @@ import config from "@/lib/config";
 const getSessionData = async () => {
     // DEMO MODE: If not in production, bypass session check and return a mock admin user
     if (config.db.isProduction === false) {
-        const user = await db.user.findFirst({
-            where: { role: 'Super Admin' },
-        });
-
-        if (user) {
-            const { password, ...userWithoutPassword } = user;
-            return {
-                isLoggedIn: true,
-                user: userWithoutPassword,
-                permissions: ['all']
-            };
+        try {
+            const user = await db.user.findFirst({
+                where: { role: 'Super Admin' },
+            });
+            
+            if (user) {
+                const { password, ...userWithoutPassword } = user;
+                return {
+                    isLoggedIn: true,
+                    user: userWithoutPassword,
+                    permissions: ['all']
+                };
+            }
+        } catch (e) {
+            console.error("Layout DB check failed, using fallback mock user.", e);
         }
-        // Fallback mock user if DB is empty
+
+        // Fallback mock user if DB is empty or fails
         return {
             isLoggedIn: true,
             user: { id: "1", name: 'Demo Admin', email: 'admin@zemen.com', role: 'Super Admin' },

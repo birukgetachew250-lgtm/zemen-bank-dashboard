@@ -15,7 +15,7 @@ async function getCustomerStats() {
       return { total, active, inactive, registered };
     } catch (e: any) {
       console.error("Failed to fetch customer stats:", e);
-      return { total: 145032, active: 120432, inactive: 15300, registered: 9300 };
+      throw new Error(`Failed to fetch stats from the database: ${e.message}`);
     }
 }
 
