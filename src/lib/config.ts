@@ -5,7 +5,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-const IS_PRODUCTION_DB = process.env.IS_PRODUCTION_DB === 'true';
+const IS_PRODUCTION_DB = process.env.DATABASE_URL?.startsWith('postgres');
 
 const config = {
     db: {
