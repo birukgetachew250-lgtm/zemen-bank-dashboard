@@ -5,12 +5,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-const IS_PRODUCTION_DB = process.env.DATABASE_URL?.startsWith('postgres');
-
 const config = {
-    db: {
-        isProduction: IS_PRODUCTION_DB,
-    },
     security: {
         encryptionMasterKey: process.env.ENCRYPTION_MASTER_KEY,
     }

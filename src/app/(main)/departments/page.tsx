@@ -2,7 +2,6 @@
 import { DepartmentManagementClient } from "@/components/departments/DepartmentManagementClient";
 import type { Branch } from "../branches/page";
 import { db } from "@/lib/db";
-import config from "@/lib/config";
 
 export interface Department {
   id: string;
@@ -12,28 +11,17 @@ export interface Department {
   branchName?: string;
 }
 
-const mockBranches: Branch[] = [
-    { id: 'br_1', name: 'Bole Branch', location: 'Bole, Addis Ababa', createdAt: new Date().toISOString() },
-    { id: 'br_2', name: 'Head Office', location: 'HQ, Addis Ababa', createdAt: new Date().toISOString() },
-    { id: 'br_3', name: 'Arada Branch', location: 'Arada, Addis Ababa', createdAt: new Date().toISOString() },
-];
-
-const mockDepartments: Department[] = [
-    { id: 'dept_1', name: 'IT Department', branchId: 'br_2', createdAt: new Date().toISOString(), branchName: 'Head Office' },
-    { id: 'dept_2', name: 'Branch Operations', branchId: 'br_1', createdAt: new Date().toISOString(), branchName: 'Bole Branch' },
-    { id: 'dept_3', name: 'Human Resources', branchId: 'br_2', createdAt: new Date().toISOString(), branchName: 'Head Office' },
-    { id: 'dept_4', name: 'Customer Service', branchId: 'br_3', createdAt: new Date().toISOString(), branchName: 'Arada Branch' },
-];
-
 async function getDepartments(): Promise<Department[]> {
   try {
-    let data;
-    if (config.db.isProduction) {
-        data = await db.prepare('SELECT d."id", d."name", d."branchId", d."createdAt", b."name" as "branchName" FROM "USER_MODULE"."departments" d JOIN "USER_MODULE"."branches" b ON d."branchId" = b."id" ORDER BY d."name" ASC').all();
-    } else {
-        data = db.prepare("SELECT d.*, b.name as branchName FROM departments d JOIN branches b ON d.branchId = b.id ORDER BY d.name ASC").all();
-    }
-    return data as Department[];
+    const data = await db.department.findMany({
+        include: { branch: { select: { name: true } } },
+        orderBy: { name: 'asc' }
+    });
+    return data.map(d => ({
+        ...d,
+        createdAt: d.createdAt.toISOString(),
+        branchName: d.branch.name
+    }));
   } catch(e) {
     console.error("Failed to fetch departments from DB:", e);
     return [];
@@ -42,13 +30,10 @@ async function getDepartments(): Promise<Department[]> {
 
 async function getBranches(): Promise<Branch[]> {
     try {
-        let data;
-        if (config.db.isProduction) {
-            data = await db.prepare('SELECT "id", "name", "location", "createdAt" FROM "USER_MODULE"."branches" ORDER BY "name" ASC').all();
-        } else {
-            data = db.prepare("SELECT id, name, location, createdAt FROM branches ORDER BY name ASC").all();
-        }
-        return data as Branch[];
+        const data = await db.branch.findMany({
+            orderBy: { name: 'asc' }
+        });
+        return data.map(b => ({...b, createdAt: b.createdAt.toISOString()}));
     } catch (e) {
         console.error("Failed to fetch branches from DB:", e);
         return [];
@@ -56,11 +41,36 @@ async function getBranches(): Promise<Branch[]> {
 }
 
 export default async function DepartmentsPage() {
-  const departmentsData = await getDepartments();
-  const branchesData = await getBranches();
+    const fallbackBranches: Branch[] = [
+        { id: 'br_1', name: 'Bole Branch', location: 'Bole, Addis Ababa', createdAt: new Date().toISOString() },
+        { id: 'br_2', name: 'Head Office', location: 'HQ, Addis Ababa', createdAt: new Date().toISOString() },
+        { id: 'br_3', name: 'Arada Branch', location: 'Arada, Addis Ababa', createdAt: new Date().toISOString() },
+    ];
+    const fallbackDepartments: Department[] = [
+        { id: 'dept_1', name: 'IT Department', branchId: 'br_2', createdAt: new Date().toISOString(), branchName: 'Head Office' },
+        { id: 'dept_2', name: 'Branch Operations', branchId: 'br_1', createdAt: new Date().toISOString(), branchName: 'Bole Branch' },
+    ];
 
-  const departments = departmentsData.length > 0 ? departmentsData : mockDepartments;
-  const branches = branchesData.length > 0 ? branchesData : mockBranches;
+    let departmentsData;
+    let branchesData;
+
+    try {
+        departmentsData = await getDepartments();
+    } catch (e) {
+        console.error("Departments page DB error (departments), using fallback data.", e);
+        departmentsData = [];
+    }
+
+    try {
+        branchesData = await getBranches();
+    } catch (e) {
+        console.error("Departments page DB error (branches), using fallback data.", e);
+        branchesData = [];
+    }
+
+
+  const departments = departmentsData.length > 0 ? departmentsData : fallbackDepartments;
+  const branches = branchesData.length > 0 ? branchesData : fallbackBranches;
 
   return (
     <div className="w-full h-full">

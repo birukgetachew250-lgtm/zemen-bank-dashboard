@@ -1,5 +1,4 @@
 
-
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
@@ -13,7 +12,10 @@ export async function POST(req: Request) {
         }
 
         const id = `dep_${crypto.randomUUID()}`;
-        db.prepare('INSERT INTO departments (id, name, branchId) VALUES (?, ?, ?)').run(id, name, branchId);
+        
+        await db.department.create({
+            data: { id, name, branchId }
+        });
 
         return NextResponse.json({ success: true, message: 'Department added successfully', id });
     } catch (error) {
@@ -30,14 +32,13 @@ export async function DELETE(req: Request) {
             return NextResponse.json({ message: 'Department ID is required' }, { status: 400 });
         }
 
-        const result = db.prepare('DELETE FROM departments WHERE id = ?').run(id);
-
-        if (result.changes === 0) {
-            return NextResponse.json({ message: 'Department not found' }, { status: 404 });
-        }
+        await db.department.delete({ where: { id }});
 
         return NextResponse.json({ success: true, message: 'Department deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
+        if (error.code === 'P2025') {
+            return NextResponse.json({ message: 'Department not found' }, { status: 404 });
+        }
         console.error('Failed to delete department:', error);
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }

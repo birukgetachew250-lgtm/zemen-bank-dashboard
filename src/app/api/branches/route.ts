@@ -12,7 +12,10 @@ export async function POST(req: Request) {
         }
 
         const id = `br_${crypto.randomUUID()}`;
-        db.prepare('INSERT INTO branches (id, name, location) VALUES (?, ?, ?)').run(id, name, location);
+        
+        await db.branch.create({
+            data: { id, name, location }
+        });
 
         return NextResponse.json({ success: true, message: 'Branch added successfully', id });
     } catch (error) {
@@ -29,14 +32,13 @@ export async function DELETE(req: Request) {
             return NextResponse.json({ message: 'Branch ID is required' }, { status: 400 });
         }
 
-        const result = db.prepare('DELETE FROM branches WHERE id = ?').run(id);
-
-        if (result.changes === 0) {
-            return NextResponse.json({ message: 'Branch not found' }, { status: 404 });
-        }
+        await db.branch.delete({ where: { id }});
 
         return NextResponse.json({ success: true, message: 'Branch deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
+        if (error.code === 'P2025') {
+             return NextResponse.json({ message: 'Branch not found' }, { status: 404 });
+        }
         console.error('Failed to delete branch:', error);
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }

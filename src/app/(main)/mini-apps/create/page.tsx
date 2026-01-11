@@ -4,17 +4,13 @@ import { MiniAppForm } from "@/components/mini-apps/MiniAppForm";
 import { Loader2 } from "lucide-react";
 import type { MiniApp } from "@/components/mini-apps/MiniAppManagementClient";
 import { db } from "@/lib/db";
-import config from "@/lib/config";
 
 async function getMiniApp(id: string | undefined): Promise<MiniApp | null> {
     if (!id) return null;
     try {
-        let app;
-        if (config.db.isProduction) {
-            app = await db.prepare('SELECT * FROM "USER_MODULE"."mini_apps" WHERE "id" = :1').get(id);
-        } else {
-            app = db.prepare('SELECT * FROM mini_apps WHERE id = ?').get(id);
-        }
+        const app = await db.miniApp.findUnique({
+            where: { id: id },
+        });
         return app as MiniApp | null;
     } catch(e) {
         console.error(`Failed to fetch mini-app with id ${id}:`, e);

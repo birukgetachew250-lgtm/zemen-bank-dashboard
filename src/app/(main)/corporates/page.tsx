@@ -1,7 +1,6 @@
 
 import { db } from "@/lib/db";
 import { CorporateClientPage } from "@/components/corporates/CorporateClientPage";
-import config from "@/lib/config";
 
 interface Corporate {
   id: string;
@@ -14,13 +13,10 @@ interface Corporate {
 
 async function getCorporates(): Promise<Corporate[]> {
   try {
-    let data;
-     if (config.db.isProduction) {
-        data = await db.prepare('SELECT "id", "name", "industry", "status", "internet_banking_status", "logo_url" FROM "USER_MODULE"."corporates" ORDER BY "name" ASC').all();
-    } else {
-        data = db.prepare("SELECT * FROM corporates ORDER BY name ASC").all();
-    }
-    return data as Corporate[];
+    const data = await db.corporate.findMany({
+        orderBy: { name: 'asc' }
+    });
+    return data;
   } catch (e) {
     console.error("Failed to fetch corporates from DB:", e);
     return [];
@@ -35,7 +31,14 @@ const fallbackCorporates = [
 ];
 
 export default async function CorporatesPage() {
-    const corporatesData = await getCorporates();
+    let corporatesData: Corporate[];
+    try {
+        corporatesData = await getCorporates();
+    } catch(e) {
+        console.error("Corporates page DB error, using fallback data", e);
+        corporatesData = [];
+    }
+    
     const corporates = corporatesData.length > 0 ? corporatesData : fallbackCorporates;
     return (
       <div className="w-full h-full">
