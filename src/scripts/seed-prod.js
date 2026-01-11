@@ -1,11 +1,18 @@
+
 // src/scripts/seed-prod.js
 
 const { PrismaClient } = require('@prisma/client');
 
 // This seed script is ONLY for the production user management database (users and roles).
-// It uses Prisma and connects via the DATABASE_URL when NODE_ENV is 'production'.
+// It uses Prisma and connects via the DASH_MODULE_PROD_DATABASE_URL when NODE_ENV is 'production'.
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+    datasources: {
+        db: {
+            url: process.env.DASH_MODULE_PROD_DATABASE_URL,
+        },
+    },
+});
 
 async function main() {
     console.log('Start seeding PRODUCTION users and roles...');
@@ -15,6 +22,13 @@ async function main() {
             'This script is for production seeding only. Set NODE_ENV=production to run.'
         );
     }
+    
+    if (!process.env.DASH_MODULE_PROD_DATABASE_URL) {
+        throw new Error(
+            'DASH_MODULE_PROD_DATABASE_URL is not set. This is required for production seeding.'
+        );
+    }
+
 
     // Seed Branches
     await prisma.branch.upsert({

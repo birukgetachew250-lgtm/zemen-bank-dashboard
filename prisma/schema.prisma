@@ -1,7 +1,6 @@
-
 datasource db {
-  provider = "sqlite"
-  url      = "file:./zemen.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
