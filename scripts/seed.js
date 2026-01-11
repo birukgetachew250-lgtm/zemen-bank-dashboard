@@ -39,56 +39,41 @@ async function main() {
     await prisma.department.deleteMany();
     await prisma.branch.deleteMany();
     await prisma.miniApp.deleteMany();
+    await prisma.role.deleteMany();
     await prisma.user.deleteMany();
     console.log('Cleared existing data.');
 
     // Seed Branches
-    const branch1 = await prisma.branch.create({
-        data: { name: 'Bole Branch', location: 'Bole, Addis Ababa' },
-    });
-    const branch2 = await prisma.branch.create({
-        data: { name: 'Head Office', location: 'HQ, Addis Ababa' },
-    });
-    const branch3 = await prisma.branch.create({
-        data: { name: 'Arada Branch', location: 'Arada, Addis Ababa' },
-    });
+    const branch1 = await prisma.branch.create({ data: { id: 'br_1', name: 'Bole Branch', location: 'Bole, Addis Ababa' } });
+    const branch2 = await prisma.branch.create({ data: { id: 'br_2', name: 'Head Office', location: 'HQ, Addis Ababa' } });
+    const branch3 = await prisma.branch.create({ data: { id: 'br_3', name: 'Arada Branch', location: 'Arada, Addis Ababa' } });
     console.log('Seeded 3 branches.');
 
     // Seed Departments
     await prisma.department.createMany({
         data: [
-            { name: 'IT Department', branchId: branch2.id },
-            { name: 'Branch Operations', branchId: branch1.id },
-            { name: 'Human Resources', branchId: branch2.id },
-            { name: 'Customer Service', branchId: branch3.id },
+            { id: 'dept_1', name: 'IT Department', branchId: branch2.id },
+            { id: 'dept_2', name: 'Branch Operations', branchId: branch1.id },
+            { id: 'dept_3', name: 'Human Resources', branchId: branch2.id },
+            { id: 'dept_4', name: 'Customer Service', branchId: branch3.id },
         ],
     });
     console.log('Seeded 4 departments.');
 
+    // Seed Roles
+    await prisma.role.createMany({
+        data: [
+            { name: 'Super Admin', description: 'Full system access.' },
+            { name: 'Operations Lead', description: 'Manages approvals.' },
+            { name: 'Support Staff', description: 'Customer support.' },
+            { name: 'Compliance Officer', description: 'Handles risk and compliance.' },
+        ],
+    });
+    console.log('Seeded 4 roles.');
 
     // Seed Admin Users
-    await prisma.user.create({
-        data: {
-            employeeId: 'admin001',
-            name: 'Admin User',
-            email: 'admin@zemen.com',
-            password: 'password', // In a real app, this would be hashed
-            role: 'Super Admin',
-            department: 'IT Department',
-            branch: 'Head Office',
-        },
-    });
-     await prisma.user.create({
-        data: {
-            employeeId: 'ops001',
-            name: 'Operations Lead User',
-            email: 'ops@zemen.com',
-            password: 'password', // In a real app, this would be hashed
-            role: 'Operations Lead',
-            department: 'Branch Operations',
-            branch: 'Bole Branch',
-        },
-    });
+    await prisma.user.create({ data: { employeeId: 'admin001', name: 'Admin User', email: 'admin@zemen.com', password: 'password', role: 'Super Admin', department: 'IT Department', branch: 'Head Office' } });
+    await prisma.user.create({ data: { employeeId: 'ops001', name: 'Operations Lead User', email: 'ops@zemen.com', password: 'password', role: 'Operations Lead', department: 'Branch Operations', branch: 'Bole Branch' } });
     console.log('Seeded 2 admin users.');
 
     // Seed Security Questions
@@ -112,31 +97,33 @@ async function main() {
 
     for (const u of userList) {
         const nameParts = u.name.split(' ');
-        const appUser = await prisma.appUser.create({
+        const appUserId = `user_${u.cif}`;
+        await prisma.appUser.create({
             data: {
-                cifNumber: u.cif,
-                firstName: encrypt(nameParts[0]),
-                secondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1]),
-                lastName: encrypt(nameParts[nameParts.length - 1]),
-                email: encrypt(u.email),
-                phoneNumber: encrypt(u.phone),
-                status: u.status,
-                signUpMainAuth: 'PIN',
-                signUp2FA: 'SMSOTP',
-                branchName: u.branch,
-                addressLine1: faker.location.streetAddress(),
-                nationality: 'Ethiopian'
+                Id: appUserId,
+                CIFNumber: u.cif,
+                FirstName: encrypt(nameParts[0]),
+                SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1]),
+                LastName: encrypt(nameParts[nameParts.length - 1]),
+                Email: encrypt(u.email),
+                PhoneNumber: encrypt(u.phone),
+                Status: u.status,
+                SignUpMainAuth: 'PIN',
+                SignUp2FA: 'SMSOTP',
+                BranchName: u.branch,
+                AddressLine1: faker.location.streetAddress(),
+                Nationality: 'Ethiopian'
             }
         });
         
         await prisma.userSecurity.create({
             data: {
-                userId: appUser.id,
-                cifNumber: u.cif,
-                status: u.status,
-                pinHash: crypto.createHash('sha256').update(faker.string.numeric(4)).digest('hex'),
-                securityQuestionId: faker.helpers.arrayElement(securityQuestions).id,
-                securityAnswer: encrypt(faker.lorem.word()),
+                UserId: appUserId,
+                CIFNumber: u.cif,
+                Status: u.status,
+                PinHash: crypto.createHash('sha256').update(faker.string.numeric(4)).digest('hex'),
+                SecurityQuestionId: faker.helpers.arrayElement(securityQuestions).id,
+                SecurityAnswer: encrypt(faker.lorem.word()),
             }
         });
         
