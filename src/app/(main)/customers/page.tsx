@@ -8,15 +8,18 @@ import {
 } from "@/components/ui/card";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Users, Link, UserCheck } from "lucide-react";
-import { db } from "@/lib/db";
 import { ExistingCustomerClient } from "@/components/customers/ExistingCustomerClient";
-import config from "@/lib/config";
+import { executeQuery } from "@/lib/oracle-db";
 
 async function getAppUserStats() {
   try {
-    const totalUsers = await db.appUser.count();
-    const linkedAccounts = await db.account.count();
-    const activeUsers = await db.appUser.count({ where: { Status: 'Active' } });
+    const totalResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers"`);
+    const activeResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers" WHERE "Status" = 'Active'`);
+    const linkedAccountsResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."Accounts"`);
+    
+    const totalUsers = totalResult[0]?.COUNT || 0;
+    const activeUsers = activeResult[0]?.COUNT || 0;
+    const linkedAccounts = linkedAccountsResult[0]?.COUNT || 0;
 
     return {
         totalUsers: totalUsers.toLocaleString(),
