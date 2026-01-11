@@ -18,10 +18,10 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, Lock, Bell, Settings as SettingsIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const settingsFormSchema = z.object({
   theme: z.enum(['light', 'dark']),
@@ -43,7 +43,6 @@ const passwordFormSchema = z.object({
   message: "New passwords don't match.",
   path: ["confirmPassword"],
 });
-
 
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
@@ -152,9 +151,17 @@ function ChangePasswordForm() {
   );
 }
 
+const menuItems = [
+    { id: 'general', label: 'General', icon: SettingsIcon },
+    { id: 'security', label: 'Security', icon: User },
+    { id: 'password', label: 'Change Password', icon: Lock },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+];
 
 export default function SettingsPage() {
   const { toast } = useToast();
+  const [activeView, setActiveView] = useState('general');
+  
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsFormSchema),
     defaultValues,
@@ -179,162 +186,176 @@ export default function SettingsPage() {
 
   return (
     <div className="w-full">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="flex items-center justify-between mb-6">
+         <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-headline font-semibold">Settings</h2>
               <p className="text-muted-foreground">Manage your application settings and set preferences.</p>
             </div>
-            <Button type="submit">Save Changes</Button>
+            <Button onClick={form.handleSubmit(onSubmit)}>Save Changes</Button>
           </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <nav className="md:col-span-1">
+                <ul className="space-y-1">
+                    {menuItems.map(item => (
+                        <li key={item.id}>
+                            <Button 
+                                variant="ghost" 
+                                className={cn(
+                                    "w-full justify-start",
+                                    activeView === item.id && "bg-accent text-accent-foreground"
+                                )}
+                                onClick={() => setActiveView(item.id)}
+                            >
+                                <item.icon className="mr-2 h-4 w-4" />
+                                {item.label}
+                            </Button>
+                        </li>
+                    ))}
+                </ul>
+            </nav>
 
-          <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 max-w-xl">
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
-              <TabsTrigger value="password">Change Password</TabsTrigger>
-              <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="general" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>General</CardTitle>
-                  <CardDescription>Manage general application settings.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="theme"
-                    render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <FormLabel>Theme</FormLabel>
-                        <FormDescription>Select the application theme.</FormDescription>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex flex-col space-y-1"
-                          >
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="light" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                Light
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="dark" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                Dark
-                              </FormLabel>
-                            </FormItem>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="security" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Security</CardTitle>
-                  <CardDescription>Manage security-related settings.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="sessionTimeout"
-                    render={({ field }) => (
-                      <FormItem className="max-w-sm">
-                        <FormLabel>Session Timeout</FormLabel>
-                        <FormDescription>
-                          The time in minutes before a user is automatically logged out.
-                        </FormDescription>
-                        <FormControl>
-                          <Input type="number" placeholder="30" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="password" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Change Password</CardTitle>
-                  <CardDescription>Update your current password.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ChangePasswordForm />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="notifications" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Notifications</CardTitle>
-                  <CardDescription>Manage your notification preferences.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="notifications.newUserApproval"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">New User Approvals</FormLabel>
-                          <FormDescription>
-                            Receive email notifications for new customers awaiting approval.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="notifications.failedLoginAttempts"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Failed Login Attempts</FormLabel>
-                          <FormDescription>
-                            Receive email notifications for excessive failed login attempts.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </form>
-      </Form>
+            <div className="md:col-span-3">
+                 <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)}>
+                        {activeView === 'general' && (
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>General</CardTitle>
+                                    <CardDescription>Manage general application settings.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    <FormField
+                                        control={form.control}
+                                        name="theme"
+                                        render={({ field }) => (
+                                        <FormItem className="space-y-3">
+                                            <FormLabel>Theme</FormLabel>
+                                            <FormDescription>Select the application theme.</FormDescription>
+                                            <FormControl>
+                                            <RadioGroup
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value}
+                                                className="flex flex-col space-y-1"
+                                            >
+                                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                                <FormControl>
+                                                    <RadioGroupItem value="light" />
+                                                </FormControl>
+                                                <FormLabel className="font-normal">
+                                                    Light
+                                                </FormLabel>
+                                                </FormItem>
+                                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                                <FormControl>
+                                                    <RadioGroupItem value="dark" />
+                                                </FormControl>
+                                                <FormLabel className="font-normal">
+                                                    Dark
+                                                </FormLabel>
+                                                </FormItem>
+                                            </RadioGroup>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                        )}
+                                    />
+                                </CardContent>
+                            </Card>
+                        )}
+                        {activeView === 'security' && (
+                             <Card>
+                                <CardHeader>
+                                <CardTitle>Security</CardTitle>
+                                <CardDescription>Manage security-related settings.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                <FormField
+                                    control={form.control}
+                                    name="sessionTimeout"
+                                    render={({ field }) => (
+                                    <FormItem className="max-w-sm">
+                                        <FormLabel>Session Timeout</FormLabel>
+                                        <FormDescription>
+                                        The time in minutes before a user is automatically logged out.
+                                        </FormDescription>
+                                        <FormControl>
+                                        <Input type="number" placeholder="30" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                </CardContent>
+                            </Card>
+                        )}
+                         {activeView === 'password' && (
+                             <Card>
+                                <CardHeader>
+                                <CardTitle>Change Password</CardTitle>
+                                <CardDescription>Update your current password.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                <ChangePasswordForm />
+                                </CardContent>
+                            </Card>
+                         )}
+                         {activeView === 'notifications' && (
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Notifications</CardTitle>
+                                    <CardDescription>Manage your notification preferences.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                <FormField
+                                    control={form.control}
+                                    name="notifications.newUserApproval"
+                                    render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                        <div className="space-y-0.5">
+                                        <FormLabel className="text-base">New User Approvals</FormLabel>
+                                        <FormDescription>
+                                            Receive email notifications for new customers awaiting approval.
+                                        </FormDescription>
+                                        </div>
+                                        <FormControl>
+                                        <Switch
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                        </FormControl>
+                                    </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="notifications.failedLoginAttempts"
+                                    render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                        <div className="space-y-0.5">
+                                        <FormLabel className="text-base">Failed Login Attempts</FormLabel>
+                                        <FormDescription>
+                                            Receive email notifications for excessive failed login attempts.
+                                        </FormDescription>
+                                        </div>
+                                        <FormControl>
+                                        <Switch
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                        </FormControl>
+                                    </FormItem>
+                                    )}
+                                />
+                                </CardContent>
+                            </Card>
+                         )}
+                    </form>
+                 </Form>
+            </div>
+        </div>
     </div>
   );
 }
+
+    
