@@ -53,12 +53,14 @@ export async function POST(req: Request) {
                     break;
                 case 'pin-reset':
                     console.log(`PIN reset approved for customer CIF ${cif}`);
+                    // Placeholder for actual PIN reset logic
                     break;
             }
 
             await db.pendingApproval.delete({ where: { id: approvalId } });
 
         } else {
+            // Fallback for older approvals without structured details
             await db.pendingApproval.delete({ where: { id: approvalId } });
         }
 
