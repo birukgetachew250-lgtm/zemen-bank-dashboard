@@ -12,28 +12,38 @@ const oracledb = require('oracledb');
 //   process.exit(1);
 // }
 
-
 async function runTest() {
     let connection;
-    const connectString = process.env.USER_MODULE_DB_CONNECTION_STRING;
+    const connectStringFull = process.env.USER_MODULE_DB_CONNECTION_STRING;
     
-    if (!connectString) {
+    if (!connectStringFull) {
         console.error("Error: USER_MODULE_DB_CONNECTION_STRING is not defined in your .env file.");
         return;
     }
     
-    const [user, passwordPart] = connectString.split('/');
-    const [password, server] = passwordPart.split('@');
+    // Correctly parsing the Oracle connection string format user/password@host:port/service
+    const userMatch = connectStringFull.match(/^(.*?)\//);
+    const passwordMatch = connectStringFull.match(/\/(.*?)@/);
+    const serverMatch = connectStringFull.match(/@(.*?)$/);
+
+    if (!userMatch || !passwordMatch || !serverMatch) {
+      console.error("Error: Invalid Oracle connection string format. Expected format: user/password@host:port/service");
+      return;
+    }
+
+    const user = userMatch[1];
+    const password = passwordMatch[1];
+    const connectString = serverMatch[1];
 
     console.log(`Attempting to connect to Oracle database...`);
-    console.log(`- Connect String: ${server}`);
+    console.log(`- Connect String: ${connectString}`);
     console.log(`- User: ${user}`);
 
     try {
         connection = await oracledb.getConnection({
             user: user,
             password: password,
-            connectString: server,
+            connectString: connectString,
         });
 
         console.log("\n✅ Success! Connection to Oracle database was established.");

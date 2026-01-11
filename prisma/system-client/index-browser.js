@@ -116,6 +116,9 @@ Prisma.NullTypes = {
  */
 
 exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
+  ReadUncommitted: 'ReadUncommitted',
+  ReadCommitted: 'ReadCommitted',
+  RepeatableRead: 'RepeatableRead',
   Serializable: 'Serializable'
 });
 
@@ -186,62 +189,6 @@ exports.Prisma.TransactionScalarFieldEnum = {
   anomaly_reason: 'anomaly_reason'
 };
 
-exports.Prisma.AppUserScalarFieldEnum = {
-  Id: 'Id',
-  CIFNumber: 'CIFNumber',
-  FirstName: 'FirstName',
-  SecondName: 'SecondName',
-  LastName: 'LastName',
-  Email: 'Email',
-  PhoneNumber: 'PhoneNumber',
-  Status: 'Status',
-  SignUpMainAuth: 'SignUpMainAuth',
-  SignUp2FA: 'SignUp2FA',
-  BranchCode: 'BranchCode',
-  BranchName: 'BranchName',
-  AddressLine1: 'AddressLine1',
-  AddressLine2: 'AddressLine2',
-  AddressLine3: 'AddressLine3',
-  AddressLine4: 'AddressLine4',
-  Nationality: 'Nationality',
-  Channel: 'Channel',
-  InsertDate: 'InsertDate',
-  UpdateDate: 'UpdateDate'
-};
-
-exports.Prisma.AccountScalarFieldEnum = {
-  Id: 'Id',
-  CIFNumber: 'CIFNumber',
-  AccountNumber: 'AccountNumber',
-  FirstName: 'FirstName',
-  SecondName: 'SecondName',
-  LastName: 'LastName',
-  AccountType: 'AccountType',
-  Currency: 'Currency',
-  Status: 'Status',
-  BranchName: 'BranchName',
-  InsertDate: 'InsertDate',
-  UpdateDate: 'UpdateDate'
-};
-
-exports.Prisma.SecurityQuestionScalarFieldEnum = {
-  Id: 'Id',
-  Question: 'Question'
-};
-
-exports.Prisma.UserSecurityScalarFieldEnum = {
-  Id: 'Id',
-  UserId: 'UserId',
-  CIFNumber: 'CIFNumber',
-  Status: 'Status',
-  PinHash: 'PinHash',
-  PasswordHash: 'PasswordHash',
-  SecurityQuestionId: 'SecurityQuestionId',
-  SecurityAnswer: 'SecurityAnswer',
-  InsertDate: 'InsertDate',
-  UpdateDate: 'UpdateDate'
-};
-
 exports.Prisma.CorporateScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -279,6 +226,11 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
@@ -293,10 +245,6 @@ exports.Prisma.ModelName = {
   Customer: 'Customer',
   PendingApproval: 'PendingApproval',
   Transaction: 'Transaction',
-  AppUser: 'AppUser',
-  Account: 'Account',
-  SecurityQuestion: 'SecurityQuestion',
-  UserSecurity: 'UserSecurity',
   Corporate: 'Corporate',
   MiniApp: 'MiniApp',
   OtpCode: 'OtpCode'

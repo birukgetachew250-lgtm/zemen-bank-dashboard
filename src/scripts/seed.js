@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('Start seeding...');
 
-    // Clean up existing data
+    // Clean up existing data from the dashboard module
     await prisma.pendingApproval.deleteMany();
     await prisma.transaction.deleteMany();
     await prisma.customer.deleteMany();
@@ -53,7 +53,7 @@ async function main() {
     await prisma.user.create({ data: { employeeId: 'ops001', name: 'Operations Lead User', email: 'ops@zemen.com', password: 'password', role: 'Operations Lead', department: 'Branch Operations', branch: 'Bole Branch' } });
     console.log('Seeded 2 admin users.');
 
-    // Seed Customers
+    // Seed Customers (for dashboard relations)
     const customerList = [
         { name: 'John Adebayo Doe', phone: '+2348012345678', status: 'Active' },
         { name: 'Jane Smith', phone: '+2348012345679', status: 'Active' },
