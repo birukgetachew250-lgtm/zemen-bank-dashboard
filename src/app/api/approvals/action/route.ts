@@ -59,7 +59,7 @@ export async function POST(req: Request) {
         
         const cif = await getCifFromApproval(approval);
 
-        if (!cif && approval.type !== 'new-customer') { // For new customers, CIF is in details
+        if (!cif) {
             await db.pendingApproval.delete({ where: { id: approvalId } });
             console.error(`Could not determine CIF for approvalId: ${approvalId}. Approval removed without action.`);
             throw new Error(`Could not determine customer CIF for approval ID ${approvalId}. The request was cleared without action.`);
@@ -79,8 +79,31 @@ export async function POST(req: Request) {
                 statusToSet = 'Active';
                 break;
             case 'pin-reset':
-                console.log(`PIN reset approved for customer CIF ${cif}`);
-                // Placeholder for actual PIN reset logic, no status change needed.
+                const newPin = Math.floor(100000 + Math.random() * 900000).toString();
+                const newPinHash = crypto.createHash('sha256').update(newPin).digest('hex');
+                console.log(`Generated new PIN ${newPin} and hash ${newPinHash} for CIF ${cif}`);
+
+                const updateSecurityQuery = `
+                    UPDATE "USER_MODULE"."UserSecurities" 
+                    SET 
+                        "PinHash" = :pinHash, 
+                        "Status" = 'Active', 
+                        "IsLocked" = 0, 
+                        "UnlockedTime" = :unlockedTime, 
+                        "LockedIntervalMinutes" = 0
+                    WHERE "CIFNumber" = :cif`;
+                
+                const securityBinds = {
+                    pinHash: newPinHash,
+                    unlockedTime: new Date(),
+                    cif: cif,
+                };
+                
+                const securityResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateSecurityQuery, securityBinds);
+                console.log(`PIN reset approved and executed for customer CIF ${cif}. Rows affected: ${securityResult?.rowsAffected}`);
+                // TODO: In a real implementation, the new PIN would be sent to the user via SMS.
+                // For now, we can log it for verification.
+                console.log(`IMPORTANT: New PIN for CIF ${cif} is ${newPin}`);
                 break;
             case 'customer-account':
                 const details = JSON.parse(approval.details || '{}');
@@ -112,7 +135,7 @@ export async function POST(req: Request) {
                 const unlinkDetails = JSON.parse(approval.details || '{}');
                 const hashedAccountNumber = crypto.createHash('sha256').update(unlinkDetails.accountNumber).digest('hex');
                 const unlinkQuery = `UPDATE "USER_MODULE"."Accounts" SET "Status" = 'Inactive' WHERE "HashedAccountNumber" = :hashedAccountNumber`;
-                const unlinkResult = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, unlinkQuery, { hashedAccountNumber });
+                const unlinkResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, unlinkQuery, { hashedAccountNumber });
                 console.log(`Unlink account request for ${unlinkDetails.accountNumber}. Rows affected: ${unlinkResult.rowsAffected}`);
                 break;
         }
