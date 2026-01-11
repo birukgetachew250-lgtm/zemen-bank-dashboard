@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   Building2,
@@ -49,6 +48,7 @@ import {
   Plug,
   DatabaseZap,
   Lock,
+  Link,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -72,6 +72,7 @@ export const menu: MenuItem[] = [
         children: [
           { icon: Users, label: "Create Customer", href: "/customers/create" },
           { icon: Users, label: "Existing Customers", href: "/customers" },
+          { icon: Link, label: "Link Account", href: "/customers/link-account" },
           { icon: Ban, label: "Suspend Customer", href: "/customers/block" },
           { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/unblock" },
           { icon: KeyRound, label: "Pin Reset", href: "/customers/request-pin-reset" },
@@ -123,7 +124,7 @@ export const menu: MenuItem[] = [
         children: [
           { icon: Users, label: "New Customers", href: "/customers/approve-new" },
           { icon: Users, label: "Updated Customers", href: "/customers/approve-updated" },
-          { icon: Users, label: "Customer Accounts", href: "/customers/approve-accounts" },
+          { icon: Link, label: "Customer Accounts", href: "/customers/approve-accounts" },
           { icon: UserX, label: "Suspended Customers", href: "/customers/approve-suspension" },
           { icon: UserCheck, label: "Unsuspended Customers", href: "/customers/approve-unblocked" },
           { icon: KeyRound, label: "Pin Resets", href: "/customers/approve-pin-reset" },

@@ -28,7 +28,7 @@ async function getOracleConnection(connectionString: string | undefined) {
     });
 }
 
-export async function executeQuery(connectionString: string | undefined, query: string, binds: any[] = []) {
+export async function executeQuery(connectionString: string | undefined, query: string, binds: any[] | Record<string, any> = []) {
     let connection;
     try {
         connection = await getOracleConnection(connectionString);
@@ -37,7 +37,7 @@ export async function executeQuery(connectionString: string | undefined, query: 
         // It's crucial for DML statements (INSERT, UPDATE, DELETE) to persist changes.
         const isDML = /^\s*(insert|update|delete)/i.test(query);
 
-        const options = {
+        const options: oracledb.ExecuteOptions = {
             outFormat: oracledb.OBJECT,
             autoCommit: isDML,
         };
@@ -47,7 +47,10 @@ export async function executeQuery(connectionString: string | undefined, query: 
         
         console.log(`[Oracle DB] Execution result:`, { rowsAffected: result.rowsAffected, rows: result.rows ? 'omitted for brevity' : 'none' });
 
-        return result.rows;
+        return {
+          rows: result.rows,
+          rowsAffected: result.rowsAffected,
+        };
     } catch (err) {
         console.error("Oracle DB query failed:", err);
         throw err;

@@ -1,5 +1,7 @@
 
 
+'use client';
+
 import Image from "next/image";
 import {
   Card,
@@ -25,76 +27,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { User, Landmark, Activity, Smartphone, Shield, Edit, Ban, History, Unlink } from "lucide-react";
-import { db } from "@/lib/db";
-import { notFound } from "next/navigation";
-import { decrypt } from "@/lib/crypto";
+import { User, Landmark, Activity, Smartphone, Shield, Edit, Ban, History, Unlink, Link } from "lucide-react";
+import { notFound, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-
-const getCustomerById = async (id: string) => {
-    const customerFromDb = await db.appUser.findFirst({
-        where: {
-            OR: [
-                { Id: id },
-                { CIFNumber: id }
-            ]
-        }
-    });
-
-    if (customerFromDb) {
-        const d = customerFromDb;
-        const firstName = decrypt(d.FirstName);
-        const secondName = decrypt(d.SecondName);
-        const lastName = decrypt(d.LastName);
-        const email = decrypt(d.Email);
-        const phoneNumber = decrypt(d.PhoneNumber);
-
-        return {
-            id: d.Id,
-            cifNumber: d.CIFNumber,
-            name: [firstName, secondName, lastName].filter(Boolean).join(' '),
-            email: email,
-            phoneNumber: phoneNumber,
-            address: [d.AddressLine1, d.AddressLine2, d.AddressLine3, d.AddressLine4].filter(Boolean).join(', '),
-            nationality: d.Nationality,
-            branchCode: d.BranchCode,
-            branchName: d.BranchName,
-            status: d.Status,
-            signUp2FA: d.SignUp2FA,
-            signUpMainAuth: d.SignUpMainAuth,
-            insertDate: d.InsertDate.toISOString(),
-        }
-    }
-    return null;
-}
-
-
-const getAccountsByCif = async (cif: string) => {
-    if (!cif) return [];
-    const accountsFromDb = await db.account.findMany({
-        where: { CIFNumber: cif }
-    });
-    
-    return accountsFromDb.map((acc: any) => {
-        return {
-            id: acc.Id,
-            accountNumber: decrypt(acc.AccountNumber),
-            accountType: decrypt(acc.AccountType),
-            currency: decrypt(acc.Currency),
-            branchName: acc.BranchName,
-            status: acc.Status,
-        }
-    });
-}
-
+import { useEffect, useState, Suspense } from "react";
+import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const activityLogs = [
     { id: 1, action: "Logged In", timestamp: "2023-10-27 10:00 AM", ip: "192.168.1.1", device: "iPhone 14 Pro" },
     { id: 2, action: "Fund Transfer", timestamp: "2023-10-27 10:05 AM", details: "Sent ₦50,000 to Jane Smith" },
     { id: 3, action: "PIN Change", timestamp: "2023-10-26 03:20 PM", ip: "105.112.45.67" },
 ];
-
 
 const getStatusVariant = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -107,15 +52,72 @@ const getStatusVariant = (status: string) => {
     }
 }
 
+function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
+    const [customer, setCustomer] = useState<any>(null);
+    const [accounts, setAccounts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const { toast } = useToast();
+    const router = useRouter();
 
-export default async function CustomerDetailsPage({ params }: { params: { customerId: string } }) {
-    const customer = await getCustomerById(params.customerId);
+    useEffect(() => {
+        async function fetchData() {
+            setLoading(true);
+            try {
+                const customerRes = await fetch(`/api/customers/${customerId}`);
+                if (!customerRes.ok) throw new Error("Customer not found");
+                const customerData = await customerRes.json();
+                setCustomer(customerData);
 
-    if (!customer) {
-        notFound();
+                const accountsRes = await fetch(`/api/customers/${customerId}/accounts`);
+                if (!accountsRes.ok) throw new Error("Could not fetch accounts");
+                const accountsData = await accountsRes.json();
+                setAccounts(accountsData);
+
+            } catch (error: any) {
+                toast({ variant: 'destructive', title: "Error", description: error.message });
+                // router.push('/customers'); // Redirect if customer not found
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchData();
+    }, [customerId, toast, router]);
+
+    const handleUnlink = async (accountNumber: string) => {
+        if (!customer) return;
+
+        try {
+            const response = await fetch('/api/approvals/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cif: customer.cifNumber,
+                    type: 'unlink-account',
+                    customerName: customer.name,
+                    customerPhone: customer.phoneNumber,
+                    details: { accountNumber }
+                }),
+            });
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to request account unlinking');
+            }
+            toast({
+                title: "Request Submitted",
+                description: `Request to unlink account ${accountNumber} has been sent for approval.`
+            });
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Action Failed", description: error.message });
+        }
+    };
+
+    if (loading) {
+        return <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
     }
     
-    const accounts = await getAccountsByCif(customer.cifNumber);
+    if (!customer) {
+        return notFound();
+    }
 
     const fullName = customer.name;
 
@@ -199,7 +201,7 @@ export default async function CustomerDetailsPage({ params }: { params: { custom
                                      >{acc.status}</Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon">
+                                    <Button variant="ghost" size="icon" onClick={() => handleUnlink(acc.accountNumber)}>
                                         <Unlink className="h-4 w-4 text-red-500" />
                                     </Button>
                                 </TableCell>
@@ -261,7 +263,6 @@ export default async function CustomerDetailsPage({ params }: { params: { custom
             </CardContent>
           </Card>
         </TabsContent>
-
       </Tabs>
     </div>
   );
@@ -274,4 +275,12 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
             <div className={className}>{value}</div>
         </div>
     )
+}
+
+export default function CustomerDetailsPage({ params }: { params: { customerId: string } }) {
+  return (
+    <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
+      <CustomerDetailsPageContent customerId={params.customerId} />
+    </Suspense>
+  )
 }

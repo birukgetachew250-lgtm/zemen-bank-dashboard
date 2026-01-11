@@ -2,6 +2,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { executeQuery } from '@/lib/oracle-db';
+import { encrypt } from '@/lib/crypto';
+import crypto from 'crypto';
 
 const getCifFromApproval = async (approval: any) => {
     // 1. Try to get CIF from the details JSON
@@ -19,13 +21,14 @@ const getCifFromApproval = async (approval: any) => {
     // 2. Fallback: Get phone from approval, then query Oracle for CIF
     if (approval.customerPhone) {
         try {
-            console.log(`[gRPC Fallback] Searching for CIF with phone number: ${approval.customerPhone}`);
-            const userResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "PhoneNumber" = :phone`, [approval.customerPhone]);
+            console.log(`[Oracle Fallback] Searching for CIF with phone number: ${approval.customerPhone}`);
+            const encryptedPhone = encrypt(approval.customerPhone);
+            const userResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "PhoneNumber" = :phone`, [encryptedPhone]);
             if (userResult && userResult.length > 0) {
                 return userResult[0].CIFNumber;
             }
         } catch (e) {
-            console.error("Error during gRPC fallback to get CIF:", e);
+            console.error("Error during Oracle fallback to get CIF:", e);
         }
     }
     
@@ -56,9 +59,7 @@ export async function POST(req: Request) {
         
         const cif = await getCifFromApproval(approval);
 
-        if (!cif) {
-            // If we still can't find a CIF, we can't proceed with the Oracle update.
-            // We will still remove the approval request to clear the queue.
+        if (!cif && approval.type !== 'new-customer') { // For new customers, CIF is in details
             await db.pendingApproval.delete({ where: { id: approvalId } });
             console.error(`Could not determine CIF for approvalId: ${approvalId}. Approval removed without action.`);
             throw new Error(`Could not determine customer CIF for approval ID ${approvalId}. The request was cleared without action.`);
@@ -81,16 +82,48 @@ export async function POST(req: Request) {
                 console.log(`PIN reset approved for customer CIF ${cif}`);
                 // Placeholder for actual PIN reset logic, no status change needed.
                 break;
+            case 'customer-account':
+                const details = JSON.parse(approval.details || '{}');
+                const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" 
+                    ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "Currency", "Status", "BranchName") 
+                    VALUES (:Id, :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :Currency, :Status, :BranchName)`;
+                
+                const nameParts = details.customerName.split(' ');
+                const accountId = `acc_${crypto.randomUUID()}`;
+                
+                const accountBinds = {
+                    Id: accountId,
+                    CIFNumber: details.cif,
+                    AccountNumber: encrypt(details.accountNumber),
+                    HashedAccountNumber: crypto.createHash('sha256').update(details.accountNumber).digest('hex'),
+                    FirstName: encrypt(nameParts[0]),
+                    SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1]),
+                    LastName: encrypt(nameParts[nameParts.length - 1]),
+                    AccountType: encrypt(details.accountType),
+                    Currency: encrypt(details.currency),
+                    Status: 'Active',
+                    BranchName: 'MAIN' // Placeholder
+                };
+
+                const accountResult = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accountQuery, accountBinds);
+                console.log(`Successfully linked account for CIF ${details.cif}. Result:`, accountResult);
+                break;
+            case 'unlink-account':
+                const unlinkDetails = JSON.parse(approval.details || '{}');
+                const unlinkQuery = `UPDATE "USER_MODULE"."Accounts" SET "Status" = 'Inactive' WHERE "AccountNumber" = :accountNumber`;
+                const unlinkResult = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, unlinkQuery, { accountNumber: encrypt(unlinkDetails.accountNumber) });
+                console.log(`Successfully unlinked account ${unlinkDetails.accountNumber}. Result:`, unlinkResult);
+                break;
         }
 
         if (statusToSet) {
-             const result = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: statusToSet, cif });
-             console.log(`Successfully executed update for CIF ${cif}. Result:`, result);
+             const result: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: statusToSet, cif });
+             console.log(`Successfully updated status to '${statusToSet}' for CIF ${cif} in Oracle DB. Rows affected: ${result?.rowsAffected || 0}`);
         }
 
         await db.pendingApproval.delete({ where: { id: approvalId } });
 
-        return NextResponse.json({ success: true, message: `Request has been approved and status updated.` });
+        return NextResponse.json({ success: true, message: `Request has been approved and actioned.` });
 
     } catch (error: any) {
         console.error('Approval action failed:', error);
