@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { executeQuery } from '@/lib/oracle-db';
 
 export async function POST(req: Request) {
     try {
@@ -29,7 +30,6 @@ export async function POST(req: Request) {
             }
         } catch (e) {
              console.error("Failed to parse approval details JSON:", e);
-             // If parsing fails, we might still be able to proceed if the action doesn't depend on details.
         }
 
         if (detailsObject && 'cif' in detailsObject) {
@@ -39,28 +39,26 @@ export async function POST(req: Request) {
                 throw new Error(`CIF not found in approval details for approvalId: ${approvalId}`);
             }
             
-            // 1. Update user status based on approval type
+            const updateUserStatusQuery = `UPDATE "USER_MODULE"."AppUsers" SET "Status" = :status WHERE "CIFNumber" = :cif`;
+
             switch (approval.type) {
                 case 'new-customer':
-                    await db.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Active' } });
+                    await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Active', cif });
                     break;
                 case 'suspend-customer':
-                     await db.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Block' } });
+                     await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Block', cif });
                     break;
                 case 'unsuspend-customer':
-                     await db.appUser.updateMany({ where: { CIFNumber: cif }, data: { Status: 'Active' } });
+                     await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Active', cif });
                     break;
                 case 'pin-reset':
                     console.log(`PIN reset approved for customer CIF ${cif}`);
-                    // Logic to trigger actual PIN reset would go here
                     break;
             }
 
-            // 2. Delete the approval record
             await db.pendingApproval.delete({ where: { id: approvalId } });
 
         } else {
-            // Failsafe for if details are missing or malformed
             await db.pendingApproval.delete({ where: { id: approvalId } });
         }
 
