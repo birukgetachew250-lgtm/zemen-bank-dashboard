@@ -18,6 +18,7 @@ async function getCustomerStats() {
     const active = activeResult[0]?.COUNT || 0;
     const linkedAccounts = linkedAccountsResult[0]?.COUNT || 0;
 
+    // This part still uses the prisma `db` client, which is fine for these statuses on the `Customer` table in PostgreSQL.
     const inactiveAndDormant = await db.customer.count({ where: { status: { in: ['Inactive', 'Dormant'] } } });
 
     return { total, active, inactive: inactiveAndDormant, registered: total - active - inactiveAndDormant, linkedAccounts };
