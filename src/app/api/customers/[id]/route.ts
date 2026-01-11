@@ -4,12 +4,12 @@ import { executeQuery } from '@/lib/oracle-db';
 import { decrypt } from '@/lib/crypto';
 
 const getCustomerByCifOrId = async (id: string) => {
-    // The query now explicitly uses the USER_MODULE schema and table name.
+    // This query finds the base customer profile from the AppUsers table.
     const query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :id`;
-    const result: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, query, [id]);
+    const result: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, query, { id });
 
-    if (result && result.length > 0) {
-        const d = result[0];
+    if (result && result.rows && result.rows.length > 0) {
+        const d = result.rows[0];
         const firstName = decrypt(d.FirstName);
         const secondName = decrypt(d.SecondName);
         const lastName = decrypt(d.LastName);
@@ -26,7 +26,7 @@ const getCustomerByCifOrId = async (id: string) => {
             nationality: d.Nationality,
             branchName: d.BranchName,
             status: d.Status,
-            insertDate: d.InsertDate.toISOString(),
+            insertDate: d.InsertDate,
         };
     }
     return null;

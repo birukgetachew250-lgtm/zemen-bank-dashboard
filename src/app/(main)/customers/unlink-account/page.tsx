@@ -13,20 +13,27 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2, Unlink } from 'lucide-react';
+import { Search, Loader2, Unlink, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CustomerDetails } from '@/components/customers/CustomerDetailsCard';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
+
+interface LinkedAccount {
+  id: string;
+  accountNumber: string;
+  accountType: string;
+  currency: string;
+  status: string;
+}
 
 export default function UnlinkAccountPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cifNumber, setCifNumber] = useState('');
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
-  const [accounts, setAccounts] = useState<any[]>([]);
+  const [accounts, setAccounts] = useState<LinkedAccount[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
@@ -46,10 +53,10 @@ export default function UnlinkAccountPage() {
       const custData = await custRes.json();
       setCustomer(custData);
 
-      const accRes = await fetch(`/api/customers/${custData.id}/accounts`);
+      const accRes = await fetch(`/api/customers/${cifNumber}/accounts`);
       if (!accRes.ok) throw new Error('Could not fetch accounts');
       const accData = await accRes.json();
-      setAccounts(accData);
+      setAccounts(accData.filter((acc: LinkedAccount) => acc.status === 'Active'));
 
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Search Failed', description: error.message });
@@ -90,7 +97,7 @@ export default function UnlinkAccountPage() {
         setCifNumber('');
 
     } catch (error: any) {
-       toast({ variant: 'destructive', title: 'Submission Failed', description: error.message });
+       toast({ variant: "destructive", title: 'Submission Failed', description: error.message });
     } finally {
         setIsSubmitting(false);
     }
@@ -148,8 +155,8 @@ export default function UnlinkAccountPage() {
               ) : (
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>No Accounts Found</AlertTitle>
-                  <AlertDescription>No linked accounts were found for this customer.</AlertDescription>
+                  <AlertTitle>No Active Accounts Found</AlertTitle>
+                  <AlertDescription>No active linked accounts were found for this customer to unlink.</AlertDescription>
                 </Alert>
               )}
             </CardContent>
@@ -164,4 +171,3 @@ export default function UnlinkAccountPage() {
     </div>
   );
 }
-
