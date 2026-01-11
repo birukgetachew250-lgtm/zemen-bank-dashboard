@@ -1,3 +1,4 @@
+
 const { PrismaClient } = require('@prisma/client');
 const { faker } = require('@faker-js/faker');
 const crypto = require('crypto');
