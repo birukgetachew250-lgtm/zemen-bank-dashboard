@@ -50,8 +50,7 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     const result = await signIn('credentials', {
-      redirect: true,
-      callbackUrl: '/dashboard',
+      redirect: false, // Change this to false to handle redirect manually
       email: values.email,
       password: values.password,
     });
@@ -63,6 +62,9 @@ export default function LoginPage() {
         description: 'Invalid email or password.',
       });
       setIsLoading(false);
+    } else if (result?.ok) {
+      // Redirect to dashboard on successful login
+      router.push('/dashboard');
     }
   };
 
