@@ -110,9 +110,10 @@ export async function POST(req: Request) {
                 break;
             case 'unlink-account':
                 const unlinkDetails = JSON.parse(approval.details || '{}');
-                const unlinkQuery = `UPDATE "USER_MODULE"."Accounts" SET "Status" = 'Inactive' WHERE "AccountNumber" = :accountNumber`;
-                const unlinkResult = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, unlinkQuery, { accountNumber: encrypt(unlinkDetails.accountNumber) });
-                console.log(`Successfully unlinked account ${unlinkDetails.accountNumber}. Result:`, unlinkResult);
+                const hashedAccountNumber = crypto.createHash('sha256').update(unlinkDetails.accountNumber).digest('hex');
+                const unlinkQuery = `UPDATE "USER_MODULE"."Accounts" SET "Status" = 'Inactive' WHERE "HashedAccountNumber" = :hashedAccountNumber`;
+                const unlinkResult = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, unlinkQuery, { hashedAccountNumber });
+                console.log(`Unlink account request for ${unlinkDetails.accountNumber}. Rows affected: ${unlinkResult.rowsAffected}`);
                 break;
         }
 
