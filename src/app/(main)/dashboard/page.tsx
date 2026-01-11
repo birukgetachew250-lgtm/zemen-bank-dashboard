@@ -1,5 +1,4 @@
 
-
 import { Suspense } from 'react';
 import { UserPlus, Users, UserX, UserCheck, AlertCircle, Link } from 'lucide-react';
 import { StatsCard, StatsCardSkeleton } from '@/components/dashboard/StatsCard';
@@ -10,23 +9,27 @@ import { executeQuery } from '@/lib/oracle-db';
 
 async function getCustomerStats() {
   try {
-    const totalResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "AppUsers"`);
-    const activeResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "AppUsers" WHERE "Status" = 'Active'`);
-    const linkedAccountsResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "Accounts"`);
+    const totalResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers"`);
+    const activeResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers" WHERE "Status" = 'Active'`);
+    const linkedAccountsResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."Accounts"`);
     
     const total = totalResult[0]?.COUNT || 0;
     const active = activeResult[0]?.COUNT || 0;
     const linkedAccounts = linkedAccountsResult[0]?.COUNT || 0;
 
-    // This part still uses the prisma `db` client, which is fine for these statuses on the `Customer` table in PostgreSQL.
     const inactiveAndDormant = await db.customer.count({ where: { status: { in: ['Inactive', 'Dormant'] } } });
 
     return { total, active, inactive: inactiveAndDormant, registered: total - active - inactiveAndDormant, linkedAccounts };
 
   } catch (e: any) {
     console.error("Failed to fetch customer stats:", e);
-    // Return mock data on error
-    return { total: 6, active: 3, inactive: 2, registered: 1, linkedAccounts: 8 };
+    
+    if (e.message.includes('NJS-530')) {
+        throw new Error(`Failed to connect to the Oracle database. Please ensure the USER_MODULE_DB_CONNECTION_STRING in your .env file is correct and the database is accessible.`);
+    }
+    
+    // Return mock data for other errors
+    throw new Error(`Failed to fetch stats from the database: ${e.message}`);
   }
 }
 
@@ -38,8 +41,8 @@ export default async function DashboardPage() {
     stats = await getCustomerStats();
   } catch (e: any) {
     console.error("Dashboard database error:", e.message);
-    error = `Failed to connect to the database. Please check the connection settings and network. Details: ${e.message}`;
-    stats = { total: 6, active: 3, inactive: 2, registered: 1, linkedAccounts: 8 };
+    error = e.message;
+    stats = { total: 0, active: 0, inactive: 0, registered: 0, linkedAccounts: 0 };
   }
   
   return (
