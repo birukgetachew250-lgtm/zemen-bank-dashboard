@@ -84,7 +84,7 @@ export async function POST(req: Request) {
                 console.log(`Generated new PIN ${newPin} and hash ${newPinHash} for CIF ${cif}`);
 
                 const updateSecurityQuery = `
-                    UPDATE "USER_MODULE"."UserSecurities" 
+                    UPDATE "SECURITY_MODULE"."UserSecurities" 
                     SET 
                         "PinHash" = :pinHash, 
                         "Status" = 'Active', 
@@ -99,7 +99,7 @@ export async function POST(req: Request) {
                     cif: cif,
                 };
                 
-                const securityResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateSecurityQuery, securityBinds);
+                const securityResult: any = await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, updateSecurityQuery, securityBinds);
                 console.log(`PIN reset approved and executed for customer CIF ${cif}. Rows affected: ${securityResult?.rowsAffected}`);
                 // TODO: In a real implementation, the new PIN would be sent to the user via SMS.
                 // For now, we can log it for verification.
@@ -136,7 +136,7 @@ export async function POST(req: Request) {
                 const hashedAccountNumber = crypto.createHash('sha256').update(unlinkDetails.accountNumber).digest('hex');
                 const unlinkQuery = `UPDATE "USER_MODULE"."Accounts" SET "Status" = 'Inactive' WHERE "HashedAccountNumber" = :hashedAccountNumber`;
                 const unlinkResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, unlinkQuery, { hashedAccountNumber });
-                console.log(`Unlink account request for ${unlinkDetails.accountNumber}. Rows affected: ${unlinkResult.rowsAffected}`);
+                console.log(`Successfully unlinked account ${unlinkDetails.accountNumber}. Result:`, unlinkResult);
                 break;
         }
 
