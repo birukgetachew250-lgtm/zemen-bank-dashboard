@@ -126,7 +126,8 @@ export const menu: MenuItem[] = [
         children: [
           { icon: Users, label: "New Customers", href: "/customers/approve-new" },
           { icon: Users, label: "Updated Customers", href: "/customers/approve-updated" },
-          { icon: Link, label: "Customer Accounts", href: "/customers/approve-accounts" },
+          { icon: Link, label: "Link Account Requests", href: "/customers/approve-accounts" },
+          { icon: Unlink, label: "Unlink Account Requests", href: "/customers/approve-unlink" },
           { icon: UserX, label: "Suspended Customers", href: "/customers/approve-suspension" },
           { icon: UserCheck, label: "Unsuspended Customers", href: "/customers/approve-unblocked" },
           { icon: KeyRound, label: "Pin Resets", href: "/customers/approve-pin-reset" },
