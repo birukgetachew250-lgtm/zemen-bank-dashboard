@@ -21,6 +21,7 @@ export async function POST(req: Request) {
         const user = await db.user.findUnique({ where: { email: session.user.email }});
 
         if (!user) {
+            // This case should ideally not happen if the user has a session.
             return NextResponse.json({ message: 'User not found' }, { status: 404 });
         }
 

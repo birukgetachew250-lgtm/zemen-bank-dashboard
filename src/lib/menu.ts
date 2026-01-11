@@ -48,6 +48,7 @@ import {
   Ban,
   Plug,
   DatabaseZap,
+  Lock,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -237,7 +238,9 @@ export const menu: MenuItem[] = [
     label: "Settings", 
     href: "/settings",
     children: [
-        { icon: Settings, label: "General Settings", href: "/settings" },
+        { icon: Settings, label: "General", href: "/settings" },
+        { icon: Lock, label: "Change Password", href: "/settings/change-password" },
+        { icon: Bell, label: "Notifications", href: "/settings/notifications" },
         { icon: DatabaseZap, label: "Backup & Restore", href: "/settings/backup" },
     ]
   },
