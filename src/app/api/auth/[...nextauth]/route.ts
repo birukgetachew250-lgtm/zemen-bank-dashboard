@@ -17,24 +17,42 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email },
-        });
+        try {
+          // Attempt to connect to the database and find the user
+          const user = await db.user.findUnique({
+            where: { email: credentials.email },
+          });
 
-        if (!user) {
+          if (!user) {
+            return null;
+          }
+
+          // In a real app, you'd use bcrypt to compare passwords
+          const isPasswordValid = user.password === credentials.password;
+
+          if (!isPasswordValid) {
+            return null;
+          }
+          
+          // Return a user object without the password
+          const { password, ...userWithoutPassword } = user;
+          return userWithoutPassword;
+
+        } catch (error) {
+          console.error("Database connection failed during auth:", error);
+          // If in development/demo mode, allow login with mock data as a fallback
+          if (config.db.isProduction === false && credentials.email === 'admin@zemen.com' && credentials.password === 'password') {
+            console.log("Database connection failed, falling back to demo mode user.");
+            return { 
+              id: "1", 
+              name: 'Demo Admin', 
+              email: 'admin@zemen.com', 
+              role: 'Super Admin' 
+            };
+          }
+          // In production, or if credentials don't match demo user, fail authentication
           return null;
         }
-
-        // In a real app, you'd use bcrypt to compare passwords
-        const isPasswordValid = user.password === credentials.password;
-
-        if (!isPasswordValid) {
-          return null;
-        }
-        
-        // Return a user object without the password
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
       },
     }),
   ],
