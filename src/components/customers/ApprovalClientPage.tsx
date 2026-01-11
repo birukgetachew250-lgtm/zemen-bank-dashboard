@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -16,6 +17,8 @@ import { Input } from "../ui/input";
 import { Skeleton } from "../ui/skeleton";
 import { Card, CardContent } from "../ui/card";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { Info } from "lucide-react";
 
 interface Approval {
   id: string;
@@ -65,20 +68,39 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ approvalId, action }),
       });
+      const result = await response.json();
       if (response.ok) {
-        toast({
-          title: `Request ${action === 'approve' ? 'Approved' : 'Rejected'}`,
-          description: `The request has been successfully ${action === 'approve' ? 'approved' : 'rejected'}.`,
-        });
+        if (action === 'approve' && result.newPin) {
+          toast({
+            duration: 10000, // Keep toast open for longer
+            title: `PIN Reset Successful`,
+            description: (
+              <div className="flex flex-col gap-2">
+                <span>The new PIN has been generated.</span>
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertTitle>New Temporary PIN</AlertTitle>
+                  <AlertDescription className="font-mono text-lg">{result.newPin}</AlertDescription>
+                </Alert>
+                <span className="text-xs">Please securely communicate this to the customer.</span>
+              </div>
+            ),
+          });
+        } else {
+           toast({
+            title: `Request ${action === 'approve' ? 'Approved' : 'Rejected'}`,
+            description: result.message || `The request has been successfully ${action === 'approve' ? 'approved' : 'rejected'}.`,
+          });
+        }
         fetchApprovals(); // Refresh the list
       } else {
-        throw new Error('Action failed');
+        throw new Error(result.message || 'Action failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: `Failed to ${action} request`,
-        description: "An error occurred while processing the request.",
+        description: error.message || "An error occurred while processing the request.",
       });
     } finally {
         setActionLoading(prev => ({ ...prev, [approvalId]: false }));

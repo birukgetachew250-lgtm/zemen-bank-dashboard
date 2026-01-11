@@ -67,6 +67,8 @@ export async function POST(req: Request) {
             
         const updateUserStatusQuery = `UPDATE "USER_MODULE"."AppUsers" SET "Status" = :status WHERE "CIFNumber" = :cif`;
         let statusToSet = '';
+        let successMessage = 'Request has been approved and actioned.';
+        let responseData: any = { success: true };
 
         switch (approval.type) {
             case 'new-customer':
@@ -81,8 +83,7 @@ export async function POST(req: Request) {
             case 'pin-reset':
                 const newPin = Math.floor(100000 + Math.random() * 900000).toString();
                 const newPinHash = crypto.createHash('sha256').update(newPin).digest('hex');
-                console.log(`Generated new PIN ${newPin} and hash ${newPinHash} for CIF ${cif}`);
-
+                
                 const updateSecurityQuery = `
                     UPDATE "SECURITY_MODULE"."UserSecurities" 
                     SET 
@@ -101,9 +102,9 @@ export async function POST(req: Request) {
                 
                 const securityResult: any = await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, updateSecurityQuery, securityBinds);
                 console.log(`PIN reset approved and executed for customer CIF ${cif}. Rows affected: ${securityResult?.rowsAffected}`);
-                // TODO: In a real implementation, the new PIN would be sent to the user via SMS.
-                // For now, we can log it for verification.
-                console.log(`IMPORTANT: New PIN for CIF ${cif} is ${newPin}`);
+                
+                responseData.newPin = newPin; // Add pin to response
+                successMessage = `PIN for customer ${approval.customerName} has been reset.`
                 break;
             case 'customer-account':
                 const details = JSON.parse(approval.details || '{}');
@@ -136,7 +137,7 @@ export async function POST(req: Request) {
                 const hashedAccountNumber = crypto.createHash('sha256').update(unlinkDetails.accountNumber).digest('hex');
                 const unlinkQuery = `UPDATE "USER_MODULE"."Accounts" SET "Status" = 'Inactive' WHERE "HashedAccountNumber" = :hashedAccountNumber`;
                 const unlinkResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, unlinkQuery, { hashedAccountNumber });
-                console.log(`Successfully unlinked account ${unlinkDetails.accountNumber}. Result:`, unlinkResult);
+                console.log(`Successfully unlinked account ${unlinkDetails.accountNumber}. Result:`, { rowsAffected: unlinkResult?.rowsAffected });
                 break;
         }
 
@@ -147,7 +148,8 @@ export async function POST(req: Request) {
 
         await db.pendingApproval.delete({ where: { id: approvalId } });
 
-        return NextResponse.json({ success: true, message: `Request has been approved and actioned.` });
+        responseData.message = successMessage;
+        return NextResponse.json(responseData);
 
     } catch (error: any) {
         console.error('Approval action failed:', error);
