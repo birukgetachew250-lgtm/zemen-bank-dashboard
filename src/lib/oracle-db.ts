@@ -32,7 +32,21 @@ export async function executeQuery(connectionString: string | undefined, query: 
     let connection;
     try {
         connection = await getOracleConnection(connectionString);
-        const result = await connection.execute(query, binds, { outFormat: oracledb.OBJECT });
+
+        // Determine if autoCommit should be used.
+        // It's crucial for DML statements (INSERT, UPDATE, DELETE) to persist changes.
+        const isDML = /^\s*(insert|update|delete)/i.test(query);
+
+        const options = {
+            outFormat: oracledb.OBJECT,
+            autoCommit: isDML,
+        };
+
+        console.log(`[Oracle DB] Executing query (autoCommit: ${isDML}): ${query}`);
+        const result = await connection.execute(query, binds, options);
+        
+        console.log(`[Oracle DB] Execution result:`, { rowsAffected: result.rowsAffected, rows: result.rows ? 'omitted for brevity' : 'none' });
+
         return result.rows;
     } catch (err) {
         console.error("Oracle DB query failed:", err);

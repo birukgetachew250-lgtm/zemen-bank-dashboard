@@ -60,7 +60,7 @@ export async function POST(req: Request) {
             // If we still can't find a CIF, we can't proceed with the Oracle update.
             // We will still remove the approval request to clear the queue.
             await db.pendingApproval.delete({ where: { id: approvalId } });
-            console.error(`Could not determine CIF for approvalId: ${approvalId}. Approval removed without DB update.`);
+            console.error(`Could not determine CIF for approvalId: ${approvalId}. Approval removed without action.`);
             throw new Error(`Could not determine customer CIF for approval ID ${approvalId}. The request was cleared without action.`);
         }
             
@@ -84,8 +84,8 @@ export async function POST(req: Request) {
         }
 
         if (statusToSet) {
-             await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: statusToSet, cif });
-             console.log(`Successfully updated status to '${statusToSet}' for CIF ${cif} in Oracle DB.`);
+             const result = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: statusToSet, cif });
+             console.log(`Successfully executed update for CIF ${cif}. Result:`, result);
         }
 
         await db.pendingApproval.delete({ where: { id: approvalId } });
