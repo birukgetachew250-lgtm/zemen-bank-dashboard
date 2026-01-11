@@ -1,21 +1,15 @@
 
-
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { executeQuery } from '@/lib/oracle-db';
 import { decrypt } from '@/lib/crypto';
 
 const getCustomerByCifOrId = async (id: string) => {
-    const user = await db.appUser.findFirst({
-        where: {
-            OR: [
-                { Id: id },
-                { CIFNumber: id }
-            ]
-        }
-    });
-    
-    if (user) {
-        const d = user;
+    // The query now explicitly uses the USER_MODULE schema and table name.
+    const query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :id`;
+    const result: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, query, [id]);
+
+    if (result && result.length > 0) {
+        const d = result[0];
         const firstName = decrypt(d.FirstName);
         const secondName = decrypt(d.SecondName);
         const lastName = decrypt(d.LastName);
@@ -28,7 +22,7 @@ const getCustomerByCifOrId = async (id: string) => {
             lastName: lastName,
             email: decrypt(d.Email),
             phoneNumber: decrypt(d.PhoneNumber),
-            address: `${d.AddressLine1 || ''}, ${d.AddressLine2 || ''}`,
+            address: [d.AddressLine1, d.AddressLine2, d.AddressLine3, d.AddressLine4].filter(Boolean).join(', '),
             nationality: d.Nationality,
             branchName: d.BranchName,
             status: d.Status,
