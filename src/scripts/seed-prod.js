@@ -1,9 +1,6 @@
-
-// src/scripts/seed-prod.js
-
 const { PrismaClient } = require('@prisma/client');
 
-// This seed script is ONLY for the production user management database (users and roles).
+// This seed script is ONLY for the production dashboard database (users, roles, etc.).
 // It uses Prisma and connects via the DASH_MODULE_PROD_DATABASE_URL when NODE_ENV is 'production'.
 
 const prisma = new PrismaClient({
@@ -15,7 +12,7 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-    console.log('Start seeding PRODUCTION users and roles...');
+    console.log('Start seeding PRODUCTION dashboard data...');
 
     if (process.env.NODE_ENV !== 'production') {
         throw new Error(

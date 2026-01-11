@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DASH_MODULE_PROD_DATABASE_URL")
 }
 
 generator client {
@@ -87,64 +87,6 @@ model Transaction {
   anomaly_reason String?
 }
 
-model AppUser {
-  Id             String   @id
-  CIFNumber      String   @unique
-  FirstName      String
-  SecondName     String?
-  LastName       String
-  Email          String
-  PhoneNumber    String
-  Status         String
-  SignUpMainAuth String
-  SignUp2FA      String
-  BranchCode     String?
-  BranchName     String?
-  AddressLine1   String?
-  AddressLine2   String?
-  AddressLine3   String?
-  AddressLine4   String?
-  Nationality    String?
-  Channel        String?
-  InsertDate     DateTime @default(now())
-  UpdateDate     DateTime @updatedAt
-}
-
-model Account {
-  Id            String   @id
-  CIFNumber     String
-  AccountNumber String   @unique
-  FirstName     String
-  SecondName    String?
-  LastName      String
-  AccountType   String
-  Currency      String
-  Status        String
-  BranchName    String?
-  InsertDate    DateTime @default(now())
-  UpdateDate    DateTime @updatedAt
-}
-
-model SecurityQuestion {
-  Id             String         @id @default(cuid())
-  Question       String         @unique
-  UserSecurities UserSecurity[]
-}
-
-model UserSecurity {
-  Id                 String            @id @default(cuid())
-  UserId             String
-  CIFNumber          String            @unique
-  Status             String
-  PinHash            String?
-  PasswordHash       String?
-  SecurityQuestion   SecurityQuestion? @relation(fields: [SecurityQuestionId], references: [Id])
-  SecurityQuestionId String?
-  SecurityAnswer     String?
-  InsertDate         DateTime          @default(now())
-  UpdateDate         DateTime          @updatedAt
-}
-
 model Corporate {
   id                      String @id @unique
   name                    String
@@ -176,3 +118,7 @@ model OtpCode {
   InsertDate DateTime @default(now())
   UpdateDate DateTime @updatedAt
 }
+
+// The models below are managed in separate Oracle databases
+// and are removed from this schema to avoid conflicts.
+// AppUser, Account, SecurityQuestion, UserSecurity
