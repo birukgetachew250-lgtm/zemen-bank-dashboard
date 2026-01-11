@@ -3,6 +3,36 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { executeQuery } from '@/lib/oracle-db';
 
+const getCifFromApproval = async (approval: any) => {
+    // 1. Try to get CIF from the details JSON
+    if (approval.details) {
+        try {
+            const detailsObject = JSON.parse(approval.details);
+            if (detailsObject.cif) {
+                return detailsObject.cif;
+            }
+        } catch (e) {
+            console.warn("Could not parse CIF from approval details JSON:", e);
+        }
+    }
+
+    // 2. Fallback: Get phone from approval, then query Oracle for CIF
+    if (approval.customerPhone) {
+        try {
+            console.log(`[gRPC Fallback] Searching for CIF with phone number: ${approval.customerPhone}`);
+            const userResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "PhoneNumber" = :phone`, [approval.customerPhone]);
+            if (userResult && userResult.length > 0) {
+                return userResult[0].CIFNumber;
+            }
+        } catch (e) {
+            console.error("Error during gRPC fallback to get CIF:", e);
+        }
+    }
+    
+    return null;
+}
+
+
 export async function POST(req: Request) {
     try {
         const { approvalId, action } = await req.json();
@@ -22,52 +52,48 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: true, message: `Request has been rejected` });
         }
 
-        // Handle approval
-        let detailsObject = null;
-        try {
-            if (approval.details) {
-                detailsObject = JSON.parse(approval.details);
-            }
-        } catch (e) {
-             console.error("Failed to parse approval details JSON:", e);
+        // --- Handle Approval ---
+        
+        const cif = await getCifFromApproval(approval);
+
+        if (!cif) {
+            // If we still can't find a CIF, we can't proceed with the Oracle update.
+            // We will still remove the approval request to clear the queue.
+            await db.pendingApproval.delete({ where: { id: approvalId } });
+            console.error(`Could not determine CIF for approvalId: ${approvalId}. Approval removed without DB update.`);
+            throw new Error(`Could not determine customer CIF for approval ID ${approvalId}. The request was cleared without action.`);
+        }
+            
+        const updateUserStatusQuery = `UPDATE "USER_MODULE"."AppUsers" SET "Status" = :status WHERE "CIFNumber" = :cif`;
+        let statusToSet = '';
+
+        switch (approval.type) {
+            case 'new-customer':
+                statusToSet = 'Active';
+                break;
+            case 'suspend-customer':
+                statusToSet = 'Suspended';
+                break;
+            case 'unsuspend-customer':
+                statusToSet = 'Active';
+                break;
+            case 'pin-reset':
+                console.log(`PIN reset approved for customer CIF ${cif}`);
+                // Placeholder for actual PIN reset logic, no status change needed.
+                break;
         }
 
-        if (detailsObject && 'cif' in detailsObject) {
-            const cif = detailsObject.cif;
-            
-            if (!cif) {
-                throw new Error(`CIF not found in approval details for approvalId: ${approvalId}`);
-            }
-            
-            const updateUserStatusQuery = `UPDATE "USER_MODULE"."AppUsers" SET "Status" = :status WHERE "CIFNumber" = :cif`;
-
-            switch (approval.type) {
-                case 'new-customer':
-                    await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Active', cif });
-                    break;
-                case 'suspend-customer':
-                     await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Suspended', cif });
-                    break;
-                case 'unsuspend-customer':
-                     await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Active', cif });
-                    break;
-                case 'pin-reset':
-                    console.log(`PIN reset approved for customer CIF ${cif}`);
-                    // Placeholder for actual PIN reset logic
-                    break;
-            }
-
-            await db.pendingApproval.delete({ where: { id: approvalId } });
-
-        } else {
-            // Fallback for older approvals without structured details
-            await db.pendingApproval.delete({ where: { id: approvalId } });
+        if (statusToSet) {
+             await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: statusToSet, cif });
+             console.log(`Successfully updated status to '${statusToSet}' for CIF ${cif} in Oracle DB.`);
         }
 
-        return NextResponse.json({ success: true, message: `Request has been approved` });
+        await db.pendingApproval.delete({ where: { id: approvalId } });
 
-    } catch (error) {
+        return NextResponse.json({ success: true, message: `Request has been approved and status updated.` });
+
+    } catch (error: any) {
         console.error('Approval action failed:', error);
-        return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }
