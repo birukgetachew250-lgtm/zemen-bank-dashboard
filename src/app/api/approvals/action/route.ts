@@ -24,8 +24,8 @@ const getCifFromApproval = async (approval: any) => {
             console.log(`[Oracle Fallback] Searching for CIF with phone number: ${approval.customerPhone}`);
             const encryptedPhone = encrypt(approval.customerPhone);
             const userResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "PhoneNumber" = :phone`, [encryptedPhone]);
-            if (userResult && userResult.length > 0) {
-                return userResult[0].CIFNumber;
+            if (userResult && userResult.rows && userResult.rows.length > 0) {
+                return userResult.rows[0].CIFNumber;
             }
         } catch (e) {
             console.error("Error during Oracle fallback to get CIF:", e);
