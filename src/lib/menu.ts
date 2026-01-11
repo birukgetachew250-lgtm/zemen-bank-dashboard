@@ -74,6 +74,7 @@ export const menu: MenuItem[] = [
           { icon: Users, label: "Create Customer", href: "/customers/create" },
           { icon: Users, label: "Existing Customers", href: "/customers" },
           { icon: Link, label: "Link Account", href: "/customers/link-account" },
+          { icon: Unlink, label: "Unlink Account", href: "/customers/unlink-account" },
           { icon: Ban, label: "Suspend Customer", href: "/customers/block" },
           { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/unblock" },
           { icon: KeyRound, label: "Pin Reset", href: "/customers/request-pin-reset" },
