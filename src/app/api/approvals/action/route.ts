@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { executeQuery } from '@/lib/oracle-db';
 import { encrypt } from '@/lib/crypto';
 import crypto from 'crypto';
+import { Prisma } from '@prisma/client';
 
 const getCifFromApproval = async (approval: any) => {
     // 1. Try to get CIF from the details JSON
@@ -130,7 +131,7 @@ export async function POST(req: Request) {
                 };
 
                 const accountResult = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accountQuery, accountBinds);
-                console.log(`Successfully linked account for CIF ${details.cif}. Result:`, accountResult);
+                console.log(`Successfully linked account for CIF ${details.cif}. Result:`, { rowsAffected: accountResult?.rowsAffected });
                 break;
             case 'unlink-account':
                 const unlinkDetails = JSON.parse(approval.details || '{}');

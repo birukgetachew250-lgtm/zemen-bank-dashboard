@@ -13,9 +13,8 @@ const config = {
       isProduction: !!process.env.DASH_MODULE_PROD_DATABASE_URL,
     },
     grpc: {
-        url: process.env.GRPC_URL || 'localhost:50051'
+        url: process.env.USER_GRPC_URL || 'localhost:50051'
     }
 };
 
 export default config;
-

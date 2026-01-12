@@ -44,6 +44,7 @@ export async function POST(req: Request) {
                 Id: `acc_${crypto.randomUUID()}`,
                 CIFNumber: customer.customer_number,
                 AccountNumber: encrypt(acc.CUSTACNO)!,
+                HashedAccountNumber: crypto.createHash('sha256').update(acc.CUSTACNO).digest('hex'),
                 FirstName: encrypt(nameParts[0])!,
                 SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1])!,
                 LastName: encrypt(nameParts[nameParts.length - 1])!,

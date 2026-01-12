@@ -1,3 +1,4 @@
+
 import { ApprovalClientPage } from "@/components/customers/ApprovalClientPage";
 
 export default function ApproveNewCustomersPage() {
