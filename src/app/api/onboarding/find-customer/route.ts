@@ -6,6 +6,7 @@ import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import type { ServiceRequest } from '@/lib/grpc/generated/common';
+import type { Any } from '@/lib/grpc/generated/google/protobuf/any';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -37,9 +38,17 @@ export async function POST(req: Request) {
         if (existingUserResult.rows && existingUserResult.rows.length > 0) {
             return NextResponse.json({ message: 'Customer is already registered for mobile banking.' }, { status: 409 });
         }
+    } catch (dbError: any) {
+        console.error("[DB Error] Checking existing user:", dbError);
+        // Continue to gRPC call even if DB check fails, for demo robustness
+    }
 
-        await GrpcClient.initialize();
-        const { client, proto } = GrpcClient;
+    try {
+        const grpcSingleton = GrpcClient.getInstance();
+        await grpcSingleton.initialize();
+
+        const client = grpcSingleton.client;
+        const proto = grpcSingleton.proto;
         
         if (!client || !proto) {
              console.error("[gRPC] Client not available. Falling back to mock data for demo.");
@@ -65,8 +74,8 @@ export async function POST(req: Request) {
         const message = (AccountDetailRequest.create as any)(innerDetail);
         const buffer = (AccountDetailRequest.encode as any)(message).finish();
         
-        const anyPayload = {
-            type_url: `type.googleapis.com/accountdetail.AccountDetailRequest`,
+        const anyPayload: Any = {
+            type_url: 'type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest',
             value: buffer
         };
         
@@ -114,12 +123,12 @@ export async function POST(req: Request) {
             });
         });
 
-    } catch (dbError: any) {
-        console.error("[DB Error] Checking existing user:", dbError);
-        if (customer_id === '0000238') {
-            console.log("[DB Fallback] Serving mock data for CIF 0000238");
+    } catch (error: any) {
+        console.error("[gRPC Client Error]", error);
+         if (customer_id === '0000238') {
+            console.log("[gRPC Main Catch Fallback] Serving mock data for CIF 0000238");
             return NextResponse.json(mockCustomer);
         }
-        return NextResponse.json({ message: "Database error while checking for existing customer." }, { status: 500 });
+        return NextResponse.json({ message: "An unexpected error occurred with the gRPC client." }, { status: 500 });
     }
 }
