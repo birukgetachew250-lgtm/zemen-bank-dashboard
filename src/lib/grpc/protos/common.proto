@@ -1,17 +1,22 @@
-// /src/lib/grpc/protos/common.proto
 syntax = "proto3";
 
 package common;
+import "google/protobuf/any.proto";
 
-// A standard representation for a key-value pair.
-message KeyValuePair {
-  string key = 1;
-  string value = 2;
+// The service request message containing the request details.
+message ServiceRequest {
+  string request_id = 1;
+  string source_system = 2;
+  string channel = 3;
+  string user_id = 4;
+  google.protobuf.Any data = 5;
 }
 
-// A standard message for simple status responses.
-message StatusResponse {
-  bool success = 1;
-  string message = 2;
-  string correlation_id = 3;
+// The service response message containing the response details.
+message ServiceResponse {
+  string request_id = 1;
+  string response_id = 2;
+  string code = 3;
+  string message = 4;
+  google.protobuf.Any data = 5;
 }

@@ -36,7 +36,7 @@ class GrpcClientSingleton {
                 enums: String,
                 defaults: true,
                 oneofs: true,
-                includeDirs: [PROTO_DIR]
+                includeDirs: [PROTO_DIR, path.join(PROTO_DIR, 'google/protobuf')]
             });
 
             this.proto = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;

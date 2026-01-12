@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
-import type { ServiceRequest } from '@/lib/grpc/generated/service';
+import type { ServiceRequest } from '@/lib/grpc/generated/common';
 import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
 import { Any } from '@/lib/grpc/generated/google/protobuf/any';
 
