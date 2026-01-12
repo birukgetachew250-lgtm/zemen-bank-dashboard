@@ -46,15 +46,14 @@ export async function POST(req: Request) {
 
     try {
         await GrpcClient.initialize();
-        const client = GrpcClient.getClient();
 
         const serviceRequest: ServiceRequest = {
           request_id: `req_${crypto.randomUUID()}`,
           source_system: 'dashboard',
           channel: 'web',
-          user_id: customer_id, // Or an admin user ID
+          user_id: customer_id, 
           data: {
-            type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
+            type_url: 'type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest',
             value: Buffer.from(JSON.stringify({
                 branch_code,
                 customer_id,
@@ -63,33 +62,32 @@ export async function POST(req: Request) {
         };
 
         console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
-
-        const queryCustomerDetails = (request: ServiceRequest): Promise<ServiceResponse> => {
-            return new Promise((resolve, reject) => {
-                client.queryCustomerDetail(request, (error, response) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(response!);
-                    }
-                });
-            });
-        };
         
-        const response = await queryCustomerDetails(serviceRequest);
+        const response = await GrpcClient.promisifyCall<ServiceResponse>('queryCustomerDetail', serviceRequest);
 
         console.log("[gRPC Success] Received ServiceResponse:", response);
-        if (response.code === '0' && response.data) {
-            try {
-                const decodedData = JSON.parse(Buffer.from(response.data.value).toString());
-                return NextResponse.json(decodedData.customer);
-            } catch (unpackError) {
-                console.error("[gRPC Unpack Error]", unpackError);
-                return NextResponse.json({ message: "Failed to unpack customer details from response." }, { status: 500 });
-            }
-        } else {
-            return NextResponse.json({ message: response.message || "Customer not found." }, { status: 404 });
+        if (response.code !== '0') {
+             return NextResponse.json({ message: response.message || "An error occurred from the core banking service." }, { status: 404 });
         }
+
+        const dataValue = (response as any).data?.value;
+        if (!dataValue) {
+            throw new Error("Response success but data field is missing");
+        }
+
+        const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue.data || dataValue);
+        
+        if (!GrpcClient.AccountDetailResponse) {
+            throw new Error("AccountDetailResponse definition not found on gRPC client.");
+        }
+        
+        const decoded = (GrpcClient.AccountDetailResponse as any).decode(buffer);
+        const customerDetailsObject = (GrpcClient.AccountDetailResponse as any).toObject(decoded, {
+          defaults: true, enums: String, arrays: true,
+        });
+
+        return NextResponse.json(customerDetailsObject);
+
     } catch (error: any) {
         console.error("[gRPC Client Error]", error);
          if (customer_id === '0000238') {

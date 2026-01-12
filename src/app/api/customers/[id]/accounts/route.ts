@@ -2,44 +2,78 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { decrypt } from '@/lib/crypto';
+import { GrpcClient } from '@/lib/grpc-client';
+import crypto from 'crypto';
+import type { ServiceRequest, ServiceResponse } from '@/lib/grpc/generated/common';
+
+const getCifFromId = async (customerId: string) => {
+    if (/^\d+$/.test(customerId)) {
+        return customerId;
+    }
+    
+    try {
+        const customerResult: any = await executeQuery(
+            process.env.USER_MODULE_DB_CONNECTION_STRING, 
+            `SELECT "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "Id" = :id`,
+            [customerId]
+        );
+        if (customerResult && customerResult.rows && customerResult.rows.length > 0) {
+            return customerResult.rows[0].CIFNumber;
+        }
+    } catch (e: any) {
+        console.warn(`Could not find AppUser with ID ${customerId}, error: ${e.message}`);
+    }
+    return null;
+}
 
 export async function GET(
   req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const customerIdOrCif = params.id;
-    let cif = customerIdOrCif;
+    const cif = await getCifFromId(params.id);
 
-    if (!/^\d+$/.test(customerIdOrCif)) {
-        try {
-            const customerResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "Id" = :id`, [customerIdOrCif]);
-            if (!customerResult || !customerResult.rows || customerResult.rows.length === 0) {
-               return NextResponse.json({ message: 'Customer not found' }, { status: 404 });
-            }
-            cif = customerResult.rows[0].CIFNumber;
-        } catch (e: any) {
-             console.warn(`Could not find AppUser with ID ${customerIdOrCif}, proceeding as if it's a CIF. Error: ${e.message}`);
+    if (!cif) {
+        return NextResponse.json({ message: 'Could not determine CIF for the given customer ID.' }, { status: 404 });
+    }
+    
+    await GrpcClient.initialize();
+    
+    const serviceRequest: ServiceRequest = {
+        request_id: `req_${crypto.randomUUID()}`,
+        source_system: 'dashboard',
+        channel: 'web',
+        user_id: cif,
+        data: {
+          type_url: 'type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest',
+          value: Buffer.from(JSON.stringify({ customer_id: cif }))
         }
-    }
+    };
     
-    // In a real scenario, this would also likely be a gRPC call.
-    // For now, we continue to use the direct DB query as a placeholder.
-    const accountsFromDb: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT * FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :cif`, [cif]);
+    const response = await GrpcClient.promisifyCall<ServiceResponse>('queryCustomerDetail', serviceRequest);
     
-    if (!accountsFromDb || !accountsFromDb.rows) {
-        return NextResponse.json([]);
+    if (response.code !== '0' || !response.data) {
+        throw new Error(response.message || 'Failed to fetch account details from service');
     }
 
-    const accounts = accountsFromDb.rows.map((acc: any) => ({
-        id: acc.Id,
-        accountNumber: decrypt(acc.AccountNumber),
-        accountType: decrypt(acc.AccountType),
-        currency: decrypt(acc.Currency),
-        branchName: acc.BranchName,
-        status: acc.Status,
-    }));
+    const dataValue = (response as any).data?.value;
+    if (!dataValue) {
+      throw new Error("Response success but data field is missing");
+    }
+
+    const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue.data || dataValue);
     
+    const AccountDetailResponse = GrpcClient.AccountDetailResponse;
+    if (!AccountDetailResponse) {
+        throw new Error("AccountDetailResponse definition not found on gRPC client.");
+    }
+    
+    const decoded = (AccountDetailResponse as any).decode(buffer);
+    const decodedObject = (AccountDetailResponse as any).toObject(decoded);
+
+    // Assuming the response contains an 'accounts' field which is an array
+    const accounts = decodedObject.accounts || [];
+
     return NextResponse.json(accounts);
   } catch (error) {
     console.error('Failed to fetch accounts:', error);
