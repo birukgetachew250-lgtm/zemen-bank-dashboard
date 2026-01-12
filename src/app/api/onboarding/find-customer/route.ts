@@ -41,8 +41,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Customer is already registered for mobile banking.' }, { status: 409 });
         }
 
-        await GrpcClient.initialize();
-        const client = GrpcClient.client;
+        const grpcSingleton = GrpcClient.getInstance();
+        await grpcSingleton.initialize();
+        const client = grpcSingleton.client;
         
         if (!client) {
              console.error("[gRPC] Client not available. Falling back to mock data for demo.");
@@ -52,20 +53,24 @@ export async function POST(req: Request) {
             throw new Error("gRPC client is not initialized. Please check server logs.");
         }
         
-        const proto = GrpcClient.proto;
+        const proto = grpcSingleton.proto;
         if (!proto?.accountdetail?.AccountDetailRequest || !proto?.common?.ServiceRequest) {
              throw new Error("gRPC message types not loaded correctly.");
         }
         
-        const AccountDetailRequest = proto.accountdetail.AccountDetailRequest;
+        const AccountDetailRequest = proto.accountdetail.AccountDetailRequest as any; // Cast to any to use constructor
+        const ServiceRequest = proto.common.ServiceRequest as any;
         
-        const innerDetail = {
+        const innerDetail: AccountDetailRequest = {
             branch_code: branch_code,
             customer_id: customer_id,
         };
 
-        const message = (AccountDetailRequest.fromObject as any)(innerDetail);
-        const buffer = (AccountDetailRequest.encode as any)(message).finish();
+        const message = new AccountDetailRequest(innerDetail);
+        
+        // This is a workaround since proto-loader doesn't provide a direct way to get the encoded buffer
+        // without a full RPC call. The internal `toBuffer` is what we need.
+        const buffer = (message as any).constructor.encode(message).finish();
 
         const anyPayload: Any = {
             type_url: "type.googleapis.com/accountdetail.AccountDetailRequest",
@@ -97,8 +102,8 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                      if (response.code === '0' && response.data) {
                        try {
-                            const AccountDetailResponse = proto.accountdetail.AccountDetailResponse;
-                            const accountDetailResponse = (AccountDetailResponse.decode as any)(response.data.value);
+                            const AccountDetailResponse = proto.accountdetail.AccountDetailResponse as any;
+                            const accountDetailResponse = AccountDetailResponse.decode(response.data.value);
                             const responseObject = (AccountDetailResponse.toObject as any)(accountDetailResponse, {
                                 longs: String,
                                 enums: String,
