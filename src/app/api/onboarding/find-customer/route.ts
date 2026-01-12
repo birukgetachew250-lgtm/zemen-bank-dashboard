@@ -7,8 +7,7 @@ import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import type { ServiceRequest } from '@/lib/grpc/generated/service';
 import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
-import protobuf from 'protobufjs';
-import path from 'path';
+import { Any } from '@/lib/grpc/generated/google/protobuf/any';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -25,23 +24,6 @@ const mockCustomer = {
     "country": "Ethiopia",
     "branch": "Bole"
 };
-
-// We'll load this once and cache it
-let AccountDetailRequestType: protobuf.Type | null = null;
-let AccountDetailResponseType: protobuf.Type | null = null;
-
-async function loadProtos() {
-  if (AccountDetailRequestType && AccountDetailResponseType) {
-    return { AccountDetailRequestType, AccountDetailResponseType };
-  }
-
-  const root = await protobuf.load(path.join(process.cwd(), 'src/lib/grpc/protos/accountdetail.proto'));
-  
-  AccountDetailRequestType = root.lookupType('accountdetail.AccountDetailRequest');
-  AccountDetailResponseType = root.lookupType('accountdetail.AccountDetailResponse');
-
-  return { AccountDetailRequestType, AccountDetailResponseType };
-}
 
 
 export async function POST(req: Request) {
@@ -61,24 +43,29 @@ export async function POST(req: Request) {
 
         const client = GrpcClient.client;
         if (!client) {
-            throw new Error("gRPC client not initialized");
+             console.error("[gRPC] Client not available. Falling back to mock data for demo.");
+             if (customer_id === '0000238') {
+                return NextResponse.json(mockCustomer);
+             }
+            throw new Error("gRPC client is not initialized. Please check server logs.");
         }
         
-        // 1. Create plain JS object for the request payload
-        const innerDetail: AccountDetailRequest = {
+        const proto = GrpcClient.proto;
+        if (!proto?.accountdetail?.AccountDetailRequest || !proto?.accountdetail?.AccountDetailResponse) {
+             throw new Error("gRPC message types not loaded correctly.");
+        }
+        
+        const AccountDetailRequest = proto.accountdetail.AccountDetailRequest;
+        
+        const innerDetail = {
             branch_code: branch_code,
             customer_id: customer_id,
         };
 
-        // 2. Get protobuf type and encode to binary
-        const { AccountDetailRequestType } = await loadProtos();
-        const errMsg = AccountDetailRequestType.verify(innerDetail);
-        if (errMsg) throw Error(errMsg);
-        const message = AccountDetailRequestType.create(innerDetail);
-        const buffer = AccountDetailRequestType.encode(message).finish();
+        const message = AccountDetailRequest.fromObject(innerDetail);
+        const buffer = AccountDetailRequest.encode(message).finish();
 
-        // 3. Build the wrapper `Any` payload
-        const anyPayload = {
+        const anyPayload: Any = {
             type_url: "type.googleapis.com/accountdetail.AccountDetailRequest",
             value: Buffer.from(buffer),
         };
@@ -94,7 +81,7 @@ export async function POST(req: Request) {
         console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
 
         return new Promise((resolve) => {
-             client.queryCustomerDetail(serviceRequest, async (error: any, response: any) => {
+             client.queryCustomerDetail(serviceRequest, (error: any, response: any) => {
                 if (error) {
                     console.error("[gRPC Error] customer-details:", error);
                     if (customer_id === '0000238') {
@@ -108,9 +95,9 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                      if (response.code === '0' && response.data) {
                        try {
-                            const { AccountDetailResponseType } = await loadProtos();
-                            const accountDetailResponse = AccountDetailResponseType.decode(response.data.value);
-                            const responseObject = AccountDetailResponseType.toObject(accountDetailResponse, {
+                            const AccountDetailResponse = proto.accountdetail.AccountDetailResponse;
+                            const accountDetailResponse = AccountDetailResponse.decode(response.data.value);
+                            const responseObject = AccountDetailResponse.toObject(accountDetailResponse, {
                                 longs: String,
                                 enums: String,
                                 bytes: String,
@@ -121,7 +108,7 @@ export async function POST(req: Request) {
                             resolve(NextResponse.json({ message: "Failed to unpack customer details from response." }, { status: 500 }));
                         }
                     } else {
-                        resolve(NextResponse.json({ message: response.message || "An error occurred from the core banking service." }, { status: 404 }));
+                        resolve(NextResponse.json({ message: response.message || "Customer not found." }, { status: 404 }));
                     }
                 }
             });

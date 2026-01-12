@@ -1,4 +1,3 @@
-
 /* eslint-disable */
 import type { Call, Client, ClientDuplexStream, ClientReadableStream, ClientUnaryCall, ClientWritableStream, ServiceError, SurfaceDuplexStream, SurfaceReadableStream, SurfaceUnaryCall, SurfaceWritableStream } from "@grpc/grpc-js";
 import type { ServiceRequest, ServiceResponse } from "./service";
