@@ -43,14 +43,13 @@ export async function POST(req: Request) {
         const client = getAccountDetailServiceClient();
         const accountDetailPackage = getAccountDetailPackage();
         
+        const AccountDetailRequest = accountDetailPackage.AccountDetailRequest;
+
         // This is the plain JS object for the nested AccountDetailRequest
         const accountDetailRequestPayload = {
             branch_code: branch_code,
             customer_id: customer_id
         };
-
-        // Get the message type constructor from the loaded package
-        const AccountDetailRequest = accountDetailPackage.AccountDetailRequest;
         
         // Create and encode the sub-message payload
         const encodedValue = AccountDetailRequest.encode(accountDetailRequestPayload).finish();
