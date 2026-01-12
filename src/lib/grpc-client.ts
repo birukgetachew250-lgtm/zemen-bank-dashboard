@@ -3,8 +3,8 @@
 
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-import { ProtoGrpcType } from './grpc/generated/service';
-import { AccountDetailServiceClient } from './grpc/generated/accountdetail';
+import type { ProtoGrpcType } from './grpc/generated/service';
+import type { AccountDetailServiceClient } from './grpc/generated/accountdetail';
 import path from 'path';
 import config from '../config';
 
@@ -60,11 +60,6 @@ export function getAccountDetailServiceClient(): AccountDetailServiceClient {
 }
 
 // Function to get the specific message type for encoding `Any` payloads.
-export function getAccountDetailRequestType(packageDefinition: any) {
-    const proto = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
-    return proto.accountdetail.AccountDetailRequest;
-}
-
 export function getAccountDetailPackage(packageDefinition: any) {
     const proto = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
     return proto.accountdetail;

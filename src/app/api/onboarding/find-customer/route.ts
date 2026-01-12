@@ -3,13 +3,12 @@
 
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
-import { getAccountDetailServiceClient } from '@/lib/grpc-client';
+import { getAccountDetailServiceClient, getAccountDetailPackage } from '@/lib/grpc-client';
 import * as protoLoader from '@grpc/proto-loader';
 import * as grpc from '@grpc/grpc-js';
 import path from 'path';
 import crypto from 'crypto';
-import type { ProtoGrpcType as AccountDetailProtoGrpcType } from '@/lib/grpc/generated/accountdetail';
-import type { ServiceRequest } from '@/lib/grpc/generated/service';
+import { ServiceRequest } from '@/lib/grpc/generated/service';
 
 const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/service.proto');
 
@@ -20,9 +19,9 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
     defaults: true,
     oneofs: true
 });
+const accountDetailPackage = getAccountDetailPackage(packageDefinition);
+const AccountDetailRequest = (accountDetailPackage as any).AccountDetailRequest;
 
-const accountDetailPackage = (grpc.loadPackageDefinition(packageDefinition) as unknown as AccountDetailProtoGrpcType).accountdetail;
-const AccountDetailRequest = accountDetailPackage.AccountDetailRequest;
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -93,7 +92,8 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                      if (response.code === '0' && response.data) {
                        try {
-                            const accountDetailResponse = accountDetailPackage.AccountDetailResponse.decode(response.data.value);
+                            const AccountDetailResponse = (accountDetailPackage as any).AccountDetailResponse;
+                            const accountDetailResponse = AccountDetailResponse.decode(response.data.value);
                             resolve(NextResponse.json(accountDetailResponse));
                         } catch (unpackError) {
                             console.error("[gRPC Unpack Error]", unpackError);
