@@ -48,8 +48,8 @@ export async function POST(req: Request) {
             customer_id: customer_id
         };
 
-        const accountDetailRequestMessage = AccountDetailRequest$type.create(accountDetailRequestPayload);
-        const encodedValue = AccountDetailRequest$type.toBinary(accountDetailRequestMessage);
+        // Correctly encode the sub-message payload into a Buffer
+        const encodedValue = AccountDetailRequest$type.toBinary(accountDetailRequestPayload);
 
         const serviceRequest: ServiceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
         console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
 
         return new Promise((resolve) => {
-             client.queryCustomerDetail(serviceRequest, undefined, (error: any, response: any) => {
+             client.queryCustomerDetail(serviceRequest, (error: any, response: any) => {
                 if (error) {
                     console.error("[gRPC Error] customer-details:", error);
                     if (customer_id === '0000238') {
