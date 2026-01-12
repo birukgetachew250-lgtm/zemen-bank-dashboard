@@ -150,8 +150,22 @@ export class AccountDetailServiceClient implements IAccountDetailServiceClient {
     /**
      * @generated from protobuf rpc: QueryCustomerDetail(service.ServiceRequest) returns (service.ServiceResponse);
      */
-    queryCustomerDetail(input: ServiceRequest, options?: RpcOptions): UnaryCall<ServiceRequest, ServiceResponse> {
-        const method = this.methods[0], opt = this._transport.mergeOptions(options);
+    queryCustomerDetail(input: ServiceRequest, options?: RpcOptions, callback?: (err: any,
+        response?: any) => void): UnaryCall<ServiceRequest, ServiceResponse> {
+        // This is a direct hack to make it compatible with @grpc/grpc-js
+        if (callback) {
+            (this._transport as any).makeUnaryRequest(
+                `/accountdetail.AccountDetailService/QueryCustomerDetail`,
+                (value: ServiceRequest) => Buffer.from(ServiceRequest.toBinary(value)),
+                (value: Buffer) => ServiceResponse.fromBinary(value),
+                input,
+                callback,
+            )
+        }
+        
+        // This is the original code that will not work with @grpc/grpc-js
+        const method = this.methods[0] as MethodInfo<ServiceRequest, ServiceResponse>;
+        const opt = this._transport.mergeOptions(options);
         return stackIntercept<ServiceRequest, ServiceResponse>("unary", this._transport, method, opt, input);
     }
 }
