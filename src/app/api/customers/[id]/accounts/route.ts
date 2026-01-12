@@ -3,8 +3,10 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
-import type { ServiceRequest } from '@/lib/grpc/generated/common';
-import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
+import { ServiceRequest } from '@/lib/grpc/generated/common';
+import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
+import { Any } from '@/lib/grpc/generated/google/protobuf/any';
+
 
 const getCifFromId = async (customerId: string) => {
     if (/^\d+$/.test(customerId)) {
@@ -37,26 +39,24 @@ export async function GET(
         return NextResponse.json({ message: 'Could not determine CIF for the given customer ID.' }, { status: 404 });
     }
     
-    const accountDetailRequestPayload = {
-        branch_code: '', // Assuming not needed for this call, adjust if necessary
-        customer_id: cif,
-    };
+    const accountDetailRequest = new AccountDetailRequest();
+    accountDetailRequest.setBranchCode(''); // Assuming not needed for this call, adjust if necessary
+    accountDetailRequest.setCustomerId(cif);
 
-    const serviceRequest: ServiceRequest = {
-        request_id: `req_${crypto.randomUUID()}`,
-        source_system: 'dashboard',
-        channel: 'web',
-        user_id: cif,
-        data: {
-          "@type": "type.googleapis.com/accountdetail.AccountDetailRequest",
-          ...accountDetailRequestPayload
-        },
-    };
+    const anyPayload = new Any();
+    anyPayload.setTypeUrl("type.googleapis.com/accountdetail.AccountDetailRequest");
+    anyPayload.setValue(accountDetailRequest.serializeBinary());
+
+    const serviceRequest = new ServiceRequest();
+    serviceRequest.setRequestId(`req_${crypto.randomUUID()}`);
+    serviceRequest.setSourceSystem('dashboard');
+    serviceRequest.setChannel('web');
+    serviceRequest.setUserId(cif);
+    serviceRequest.setData(anyPayload);
     
     const response = await GrpcClient.queryCustomerDetail(serviceRequest);
 
-    // Assuming the response contains an 'accounts' field which is an array
-    const accounts = (response as any).accounts || [];
+    const accounts = (response as any).accountsList || [];
 
     return NextResponse.json(accounts);
   } catch (error) {

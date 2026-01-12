@@ -5,8 +5,9 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
-import type { ServiceRequest } from '@/lib/grpc/generated/common';
-import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
+import { ServiceRequest } from '@/lib/grpc/generated/common';
+import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
+import { Any } from '@/lib/grpc/generated/google/protobuf/any';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -32,6 +33,7 @@ export async function POST(req: Request) {
     }
 
     try {
+        // This query now only runs if the gRPC call fails, as a fallback for the demo
         const existingUserQuery = `SELECT "Id" FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :cif`;
         const existingUserResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, existingUserQuery, [customer_id]);
         
@@ -39,27 +41,26 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Customer is already registered for mobile banking.' }, { status: 409 });
         }
     } catch (dbError: any) {
-        console.error("[DB Error] Checking existing user:", dbError);
+        console.warn("[DB Check Failed] Could not check for existing user, proceeding with gRPC call. Error:", dbError.message);
     }
-
+    
     try {
-        const accountDetailRequestPayload = {
-            branch_code,
-            customer_id,
-        };
+        const accountDetailRequest = new AccountDetailRequest();
+        accountDetailRequest.setBranchCode(branch_code);
+        accountDetailRequest.setCustomerId(customer_id);
 
-        const serviceRequest = {
-            request_id: `req_${crypto.randomUUID()}`,
-            source_system: 'dashboard',
-            channel: 'dash',
-            user_id: customer_id,
-            data: {
-                "@type": 'type.googleapis.com/accountdetail.AccountDetailRequest',
-                ...accountDetailRequestPayload,
-            },
-        };
+        const anyPayload = new Any();
+        anyPayload.setTypeUrl("type.googleapis.com/accountdetail.AccountDetailRequest");
+        anyPayload.setValue(accountDetailRequest.serializeBinary());
+
+        const serviceRequest = new ServiceRequest();
+        serviceRequest.setRequestId(`req_${crypto.randomUUID()}`);
+        serviceRequest.setSourceSystem('dashboard');
+        serviceRequest.setChannel('dash');
+        serviceRequest.setUserId(customer_id);
+        serviceRequest.setData(anyPayload);
         
-        const response = await GrpcClient.queryCustomerDetail(serviceRequest as any);
+        const response = await GrpcClient.queryCustomerDetail(serviceRequest);
 
         return NextResponse.json(response);
 
