@@ -6,9 +6,6 @@ import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import type { ServiceRequest } from '@/lib/grpc/generated/common';
-import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
-import { Any } from 'protobufjs';
-
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -53,13 +50,13 @@ export async function POST(req: Request) {
             throw new Error("gRPC client is not initialized. Please check server logs.");
         }
         
-        const protoRoot = GrpcClient.protoRoot;
-        if (!protoRoot) {
-             throw new Error("gRPC protoRoot is not initialized.");
+        const accountDetailPackage = GrpcClient.getAccountDetailPackage();
+        if (!accountDetailPackage) {
+             throw new Error("gRPC accountdetail package not found.");
         }
-
-        const AccountDetailRequest = protoRoot.lookupType("accountdetail.AccountDetailRequest");
-        const AccountDetailResponse = protoRoot.lookupType("accountdetail.AccountDetailResponse");
+        
+        const AccountDetailRequest = accountDetailPackage.lookupType("AccountDetailRequest");
+        const AccountDetailResponse = accountDetailPackage.lookupType("AccountDetailResponse");
 
         const innerDetail = {
             branch_code: branch_code,
@@ -67,19 +64,13 @@ export async function POST(req: Request) {
         };
         
         const message = AccountDetailRequest.create(innerDetail);
-        const buffer = AccountDetailRequest.encode(message).finish();
         
-        const anyPayload = new Any({
-            type_url: "type.googleapis.com/accountdetail.AccountDetailRequest",
-            value: buffer,
-        });
-
         const serviceRequest: ServiceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
             source_system: 'dashboard',
-            channel: 'dash',
+            channel: 'web',
             user_id: customer_id,
-            data: anyPayload,
+            data: GrpcClient.Any.pack(message, AccountDetailRequest),
         };
 
         console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
@@ -99,13 +90,14 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                      if (response.code === '0' && response.data) {
                        try {
-                            const decodedResponse = AccountDetailResponse.decode(response.data.value);
+                            const decodedResponse = GrpcClient.Any.unpack(response.data, AccountDetailResponse);
                             const responseObject = AccountDetailResponse.toObject(decodedResponse, {
                                 longs: String,
                                 enums: String,
                                 bytes: String,
                             });
-                            resolve(NextResponse.json(responseObject));
+                            // Assuming the actual customer detail is nested
+                            resolve(NextResponse.json(responseObject.customer));
                         } catch (unpackError) {
                             console.error("[gRPC Unpack Error]", unpackError);
                             resolve(NextResponse.json({ message: "Failed to unpack customer details from response." }, { status: 500 }));

@@ -1,12 +1,11 @@
 
-'use server';
-
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import config from '@/lib/config';
 import type { ProtoGrpcType as AccountDetailProtoGrpcType } from './grpc/generated/accountdetail';
 import { Root } from 'protobufjs';
+import { Any } from './grpc/generated/google/protobuf/any';
 
 const PROTO_FILES = ['common.proto', 'accountdetail.proto'];
 const PROTO_DIR = path.join(process.cwd(), 'src', 'lib', 'grpc', 'protos');
@@ -63,6 +62,15 @@ class GrpcClientSingleton {
       const protoRoot = new Root();
       await Promise.all(PROTO_FILES.map(file => protoRoot.load(path.join(PROTO_DIR, file), { keepCase: true })));
       this.protoRoot = protoRoot;
+      
+      // Manually add google.protobuf.Any to the root
+      const anyType = protoRoot.lookupType("google.protobuf.Any");
+      if (!anyType) {
+        const googleRoot = new Root();
+        await googleRoot.load(path.join(process.cwd(), 'src', 'lib', 'grpc', 'protos', 'google', 'protobuf', 'any.proto'), { keepCase: true });
+        protoRoot.add(googleRoot.lookupType("google.protobuf.Any"));
+      }
+
 
       if (!grpcObject.accountdetail || !grpcObject.accountdetail.AccountDetailService) {
         console.error("[gRPC Client] Failed to load 'accountdetail.AccountDetailService' from proto definition.");
@@ -77,6 +85,22 @@ class GrpcClientSingleton {
       this.protoRoot = null;
       this.initializationPromise = null; // Reset promise on failure
       throw error;
+    }
+  }
+
+  public getAccountDetailPackage() {
+    return this.protoRoot?.lookup("accountdetail");
+  }
+
+  public static Any = {
+      pack: (message: { toJSON: () => any, constructor: any }, type: any): Any => {
+        return {
+            type_url: `type.googleapis.com/${type.$type.fullName.substring(1)}`,
+            value: type.encode(message).finish()
+        };
+    },
+    unpack: (any: Any, type: any): any => {
+        return type.decode(any.value);
     }
   }
 }
