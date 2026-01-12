@@ -3,7 +3,10 @@
 
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
-import { getAccountDetailServiceClient, getAccountDetailPackage } from '@/lib/grpc-client';
+import { GrpcClient } from '@/lib/grpc-client';
+import crypto from 'crypto';
+import { ServiceRequest } from '@/lib/grpc/generated/service';
+import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -30,14 +33,30 @@ export async function POST(req: Request) {
     }
 
     try {
-        const client = getAccountDetailServiceClient();
-        const request = {
+        const client = GrpcClient.getAccountDetailServiceClient();
+        
+        const accountDetailRequestPayload = AccountDetailRequest.fromJSON({
             branch_code: branch_code,
             customer_id: customer_id
+        });
+
+        const encodedValue = AccountDetailRequest.encode(accountDetailRequestPayload).finish();
+
+        const serviceRequest: ServiceRequest = {
+            request_id: `req_${crypto.randomUUID()}`,
+            source_system: 'dashboard',
+            channel: 'dash',
+            user_id: customer_id,
+            data: {
+                type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
+                value: Buffer.from(encodedValue)
+            }
         };
 
-        return new Promise((resolve, reject) => {
-             client.queryCustomerDetails(request, (error: any, response: any) => {
+        console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
+
+        return new Promise((resolve) => {
+             client.queryCustomerDetail(serviceRequest, (error: any, response: any) => {
                 if (error) {
                     console.error("[gRPC Error] customer-details:", error);
                     // Fallback to mock data if gRPC fails
@@ -49,8 +68,22 @@ export async function POST(req: Request) {
                         resolve(NextResponse.json({ message: errorMessage }, { status: 500 }));
                     }
                 } else {
-                    console.log("[gRPC Success] customer-details:", response);
-                    resolve(NextResponse.json(response));
+                    console.log("[gRPC Success] Received ServiceResponse:", response);
+                     if (response.code === '0' && response.data) {
+                       try {
+                            const AccountDetailResponse = GrpcClient.getAccountDetailPackage()?.AccountDetailResponse;
+                            if (!AccountDetailResponse) {
+                                throw new Error("Could not find AccountDetailResponse definition in gRPC package");
+                            }
+                            const accountDetailResponse = AccountDetailResponse.decode(response.data.value);
+                            resolve(NextResponse.json(accountDetailResponse));
+                        } catch (unpackError) {
+                            console.error("[gRPC Unpack Error]", unpackError);
+                            resolve(NextResponse.json({ message: "Failed to unpack customer details from response." }, { status: 500 }));
+                        }
+                    } else {
+                        resolve(NextResponse.json({ message: response.message || "An error occurred from the core banking service." }, { status: 404 }));
+                    }
                 }
             });
         });

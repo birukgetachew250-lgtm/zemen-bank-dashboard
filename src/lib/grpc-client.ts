@@ -5,6 +5,7 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import type { ProtoGrpcType } from './grpc/generated/service';
 import type { AccountDetailServiceClient } from './grpc/generated/accountdetail';
+import { AccountDetailRequest } from './grpc/generated/accountdetail';
 import path from 'path';
 import config from '@/lib/config';
 
@@ -13,9 +14,9 @@ let loadedProto: ProtoGrpcType | null = null;
 
 const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/service.proto');
 
-function loadGrpcClient(): AccountDetailServiceClient {
+function loadGrpcClient(): void {
     if (client) {
-        return client;
+        return;
     }
     
     if (!config.grpc.url) {
@@ -50,30 +51,27 @@ function loadGrpcClient(): AccountDetailServiceClient {
         console.error("[gRPC Client] Failed to initialize gRPC client:", error);
         throw error; 
     }
-
-    return client;
 }
 
-export function getAccountDetailServiceClient(): AccountDetailServiceClient {
+// Singleton accessor for the client
+function getClient(): AccountDetailServiceClient {
     if (!client) {
-       client = loadGrpcClient();
+        loadGrpcClient();
     }
-    return client;
+    return client!;
 }
 
-// Function to get the specific message type for encoding `Any` payloads.
-export function getAccountDetailPackage() {
+// Singleton accessor for the package definition
+function getPackage() {
     if (!loadedProto) {
         loadGrpcClient();
     }
-    return loadedProto?.accountdetail;
+    return loadedProto!.accountdetail;
 }
 
-export function resetGrpcClient(): void {
-    if (client) {
-        client.close();
-        client = null;
-    }
-    loadedProto = null;
-    console.log("[gRPC Client] Client reset.");
-}
+// Export a single object with methods to interact with the client
+export const GrpcClient = {
+    getAccountDetailServiceClient: getClient,
+    getAccountDetailPackage: getPackage,
+};
+

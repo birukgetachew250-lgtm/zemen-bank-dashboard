@@ -3,7 +3,7 @@
 
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
-import { getAccountDetailServiceClient } from '@/lib/grpc-client';
+import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import { ServiceRequest } from '@/lib/grpc/generated/service';
 import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Customer is already registered for mobile banking.' }, { status: 409 });
         }
 
-        const client = getAccountDetailServiceClient();
+        const client = GrpcClient.getAccountDetailServiceClient();
         
         const accountDetailRequestPayload = AccountDetailRequest.fromJSON({
             branch_code: branch_code,
@@ -77,7 +77,10 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                      if (response.code === '0' && response.data) {
                        try {
-                            const AccountDetailResponse = (getAccountDetailPackage() as any).AccountDetailResponse;
+                            const AccountDetailResponse = GrpcClient.getAccountDetailPackage()?.AccountDetailResponse;
+                            if (!AccountDetailResponse) {
+                                throw new Error("Could not find AccountDetailResponse definition in gRPC package");
+                            }
                             const accountDetailResponse = AccountDetailResponse.decode(response.data.value);
                             resolve(NextResponse.json(accountDetailResponse));
                         } catch (unpackError) {
