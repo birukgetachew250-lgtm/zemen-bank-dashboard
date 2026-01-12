@@ -1,8 +1,10 @@
+
 /* eslint-disable */
 import type { Any } from "./google/protobuf/any";
 
 export const protobufPackage = "service";
 
+/** The service request message containing the request details. */
 export interface ServiceRequest {
   request_id: string;
   source_system: string;
@@ -11,6 +13,7 @@ export interface ServiceRequest {
   data: Any | undefined;
 }
 
+/** The service response message containing the response details. */
 export interface ServiceResponse {
   request_id: string;
   response_id: string;
@@ -18,5 +21,3 @@ export interface ServiceResponse {
   message: string;
   data: Any | undefined;
 }
-
-export const SERVICE_PACKAGE_NAME = "service";

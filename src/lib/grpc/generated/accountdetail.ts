@@ -1,15 +1,23 @@
+
 /* eslint-disable */
 import type { Call, Client, ClientDuplexStream, ClientReadableStream, ClientUnaryCall, ClientWritableStream, ServiceError, SurfaceDuplexStream, SurfaceReadableStream, SurfaceUnaryCall, SurfaceWritableStream } from "@grpc/grpc-js";
 import type { ServiceRequest, ServiceResponse } from "./service";
-import { Jsonkey, type ProtoGrpcType } from './service';
 
 export const protobufPackage = "accountdetail";
 
+/**
+ * The AccountDetailRequest message contains the branch_code and customer_id
+ * for which account details are being requested.
+ */
 export interface AccountDetailRequest {
   branch_code: string;
   customer_id: string;
 }
 
+/**
+ * The AccountDetailResponse message contains the detailed information of a
+ * customer's account.
+ */
 export interface AccountDetailResponse {
   full_name: string;
   cif_creation_date: string;
@@ -26,7 +34,9 @@ export interface AccountDetailResponse {
   branch: string;
 }
 
+/** The AccountDetailService definition. */
 export interface AccountDetailServiceClient extends Client {
+  /** Sends a request for customer account details. */
   queryCustomerDetail(
     argument: ServiceRequest,
     callback: (error?: ServiceError, result?: ServiceResponse) => void,
@@ -44,36 +54,11 @@ export interface AccountDetailServiceClient extends Client {
   ): ClientUnaryCall;
 }
 
+/** The AccountDetailService definition. */
 export interface AccountDetailServiceHandlers {
+  /** Sends a request for customer account details. */
   queryCustomerDetail(
     call: SurfaceUnaryCall<ServiceRequest, ServiceResponse>,
     callback: (error?: ServiceError, result?: ServiceResponse) => void,
   ): void;
 }
-
-export const ACCOUNTDETAIL_PACKAGE_NAME = "accountdetail";
-
-const baseAccountDetailRequest: object = {
-  branch_code: "",
-  customer_id: "",
-};
-
-export const AccountDetailRequest: Jsonkey<AccountDetailRequest> = {
-  fromJSON(object: any): AccountDetailRequest {
-    const message = { ...baseAccountDetailRequest } as AccountDetailRequest;
-    if (object.branch_code !== undefined && object.branch_code !== null) {
-      message.branch_code = String(object.branch_code);
-    }
-    if (object.customer_id !== undefined && object.customer_id !== null) {
-      message.customer_id = String(object.customer_id);
-    }
-    return message;
-  },
-
-  toJSON(message: AccountDetailRequest): unknown {
-    const obj: any = {};
-    message.branch_code !== undefined && (obj.branch_code = message.branch_code);
-    message.customer_id !== undefined && (obj.customer_id = message.customer_id);
-    return obj;
-  },
-};

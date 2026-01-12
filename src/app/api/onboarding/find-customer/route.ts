@@ -5,8 +5,10 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
-import { ServiceRequest } from '@/lib/grpc/generated/service';
-import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
+import type { ServiceRequest } from '@/lib/grpc/generated/service';
+import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
+import protobuf from 'protobufjs';
+import path from 'path';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -23,6 +25,23 @@ const mockCustomer = {
     "country": "Ethiopia",
     "branch": "Bole"
 };
+
+// We'll load this once and cache it
+let AccountDetailRequestType: protobuf.Type | null = null;
+let AccountDetailResponseType: protobuf.Type | null = null;
+
+async function loadProtos() {
+  if (AccountDetailRequestType && AccountDetailResponseType) {
+    return { AccountDetailRequestType, AccountDetailResponseType };
+  }
+
+  const root = await protobuf.load(path.join(process.cwd(), 'src/lib/grpc/protos/accountdetail.proto'));
+  
+  AccountDetailRequestType = root.lookupType('accountdetail.AccountDetailRequest');
+  AccountDetailResponseType = root.lookupType('accountdetail.AccountDetailResponse');
+
+  return { AccountDetailRequestType, AccountDetailResponseType };
+}
 
 
 export async function POST(req: Request) {
@@ -45,40 +64,37 @@ export async function POST(req: Request) {
             throw new Error("gRPC client not initialized");
         }
         
-        const accountDetailRequestPayload = AccountDetailRequest.fromJSON({
+        // 1. Create plain JS object for the request payload
+        const innerDetail: AccountDetailRequest = {
             branch_code: branch_code,
-            customer_id: customer_id
-        });
+            customer_id: customer_id,
+        };
 
-        // The generated types for ts-proto may not have an `encode` method directly.
-        // Let's rely on the structure if fromJSON works. We may need to adjust if the proto library expects a Buffer.
-        // For now, let's assume direct object usage is fine and wrap it if needed.
-        // A common pattern is that the object itself is serializable.
-        // Let's create the value buffer manually.
-        const protoDefinition = GrpcClient.proto?.accountdetail.AccountDetailRequest;
-        if (!protoDefinition) {
-             throw new Error("AccountDetailRequest definition not found");
-        }
+        // 2. Get protobuf type and encode to binary
+        const { AccountDetailRequestType } = await loadProtos();
+        const errMsg = AccountDetailRequestType.verify(innerDetail);
+        if (errMsg) throw Error(errMsg);
+        const message = AccountDetailRequestType.create(innerDetail);
+        const buffer = AccountDetailRequestType.encode(message).finish();
 
-        const message = protoDefinition.create(accountDetailRequestPayload);
-        const encodedValue = protoDefinition.encode(message).finish();
-        
+        // 3. Build the wrapper `Any` payload
+        const anyPayload = {
+            type_url: "type.googleapis.com/accountdetail.AccountDetailRequest",
+            value: Buffer.from(buffer),
+        };
 
         const serviceRequest: ServiceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
             source_system: 'dashboard',
             channel: 'dash',
             user_id: customer_id,
-            data: {
-                type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
-                value: Buffer.from(encodedValue)
-            }
+            data: anyPayload,
         };
 
         console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
 
         return new Promise((resolve) => {
-             client.queryCustomerDetail(serviceRequest, (error: any, response: any) => {
+             client.queryCustomerDetail(serviceRequest, async (error: any, response: any) => {
                 if (error) {
                     console.error("[gRPC Error] customer-details:", error);
                     if (customer_id === '0000238') {
@@ -92,12 +108,14 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                      if (response.code === '0' && response.data) {
                        try {
-                            const AccountDetailResponse = GrpcClient.proto?.accountdetail.AccountDetailResponse;
-                            if (!AccountDetailResponse) {
-                                throw new Error("Could not find AccountDetailResponse definition in gRPC package");
-                            }
-                            const accountDetailResponse = AccountDetailResponse.decode(response.data.value);
-                            resolve(NextResponse.json(accountDetailResponse));
+                            const { AccountDetailResponseType } = await loadProtos();
+                            const accountDetailResponse = AccountDetailResponseType.decode(response.data.value);
+                            const responseObject = AccountDetailResponseType.toObject(accountDetailResponse, {
+                                longs: String,
+                                enums: String,
+                                bytes: String,
+                            });
+                            resolve(NextResponse.json(responseObject));
                         } catch (unpackError) {
                             console.error("[gRPC Unpack Error]", unpackError);
                             resolve(NextResponse.json({ message: "Failed to unpack customer details from response." }, { status: 500 }));
