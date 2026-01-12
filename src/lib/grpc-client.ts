@@ -1,6 +1,3 @@
-
-'use server';
-
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
@@ -15,6 +12,8 @@ type ProtoGrpcType = AccountDetailProtoGrpcType;
 class GrpcClientSingleton {
   private static instance: GrpcClientSingleton;
   public client: AccountDetailProtoGrpcType['accountdetail']['AccountDetailService'] | null = null;
+  public AccountDetailRequest: AccountDetailProtoGrpcType['accountdetail']['AccountDetailRequest'] | null = null;
+  public AccountDetailResponse: AccountDetailProtoGrpcType['accountdetail']['AccountDetailResponse'] | null = null;
   private initializationPromise: Promise<void> | null = null;
 
   private constructor() {}
@@ -64,6 +63,14 @@ class GrpcClientSingleton {
       }
 
       this.client = new grpcObject.accountdetail.AccountDetailService(grpcUrl, grpc.credentials.createInsecure());
+      
+      if (grpcObject.accountdetail.AccountDetailRequest) {
+        this.AccountDetailRequest = grpcObject.accountdetail.AccountDetailRequest;
+      }
+      if (grpcObject.accountdetail.AccountDetailResponse) {
+        this.AccountDetailResponse = grpcObject.accountdetail.AccountDetailResponse;
+      }
+      
       console.log("[gRPC Client] gRPC client created successfully.");
     } catch (error) {
       console.error("[gRPC Client] Failed to initialize gRPC client:", error);
