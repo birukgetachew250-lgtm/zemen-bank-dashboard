@@ -43,12 +43,12 @@ export async function POST(req: Request) {
         const client = getAccountDetailServiceClient();
         const accountDetailPackage = getAccountDetailPackage();
         
-        // Correctly construct the protobuf message
         const accountDetailRequest = {
             branch_code: branch_code,
             customer_id: customer_id
         };
-
+        
+        // Correctly construct the ServiceRequest with the nested payload
         const serviceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
             source_system: 'dashboard',
