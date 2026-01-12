@@ -61,7 +61,7 @@ export async function POST(req: Request) {
         
         const response = await GrpcClient.queryCustomerDetail(serviceRequest);
 
-        return NextResponse.json(response);
+        return NextResponse.json(response.toObject());
 
     } catch (error: any) {
         console.error("[gRPC/DB Error]", error);

@@ -1,6 +1,5 @@
 
 'use client';
-
 import {
   AccountDetailRequest,
   AccountDetailResponse,
@@ -21,31 +20,36 @@ class GrpcClientSingleton {
     console.log(`[gRPC Client] Initialized client for AccountDetailService at target URL: ${grpcUrl}`);
   }
 
-  private promisifyCall<TResponse>(
+  private promisifyCall<TRequest, TResponse>(
     methodName: 'queryCustomerDetail',
-    request: ServiceRequest
+    request: TRequest
   ): Promise<TResponse> {
     return new Promise((resolve, reject) => {
-        const method = this.client[methodName];
-        if (typeof method !== 'function') {
-            return reject(new TypeError(`this.client.${methodName} is not a function`));
-        }
+      const deadline = new Date();
+      deadline.setMilliseconds(deadline.getMilliseconds() + GRPC_TIMEOUT_MS);
 
-        method.call(this.client, request, null, (err: any, res: TResponse) => {
-            if (err) return reject(err);
-            resolve(res);
-        });
+      const method = this.client[methodName];
+      if (typeof method !== 'function') {
+        return reject(new TypeError(`this.client.${methodName} is not a function`));
+      }
+
+      method.call(this.client, request, { deadline: deadline.getTime().toString() }, (err: any, res: TResponse) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(res);
+      });
     });
   }
 
-  public async queryCustomerDetail(request: ServiceRequest): Promise<AccountDetailResponse.AsObject> {
+  public async queryCustomerDetail(request: ServiceRequest): Promise<AccountDetailResponse> {
     console.log(`Sending gRPC request [queryCustomerDetail]`, {
       request_id: request.getRequestId(),
       user_id: request.getUserId(),
     });
-    
+
     try {
-      const response = await this.promisifyCall<ServiceResponse>(
+      const response = await this.promisifyCall<ServiceRequest, ServiceResponse>(
         'queryCustomerDetail',
         request
       );
@@ -61,13 +65,12 @@ class GrpcClientSingleton {
         throw new Error('Response success but data field is missing from the payload.');
       }
       
-      const value = data.value as Uint8Array; // Value is Uint8Array
+      const value = data.value as Uint8Array;
       if (!(value instanceof Uint8Array)) {
          throw new Error('Expected data.value to be a Uint8Array.');
       }
       
-      const decoded = AccountDetailResponse.deserializeBinary(value);
-      return decoded.toObject();
+      return AccountDetailResponse.deserializeBinary(value);
 
     } catch (err) {
       console.error(`Critical failure in queryCustomerDetail:`, err);
@@ -77,4 +80,3 @@ class GrpcClientSingleton {
 }
 
 export const GrpcClient = new GrpcClientSingleton();
-    

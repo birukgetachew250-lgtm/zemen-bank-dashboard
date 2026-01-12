@@ -56,7 +56,7 @@ export async function GET(
     
     const response = await GrpcClient.queryCustomerDetail(serviceRequest);
 
-    const accounts = (response as any).accountsList || [];
+    const accounts = (response.toObject() as any).accountsList || [];
 
     return NextResponse.json(accounts);
   } catch (error) {
