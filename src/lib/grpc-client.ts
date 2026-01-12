@@ -1,15 +1,12 @@
 
-'use server';
-
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import config from '@/lib/config';
 import type { ProtoGrpcType as AccountDetailProtoGrpcType } from './grpc/generated/accountdetail';
-import { Root } from 'protobufjs';
-import { Any } from './grpc/generated/google/protobuf/any';
+import { Root, Any as ProtobufJsAny } from 'protobufjs';
 
-const PROTO_FILE = 'accountdetail.proto'; // The main file that imports others
+const PROTO_FILE = 'accountdetail.proto';
 const PROTO_DIR = path.join(process.cwd(), 'src', 'lib', 'grpc', 'protos');
 
 type ProtoGrpcType = AccountDetailProtoGrpcType;
@@ -57,7 +54,7 @@ class GrpcClientSingleton {
         enums: String,
         defaults: true,
         oneofs: true,
-        includeDirs: [PROTO_DIR], // Directory to search for imported protos
+        includeDirs: [PROTO_DIR],
       });
 
       const grpcObject = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
@@ -90,17 +87,7 @@ class GrpcClientSingleton {
     return this.protoRoot?.lookup("common");
   }
 
-  public static Any = {
-      pack: (message: { toJSON: () => any, constructor: any }, type: any): Any => {
-        return {
-            type_url: `type.googleapis.com/${type.$type.fullName.substring(1)}`,
-            value: Buffer.from(type.encode(message).finish())
-        };
-    },
-    unpack: (any: Any, type: any): any => {
-        return type.decode(any.value);
-    }
-  }
+  public static Any = ProtobufJsAny;
 }
 
 export const GrpcClient = GrpcClientSingleton.getInstance();
