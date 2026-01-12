@@ -1,11 +1,13 @@
 
+'use server';
+
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import config from '@/lib/config';
 import type { ProtoGrpcType as AccountDetailProtoGrpcType } from './grpc/generated/accountdetail';
 import type { ServiceRequest, ServiceResponse } from './grpc/generated/common';
-import type { AccountDetailResponse } from './grpc/generated/accountdetail';
+import type { AccountDetailRequest, AccountDetailResponse } from './grpc/generated/accountdetail';
 import { Buffer } from 'buffer';
 
 const PROTO_FILE = 'accountdetail.proto';
@@ -32,7 +34,7 @@ class GrpcClientSingleton {
             if (!grpcObject.accountdetail?.AccountDetailService) {
                 throw new Error("Service 'accountdetail.AccountDetailService' not loaded from proto.");
             }
-             if (!grpcObject.accountdetail?.AccountDetailResponse) {
+            if (!grpcObject.accountdetail?.AccountDetailResponse) {
                 throw new Error("Message type 'accountdetail.AccountDetailResponse' not loaded from proto.");
             }
             this.AccountDetailResponse = grpcObject.accountdetail.AccountDetailResponse;
@@ -41,15 +43,13 @@ class GrpcClientSingleton {
             this.client = new grpcObject.accountdetail.AccountDetailService(grpcUrl, grpc.credentials.createInsecure());
             
             console.log(`[gRPC Client] Initialized client for AccountDetailService at target URL: ${grpcUrl}`);
-
         } catch (error) {
             console.error("[gRPC Client] Failed to initialize:", error);
-            // This is a server-side singleton, so throwing here is okay during startup.
             throw new Error("Could not initialize gRPC client.");
         }
     }
 
-    public promisifyCall<TResponse>(method: string, request: any): Promise<TResponse> {
+    private promisifyCall<TResponse>(method: string, request: any): Promise<TResponse> {
         return new Promise((resolve, reject) => {
             const deadline = Date.now() + GRPC_TIMEOUT_MS;
             (this.client as any)[method](request, { deadline }, (err: any, res: TResponse) => {
@@ -72,15 +72,15 @@ class GrpcClientSingleton {
                 console.warn('gRPC call returned non-zero code:', response);
                 throw new Error(response.message || "Operation failed in core banking service.");
             }
-
-            const dataValue = response.data?.value;
+            
+            const dataValue = (response.data as any)?.value;
             if (!dataValue) {
                 throw new Error("Response success but data field is missing from the payload.");
             }
 
-            const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue);
+            const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue.data || dataValue);
             const decoded = this.AccountDetailResponse.decode(buffer);
-            
+
             const object = this.AccountDetailResponse.toObject(decoded, {
                 longs: String,
                 enums: String,
@@ -97,5 +97,4 @@ class GrpcClientSingleton {
     }
 }
 
-// Export a singleton instance
 export const GrpcClient = new GrpcClientSingleton();
