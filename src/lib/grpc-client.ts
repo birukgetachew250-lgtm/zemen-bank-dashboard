@@ -17,6 +17,8 @@ const GRPC_TIMEOUT_MS = 5000;
 class GrpcClientSingleton {
     public client: AccountDetailProtoGrpcType['accountdetail']['AccountDetailServiceClient'];
     private AccountDetailResponse: any;
+    private initialized = false;
+    private initializePromise: Promise<void> | null = null;
 
     constructor() {
         try {
@@ -43,32 +45,36 @@ class GrpcClientSingleton {
             this.client = new grpcObject.accountdetail.AccountDetailService(grpcUrl, grpc.credentials.createInsecure());
             
             console.log(`[gRPC Client] Initialized client for AccountDetailService at target URL: ${grpcUrl}`);
+            this.initialized = true;
+
         } catch (error) {
             console.error("[gRPC Client] Failed to initialize:", error);
             throw new Error("Could not initialize gRPC client.");
         }
     }
-    
-    private promisifyCall<TRequest, TResponse>(methodName: string): (request: TRequest) => Promise<TResponse> {
+
+    private promisifyCall<TRequest, TResponse>(methodName: 'queryCustomerDetail'): (request: TRequest) => Promise<TResponse> {
         return (request: TRequest): Promise<TResponse> => {
             return new Promise((resolve, reject) => {
                 const deadline = Date.now() + GRPC_TIMEOUT_MS;
-                const method = (this.client as any)[methodName];
 
+                // Ensure the method exists before calling.
+                const method = this.client[methodName];
                 if (typeof method !== 'function') {
-                    return reject(new TypeError(`this.client[${methodName}] is not a function`));
+                    return reject(new TypeError(`this.client.${methodName} is not a function`));
                 }
 
-                method.call(this.client, request, { deadline }, (err: any, res: TResponse) => {
+                // Correctly call the method on the client instance
+                this.client[methodName](request as any, { deadline }, (err: any, res: TResponse) => {
                     if (err) return reject(err);
                     resolve(res);
                 });
             });
         };
     }
-
+    
     public async queryCustomerDetail(request: ServiceRequest): Promise<AccountDetailResponse> {
-        const methodName = 'QueryCustomerDetail';
+        const methodName = 'queryCustomerDetail';
         console.log(`Sending gRPC request [${methodName}]`, { 
             request_id: request.request_id, 
             user_id: request.user_id 
