@@ -1,12 +1,10 @@
 
-'use server';
-
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import type { ProtoGrpcType } from './grpc/generated/service';
 import type { AccountDetailServiceClient } from './grpc/generated/accountdetail';
 import path from 'path';
-import config from '../config';
+import config from './config';
 
 let client: AccountDetailServiceClient | null = null;
 
