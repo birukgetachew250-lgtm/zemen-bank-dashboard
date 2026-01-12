@@ -3,11 +3,11 @@
 
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
-import { getAccountDetailServiceClient } from '@/lib/grpc-client';
+import { getAccountDetailServiceClient, getAccountDetailPackage } from '@/lib/grpc-client';
 import crypto from 'crypto';
-import { ServiceRequest } from '@/lib/grpc/generated/service';
-import { AccountDetailRequest, AccountDetailRequest$type, AccountDetailResponse$type } from '@/lib/grpc/generated/accountdetail';
+import type { ServiceRequest } from '@/lib/grpc/generated/service';
 import { Any } from '@/lib/grpc/generated/google/protobuf/any';
+import { AccountDetailRequest, AccountDetailResponse, AccountDetailResponse$type } from '@/lib/grpc/generated/accountdetail';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -48,9 +48,6 @@ export async function POST(req: Request) {
             customer_id: customer_id
         };
 
-        // Correctly encode the sub-message payload into a Buffer
-        const encodedValue = AccountDetailRequest$type.toBinary(accountDetailRequestPayload);
-
         const serviceRequest: ServiceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
             source_system: 'dashboard',
@@ -58,7 +55,7 @@ export async function POST(req: Request) {
             user_id: customer_id,
             data: {
                 type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
-                value: encodedValue
+                value: AccountDetailRequest.toBinary(accountDetailRequestPayload)
             }
         };
 

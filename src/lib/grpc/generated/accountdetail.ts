@@ -4,8 +4,8 @@ import type { GrpcTransport } from "@protobuf-ts/grpc-transport";
 import type { MethodInfo } from "@protobuf-ts/runtime-rpc";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
-import { ServiceRequest } from "./service";
-import { ServiceResponse } from "./service";
+import { ServiceRequest, ServiceRequest$type } from "./service";
+import { ServiceResponse, ServiceResponse$type } from "./service";
 import type { UnaryCall } from "@protobuf-ts/runtime-rpc";
 import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
 import { Any, Any$type } from "./google/protobuf/any";
@@ -115,18 +115,19 @@ export const AccountDetailResponse$type = new MessageType<AccountDetailResponse>
 /**
  * @generated ServiceType for protobuf service accountdetail.AccountDetailService
  */
-export const AccountDetailService = new class implements ServiceInfo {
-    typeName = "accountdetail.AccountDetailService";
-    methods = {
+export const AccountDetailService = {
+    typeName: "accountdetail.AccountDetailService",
+    methods: {
         queryCustomerDetail: {
             name: "QueryCustomerDetail",
-            I: ServiceRequest,
-            O: ServiceResponse,
+            I: ServiceRequest$type,
+            O: ServiceResponse$type,
             options: {}
         }
-    };
-    options = {};
-}();
+    },
+    options: {}
+} as const;
+
 
 /**
  * @generated ServiceClient for protobuf service accountdetail.AccountDetailService
@@ -135,7 +136,7 @@ export interface IAccountDetailServiceClient {
     /**
      * @generated from protobuf rpc: QueryCustomerDetail(service.ServiceRequest) returns (service.ServiceResponse);
      */
-    queryCustomerDetail(input: ServiceRequest, options?: RpcOptions): UnaryCall<ServiceRequest, ServiceResponse>;
+    queryCustomerDetail(input: ServiceRequest, options?: RpcOptions, callback?: (err: any, response?: any) => void): UnaryCall<ServiceRequest, ServiceResponse>;
 }
 
 /**
@@ -147,23 +148,22 @@ export class AccountDetailServiceClient implements IAccountDetailServiceClient {
     readonly options = AccountDetailService.options;
     private readonly _transport: any; // Keep transport as any for grpc-js compatibility
 
-    constructor(transport: GrpcTransport) {
+    constructor(transport: any) { // Keep transport as any
         this._transport = transport;
     }
 
     /**
      * @generated from protobuf rpc: QueryCustomerDetail(service.ServiceRequest) returns (service.ServiceResponse);
      */
-    queryCustomerDetail(input: ServiceRequest, options?: RpcOptions, callback?: (err: any, response?: any) => void): UnaryCall<ServiceRequest, ServiceResponse> {
+    queryCustomerDetail(input: ServiceRequest, options?: RpcOptions, callback?: (err: any, response?: any) => void): any {
         const methodDescriptor = {
             path: `/accountdetail.AccountDetailService/QueryCustomerDetail`,
             requestStream: false,
             responseStream: false,
-            requestSerialize: (value: ServiceRequest) => Buffer.from(ServiceRequest.toBinary(value)),
-            responseDeserialize: (value: Buffer) => ServiceResponse.fromBinary(value),
+            requestSerialize: (value: ServiceRequest) => Buffer.from(ServiceRequest$type.toBinary(value)),
+            responseDeserialize: (value: Buffer) => ServiceResponse$type.fromBinary(value),
         };
 
-        // This is a direct hack to make it compatible with @grpc/grpc-js
         if (callback) {
             this._transport.makeUnaryRequest(
                 methodDescriptor.path,
@@ -172,17 +172,26 @@ export class AccountDetailServiceClient implements IAccountDetailServiceClient {
                 input,
                 callback,
             );
+            return;
         }
+        
+        // This part is for promisified calls, which we aren't using in this specific case, but is good to have
+        const promise = new Promise((resolve, reject) => {
+            this._transport.makeUnaryRequest(
+                methodDescriptor.path,
+                methodDescriptor.requestSerialize,
+                methodDescriptor.responseDeserialize,
+                input,
+                (err: any, response: any) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(response);
+                    }
+                }
+            );
+        });
 
-        // Return a mock UnaryCall object if no callback is provided, to satisfy the interface.
-        // The actual call is handled by the callback-based path.
-        const mockUnaryCall: UnaryCall<ServiceRequest, ServiceResponse> = {
-            request: input,
-            headers: Promise.resolve({}),
-            response: new Promise<ServiceResponse>((res, rej) => {}),
-            status: Promise.resolve({ code: 'OK', details: '' }),
-            trailers: Promise.resolve({}),
-        };
-        return mockUnaryCall;
+        return promise;
     }
 }
