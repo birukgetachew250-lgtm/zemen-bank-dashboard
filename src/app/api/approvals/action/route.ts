@@ -74,12 +74,19 @@ export async function POST(req: Request) {
         switch (approval.type) {
             case 'new-customer':
                 statusToSet = 'Active';
+                await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Active', cif });
+                // Also update the local customer record
+                await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
                 break;
             case 'suspend-customer':
                 statusToSet = 'Suspended';
+                await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Suspended', cif });
+                 await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Suspended' } });
                 break;
             case 'unsuspend-customer':
                 statusToSet = 'Active';
+                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Active', cif });
+                 await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
                 break;
             case 'pin-reset':
                 const newPin = Math.floor(100000 + Math.random() * 900000).toString();
@@ -140,11 +147,6 @@ export async function POST(req: Request) {
                 const unlinkResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, unlinkQuery, { hashedAccountNumber });
                 console.log(`Successfully unlinked account ${unlinkDetails.accountNumber}. Result:`, { rowsAffected: unlinkResult?.rowsAffected });
                 break;
-        }
-
-        if (statusToSet) {
-             const result: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: statusToSet, cif });
-             console.log(`Successfully updated status to '${statusToSet}' for CIF ${cif} in Oracle DB. Rows affected: ${result?.rowsAffected || 0}`);
         }
 
         await db.pendingApproval.delete({ where: { id: approvalId } });

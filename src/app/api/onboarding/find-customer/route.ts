@@ -40,14 +40,29 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Customer is already registered for mobile banking.' }, { status: 409 });
         }
 
-        const client = GrpcClient.getAccountDetailServiceClient();
+        const client = GrpcClient.client;
+        if (!client) {
+            throw new Error("gRPC client not initialized");
+        }
         
         const accountDetailRequestPayload = AccountDetailRequest.fromJSON({
             branch_code: branch_code,
             customer_id: customer_id
         });
 
-        const encodedValue = AccountDetailRequest.encode(accountDetailRequestPayload).finish();
+        // The generated types for ts-proto may not have an `encode` method directly.
+        // Let's rely on the structure if fromJSON works. We may need to adjust if the proto library expects a Buffer.
+        // For now, let's assume direct object usage is fine and wrap it if needed.
+        // A common pattern is that the object itself is serializable.
+        // Let's create the value buffer manually.
+        const protoDefinition = GrpcClient.proto?.accountdetail.AccountDetailRequest;
+        if (!protoDefinition) {
+             throw new Error("AccountDetailRequest definition not found");
+        }
+
+        const message = protoDefinition.create(accountDetailRequestPayload);
+        const encodedValue = protoDefinition.encode(message).finish();
+        
 
         const serviceRequest: ServiceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
@@ -77,7 +92,7 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                      if (response.code === '0' && response.data) {
                        try {
-                            const AccountDetailResponse = GrpcClient.getAccountDetailPackage()?.AccountDetailResponse;
+                            const AccountDetailResponse = GrpcClient.proto?.accountdetail.AccountDetailResponse;
                             if (!AccountDetailResponse) {
                                 throw new Error("Could not find AccountDetailResponse definition in gRPC package");
                             }

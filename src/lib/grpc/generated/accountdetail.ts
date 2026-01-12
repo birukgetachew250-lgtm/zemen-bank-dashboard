@@ -1,6 +1,7 @@
 /* eslint-disable */
 import type { Call, Client, ClientDuplexStream, ClientReadableStream, ClientUnaryCall, ClientWritableStream, ServiceError, SurfaceDuplexStream, SurfaceReadableStream, SurfaceUnaryCall, SurfaceWritableStream } from "@grpc/grpc-js";
 import type { ServiceRequest, ServiceResponse } from "./service";
+import { Jsonkey, type ProtoGrpcType } from './service';
 
 export const protobufPackage = "accountdetail";
 
@@ -51,3 +52,28 @@ export interface AccountDetailServiceHandlers {
 }
 
 export const ACCOUNTDETAIL_PACKAGE_NAME = "accountdetail";
+
+const baseAccountDetailRequest: object = {
+  branch_code: "",
+  customer_id: "",
+};
+
+export const AccountDetailRequest: Jsonkey<AccountDetailRequest> = {
+  fromJSON(object: any): AccountDetailRequest {
+    const message = { ...baseAccountDetailRequest } as AccountDetailRequest;
+    if (object.branch_code !== undefined && object.branch_code !== null) {
+      message.branch_code = String(object.branch_code);
+    }
+    if (object.customer_id !== undefined && object.customer_id !== null) {
+      message.customer_id = String(object.customer_id);
+    }
+    return message;
+  },
+
+  toJSON(message: AccountDetailRequest): unknown {
+    const obj: any = {};
+    message.branch_code !== undefined && (obj.branch_code = message.branch_code);
+    message.customer_id !== undefined && (obj.customer_id = message.customer_id);
+    return obj;
+  },
+};

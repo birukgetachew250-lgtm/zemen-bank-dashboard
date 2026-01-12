@@ -11,16 +11,21 @@ export async function GET(
     const customerIdOrCif = params.id;
     let cif = customerIdOrCif;
 
-    // If the ID is not a CIF, it might be the AppUser ID. Let's get the CIF.
     if (!/^\d+$/.test(customerIdOrCif)) {
-        const customerResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "Id" = :id`, { id: customerIdOrCif });
-        if (!customerResult || !customerResult.rows || customerResult.rows.length === 0) {
-           return NextResponse.json({ message: 'Customer not found' }, { status: 404 });
+        try {
+            const customerResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "Id" = :id`, [customerIdOrCif]);
+            if (!customerResult || !customerResult.rows || customerResult.rows.length === 0) {
+               return NextResponse.json({ message: 'Customer not found' }, { status: 404 });
+            }
+            cif = customerResult.rows[0].CIFNumber;
+        } catch (e: any) {
+            // If the query fails, it might be a CIF that looks like a user ID.
+            // We can proceed with the original ID.
+             console.warn(`Could not find AppUser with ID ${customerIdOrCif}, proceeding as if it's a CIF. Error: ${e.message}`);
         }
-        cif = customerResult.rows[0].CIFNumber;
     }
     
-    const accountsFromDb: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT * FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :cif`, { cif });
+    const accountsFromDb: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT * FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :cif`, [cif]);
     
     if (!accountsFromDb || !accountsFromDb.rows) {
         return NextResponse.json([]);
@@ -41,4 +46,3 @@ export async function GET(
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
-

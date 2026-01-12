@@ -5,8 +5,9 @@ import { decrypt } from '@/lib/crypto';
 
 const getCustomerByCifOrId = async (id: string) => {
     // This query finds the base customer profile from the AppUsers table.
-    const query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :id`;
-    const result: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, query, { id });
+    // It's flexible enough to search by CIFNumber or the AppUser ID.
+    const query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :id OR "Id" = :id`;
+    const result: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, query, [id, id]);
 
     if (result && result.rows && result.rows.length > 0) {
         const d = result.rows[0];
