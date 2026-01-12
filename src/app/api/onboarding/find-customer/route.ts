@@ -3,7 +3,7 @@
 
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
-import { getGrpcClient } from '@/lib/grpc-client';
+import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import type { ServiceRequest } from '@/lib/grpc/generated/common';
 import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
@@ -41,9 +41,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Customer is already registered for mobile banking.' }, { status: 409 });
         }
 
-        const grpcSingleton = getGrpcClient();
-        const client = grpcSingleton.client;
-
+        await GrpcClient.initialize();
+        const client = GrpcClient.client;
+        
         if (!client) {
              console.error("[gRPC] Client not available. Falling back to mock data for demo.");
              if (customer_id === '0000238') {
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
             throw new Error("gRPC client is not initialized. Please check server logs.");
         }
         
-        const proto = grpcSingleton.proto;
+        const proto = GrpcClient.proto;
         if (!proto?.accountdetail?.AccountDetailRequest || !proto?.common?.ServiceRequest) {
              throw new Error("gRPC message types not loaded correctly.");
         }
