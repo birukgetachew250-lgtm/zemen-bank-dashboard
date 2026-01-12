@@ -40,22 +40,23 @@ export async function POST(req: Request) {
         }
     } catch (dbError: any) {
         console.error("[DB Error] Checking existing user:", dbError);
-        // Do not throw, allow fallback to gRPC
     }
 
     try {
-        const serviceRequest = {
+        const serviceRequest: ServiceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
             source_system: 'dashboard',
             channel: 'dash',
             user_id: customer_id,
             data: {
-              "@type": "type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest",
-              branch_code: branch_code,
-              customer_id: customer_id
-            }
+              type_url: "type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest",
+              value: Buffer.from(JSON.stringify({
+                  branch_code,
+                  customer_id,
+              }))
+            },
         };
-
+        
         const response = await GrpcClient.queryCustomerDetail(serviceRequest);
 
         return NextResponse.json(response);

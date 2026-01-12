@@ -4,7 +4,6 @@ import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import type { ServiceRequest } from '@/lib/grpc/generated/common';
-import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
 
 const getCifFromId = async (customerId: string) => {
     if (/^\d+$/.test(customerId)) {
@@ -38,20 +37,23 @@ export async function GET(
     }
     
     const serviceRequest: ServiceRequest = {
-      request_id: `req_${crypto.randomUUID()}`,
-      source_system: 'dashboard',
-      channel: 'web',
-      user_id: cif,
-      data: {
-        "@type": "type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest",
-        customer_id: cif,
-      } as any,
+        request_id: `req_${crypto.randomUUID()}`,
+        source_system: 'dashboard',
+        channel: 'web',
+        user_id: cif,
+        data: {
+          type_url: "type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest",
+          value: Buffer.from(JSON.stringify({
+              customer_id: cif,
+              branch_code: ''
+          }))
+        },
     };
     
     const response = await GrpcClient.queryCustomerDetail(serviceRequest);
 
     // Assuming the response contains an 'accounts' field which is an array
-    const accounts = response.accounts || [];
+    const accounts = (response as any).accounts || [];
 
     return NextResponse.json(accounts);
   } catch (error) {
