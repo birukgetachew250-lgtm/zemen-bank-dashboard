@@ -43,16 +43,24 @@ export async function POST(req: Request) {
         const client = getAccountDetailServiceClient();
         const accountDetailPackage = getAccountDetailPackage();
         
-        const AccountDetailRequest = accountDetailPackage.AccountDetailRequest;
-
         // This is the plain JS object for the nested AccountDetailRequest
         const accountDetailRequestPayload = {
             branch_code: branch_code,
             customer_id: customer_id
         };
+
+        // Get the message type definition from the loaded package
+        const AccountDetailRequestType = accountDetailPackage.lookupType(
+            'accountdetail.AccountDetailRequest'
+        );
+
+        if (!AccountDetailRequestType) {
+            throw new Error("Could not look up 'accountdetail.AccountDetailRequest' message type from proto.");
+        }
         
         // Create and encode the sub-message payload
-        const encodedValue = AccountDetailRequest.encode(accountDetailRequestPayload).finish();
+        const message = AccountDetailRequestType.create(accountDetailRequestPayload);
+        const encodedValue = AccountDetailRequestType.encode(message).finish();
         
         const serviceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
@@ -83,7 +91,10 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                     if (response.code === '0') {
                         try {
-                            const AccountDetailResponse = accountDetailPackage.AccountDetailResponse;
+                            const AccountDetailResponse = accountDetailPackage.lookupType('accountdetail.AccountDetailResponse');
+                             if (!AccountDetailResponse) {
+                                throw new Error("Could not look up 'accountdetail.AccountDetailResponse' message type from proto.");
+                            }
                             const accountDetailResponse = AccountDetailResponse.decode(response.data.value);
                             resolve(NextResponse.json(accountDetailResponse));
                         } catch (unpackError) {
