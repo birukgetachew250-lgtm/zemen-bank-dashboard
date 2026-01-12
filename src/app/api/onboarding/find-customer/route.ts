@@ -7,7 +7,6 @@ import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import type { ServiceRequest, ServiceResponse } from '@/lib/grpc/generated/common';
 import type { AccountDetailRequest, AccountDetailResponse } from '@/lib/grpc/generated/accountdetail';
-import { Any } from '@/lib/grpc/generated/google/protobuf/any';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -46,18 +45,16 @@ export async function POST(req: Request) {
 
     try {
         await GrpcClient.initialize();
-
-        const serviceRequest: ServiceRequest = {
+        
+        const serviceRequest = {
           request_id: `req_${crypto.randomUUID()}`,
           source_system: 'dashboard',
-          channel: 'web',
-          user_id: customer_id, 
+          channel: 'dash',
+          user_id: customer_id,
           data: {
-            type_url: 'type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest',
-            value: Buffer.from(JSON.stringify({
-                branch_code,
-                customer_id,
-            }))
+            "@type": "type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest",
+            branch_code: branch_code,
+            customer_id: customer_id
           }
         };
 
@@ -89,12 +86,12 @@ export async function POST(req: Request) {
         return NextResponse.json(customerDetailsObject);
 
     } catch (error: any) {
-        console.error("[gRPC Client Error]", error);
+        console.error("[gRPC/DB Error]", error);
          if (customer_id === '0000238') {
             console.log("[gRPC Main Catch Fallback] Serving mock data for CIF 0000238");
             return NextResponse.json(mockCustomer);
         }
-        const errorMessage = error.details || 'An unexpected error occurred with the gRPC client.';
+        const errorMessage = error.details || error.message || 'An unexpected error occurred.';
         return NextResponse.json({ message: errorMessage }, { status: 500 });
     }
 }

@@ -5,6 +5,8 @@ import { decrypt } from '@/lib/crypto';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import type { ServiceRequest, ServiceResponse } from '@/lib/grpc/generated/common';
+import type { AccountDetailRequest, AccountDetailResponse } from '@/lib/grpc/generated/accountdetail';
+import { Any } from '@/lib/grpc/generated/google/protobuf/any';
 
 const getCifFromId = async (customerId: string) => {
     if (/^\d+$/.test(customerId)) {
@@ -39,15 +41,15 @@ export async function GET(
     
     await GrpcClient.initialize();
     
-    const serviceRequest: ServiceRequest = {
-        request_id: `req_${crypto.randomUUID()}`,
-        source_system: 'dashboard',
-        channel: 'web',
-        user_id: cif,
-        data: {
-          type_url: 'type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest',
-          value: Buffer.from(JSON.stringify({ customer_id: cif }))
-        }
+    const serviceRequest = {
+      request_id: `req_${crypto.randomUUID()}`,
+      source_system: 'dashboard',
+      channel: 'web',
+      user_id: cif,
+      data: {
+        "@type": "type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest",
+        customer_id: cif,
+      }
     };
     
     const response = await GrpcClient.promisifyCall<ServiceResponse>('queryCustomerDetail', serviceRequest);
