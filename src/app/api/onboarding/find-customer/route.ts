@@ -49,8 +49,7 @@ export async function POST(req: Request) {
         accountDetailRequest.setCustomerId(customer_id);
 
         const anyPayload = new Any();
-        anyPayload.setTypeUrl("type.googleapis.com/accountdetail.AccountDetailRequest");
-        anyPayload.setValue(accountDetailRequest.serializeBinary());
+        anyPayload.pack(accountDetailRequest.serializeBinary(), 'accountdetail.AccountDetailRequest');
 
         const serviceRequest = new ServiceRequest();
         serviceRequest.setRequestId(`req_${crypto.randomUUID()}`);
@@ -60,8 +59,11 @@ export async function POST(req: Request) {
         serviceRequest.setData(anyPayload);
         
         const response = await GrpcClient.queryCustomerDetail(serviceRequest);
+        
+        // Use the toObject method to get a plain JS object from the protobuf message
+        const responseObject = response.toObject();
 
-        return NextResponse.json(response.toObject());
+        return NextResponse.json(responseObject);
 
     } catch (error: any) {
         console.error("[gRPC/DB Error]", error);
@@ -73,4 +75,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: errorMessage }, { status: 500 });
     }
 }
-    

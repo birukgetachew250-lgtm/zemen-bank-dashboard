@@ -1,8 +1,10 @@
 
 'use client';
+
 import {
   AccountDetailRequest,
   AccountDetailResponse,
+  Account,
 } from './grpc/generated/accountdetail_pb';
 import { AccountDetailServiceClient } from './grpc/generated/AccountdetailServiceClientPb';
 import { ServiceRequest, ServiceResponse } from './grpc/generated/service_pb';
@@ -16,7 +18,7 @@ class GrpcClientSingleton {
   public client: AccountDetailServiceClient;
 
   constructor() {
-    this.client = new AccountDetailServiceClient(grpcUrl);
+    this.client = new AccountDetailServiceClient(grpcUrl, null, null);
     console.log(`[gRPC Client] Initialized client for AccountDetailService at target URL: ${grpcUrl}`);
   }
 
@@ -29,6 +31,7 @@ class GrpcClientSingleton {
       deadline.setMilliseconds(deadline.getMilliseconds() + GRPC_TIMEOUT_MS);
 
       const method = this.client[methodName];
+
       if (typeof method !== 'function') {
         return reject(new TypeError(`this.client.${methodName} is not a function`));
       }
@@ -60,17 +63,12 @@ class GrpcClientSingleton {
         throw new Error(responseObj.message || 'Operation failed in core banking service.');
       }
       
-      const data = responseObj.data;
+      const data = response.getData();
       if (!data) {
         throw new Error('Response success but data field is missing from the payload.');
       }
       
-      const value = data.value as Uint8Array;
-      if (!(value instanceof Uint8Array)) {
-         throw new Error('Expected data.value to be a Uint8Array.');
-      }
-      
-      return AccountDetailResponse.deserializeBinary(value);
+      return AccountDetailResponse.deserializeBinary(data.getValue_asU8());
 
     } catch (err) {
       console.error(`Critical failure in queryCustomerDetail:`, err);

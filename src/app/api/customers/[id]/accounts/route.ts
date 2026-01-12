@@ -9,7 +9,7 @@ import { Any } from 'google-protobuf/google/protobuf/any_pb';
 
 
 const getCifFromId = async (customerId: string) => {
-    if (/^\d+$/.test(customerId)) {
+    if (/^\\d+$/.test(customerId)) {
         return customerId;
     }
     
@@ -44,19 +44,18 @@ export async function GET(
     accountDetailRequest.setCustomerId(cif);
 
     const anyPayload = new Any();
-    anyPayload.setTypeUrl("type.googleapis.com/accountdetail.AccountDetailRequest");
-    anyPayload.setValue(accountDetailRequest.serializeBinary());
+    anyPayload.pack(accountDetailRequest.serializeBinary(), 'accountdetail.AccountDetailRequest');
 
     const serviceRequest = new ServiceRequest();
     serviceRequest.setRequestId(`req_${crypto.randomUUID()}`);
     serviceRequest.setSourceSystem('dashboard');
-    serviceRequest.setChannel('web');
+    serviceRequest.setChannel('dash');
     serviceRequest.setUserId(cif);
     serviceRequest.setData(anyPayload);
     
     const response = await GrpcClient.queryCustomerDetail(serviceRequest);
 
-    const accounts = (response.toObject() as any).accountsList || [];
+    const accounts = response.getAccountsList().map(acc => acc.toObject());
 
     return NextResponse.json(accounts);
   } catch (error) {
@@ -64,4 +63,3 @@ export async function GET(
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
-    
