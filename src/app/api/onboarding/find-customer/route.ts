@@ -4,6 +4,7 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { getAccountDetailServiceClient, getAccountDetailPackage } from '@/lib/grpc-client';
+import crypto from 'crypto';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -40,17 +41,29 @@ export async function POST(req: Request) {
 
         // 2. If not, proceed to call gRPC service
         const client = getAccountDetailServiceClient();
+        const accountDetailPackage = getAccountDetailPackage();
         
-        // The gRPC client expects a plain JS object that matches the proto definition.
-        const requestPayload = {
+        // Correctly construct the protobuf message
+        const accountDetailRequest = {
             branch_code: branch_code,
             customer_id: customer_id
         };
+
+        const serviceRequest = {
+            request_id: `req_${crypto.randomUUID()}`,
+            source_system: 'dashboard',
+            channel: 'dash',
+            user_id: customer_id,
+            data: {
+                type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
+                value: accountDetailPackage.AccountDetailRequest.encode(accountDetailRequest).finish()
+            }
+        };
         
-        console.log("[gRPC Request] Sending to queryCustomerDetails:", JSON.stringify(requestPayload, null, 2));
+        console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
 
         return new Promise((resolve, reject) => {
-             client.queryCustomerDetails(requestPayload, (error: any, response: any) => {
+             client.QueryCustomerDetail(serviceRequest, (error: any, response: any) => {
                 if (error) {
                     console.error("[gRPC Error] customer-details:", error);
                     // Fallback to mock data if gRPC fails for specific demo CIF
@@ -62,8 +75,18 @@ export async function POST(req: Request) {
                         resolve(NextResponse.json({ message: errorMessage }, { status: 404 }));
                     }
                 } else {
-                    console.log("[gRPC Success] customer-details:", response);
-                    resolve(NextResponse.json(response));
+                    console.log("[gRPC Success] Received ServiceResponse:", response);
+                    if (response.code === '0') {
+                        try {
+                            const accountDetailResponse = accountDetailPackage.AccountDetailResponse.decode(response.data.value);
+                            resolve(NextResponse.json(accountDetailResponse));
+                        } catch (unpackError) {
+                            console.error("[gRPC Unpack Error]", unpackError);
+                            resolve(NextResponse.json({ message: "Failed to unpack customer details from response." }, { status: 500 }));
+                        }
+                    } else {
+                        resolve(NextResponse.json({ message: response.message || "An error occurred from the core banking service." }, { status: 404 }));
+                    }
                 }
             });
         });

@@ -1,3 +1,4 @@
+
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
@@ -6,7 +7,6 @@ import config from './config';
 // This will cache the loaded package definition and its components
 let accountDetailPackage: any = null;
 let accountDetailServiceClient: grpc.Client | null = null;
-let accountDetailRequestType: any = null;
 
 const PROTO_PATH = path.resolve(process.cwd(), 'public', 'protos');
 
@@ -17,8 +17,8 @@ function loadGrpcClient() {
     }
 
     if (!config.grpc.url) {
-        console.error("[gRPC Client] GRPC_URL is not defined. Please set it in your .env file.");
-        throw new Error("GRPC_URL is not defined in the environment variables.");
+        console.error("[gRPC Client] FLEX_GRPC_URL is not defined. Please set it in your .env file.");
+        throw new Error("FLEX_GRPC_URL is not defined in the environment variables.");
     }
     
     const grpcUrl = config.grpc.url.replace(/^(https?:\/\/)/, '');
@@ -40,21 +40,21 @@ function loadGrpcClient() {
         const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
         const loadedPackage = (protoDescriptor as any).accountdetail;
 
-        if (!loadedPackage || !loadedPackage.AccountDetailService || !loadedPackage.AccountDetailRequest) {
-            console.error("[gRPC Client] Proto definition for 'AccountDetailService' or 'AccountDetailRequest' not found after loading.");
+        if (!loadedPackage || !loadedPackage.AccountDetailService) {
+            console.error("[gRPC Client] Proto definition for 'AccountDetailService' not found after loading.");
             throw new Error("Could not load required components from proto definition.");
         }
         
         console.log("[gRPC Client] Successfully loaded 'accountdetail' package from proto.");
         
-        // Cache the entire loaded package and its specific components
+        // Cache the entire loaded package
         accountDetailPackage = loadedPackage;
-        accountDetailRequestType = loadedPackage.AccountDetailRequest;
+        
         accountDetailServiceClient = new loadedPackage.AccountDetailService(
             grpcUrl,
             grpc.credentials.createInsecure()
         );
-        console.log("[gRPC Client] gRPC client and message types created successfully.");
+        console.log("[gRPC Client] gRPC client created successfully.");
         
     } catch (error) {
         console.error("[gRPC Client] Failed to initialize gRPC client:", error);
