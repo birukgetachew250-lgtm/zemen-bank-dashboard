@@ -19,12 +19,12 @@ export async function GET(
             }
             cif = customerResult.rows[0].CIFNumber;
         } catch (e: any) {
-            // If the query fails, it might be a CIF that looks like a user ID.
-            // We can proceed with the original ID.
              console.warn(`Could not find AppUser with ID ${customerIdOrCif}, proceeding as if it's a CIF. Error: ${e.message}`);
         }
     }
     
+    // In a real scenario, this would also likely be a gRPC call.
+    // For now, we continue to use the direct DB query as a placeholder.
     const accountsFromDb: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT * FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :cif`, [cif]);
     
     if (!accountsFromDb || !accountsFromDb.rows) {

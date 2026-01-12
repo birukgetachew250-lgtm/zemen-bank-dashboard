@@ -5,8 +5,9 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
-import type { ServiceRequest } from '@/lib/grpc/generated/common';
-import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
+import type { ServiceRequest, ServiceResponse } from '@/lib/grpc/generated/common';
+import type { AccountDetailRequest, AccountDetailResponse } from '@/lib/grpc/generated/accountdetail';
+import { Any } from '@/lib/grpc/generated/google/protobuf/any';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -24,6 +25,7 @@ const mockCustomer = {
     "branch": "Bole"
 };
 
+
 export async function POST(req: Request) {
     const { branch_code, customer_id } = await req.json();
 
@@ -40,94 +42,61 @@ export async function POST(req: Request) {
         }
     } catch (dbError: any) {
         console.error("[DB Error] Checking existing user:", dbError);
-        // Continue to gRPC call even if DB check fails, for demo robustness
     }
 
     try {
         await GrpcClient.initialize();
+        const client = GrpcClient.getClient();
 
-        const client = GrpcClient.client;
-        const proto = GrpcClient.proto;
-        
-        if (!client || !proto) {
-             console.error("[gRPC] Client not available. Falling back to mock data for demo.");
-             if (customer_id === '0000238') {
-                return NextResponse.json(mockCustomer);
-             }
-            throw new Error("gRPC client is not initialized. Please check server logs.");
-        }
-        
-        const accountDetailPackage = proto.lookup("accountdetail");
-        const AccountDetailRequest = accountDetailPackage?.lookupType("AccountDetailRequest");
-        const AccountDetailResponse = accountDetailPackage?.lookupType("AccountDetailResponse");
-
-        if (!AccountDetailRequest || !AccountDetailResponse) {
-             throw new Error("gRPC type definitions for AccountDetail not found.");
-        }
-
-        const innerDetail = {
-            branch_code: branch_code,
-            customer_id: customer_id,
-        };
-        
-        const message = (AccountDetailRequest.create as any)(innerDetail);
-        const buffer = (AccountDetailRequest.encode as any)(message).finish();
-        
-        const anyPayload = {
-            type_url: 'type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest',
-            value: buffer
-        };
-        
         const serviceRequest: ServiceRequest = {
-            request_id: `req_${crypto.randomUUID()}`,
-            source_system: 'dashboard',
-            channel: 'web',
-            user_id: customer_id,
-            data: anyPayload
+          request_id: `req_${crypto.randomUUID()}`,
+          source_system: 'dashboard',
+          channel: 'web',
+          user_id: customer_id, // Or an admin user ID
+          data: {
+            type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
+            value: Buffer.from(JSON.stringify({
+                branch_code,
+                customer_id,
+            }))
+          }
         };
-
 
         console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
 
-        return new Promise((resolve) => {
-             client.queryCustomerDetails(serviceRequest, (error: any, response: any) => {
-                if (error) {
-                    console.error("[gRPC Error] customer-details:", error);
-                    if (customer_id === '0000238') {
-                        console.log("[gRPC Fallback] Serving mock data for CIF 0000238");
-                        resolve(NextResponse.json(mockCustomer));
+        const queryCustomerDetails = (request: ServiceRequest): Promise<ServiceResponse> => {
+            return new Promise((resolve, reject) => {
+                client.queryCustomerDetail(request, (error, response) => {
+                    if (error) {
+                        reject(error);
                     } else {
-                        const errorMessage = error.details || 'Customer not found in core banking system.';
-                        resolve(NextResponse.json({ message: errorMessage }, { status: 404 }));
+                        resolve(response!);
                     }
-                } else {
-                    console.log("[gRPC Success] Received ServiceResponse:", response);
-                     if (response.code === '0' && response.data) {
-                       try {
-                            const decodedResponse = (AccountDetailResponse.decode as any)(response.data.value);
-                            const responseObject = AccountDetailResponse.toObject(decodedResponse, {
-                                longs: String,
-                                enums: String,
-                                bytes: String,
-                            });
-                            resolve(NextResponse.json(responseObject.customer));
-                        } catch (unpackError) {
-                            console.error("[gRPC Unpack Error]", unpackError);
-                            resolve(NextResponse.json({ message: "Failed to unpack customer details from response." }, { status: 500 }));
-                        }
-                    } else {
-                        resolve(NextResponse.json({ message: response.message || "Customer not found." }, { status: 404 }));
-                    }
-                }
+                });
             });
-        });
+        };
+        
+        const response = await queryCustomerDetails(serviceRequest);
 
+        console.log("[gRPC Success] Received ServiceResponse:", response);
+        if (response.code === '0' && response.data) {
+            try {
+                const decodedData = JSON.parse(Buffer.from(response.data.value).toString());
+                return NextResponse.json(decodedData.customer);
+            } catch (unpackError) {
+                console.error("[gRPC Unpack Error]", unpackError);
+                return NextResponse.json({ message: "Failed to unpack customer details from response." }, { status: 500 });
+            }
+        } else {
+            return NextResponse.json({ message: response.message || "Customer not found." }, { status: 404 });
+        }
     } catch (error: any) {
         console.error("[gRPC Client Error]", error);
          if (customer_id === '0000238') {
             console.log("[gRPC Main Catch Fallback] Serving mock data for CIF 0000238");
             return NextResponse.json(mockCustomer);
         }
-        return NextResponse.json({ message: "An unexpected error occurred with the gRPC client." }, { status: 500 });
+        const errorMessage = error.details || 'An unexpected error occurred with the gRPC client.';
+        return NextResponse.json({ message: errorMessage }, { status: 500 });
     }
 }
