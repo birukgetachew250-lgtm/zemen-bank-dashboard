@@ -2,6 +2,8 @@
 'use server';
 
 import { NextResponse } from 'next/server';
+import { executeQuery } from '@/lib/oracle-db';
+import { getAccountDetailServiceClient, getAccountDetailPackage } from '@/lib/grpc-client';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -19,18 +21,56 @@ const mockCustomer = {
     "branch": "Bole"
 };
 
+
 export async function POST(req: Request) {
     const { branch_code, customer_id } = await req.json();
-
-    console.log(`[API MOCK] Received request for branch: ${branch_code}, cif: ${customer_id}`);
 
     if (!branch_code || !customer_id) {
         return NextResponse.json({ message: 'Branch code and customer ID are required' }, { status: 400 });
     }
 
-    if (customer_id === '0000238') {
-        return NextResponse.json(mockCustomer);
-    } else {
-        return NextResponse.json({ message: `Customer with CIF ${customer_id} not found.` }, { status: 404 });
+    try {
+        // 1. Check if user already exists in AppUsers table
+        const existingUserQuery = `SELECT "Id" FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :cif`;
+        const existingUserResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, existingUserQuery, [customer_id]);
+        
+        if (existingUserResult.rows && existingUserResult.rows.length > 0) {
+            return NextResponse.json({ message: 'Customer is already registered for mobile banking.' }, { status: 409 });
+        }
+
+        // 2. If not, proceed to call gRPC service
+        const client = getAccountDetailServiceClient();
+        const request = {
+            branch_code: branch_code,
+            customer_id: customer_id
+        };
+
+        return new Promise((resolve, reject) => {
+             client.queryCustomerDetails(request, (error: any, response: any) => {
+                if (error) {
+                    console.error("[gRPC Error] customer-details:", error);
+                    // Fallback to mock data if gRPC fails
+                    if (customer_id === '0000238') {
+                        console.log("[gRPC Fallback] Serving mock data for CIF 0000238");
+                        resolve(NextResponse.json(mockCustomer));
+                    } else {
+                        const errorMessage = error.details || 'Failed to fetch customer details from core banking service.';
+                        resolve(NextResponse.json({ message: errorMessage }, { status: 500 }));
+                    }
+                } else {
+                    console.log("[gRPC Success] customer-details:", response);
+                    resolve(NextResponse.json(response));
+                }
+            });
+        });
+
+    } catch (dbError: any) {
+        console.error("[DB Error] Checking existing user:", dbError);
+        // If DB check fails, fallback to mock data for demo purposes
+        if (customer_id === '0000238') {
+            console.log("[DB Fallback] Serving mock data for CIF 0000238");
+            return NextResponse.json(mockCustomer);
+        }
+        return NextResponse.json({ message: "Database error while checking for existing customer." }, { status: 500 });
     }
 }

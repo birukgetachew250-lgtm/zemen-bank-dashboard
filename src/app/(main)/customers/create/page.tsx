@@ -90,18 +90,12 @@ export default function CreateCustomerPage() {
                 title: 'Customer Found',
                 description: `Displaying details for ${result.full_name}.`,
             });
-        } else {
-             toast({
-                variant: 'destructive',
-                title: 'Customer Not Found',
-                description: 'Could not fetch customer from the service.',
-            });
         }
     } catch (error: any) {
        toast({
         variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: error.message || 'Could not fetch customer details.',
+        title: 'Could Not Fetch Customer',
+        description: error.message,
       });
     } finally {
       setIsLoading(false);
@@ -125,7 +119,7 @@ export default function CreateCustomerPage() {
             Onboard New Customer for Mobile Banking
           </CardTitle>
           <CardDescription>
-            Step 1: Enter the Branch Code and CIF number to fetch customer details from Flexcube.
+            Step 1: Enter the Branch Code and CIF number to fetch customer details. The system will first check if the customer is already registered.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-grow">
