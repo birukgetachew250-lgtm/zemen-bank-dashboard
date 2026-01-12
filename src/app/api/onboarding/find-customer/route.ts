@@ -5,9 +5,9 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
-import { ServiceRequest } from '@/lib/grpc/generated/common';
-import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
-import { Any } from '@/lib/grpc/generated/google/protobuf/any';
+import { ServiceRequest } from '@/lib/grpc/generated/service_pb';
+import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail_pb';
+import { Any } from 'google-protobuf/google/protobuf/any_pb';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -33,7 +33,6 @@ export async function POST(req: Request) {
     }
 
     try {
-        // This query now only runs if the gRPC call fails, as a fallback for the demo
         const existingUserQuery = `SELECT "Id" FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :cif`;
         const existingUserResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, existingUserQuery, [customer_id]);
         
@@ -74,3 +73,4 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: errorMessage }, { status: 500 });
     }
 }
+    

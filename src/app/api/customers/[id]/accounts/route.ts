@@ -3,9 +3,9 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
-import { ServiceRequest } from '@/lib/grpc/generated/common';
-import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
-import { Any } from '@/lib/grpc/generated/google/protobuf/any';
+import { ServiceRequest } from '@/lib/grpc/generated/service_pb';
+import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail_pb';
+import { Any } from 'google-protobuf/google/protobuf/any_pb';
 
 
 const getCifFromId = async (customerId: string) => {
@@ -64,3 +64,4 @@ export async function GET(
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
+    
