@@ -1,18 +1,21 @@
 
+'use server';
+
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { ProtoGrpcType } from './grpc/generated/service';
-import { AccountDetailServiceClient } from './grpc/generated/accountdetail_grpc_pb';
+import { AccountDetailServiceClient } from './grpc/generated/accountdetail';
 import path from 'path';
-import config from './config';
+import config from '../config';
 
+// Singleton instance of the client
 let client: AccountDetailServiceClient | null = null;
 
 const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/service.proto');
 
-function loadGrpcClient() {
+function loadGrpcClient(): AccountDetailServiceClient {
     if (client) {
-        return;
+        return client;
     }
     
     if (!config.grpc.url) {
@@ -31,6 +34,7 @@ function loadGrpcClient() {
             defaults: true,
             oneofs: true
         });
+
         const proto = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
 
         if (!proto.accountdetail || !proto.accountdetail.AccountDetailService) {
@@ -38,19 +42,31 @@ function loadGrpcClient() {
             throw new Error("Service definition not found in loaded proto.");
         }
         
+        // Create a new client instance
         client = new proto.accountdetail.AccountDetailService(grpcUrl, grpc.credentials.createInsecure());
         console.log("[gRPC Client] gRPC client created successfully.");
 
     } catch (error) {
         console.error("[gRPC Client] Failed to initialize gRPC client:", error);
-        throw error;
+        throw error; // Re-throw the error to be handled by the caller
     }
-}
 
+    return client;
+}
 
 export function getAccountDetailServiceClient(): AccountDetailServiceClient {
     if (!client) {
-        loadGrpcClient();
+       client = loadGrpcClient();
     }
-    return client!;
+    return client;
+}
+
+// This function is useful for scenarios where you might need to re-establish a connection,
+// for example, in long-running services or to recover from connection errors.
+export function resetGrpcClient(): void {
+    if (client) {
+        client.close();
+        client = null;
+    }
+    console.log("[gRPC Client] Client reset.");
 }

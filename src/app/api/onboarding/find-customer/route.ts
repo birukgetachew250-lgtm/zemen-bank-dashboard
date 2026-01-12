@@ -6,7 +6,7 @@ import { executeQuery } from '@/lib/oracle-db';
 import { getAccountDetailServiceClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import { ServiceRequest } from '@/lib/grpc/generated/service';
-import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
+import { AccountDetailRequest, AccountDetailResponse } from '@/lib/grpc/generated/accountdetail';
 import { Any } from '@/lib/grpc/generated/google/protobuf/any';
 
 const mockCustomer = {
@@ -43,22 +43,25 @@ export async function POST(req: Request) {
 
         const client = getAccountDetailServiceClient();
         
-        const accountDetailRequestPayload = new AccountDetailRequest();
-        accountDetailRequestPayload.branch_code = branch_code;
-        accountDetailRequestPayload.customer_id = customer_id;
-        
-        const any = new Any();
-        any.type_url = 'type.googleapis.com/accountdetail.AccountDetailRequest';
-        any.value = accountDetailRequestPayload.serializeBinary();
+        const accountDetailRequestPayload: AccountDetailRequest = {
+            branch_code: branch_code,
+            customer_id: customer_id
+        };
 
-        const serviceRequest = new ServiceRequest();
-        serviceRequest.request_id = `req_${crypto.randomUUID()}`;
-        serviceRequest.source_system = 'dashboard';
-        serviceRequest.channel = 'dash';
-        serviceRequest.user_id = customer_id;
-        serviceRequest.data = any;
+        const encodedValue = AccountDetailRequest.encode(accountDetailRequestPayload).finish();
 
-        console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest.toObject(), null, 2));
+        const serviceRequest: ServiceRequest = {
+            request_id: `req_${crypto.randomUUID()}`,
+            source_system: 'dashboard',
+            channel: 'dash',
+            user_id: customer_id,
+            data: {
+                type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
+                value: encodedValue
+            }
+        };
+
+        console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
 
         return new Promise((resolve) => {
              client.queryCustomerDetail(serviceRequest, (error: any, response: any) => {
@@ -72,17 +75,17 @@ export async function POST(req: Request) {
                         resolve(NextResponse.json({ message: errorMessage }, { status: 404 }));
                     }
                 } else {
-                    console.log("[gRPC Success] Received ServiceResponse:", response.toObject());
-                     if (response.getCode() === '0' && response.hasData()) {
+                    console.log("[gRPC Success] Received ServiceResponse:", response);
+                     if (response.code === '0' && response.data) {
                        try {
-                            const accountDetailResponse = response.getData().unpack(AccountDetailResponse.deserializeBinary, 'accountdetail.AccountDetailResponse');
-                            resolve(NextResponse.json(accountDetailResponse.toObject()));
+                            const accountDetailResponse = AccountDetailResponse.decode(response.data.value);
+                            resolve(NextResponse.json(accountDetailResponse));
                         } catch (unpackError) {
                             console.error("[gRPC Unpack Error]", unpackError);
                             resolve(NextResponse.json({ message: "Failed to unpack customer details from response." }, { status: 500 }));
                         }
                     } else {
-                        resolve(NextResponse.json({ message: response.getMessage() || "An error occurred from the core banking service." }, { status: 404 }));
+                        resolve(NextResponse.json({ message: response.message || "An error occurred from the core banking service." }, { status: 404 }));
                     }
                 }
             });
