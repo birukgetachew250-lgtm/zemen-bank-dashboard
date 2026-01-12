@@ -1,17 +1,17 @@
 
+'use server';
+
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import config from '@/lib/config';
-import type { ProtoGrpcType } from './grpc/generated/service';
-import type { AccountDetailServiceClient } from './grpc/generated/accountdetail';
+import type { ProtoGrpcType } from './grpc/generated/services';
+import { AccountDetailServiceClient } from './grpc/generated/accountdetail';
 
 const PROTO_DIR = path.join(process.cwd(), 'src/lib/grpc/protos');
 const PROTO_FILES = [
     'common.proto',
-    'service.proto',
     'accountdetail.proto',
-    'google/protobuf/any.proto'
 ];
 
 class GrpcClientSingleton {
@@ -22,7 +22,6 @@ class GrpcClientSingleton {
     private constructor() {
         if (!config.grpc.url) {
             console.error("[gRPC Client] FLEX_GRPC_URL is not defined in your .env file.");
-            // Don't throw here, allow it to fail gracefully if not used.
             return;
         }
 
@@ -51,8 +50,6 @@ class GrpcClientSingleton {
 
         } catch (error) {
             console.error("[gRPC Client] Failed to initialize gRPC client:", error);
-            // We don't throw here to allow the app to run in offline/demo mode,
-            // but the client will be null.
             this.client = null;
             this.proto = null;
         }
