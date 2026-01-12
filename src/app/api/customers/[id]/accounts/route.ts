@@ -4,6 +4,7 @@ import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import type { ServiceRequest } from '@/lib/grpc/generated/common';
+import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
 
 const getCifFromId = async (customerId: string) => {
     if (/^\d+$/.test(customerId)) {
@@ -36,6 +37,11 @@ export async function GET(
         return NextResponse.json({ message: 'Could not determine CIF for the given customer ID.' }, { status: 404 });
     }
     
+    const accountDetailRequestPayload: AccountDetailRequest = {
+        branch_code: '', // Assuming not needed for this call, adjust if necessary
+        customer_id: cif,
+    };
+
     const serviceRequest: ServiceRequest = {
         request_id: `req_${crypto.randomUUID()}`,
         source_system: 'dashboard',
@@ -43,10 +49,7 @@ export async function GET(
         user_id: cif,
         data: {
           type_url: "type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest",
-          value: Buffer.from(JSON.stringify({
-              customer_id: cif,
-              branch_code: ''
-          }))
+          value: Buffer.from(JSON.stringify(accountDetailRequestPayload))
         },
     };
     

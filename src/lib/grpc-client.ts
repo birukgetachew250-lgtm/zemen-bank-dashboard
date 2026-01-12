@@ -1,4 +1,6 @@
 
+'use client';
+
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
@@ -51,8 +53,8 @@ class GrpcClientSingleton {
         return (request: TRequest): Promise<TResponse> => {
             return new Promise((resolve, reject) => {
                 const deadline = Date.now() + GRPC_TIMEOUT_MS;
-                const method = this.client[methodName as keyof typeof this.client] as unknown as (req: TRequest, opts: { deadline: number }, cb: (err: any, res: TResponse) => void) => void;
-                
+                const method = (this.client as any)[methodName];
+
                 if (typeof method !== 'function') {
                     return reject(new TypeError(`this.client[${methodName}] is not a function`));
                 }
@@ -66,13 +68,14 @@ class GrpcClientSingleton {
     }
 
     public async queryCustomerDetail(request: ServiceRequest): Promise<AccountDetailResponse> {
-        console.log('Sending gRPC request [queryCustomerDetail]', { 
+        const methodName = 'QueryCustomerDetail';
+        console.log(`Sending gRPC request [${methodName}]`, { 
             request_id: request.request_id, 
             user_id: request.user_id 
         });
 
         try {
-            const queryFn = this.promisifyCall<ServiceRequest, ServiceResponse>('queryCustomerDetail');
+            const queryFn = this.promisifyCall<ServiceRequest, ServiceResponse>(methodName);
             const response = await queryFn(request);
 
             if (response.code !== '0') {
@@ -98,7 +101,7 @@ class GrpcClientSingleton {
             return object;
 
         } catch (err) {
-            console.error('Critical failure in queryCustomerDetail:', err);
+            console.error(`Critical failure in ${methodName}:`, err);
             throw err; 
         }
     }
