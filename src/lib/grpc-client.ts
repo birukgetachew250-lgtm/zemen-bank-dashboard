@@ -62,8 +62,7 @@ class GrpcClientSingleton {
       const protoRoot = new Root();
       await Promise.all(PROTO_FILES.map(file => protoRoot.load(path.join(PROTO_DIR, file), { keepCase: true })));
       this.protoRoot = protoRoot;
-      
-      // Manually add google.protobuf.Any to the root
+
       const anyType = protoRoot.lookupType("google.protobuf.Any");
       if (!anyType) {
         const googleRoot = new Root();
@@ -96,7 +95,7 @@ class GrpcClientSingleton {
       pack: (message: { toJSON: () => any, constructor: any }, type: any): Any => {
         return {
             type_url: `type.googleapis.com/${type.$type.fullName.substring(1)}`,
-            value: type.encode(message).finish()
+            value: Buffer.from(type.encode(message).finish())
         };
     },
     unpack: (any: Any, type: any): any => {
