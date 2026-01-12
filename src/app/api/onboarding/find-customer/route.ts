@@ -43,12 +43,17 @@ export async function POST(req: Request) {
         const client = getAccountDetailServiceClient();
         const accountDetailPackage = getAccountDetailPackage();
         
-        const accountDetailRequest = {
+        const accountDetailRequestPayload = {
             branch_code: branch_code,
             customer_id: customer_id
         };
+
+        // Get the message type constructor from the loaded package
+        const AccountDetailRequest = accountDetailPackage.AccountDetailRequest;
         
-        // Correctly construct the ServiceRequest with the nested payload
+        // Create and encode the sub-message payload
+        const encodedValue = AccountDetailRequest.encode(accountDetailRequestPayload).finish();
+        
         const serviceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
             source_system: 'dashboard',
@@ -56,11 +61,11 @@ export async function POST(req: Request) {
             user_id: customer_id,
             data: {
                 type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
-                value: accountDetailPackage.AccountDetailRequest.encode(accountDetailRequest).finish()
+                value: encodedValue
             }
         };
         
-        console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
+        console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify({ ...serviceRequest, data: { ...serviceRequest.data, value: 'omitted for brevity' }}, null, 2));
 
         return new Promise((resolve, reject) => {
              client.QueryCustomerDetail(serviceRequest, (error: any, response: any) => {
@@ -78,7 +83,8 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                     if (response.code === '0') {
                         try {
-                            const accountDetailResponse = accountDetailPackage.AccountDetailResponse.decode(response.data.value);
+                            const AccountDetailResponse = accountDetailPackage.AccountDetailResponse;
+                            const accountDetailResponse = AccountDetailResponse.decode(response.data.value);
                             resolve(NextResponse.json(accountDetailResponse));
                         } catch (unpackError) {
                             console.error("[gRPC Unpack Error]", unpackError);
