@@ -37,7 +37,7 @@ export async function GET(
         return NextResponse.json({ message: 'Could not determine CIF for the given customer ID.' }, { status: 404 });
     }
     
-    const accountDetailRequestPayload: AccountDetailRequest = {
+    const accountDetailRequestPayload = {
         branch_code: '', // Assuming not needed for this call, adjust if necessary
         customer_id: cif,
     };
@@ -48,8 +48,8 @@ export async function GET(
         channel: 'web',
         user_id: cif,
         data: {
-          type_url: "type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest",
-          value: Buffer.from(JSON.stringify(accountDetailRequestPayload))
+          "@type": "type.googleapis.com/accountdetail.AccountDetailRequest",
+          ...accountDetailRequestPayload
         },
     };
     

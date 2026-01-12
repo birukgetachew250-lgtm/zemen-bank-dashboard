@@ -10,31 +10,35 @@ import { ServiceRequest, ServiceResponse } from './grpc/generated/common';
 import config from '@/lib/config';
 import { Any } from './grpc/generated/google/protobuf/any';
 
+// Define a timeout for gRPC calls
+const GRPC_TIMEOUT_MS = 5000;
+
 const grpcUrl = (config.grpc.url.startsWith('http') ? '' : 'http://') + config.grpc.url.replace(/^(https?:\/\/)/, '');
-console.log(`[gRPC Client] Initializing client for AccountDetailService at target URL: ${grpcUrl}`);
 
 class GrpcClientSingleton {
   public client: AccountDetailServiceClient;
 
   constructor() {
     this.client = new AccountDetailServiceClient(grpcUrl);
+    console.log(`[gRPC Client] Initialized client for AccountDetailService at target URL: ${grpcUrl}`);
   }
 
   private promisifyCall<TRequest, TResponse>(
-    method: (
-      request: TRequest,
-      metadata: null | { [key: string]: string },
-      callback: (err: any, response: TResponse) => void,
-    ) => void,
-  ): (request: TRequest) => Promise<TResponse> {
-    return (request: TRequest): Promise<TResponse> => {
-      return new Promise((resolve, reject) => {
+    methodName: string,
+    request: TRequest,
+  ): Promise<TResponse> {
+    return new Promise((resolve, reject) => {
+        const method = this.client[methodName as keyof AccountDetailServiceClient];
+        
+        if (typeof method !== 'function') {
+            return reject(new TypeError(`this.client.${methodName} is not a function`));
+        }
+
         method.call(this.client, request, null, (err: any, res: TResponse) => {
-          if (err) return reject(err);
-          resolve(res);
+            if (err) return reject(err);
+            resolve(res);
         });
-      });
-    };
+    });
   }
 
   public async queryCustomerDetail(request: ServiceRequest): Promise<AccountDetailResponse> {
@@ -45,11 +49,11 @@ class GrpcClientSingleton {
     });
 
     try {
-      const queryFn = this.promisifyCall<ServiceRequest, ServiceResponse>(
-        this.client.queryCustomerDetail,
-      );
-      const response = await queryFn(request);
-      
+        const response = await this.promisifyCall<ServiceRequest, ServiceResponse>(
+            methodName, 
+            request
+        );
+
       const responsePlain = response.toObject();
 
       if (responsePlain.code !== '0') {
@@ -64,10 +68,12 @@ class GrpcClientSingleton {
         throw new Error('Response success but data field is missing from the payload.');
       }
       
-      // grpc-web's toObject already decodes the any value for us.
-      // The value will be a base64 string which we need to decode into a buffer,
-      // and then decode that buffer using our protobuf message definition.
+      // grpc-web's toObject already base64-encodes the value of Any.
       const value = (data as any).value;
+      if (typeof value !== 'string') {
+        throw new Error('Expected data.value to be a base64 string from grpc-web.');
+      }
+      
       const buffer = Buffer.from(value, 'base64');
       const decoded = AccountDetailResponse.deserializeBinary(buffer);
       
@@ -80,4 +86,5 @@ class GrpcClientSingleton {
   }
 }
 
+// Export a single instance of the client
 export const GrpcClient = new GrpcClientSingleton();
