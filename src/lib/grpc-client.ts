@@ -5,20 +5,21 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import config from '@/lib/config';
-import type { ProtoGrpcType } from './grpc/generated/services'; 
-import type { AccountDetailServiceClient } from './grpc/generated/accountdetail';
+import type { ProtoGrpcType as AccountDetailProtoGrpcType } from './grpc/generated/accountdetail';
 
 const PROTO_FILES = [
     'common.proto',
     'accountdetail.proto',
-    'service.proto'
 ];
 
 const PROTO_DIR = path.join(process.cwd(), 'src/lib/grpc/protos');
 
+// Combine the generated types into one for the loaded package definition
+type ProtoGrpcType = AccountDetailProtoGrpcType;
+
 class GrpcClientSingleton {
     private static instance: GrpcClientSingleton;
-    public client: AccountDetailServiceClient | null = null;
+    public client: AccountDetailProtoGrpcType['accountdetail']['AccountDetailServiceClient'] | null = null;
     public proto: ProtoGrpcType | null = null;
 
     private constructor() {
@@ -43,8 +44,8 @@ class GrpcClientSingleton {
             this.proto = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
 
             if (!this.proto.accountdetail || !this.proto.accountdetail.AccountDetailService) {
-                console.error("[gRPC Client] Failed to load 'accountdetail.AccountDetailService' from proto definition. Available packages:", Object.keys(this.proto));
-                throw new Error("Service definition 'accountdetail.AccountDetailService' not found in loaded proto.");
+                console.error("[gRPC Client] Failed to load 'accountdetail.AccountDetailService' from proto definition.");
+                throw new Error("Service definition not found in loaded proto.");
             }
             
             this.client = new this.proto.accountdetail.AccountDetailService(grpcUrl, grpc.credentials.createInsecure());
@@ -67,7 +68,7 @@ class GrpcClientSingleton {
 
 let grpcClientInstance: GrpcClientSingleton;
 
-export function getGrpcClient() {
+export async function getGrpcClient() {
     if (!grpcClientInstance) {
         grpcClientInstance = GrpcClientSingleton.getInstance();
     }
