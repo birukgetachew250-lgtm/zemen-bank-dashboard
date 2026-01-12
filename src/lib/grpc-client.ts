@@ -6,12 +6,10 @@ import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import config from '@/lib/config';
 import type { ProtoGrpcType } from './grpc/generated/services';
-import { AccountDetailServiceClient } from './grpc/generated/accountdetail';
+import type { AccountDetailServiceClient } from './grpc/generated/accountdetail';
 
-// The order is important due to import dependencies in the proto files
 const PROTO_FILES = [
     'common.proto',
-    'service.proto',
     'accountdetail.proto',
 ];
 
@@ -38,7 +36,7 @@ class GrpcClientSingleton {
                 enums: String,
                 defaults: true,
                 oneofs: true,
-                includeDirs: [PROTO_DIR] // This is crucial for resolving imports
+                includeDirs: [PROTO_DIR]
             });
 
             this.proto = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
@@ -66,5 +64,4 @@ class GrpcClientSingleton {
     }
 }
 
-// Export a single instance to be used across the application
 export const GrpcClient = GrpcClientSingleton.getInstance();

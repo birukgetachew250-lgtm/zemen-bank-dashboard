@@ -1,8 +1,7 @@
-
 /* eslint-disable */
 import type { Any } from "./google/protobuf/any";
 
-export const protobufPackage = "service";
+export const protobufPackage = "common";
 
 /** The service request message containing the request details. */
 export interface ServiceRequest {
