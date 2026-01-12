@@ -5,106 +5,98 @@ import path from 'path';
 import config from '@/lib/config';
 import type { ProtoGrpcType as AccountDetailProtoGrpcType } from './grpc/generated/accountdetail';
 import type { ServiceRequest, ServiceResponse } from './grpc/generated/common';
-import type { AccountDetailRequest, AccountDetailResponse } from './grpc/generated/accountdetail';
+import { Any } from './grpc/generated/google/protobuf/any';
 
 const PROTO_FILE = 'accountdetail.proto';
 const PROTO_DIR = path.join(process.cwd(), 'src', 'lib', 'grpc', 'protos');
-
-type GrpcProtoType = AccountDetailProtoGrpcType;
-type AccountDetailServiceClient = GrpcProtoType['accountdetail']['AccountDetailServiceClient'];
+const GRPC_TIMEOUT_MS = 5000; // 5 seconds
 
 class GrpcClientSingleton {
-  private static instance: GrpcClientSingleton;
-  private client: AccountDetailServiceClient | null = null;
-  public AccountDetailResponse: GrpcProtoType['accountdetail']['AccountDetailResponse__Output'] | null = null;
+    private client: AccountDetailProtoGrpcType['accountdetail']['AccountDetailServiceClient'];
+    private AccountDetailResponse: any;
 
-  private initializationPromise: Promise<void> | null = null;
+    constructor() {
+        try {
+            const packageDefinition = protoLoader.loadSync(PROTO_FILE, {
+                keepCase: true,
+                longs: String,
+                enums: String,
+                defaults: true,
+                oneofs: true,
+                includeDirs: [PROTO_DIR],
+            });
 
-  private constructor() {}
+            const grpcObject = (grpc.loadPackageDefinition(packageDefinition) as unknown) as AccountDetailProtoGrpcType;
 
-  public static getInstance(): GrpcClientSingleton {
-    if (!GrpcClientSingleton.instance) {
-      GrpcClientSingleton.instance = new GrpcClientSingleton();
-    }
-    return GrpcClientSingleton.instance;
-  }
-
-  public initialize(): Promise<void> {
-    if (!this.initializationPromise) {
-      this.initializationPromise = this._initialize();
-    }
-    return this.initializationPromise;
-  }
-
-  private async _initialize(): Promise<void> {
-    if (this.client) {
-      return;
-    }
-
-    if (!config.grpc.url) {
-      console.error("[gRPC Client] FLEX_GRPC_URL is not defined in your .env file.");
-      throw new Error("gRPC URL is not configured.");
-    }
-
-    const grpcUrl = config.grpc.url.replace(/^(https?:\/\/)/, '');
-    console.log(`[gRPC Client] Initializing gRPC client for AccountDetailService at target URL: ${grpcUrl}`);
-
-    try {
-      const packageDefinition = await protoLoader.load(PROTO_FILE, {
-        keepCase: true,
-        longs: String,
-        enums: String,
-        defaults: true,
-        oneofs: true,
-        includeDirs: [PROTO_DIR],
-      });
-
-      const grpcObject = (grpc.loadPackageDefinition(packageDefinition) as unknown) as GrpcProtoType;
-      
-      if (!grpcObject.accountdetail || !grpcObject.accountdetail.AccountDetailService) {
-        console.error("[gRPC Client] Failed to load 'accountdetail.AccountDetailService' from proto definition.");
-        throw new Error("Service definition not found in loaded proto.");
-      }
-
-      this.client = new grpcObject.accountdetail.AccountDetailService(grpcUrl, grpc.credentials.createInsecure());
-      
-      // Store the message type definition for decoding responses
-      if (grpcObject.accountdetail.AccountDetailResponse) {
-          this.AccountDetailResponse = grpcObject.accountdetail.AccountDetailResponse;
-      }
-      
-      console.log("[gRPC Client] gRPC client created successfully.");
-    } catch (error) {
-      console.error("[gRPC Client] Failed to initialize gRPC client:", error);
-      this.client = null;
-      this.initializationPromise = null; 
-      throw error;
-    }
-  }
-
-  public getClient(): AccountDetailServiceClient {
-    if (!this.client) {
-        throw new Error("gRPC client is not initialized. Please call initialize() first.");
-    }
-    return this.client;
-  }
-  
-  public promisifyCall<TResponse>(methodName: string, request: ServiceRequest): Promise<TResponse> {
-    return new Promise((resolve, reject) => {
-        const client = this.getClient();
-        if (typeof (client as any)[methodName] !== 'function') {
-            return reject(new Error(`Method ${methodName} does not exist on the gRPC client.`));
-        }
-
-        (client as any)[methodName](request, (error: ServiceError | null, response: TResponse) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve(response);
+            if (!grpcObject.accountdetail?.AccountDetailService) {
+                throw new Error("Service 'accountdetail.AccountDetailService' not loaded from proto.");
             }
+            if (!grpcObject.accountdetail?.AccountDetailResponse) {
+                throw new Error("Message type 'accountdetail.AccountDetailResponse' not loaded from proto.");
+            }
+
+            const grpcUrl = config.grpc.url.replace(/^(https?:\/\/)/, '');
+            this.client = new grpcObject.accountdetail.AccountDetailService(grpcUrl, grpc.credentials.createInsecure());
+            this.AccountDetailResponse = grpcObject.accountdetail.AccountDetailResponse;
+            
+            console.log(`[gRPC Client] Initialized gRPC client for AccountDetailService at target URL: ${grpcUrl}`);
+
+        } catch (error) {
+            console.error("[gRPC Client] Failed to initialize:", error);
+            throw new Error("Could not initialize gRPC client.");
+        }
+    }
+
+    private promisifyCall<TRequest, TResponse>(methodName: string, request: TRequest): Promise<TResponse> {
+        return new Promise((resolve, reject) => {
+            const deadline = Date.now() + GRPC_TIMEOUT_MS;
+            if (typeof (this.client as any)[methodName] !== 'function') {
+                return reject(new Error(`Method ${methodName} does not exist on the gRPC client.`));
+            }
+            (this.client as any)[methodName](request, { deadline }, (err: ServiceError | null, res: TResponse) => {
+                if (err) return reject(err);
+                resolve(res);
+            });
         });
-    });
-  }
+    }
+
+    public async queryCustomerDetail(request: ServiceRequest): Promise<any> {
+        console.log('Sending gRPC request [queryCustomerDetail]', {
+            request_id: request.request_id,
+            user_id: request.user_id,
+        });
+
+        try {
+            const response = await this.promisifyCall<ServiceRequest, ServiceResponse>('queryCustomerDetail', request);
+
+            if (response.code !== '0') {
+                console.warn('gRPC call returned non-zero code:', response);
+                throw new Error(response.message || "Operation failed in core banking service.");
+            }
+
+            const dataValue = response.data?.value;
+            if (!dataValue) {
+                throw new Error("Response successful but data field is missing from the payload.");
+            }
+
+            const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue);
+            const decoded = this.AccountDetailResponse.decode(buffer);
+            const responseObject = this.AccountDetailResponse.toObject(decoded, {
+                defaults: true,
+                enums: String,
+                longs: String,
+                arrays: true,
+            });
+
+            console.log('Decoded AccountDetailResponse');
+            return responseObject;
+        } catch (err: any) {
+            console.error('Critical failure in queryCustomerDetail:', err);
+            // Re-throw genuine system/network errors
+            throw err;
+        }
+    }
 }
 
-export const GrpcClient = GrpcClientSingleton.getInstance();
+// Export a singleton instance
+export const GrpcClient = new GrpcClientSingleton();

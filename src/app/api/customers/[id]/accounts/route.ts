@@ -1,12 +1,10 @@
 
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
-import { decrypt } from '@/lib/crypto';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
-import type { ServiceRequest, ServiceResponse } from '@/lib/grpc/generated/common';
-import type { AccountDetailRequest, AccountDetailResponse } from '@/lib/grpc/generated/accountdetail';
-import { Any } from '@/lib/grpc/generated/google/protobuf/any';
+import type { ServiceRequest } from '@/lib/grpc/generated/common';
+import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
 
 const getCifFromId = async (customerId: string) => {
     if (/^\d+$/.test(customerId)) {
@@ -39,9 +37,7 @@ export async function GET(
         return NextResponse.json({ message: 'Could not determine CIF for the given customer ID.' }, { status: 404 });
     }
     
-    await GrpcClient.initialize();
-    
-    const serviceRequest = {
+    const serviceRequest: ServiceRequest = {
       request_id: `req_${crypto.randomUUID()}`,
       source_system: 'dashboard',
       channel: 'web',
@@ -49,32 +45,13 @@ export async function GET(
       data: {
         "@type": "type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest",
         customer_id: cif,
-      }
+      } as any,
     };
     
-    const response = await GrpcClient.promisifyCall<ServiceResponse>('queryCustomerDetail', serviceRequest);
-    
-    if (response.code !== '0' || !response.data) {
-        throw new Error(response.message || 'Failed to fetch account details from service');
-    }
-
-    const dataValue = (response as any).data?.value;
-    if (!dataValue) {
-      throw new Error("Response success but data field is missing");
-    }
-
-    const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue.data || dataValue);
-    
-    const AccountDetailResponse = GrpcClient.AccountDetailResponse;
-    if (!AccountDetailResponse) {
-        throw new Error("AccountDetailResponse definition not found on gRPC client.");
-    }
-    
-    const decoded = (AccountDetailResponse as any).decode(buffer);
-    const decodedObject = (AccountDetailResponse as any).toObject(decoded);
+    const response = await GrpcClient.queryCustomerDetail(serviceRequest);
 
     // Assuming the response contains an 'accounts' field which is an array
-    const accounts = decodedObject.accounts || [];
+    const accounts = response.accounts || [];
 
     return NextResponse.json(accounts);
   } catch (error) {

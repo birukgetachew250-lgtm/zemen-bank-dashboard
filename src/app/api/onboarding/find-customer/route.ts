@@ -5,8 +5,8 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
-import type { ServiceRequest, ServiceResponse } from '@/lib/grpc/generated/common';
-import type { AccountDetailRequest, AccountDetailResponse } from '@/lib/grpc/generated/accountdetail';
+import type { ServiceRequest } from '@/lib/grpc/generated/common';
+import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -24,7 +24,6 @@ const mockCustomer = {
     "branch": "Bole"
 };
 
-
 export async function POST(req: Request) {
     const { branch_code, customer_id } = await req.json();
 
@@ -41,49 +40,25 @@ export async function POST(req: Request) {
         }
     } catch (dbError: any) {
         console.error("[DB Error] Checking existing user:", dbError);
+        // Do not throw, allow fallback to gRPC
     }
 
     try {
-        await GrpcClient.initialize();
-        
         const serviceRequest = {
-          request_id: `req_${crypto.randomUUID()}`,
-          source_system: 'dashboard',
-          channel: 'dash',
-          user_id: customer_id,
-          data: {
-            "@type": "type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest",
-            branch_code: branch_code,
-            customer_id: customer_id
-          }
+            request_id: `req_${crypto.randomUUID()}`,
+            source_system: 'dashboard',
+            channel: 'dash',
+            user_id: customer_id,
+            data: {
+              "@type": "type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest",
+              branch_code: branch_code,
+              customer_id: customer_id
+            }
         };
 
-        console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
-        
-        const response = await GrpcClient.promisifyCall<ServiceResponse>('queryCustomerDetail', serviceRequest);
+        const response = await GrpcClient.queryCustomerDetail(serviceRequest);
 
-        console.log("[gRPC Success] Received ServiceResponse:", response);
-        if (response.code !== '0') {
-             return NextResponse.json({ message: response.message || "An error occurred from the core banking service." }, { status: 404 });
-        }
-
-        const dataValue = (response as any).data?.value;
-        if (!dataValue) {
-            throw new Error("Response success but data field is missing");
-        }
-
-        const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue.data || dataValue);
-        
-        if (!GrpcClient.AccountDetailResponse) {
-            throw new Error("AccountDetailResponse definition not found on gRPC client.");
-        }
-        
-        const decoded = (GrpcClient.AccountDetailResponse as any).decode(buffer);
-        const customerDetailsObject = (GrpcClient.AccountDetailResponse as any).toObject(decoded, {
-          defaults: true, enums: String, arrays: true,
-        });
-
-        return NextResponse.json(customerDetailsObject);
+        return NextResponse.json(response);
 
     } catch (error: any) {
         console.error("[gRPC/DB Error]", error);
