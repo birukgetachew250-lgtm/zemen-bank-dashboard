@@ -1,6 +1,4 @@
 
-'use server';
-
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
@@ -8,13 +6,14 @@ import config from '@/lib/config';
 import type { ProtoGrpcType as AccountDetailProtoGrpcType } from './grpc/generated/accountdetail';
 import type { ServiceRequest, ServiceResponse } from './grpc/generated/common';
 import type { AccountDetailResponse } from './grpc/generated/accountdetail';
+import { Buffer } from 'buffer';
 
 const PROTO_FILE = 'accountdetail.proto';
 const PROTO_DIR = path.join(process.cwd(), 'src', 'lib', 'grpc', 'protos');
-const GRPC_TIMEOUT_MS = 5000; // 5 seconds
+const GRPC_TIMEOUT_MS = 5000;
 
 class GrpcClientSingleton {
-    private client: AccountDetailProtoGrpcType['accountdetail']['AccountDetailServiceClient'];
+    public client: AccountDetailProtoGrpcType['accountdetail']['AccountDetailServiceClient'];
     private AccountDetailResponse: any;
 
     constructor() {
@@ -33,7 +32,7 @@ class GrpcClientSingleton {
             if (!grpcObject.accountdetail?.AccountDetailService) {
                 throw new Error("Service 'accountdetail.AccountDetailService' not loaded from proto.");
             }
-            if (!grpcObject.accountdetail?.AccountDetailResponse) {
+             if (!grpcObject.accountdetail?.AccountDetailResponse) {
                 throw new Error("Message type 'accountdetail.AccountDetailResponse' not loaded from proto.");
             }
             this.AccountDetailResponse = grpcObject.accountdetail.AccountDetailResponse;
@@ -45,28 +44,29 @@ class GrpcClientSingleton {
 
         } catch (error) {
             console.error("[gRPC Client] Failed to initialize:", error);
+            // This is a server-side singleton, so throwing here is okay during startup.
             throw new Error("Could not initialize gRPC client.");
         }
     }
-    
-    private promisifyCall<TRequest, TResponse>(methodName: string, request: TRequest): Promise<TResponse> {
+
+    public promisifyCall<TResponse>(method: string, request: any): Promise<TResponse> {
         return new Promise((resolve, reject) => {
-          const deadline = Date.now() + GRPC_TIMEOUT_MS;
-          (this.client as any)[methodName](request, { deadline }, (err: any, res: TResponse) => {
-            if (err) return reject(err);
-            resolve(res);
-          });
+            const deadline = Date.now() + GRPC_TIMEOUT_MS;
+            (this.client as any)[method](request, { deadline }, (err: any, res: TResponse) => {
+                if (err) return reject(err);
+                resolve(res);
+            });
         });
     }
-    
-    async queryCustomerDetail(request: ServiceRequest): Promise<AccountDetailResponse> {
+
+    public async queryCustomerDetail(request: ServiceRequest): Promise<AccountDetailResponse> {
         console.log('Sending gRPC request [queryCustomerDetail]', { 
-          request_id: request.request_id, 
-          user_id: request.user_id 
+            request_id: request.request_id, 
+            user_id: request.user_id 
         });
 
         try {
-            const response = await this.promisifyCall<ServiceRequest, ServiceResponse>('queryCustomerDetail', request);
+            const response = await this.promisifyCall<ServiceResponse>('queryCustomerDetail', request);
 
             if (response.code !== '0') {
                 console.warn('gRPC call returned non-zero code:', response);
@@ -75,16 +75,19 @@ class GrpcClientSingleton {
 
             const dataValue = response.data?.value;
             if (!dataValue) {
-                throw new Error("Response successful but data field is missing from the payload.");
+                throw new Error("Response success but data field is missing from the payload.");
             }
 
             const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue);
             const decoded = this.AccountDetailResponse.decode(buffer);
-
+            
             const object = this.AccountDetailResponse.toObject(decoded, {
+                longs: String,
+                enums: String,
                 defaults: true,
+                arrays: true,
+                objects: true,
             });
-            console.log('Decoded AccountDetailResponse');
             return object;
 
         } catch (err) {
