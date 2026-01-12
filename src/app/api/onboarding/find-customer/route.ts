@@ -43,6 +43,7 @@ export async function POST(req: Request) {
         const client = getAccountDetailServiceClient();
         const accountDetailPackage = getAccountDetailPackage();
         
+        // This is the plain JS object for the nested AccountDetailRequest
         const accountDetailRequestPayload = {
             branch_code: branch_code,
             customer_id: customer_id
