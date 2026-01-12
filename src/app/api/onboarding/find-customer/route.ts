@@ -40,16 +40,14 @@ export async function POST(req: Request) {
 
         // 2. If not, proceed to call gRPC service
         const client = getAccountDetailServiceClient();
-        const accountDetailPackage = getAccountDetailPackage();
         
-        // Correctly construct the protobuf message
-        const requestPayload = new accountDetailPackage.AccountDetailRequest({
+        // The gRPC client expects a plain JS object that matches the proto definition.
+        const requestPayload = {
             branch_code: branch_code,
             customer_id: customer_id
-        });
+        };
         
-        console.log("[gRPC Request] Sending to queryCustomerDetails:", JSON.stringify(requestPayload.toJSON(), null, 2));
-
+        console.log("[gRPC Request] Sending to queryCustomerDetails:", JSON.stringify(requestPayload, null, 2));
 
         return new Promise((resolve, reject) => {
              client.queryCustomerDetails(requestPayload, (error: any, response: any) => {
