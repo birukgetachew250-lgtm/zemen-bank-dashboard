@@ -6,7 +6,6 @@ import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import type { ServiceRequest } from '@/lib/grpc/generated/common';
-import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -40,9 +39,9 @@ export async function POST(req: Request) {
         }
 
         await GrpcClient.initialize();
-        const client = GrpcClient.client;
+        const { client, proto } = GrpcClient;
         
-        if (!client) {
+        if (!client || !proto) {
              console.error("[gRPC] Client not available. Falling back to mock data for demo.");
              if (customer_id === '0000238') {
                 return NextResponse.json(mockCustomer);
@@ -50,20 +49,20 @@ export async function POST(req: Request) {
             throw new Error("gRPC client is not initialized. Please check server logs.");
         }
         
-        const accountDetailPackage = GrpcClient.getAccountDetailPackage();
-        if (!accountDetailPackage) {
-             throw new Error("gRPC accountdetail package not found.");
+        const accountDetailPackage = proto.lookup("accountdetail");
+        const AccountDetailRequest = accountDetailPackage?.lookupType("AccountDetailRequest");
+        const AccountDetailResponse = accountDetailPackage?.lookupType("AccountDetailResponse");
+
+        if (!AccountDetailRequest || !AccountDetailResponse) {
+             throw new Error("gRPC type definitions for AccountDetail not found.");
         }
-        
-        const AccountDetailRequest = accountDetailPackage.lookupType("AccountDetailRequest");
-        const AccountDetailResponse = accountDetailPackage.lookupType("AccountDetailResponse");
 
         const innerDetail = {
             branch_code: branch_code,
             customer_id: customer_id,
         };
         
-        const message = (AccountDetailRequest.fromObject as any)(innerDetail);
+        const message = (AccountDetailRequest.create as any)(innerDetail);
         const buffer = (AccountDetailRequest.encode as any)(message).finish();
         
         const anyPayload = {
@@ -97,7 +96,7 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                      if (response.code === '0' && response.data) {
                        try {
-                            const decodedResponse = GrpcClient.Any.unpack(response.data, AccountDetailResponse);
+                            const decodedResponse = (AccountDetailResponse.decode as any)(response.data.value);
                             const responseObject = AccountDetailResponse.toObject(decodedResponse, {
                                 longs: String,
                                 enums: String,

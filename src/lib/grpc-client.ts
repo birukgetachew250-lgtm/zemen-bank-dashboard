@@ -4,9 +4,9 @@ import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import config from '@/lib/config';
 import type { ProtoGrpcType as AccountDetailProtoGrpcType } from './grpc/generated/accountdetail';
-import { Root, Any as ProtobufJsAny } from 'protobufjs';
+import { Root } from 'protobufjs';
 
-const PROTO_FILE = 'accountdetail.proto';
+const PROTO_FILES = ['common.proto', 'accountdetail.proto'];
 const PROTO_DIR = path.join(process.cwd(), 'src', 'lib', 'grpc', 'protos');
 
 type ProtoGrpcType = AccountDetailProtoGrpcType;
@@ -14,7 +14,7 @@ type ProtoGrpcType = AccountDetailProtoGrpcType;
 class GrpcClientSingleton {
   private static instance: GrpcClientSingleton;
   public client: AccountDetailProtoGrpcType['accountdetail']['AccountDetailServiceClient'] | null = null;
-  public protoRoot: Root | null = null;
+  public proto: Root | null = null;
   private initializationPromise: Promise<void> | null = null;
 
   private constructor() {}
@@ -27,13 +27,12 @@ class GrpcClientSingleton {
   }
 
   public async initialize(): Promise<void> {
-    if (this.client && this.protoRoot) {
-      return Promise.resolve();
+    if (this.client && this.proto) {
+      return;
     }
     if (this.initializationPromise) {
       return this.initializationPromise;
     }
-    // Assign the promise immediately to prevent race conditions
     this.initializationPromise = this._initialize();
     return this.initializationPromise;
   }
@@ -48,7 +47,7 @@ class GrpcClientSingleton {
     console.log(`[gRPC Client] Initializing gRPC client for AccountDetailService at target URL: ${grpcUrl}`);
 
     try {
-      const packageDefinition = await protoLoader.load(PROTO_FILE, {
+      const packageDefinition = await protoLoader.load(PROTO_FILES, {
         keepCase: true,
         longs: String,
         enums: String,
@@ -60,9 +59,9 @@ class GrpcClientSingleton {
       const grpcObject = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
 
       const protoRoot = new Root();
-      await protoRoot.load(path.join(PROTO_DIR, PROTO_FILE), { keepCase: true });
-      this.protoRoot = protoRoot;
-
+      await protoRoot.load(PROTO_FILES.map(f => path.join(PROTO_DIR, f)), { keepCase: true });
+      this.proto = protoRoot;
+      
       if (!grpcObject.accountdetail || !grpcObject.accountdetail.AccountDetailService) {
         console.error("[gRPC Client] Failed to load 'accountdetail.AccountDetailService' from proto definition.");
         throw new Error("Service definition not found in loaded proto.");
@@ -73,21 +72,11 @@ class GrpcClientSingleton {
     } catch (error) {
       console.error("[gRPC Client] Failed to initialize gRPC client:", error);
       this.client = null;
-      this.protoRoot = null;
-      this.initializationPromise = null; // Reset promise on failure
+      this.proto = null;
+      this.initializationPromise = null;
       throw error;
     }
   }
-
-  public getAccountDetailPackage() {
-    return this.protoRoot?.lookup("accountdetail");
-  }
-  
-  public getCommonPackage() {
-    return this.protoRoot?.lookup("common");
-  }
-
-  public static Any = ProtobufJsAny;
 }
 
 export const GrpcClient = GrpcClientSingleton.getInstance();
