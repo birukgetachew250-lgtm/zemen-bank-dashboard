@@ -44,23 +44,23 @@ export async function POST(req: Request) {
     }
 
     try {
-        const accountDetailRequestPayload: AccountDetailRequest = {
+        const accountDetailRequestPayload = {
             branch_code,
             customer_id,
         };
 
-        const serviceRequest: ServiceRequest = {
-            request_id: `req_${crypto.randomUUID()}`,
-            source_system: 'dashboard',
-            channel: 'dash',
-            user_id: customer_id,
-            data: {
-              type_url: 'type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest',
-              value: Buffer.from(JSON.stringify(accountDetailRequestPayload))
-            },
+        const serviceRequest = {
+          request_id: `req_${crypto.randomUUID()}`,
+          source_system: 'dashboard',
+          channel: 'dash',
+          user_id: customer_id,
+          data: {
+            "@type": "type.googleapis.com/querycustomerinfo.QueryCustomerDetailRequest",
+            ...accountDetailRequestPayload
+          },
         };
         
-        const response = await GrpcClient.queryCustomerDetail(serviceRequest);
+        const response = await GrpcClient.queryCustomerDetail(serviceRequest as any);
 
         return NextResponse.json(response);
 
