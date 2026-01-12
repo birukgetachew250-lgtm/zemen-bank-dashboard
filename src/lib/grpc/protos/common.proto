@@ -1,0 +1,17 @@
+// /src/lib/grpc/protos/common.proto
+syntax = "proto3";
+
+package common;
+
+// A standard representation for a key-value pair.
+message KeyValuePair {
+  string key = 1;
+  string value = 2;
+}
+
+// A standard message for simple status responses.
+message StatusResponse {
+  bool success = 1;
+  string message = 2;
+  string correlation_id = 3;
+}
