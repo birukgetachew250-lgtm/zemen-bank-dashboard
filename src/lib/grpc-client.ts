@@ -1,6 +1,4 @@
 
-'use server';
-
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
@@ -12,7 +10,7 @@ const PROTO_FILES = [
     'accountdetail.proto',
 ];
 
-const PROTO_DIR = path.join(process.cwd(), 'src/lib/grpc/protos');
+const PROTO_DIR = path.join(process.cwd(), 'src', 'lib', 'grpc', 'protos');
 
 type ProtoGrpcType = AccountDetailProtoGrpcType;
 
@@ -31,13 +29,13 @@ class GrpcClientSingleton {
         return GrpcClientSingleton.instance;
     }
 
-    public async initialize(): Promise<void> {
+    public initialize(): Promise<void> {
         if (this.client && this.proto) {
-            return; // Already initialized
+            return Promise.resolve();
         }
 
         if (this.initializationPromise) {
-            return this.initializationPromise; // Initialization in progress
+            return this.initializationPromise;
         }
         
         this.initializationPromise = this._initialize();
