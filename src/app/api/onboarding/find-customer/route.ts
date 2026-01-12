@@ -2,12 +2,6 @@
 'use server';
 
 import { NextResponse } from 'next/server';
-import { executeQuery } from '@/lib/oracle-db';
-import { GrpcClient } from '@/lib/grpc-client';
-import crypto from 'crypto';
-import { ServiceRequest } from '@/lib/grpc/generated/service_pb';
-import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail_pb';
-import { Any } from 'google-protobuf/google/protobuf/any_pb';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -25,6 +19,22 @@ const mockCustomer = {
     "branch": "Bole"
 };
 
+const otherMockCustomer = {
+    "full_name": "AKALEWORK TAMENE KEBEDE",
+    "cif_creation_date": "2021-05-10T00:00:00.000Z",
+    "customer_number": "0048533",
+    "date_of_birth": "1985-08-20T00:00:00.000Z",
+    "gender": "Male",
+    "email_id": "akalework.t@example.com",
+    "mobile_number": "+251911223345",
+    "address_line_1": "Arada Sub-city",
+    "address_line_2": "",
+    "address_line_3": "Addis Ababa",
+    "address_line_4": "",
+    "country": "Ethiopia",
+    "branch": "Arada"
+};
+
 export async function POST(req: Request) {
     const { branch_code, customer_id } = await req.json();
 
@@ -32,46 +42,21 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: 'Branch code and customer ID are required' }, { status: 400 });
     }
 
-    try {
-        const existingUserQuery = `SELECT "Id" FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :cif`;
-        const existingUserResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, existingUserQuery, [customer_id]);
-        
-        if (existingUserResult.rows && existingUserResult.rows.length > 0) {
-            return NextResponse.json({ message: 'Customer is already registered for mobile banking.' }, { status: 409 });
-        }
-    } catch (dbError: any) {
-        console.warn("[DB Check Failed] Could not check for existing user, proceeding with gRPC call. Error:", dbError.message);
+    // Simulate checking if user exists
+    if (customer_id === '0052347') {
+         return NextResponse.json({ message: 'Customer is already registered for mobile banking.' }, { status: 409 });
     }
     
-    try {
-        const accountDetailRequest = new AccountDetailRequest();
-        accountDetailRequest.setBranchCode(branch_code);
-        accountDetailRequest.setCustomerId(customer_id);
-
-        const anyPayload = new Any();
-        anyPayload.pack(accountDetailRequest.serializeBinary(), 'accountdetail.AccountDetailRequest');
-
-        const serviceRequest = new ServiceRequest();
-        serviceRequest.setRequestId(`req_${crypto.randomUUID()}`);
-        serviceRequest.setSourceSystem('dashboard');
-        serviceRequest.setChannel('dash');
-        serviceRequest.setUserId(customer_id);
-        serviceRequest.setData(anyPayload);
-        
-        const response = await GrpcClient.queryCustomerDetail(serviceRequest);
-        
-        // Use the toObject method to get a plain JS object from the protobuf message
-        const responseObject = response.toObject();
-
-        return NextResponse.json(responseObject);
-
-    } catch (error: any) {
-        console.error("[gRPC/DB Error]", error);
-         if (customer_id === '0000238') {
-            console.log("[gRPC Main Catch Fallback] Serving mock data for CIF 0000238");
-            return NextResponse.json(mockCustomer);
-        }
-        const errorMessage = error.details || error.message || 'An unexpected error occurred.';
-        return NextResponse.json({ message: errorMessage }, { status: 500 });
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    if (customer_id === '0000238') {
+        return NextResponse.json(mockCustomer);
     }
+    
+    if (customer_id === '0048533') {
+        return NextResponse.json(otherMockCustomer);
+    }
+
+    return NextResponse.json({ message: `Customer with CIF ${customer_id} not found.` }, { status: 404 });
 }

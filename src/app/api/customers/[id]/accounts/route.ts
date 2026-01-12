@@ -1,61 +1,41 @@
 
 import { NextResponse } from 'next/server';
-import { executeQuery } from '@/lib/oracle-db';
-import { GrpcClient } from '@/lib/grpc-client';
-import crypto from 'crypto';
-import { ServiceRequest } from '@/lib/grpc/generated/service_pb';
-import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail_pb';
-import { Any } from 'google-protobuf/google/protobuf/any_pb';
 
-
-const getCifFromId = async (customerId: string) => {
-    if (/^\\d+$/.test(customerId)) {
-        return customerId;
+const getMockAccounts = (cif: string) => {
+    if (cif === '0000238') {
+        return [
+            { CUSTACNO: "3021110000238018", BRANCH_CODE: "302", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Z-Club Gold –  Saving", status: "Active" },
+        ];
     }
-    
-    try {
-        const customerResult: any = await executeQuery(
-            process.env.USER_MODULE_DB_CONNECTION_STRING, 
-            `SELECT "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "Id" = :id`,
-            [customerId]
-        );
-        if (customerResult && customerResult.rows && customerResult.rows.length > 0) {
-            return customerResult.rows[0].CIFNumber;
-        }
-    } catch (e: any) {
-        console.warn(`Could not find AppUser with ID ${customerId}, error: ${e.message}`);
-    }
-    return null;
-}
+    return [
+        { CUSTACNO: "1031110048533015", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Private and Individual", status: "Active" },
+        { CUSTACNO: "1031110048533016", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "C", ACCLASSDESC: "Personal Current - Private and Individual", status: "Active" },
+        { CUSTACNO: "1031110048533017", BRANCH_CODE: "101", CCY: "USD", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Domiciliary Saving", status: "Dormant" },
+        { CUSTACNO: "1031110048533018", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Joint", status: "Inactive" },
+    ];
+};
 
 export async function GET(
   req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const cif = await getCifFromId(params.id);
+    const customerId = params.id;
+    let cif = customerId;
+
+    // A simple mock logic to resolve CIF from a user ID
+    if (customerId.startsWith('user_')) {
+        cif = customerId.split('_')[1];
+    }
 
     if (!cif) {
         return NextResponse.json({ message: 'Could not determine CIF for the given customer ID.' }, { status: 404 });
     }
     
-    const accountDetailRequest = new AccountDetailRequest();
-    accountDetailRequest.setBranchCode(''); // Assuming not needed for this call, adjust if necessary
-    accountDetailRequest.setCustomerId(cif);
-
-    const anyPayload = new Any();
-    anyPayload.pack(accountDetailRequest.serializeBinary(), 'accountdetail.AccountDetailRequest');
-
-    const serviceRequest = new ServiceRequest();
-    serviceRequest.setRequestId(`req_${crypto.randomUUID()}`);
-    serviceRequest.setSourceSystem('dashboard');
-    serviceRequest.setChannel('dash');
-    serviceRequest.setUserId(cif);
-    serviceRequest.setData(anyPayload);
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 300));
     
-    const response = await GrpcClient.queryCustomerDetail(serviceRequest);
-
-    const accounts = response.getAccountsList().map(acc => acc.toObject());
+    const accounts = getMockAccounts(cif);
 
     return NextResponse.json(accounts);
   } catch (error) {
