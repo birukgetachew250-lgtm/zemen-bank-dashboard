@@ -1,17 +1,22 @@
 
 import * as grpc from '@grpc/grpc-js';
-import { AccountDetailServiceClient } from './grpc/generated/accountdetail';
+import * as protoLoader from '@grpc/proto-loader';
+import { ProtoGrpcType } from './grpc/generated/service';
+import { AccountDetailServiceClient } from './grpc/generated/accountdetail_grpc_pb';
+import path from 'path';
 import config from './config';
 
-let accountDetailServiceClient: AccountDetailServiceClient | null = null;
+let client: AccountDetailServiceClient | null = null;
+
+const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/service.proto');
 
 function loadGrpcClient() {
-    if (accountDetailServiceClient) {
+    if (client) {
         return;
     }
-
+    
     if (!config.grpc.url) {
-        console.error("[gRPC Client] FLEX_GRPC_URL is not defined. Please set it in your .env file.");
+        console.error("[gRPC Client] FLEX_GRPC_URL is not defined in your .env file.");
         throw new Error("FLEX_GRPC_URL is not defined in the environment variables.");
     }
     
@@ -19,22 +24,33 @@ function loadGrpcClient() {
     console.log(`[gRPC Client] Initializing gRPC client for AccountDetailService at target URL: ${grpcUrl}`);
 
     try {
-        const client = new grpc.Client(
-            grpcUrl,
-            grpc.credentials.createInsecure()
-        );
-        accountDetailServiceClient = new AccountDetailServiceClient(client as any);
-        console.log("[gRPC Client] gRPC client created successfully.");
+        const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
+            keepCase: true,
+            longs: String,
+            enums: String,
+            defaults: true,
+            oneofs: true
+        });
+        const proto = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
+
+        if (!proto.accountdetail || !proto.accountdetail.AccountDetailService) {
+            console.error("[gRPC Client] Failed to load 'accountdetail.AccountDetailService' from proto definition.");
+            throw new Error("Service definition not found in loaded proto.");
+        }
         
+        client = new proto.accountdetail.AccountDetailService(grpcUrl, grpc.credentials.createInsecure());
+        console.log("[gRPC Client] gRPC client created successfully.");
+
     } catch (error) {
         console.error("[gRPC Client] Failed to initialize gRPC client:", error);
         throw error;
     }
 }
 
+
 export function getAccountDetailServiceClient(): AccountDetailServiceClient {
-    if (!accountDetailServiceClient) {
+    if (!client) {
         loadGrpcClient();
     }
-    return accountDetailServiceClient!;
+    return client!;
 }

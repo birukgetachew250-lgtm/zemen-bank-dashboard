@@ -3,11 +3,11 @@
 
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
-import { getAccountDetailServiceClient, getAccountDetailPackage } from '@/lib/grpc-client';
+import { getAccountDetailServiceClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
-import type { ServiceRequest } from '@/lib/grpc/generated/service';
+import { ServiceRequest } from '@/lib/grpc/generated/service';
+import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
 import { Any } from '@/lib/grpc/generated/google/protobuf/any';
-import { AccountDetailRequest, AccountDetailResponse, AccountDetailResponse$type } from '@/lib/grpc/generated/accountdetail';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -43,23 +43,22 @@ export async function POST(req: Request) {
 
         const client = getAccountDetailServiceClient();
         
-        const accountDetailRequestPayload: AccountDetailRequest = {
-            branch_code: branch_code,
-            customer_id: customer_id
-        };
+        const accountDetailRequestPayload = new AccountDetailRequest();
+        accountDetailRequestPayload.branch_code = branch_code;
+        accountDetailRequestPayload.customer_id = customer_id;
+        
+        const any = new Any();
+        any.type_url = 'type.googleapis.com/accountdetail.AccountDetailRequest';
+        any.value = accountDetailRequestPayload.serializeBinary();
 
-        const serviceRequest: ServiceRequest = {
-            request_id: `req_${crypto.randomUUID()}`,
-            source_system: 'dashboard',
-            channel: 'dash',
-            user_id: customer_id,
-            data: {
-                type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
-                value: AccountDetailRequest.toBinary(accountDetailRequestPayload)
-            }
-        };
+        const serviceRequest = new ServiceRequest();
+        serviceRequest.request_id = `req_${crypto.randomUUID()}`;
+        serviceRequest.source_system = 'dashboard';
+        serviceRequest.channel = 'dash';
+        serviceRequest.user_id = customer_id;
+        serviceRequest.data = any;
 
-        console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
+        console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest.toObject(), null, 2));
 
         return new Promise((resolve) => {
              client.queryCustomerDetail(serviceRequest, (error: any, response: any) => {
@@ -73,17 +72,17 @@ export async function POST(req: Request) {
                         resolve(NextResponse.json({ message: errorMessage }, { status: 404 }));
                     }
                 } else {
-                    console.log("[gRPC Success] Received ServiceResponse:", response);
-                    if (response.code === '0' && response.data) {
+                    console.log("[gRPC Success] Received ServiceResponse:", response.toObject());
+                     if (response.getCode() === '0' && response.hasData()) {
                        try {
-                            const anyData = Any.unpack(response.data, AccountDetailResponse$type);
-                            resolve(NextResponse.json(anyData));
+                            const accountDetailResponse = response.getData().unpack(AccountDetailResponse.deserializeBinary, 'accountdetail.AccountDetailResponse');
+                            resolve(NextResponse.json(accountDetailResponse.toObject()));
                         } catch (unpackError) {
                             console.error("[gRPC Unpack Error]", unpackError);
                             resolve(NextResponse.json({ message: "Failed to unpack customer details from response." }, { status: 500 }));
                         }
                     } else {
-                        resolve(NextResponse.json({ message: response.message || "An error occurred from the core banking service." }, { status: 404 }));
+                        resolve(NextResponse.json({ message: response.getMessage() || "An error occurred from the core banking service." }, { status: 404 }));
                     }
                 }
             });
