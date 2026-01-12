@@ -3,7 +3,7 @@
 
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
-import { getAccountDetailServiceClient } from '@/lib/grpc-client';
+import { getAccountDetailServiceClient, getAccountDetailPackage } from '@/lib/grpc-client';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -40,13 +40,19 @@ export async function POST(req: Request) {
 
         // 2. If not, proceed to call gRPC service
         const client = getAccountDetailServiceClient();
-        const request = {
+        const accountDetailPackage = getAccountDetailPackage();
+        
+        // Correctly construct the protobuf message
+        const requestPayload = new accountDetailPackage.AccountDetailRequest({
             branch_code: branch_code,
             customer_id: customer_id
-        };
+        });
+        
+        console.log("[gRPC Request] Sending to queryCustomerDetails:", JSON.stringify(requestPayload.toJSON(), null, 2));
+
 
         return new Promise((resolve, reject) => {
-             client.queryCustomerDetails(request, (error: any, response: any) => {
+             client.queryCustomerDetails(requestPayload, (error: any, response: any) => {
                 if (error) {
                     console.error("[gRPC Error] customer-details:", error);
                     // Fallback to mock data if gRPC fails for specific demo CIF
