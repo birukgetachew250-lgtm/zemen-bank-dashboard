@@ -3,10 +3,13 @@
 
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
-import { getAccountDetailServiceClient, getAccountDetailPackage } from '@/lib/grpc-client';
+import { getAccountDetailServiceClient } from '@/lib/grpc-client';
 import * as protoLoader from '@grpc/proto-loader';
+import * as grpc from '@grpc/grpc-js';
 import path from 'path';
 import crypto from 'crypto';
+import type { ProtoGrpcType as AccountDetailProtoGrpcType } from '@/lib/grpc/generated/accountdetail';
+import type { ServiceRequest } from '@/lib/grpc/generated/service';
 
 const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/service.proto');
 
@@ -18,7 +21,8 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
     oneofs: true
 });
 
-const accountDetailPackage = getAccountDetailPackage(packageDefinition);
+const accountDetailPackage = (grpc.loadPackageDefinition(packageDefinition) as unknown as AccountDetailProtoGrpcType).accountdetail;
+const AccountDetailRequest = accountDetailPackage.AccountDetailRequest;
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -59,14 +63,16 @@ export async function POST(req: Request) {
             customer_id: customer_id
         };
 
-        const serviceRequest = {
+        const encodedValue = AccountDetailRequest.encode(accountDetailRequestPayload).finish();
+
+        const serviceRequest: ServiceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
             source_system: 'dashboard',
             channel: 'dash',
             user_id: customer_id,
             data: {
                 type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
-                value: accountDetailPackage.AccountDetailRequest.encode(accountDetailRequestPayload).finish()
+                value: encodedValue
             }
         };
 

@@ -59,6 +59,12 @@ export function getAccountDetailServiceClient(): AccountDetailServiceClient {
     return client;
 }
 
+// Function to get the specific message type for encoding `Any` payloads.
+export function getAccountDetailRequestType(packageDefinition: any) {
+    const proto = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
+    return proto.accountdetail.AccountDetailRequest;
+}
+
 export function getAccountDetailPackage(packageDefinition: any) {
     const proto = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
     return proto.accountdetail;

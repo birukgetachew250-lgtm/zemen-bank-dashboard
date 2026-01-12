@@ -1,26 +1,53 @@
+/* eslint-disable */
+import type { Call, Client, ClientDuplexStream, ClientReadableStream, ClientUnaryCall, ClientWritableStream, ServiceError, SurfaceDuplexStream, SurfaceReadableStream, SurfaceUnaryCall, SurfaceWritableStream } from "@grpc/grpc-js";
+import type { ServiceRequest, ServiceResponse } from "./service";
 
-import type * as grpc from '@grpc/grpc-js';
-import type { MessageTypeDefinition } from '@grpc/proto-loader';
+export const protobufPackage = "accountdetail";
 
-import type { AccountDetailServiceClient as _accountdetail_AccountDetailServiceClient, AccountDetailServiceDefinition as _accountdetail_AccountDetailServiceDefinition } from './accountdetail/AccountDetailService';
-
-type SubtypeConstructor<Constructor extends new (...args: any) => any, Subtype> = {
-  new(...args: ConstructorParameters<Constructor>): Subtype;
-};
-
-export interface ProtoGrpcType {
-  accountdetail: {
-    AccountDetailRequest: MessageTypeDefinition
-    AccountDetailResponse: MessageTypeDefinition
-    AccountDetailService: SubtypeConstructor<typeof grpc.Client, _accountdetail_AccountDetailServiceClient> & { service: _accountdetail_AccountDetailServiceDefinition }
-  }
-  google: {
-    protobuf: {
-      Any: MessageTypeDefinition
-    }
-  }
-  service: {
-    ServiceRequest: MessageTypeDefinition
-    ServiceResponse: MessageTypeDefinition
-  }
+export interface AccountDetailRequest {
+  branch_code: string;
+  customer_id: string;
 }
+
+export interface AccountDetailResponse {
+  full_name: string;
+  cif_creation_date: string;
+  customer_number: string;
+  date_of_birth: string;
+  gender: string;
+  email_id: string;
+  mobile_number: string;
+  address_line_1: string;
+  address_line_2: string;
+  address_line_3: string;
+  address_line_4: string;
+  country: string;
+  branch: string;
+}
+
+export interface AccountDetailServiceClient extends Client {
+  queryCustomerDetail(
+    argument: ServiceRequest,
+    callback: (error?: ServiceError, result?: ServiceResponse) => void,
+  ): ClientUnaryCall;
+  queryCustomerDetail(
+    argument: ServiceRequest,
+    metadata: any,
+    callback: (error?: ServiceError, result?: ServiceResponse) => void,
+  ): ClientUnaryCall;
+  queryCustomerDetail(
+    argument: ServiceRequest,
+    metadata: any,
+    options: any,
+    callback: (error?: ServiceError, result?: ServiceResponse) => void,
+  ): ClientUnaryCall;
+}
+
+export interface AccountDetailServiceHandlers {
+  queryCustomerDetail(
+    call: SurfaceUnaryCall<ServiceRequest, ServiceResponse>,
+    callback: (error?: ServiceError, result?: ServiceResponse) => void,
+  ): void;
+}
+
+export const ACCOUNTDETAIL_PACKAGE_NAME = "accountdetail";
