@@ -1,12 +1,15 @@
 
+'use server';
+
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import type { ProtoGrpcType } from './grpc/generated/service';
 import type { AccountDetailServiceClient } from './grpc/generated/accountdetail';
 import path from 'path';
-import config from './config';
+import config from '@/lib/config';
 
 let client: AccountDetailServiceClient | null = null;
+let loadedProto: ProtoGrpcType | null = null;
 
 const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/service.proto');
 
@@ -33,6 +36,7 @@ function loadGrpcClient(): AccountDetailServiceClient {
         });
 
         const proto = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
+        loadedProto = proto;
 
         if (!proto.accountdetail || !proto.accountdetail.AccountDetailService) {
             console.error("[gRPC Client] Failed to load 'accountdetail.AccountDetailService' from proto definition.");
@@ -58,9 +62,11 @@ export function getAccountDetailServiceClient(): AccountDetailServiceClient {
 }
 
 // Function to get the specific message type for encoding `Any` payloads.
-export function getAccountDetailPackage(packageDefinition: any) {
-    const proto = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
-    return proto.accountdetail;
+export function getAccountDetailPackage() {
+    if (!loadedProto) {
+        loadGrpcClient();
+    }
+    return loadedProto?.accountdetail;
 }
 
 export function resetGrpcClient(): void {
@@ -68,5 +74,6 @@ export function resetGrpcClient(): void {
         client.close();
         client = null;
     }
+    loadedProto = null;
     console.log("[gRPC Client] Client reset.");
 }

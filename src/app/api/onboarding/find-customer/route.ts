@@ -3,25 +3,10 @@
 
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
-import { getAccountDetailServiceClient, getAccountDetailPackage } from '@/lib/grpc-client';
-import * as protoLoader from '@grpc/proto-loader';
-import * as grpc from '@grpc/grpc-js';
-import path from 'path';
+import { getAccountDetailServiceClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import { ServiceRequest } from '@/lib/grpc/generated/service';
-
-const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/service.proto');
-
-const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
-    keepCase: true,
-    longs: String,
-    enums: String,
-    defaults: true,
-    oneofs: true
-});
-const accountDetailPackage = getAccountDetailPackage(packageDefinition);
-const AccountDetailRequest = (accountDetailPackage as any).AccountDetailRequest;
-
+import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -57,10 +42,10 @@ export async function POST(req: Request) {
 
         const client = getAccountDetailServiceClient();
         
-        const accountDetailRequestPayload = {
+        const accountDetailRequestPayload = AccountDetailRequest.fromJSON({
             branch_code: branch_code,
             customer_id: customer_id
-        };
+        });
 
         const encodedValue = AccountDetailRequest.encode(accountDetailRequestPayload).finish();
 
@@ -71,7 +56,7 @@ export async function POST(req: Request) {
             user_id: customer_id,
             data: {
                 type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
-                value: encodedValue
+                value: Buffer.from(encodedValue)
             }
         };
 
@@ -92,7 +77,7 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                      if (response.code === '0' && response.data) {
                        try {
-                            const AccountDetailResponse = (accountDetailPackage as any).AccountDetailResponse;
+                            const AccountDetailResponse = (getAccountDetailPackage() as any).AccountDetailResponse;
                             const accountDetailResponse = AccountDetailResponse.decode(response.data.value);
                             resolve(NextResponse.json(accountDetailResponse));
                         } catch (unpackError) {
