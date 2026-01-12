@@ -3,7 +3,7 @@
 
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
-import { GrpcClient } from '@/lib/grpc-client';
+import { getGrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import type { ServiceRequest } from '@/lib/grpc/generated/common';
 import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
@@ -41,7 +41,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Customer is already registered for mobile banking.' }, { status: 409 });
         }
 
-        const client = GrpcClient.client;
+        const grpcSingleton = getGrpcClient();
+        const client = grpcSingleton.client;
+
         if (!client) {
              console.error("[gRPC] Client not available. Falling back to mock data for demo.");
              if (customer_id === '0000238') {
@@ -50,8 +52,8 @@ export async function POST(req: Request) {
             throw new Error("gRPC client is not initialized. Please check server logs.");
         }
         
-        const proto = GrpcClient.proto;
-        if (!proto?.accountdetail?.AccountDetailRequest || !proto?.accountdetail?.AccountDetailResponse) {
+        const proto = grpcSingleton.proto;
+        if (!proto?.accountdetail?.AccountDetailRequest || !proto?.common?.ServiceRequest) {
              throw new Error("gRPC message types not loaded correctly.");
         }
         
@@ -62,8 +64,8 @@ export async function POST(req: Request) {
             customer_id: customer_id,
         };
 
-        const message = AccountDetailRequest.fromObject(innerDetail);
-        const buffer = AccountDetailRequest.encode(message).finish();
+        const message = (AccountDetailRequest.fromObject as any)(innerDetail);
+        const buffer = (AccountDetailRequest.encode as any)(message).finish();
 
         const anyPayload: Any = {
             type_url: "type.googleapis.com/accountdetail.AccountDetailRequest",
@@ -81,7 +83,7 @@ export async function POST(req: Request) {
         console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
 
         return new Promise((resolve) => {
-             client.queryCustomerDetail(serviceRequest, (error: any, response: any) => {
+             client.queryCustomerDetails(serviceRequest, (error: any, response: any) => {
                 if (error) {
                     console.error("[gRPC Error] customer-details:", error);
                     if (customer_id === '0000238') {
@@ -96,8 +98,8 @@ export async function POST(req: Request) {
                      if (response.code === '0' && response.data) {
                        try {
                             const AccountDetailResponse = proto.accountdetail.AccountDetailResponse;
-                            const accountDetailResponse = AccountDetailResponse.decode(response.data.value);
-                            const responseObject = AccountDetailResponse.toObject(accountDetailResponse, {
+                            const accountDetailResponse = (AccountDetailResponse.decode as any)(response.data.value);
+                            const responseObject = (AccountDetailResponse.toObject as any)(accountDetailResponse, {
                                 longs: String,
                                 enums: String,
                                 bytes: String,

@@ -5,12 +5,13 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import config from '@/lib/config';
-import type { ProtoGrpcType } from './grpc/generated/services';
+import type { ProtoGrpcType } from './grpc/generated/services'; 
 import type { AccountDetailServiceClient } from './grpc/generated/accountdetail';
 
 const PROTO_FILES = [
     'common.proto',
     'accountdetail.proto',
+    'service.proto'
 ];
 
 const PROTO_DIR = path.join(process.cwd(), 'src/lib/grpc/protos');
@@ -36,7 +37,7 @@ class GrpcClientSingleton {
                 enums: String,
                 defaults: true,
                 oneofs: true,
-                includeDirs: [PROTO_DIR, path.join(PROTO_DIR, 'google/protobuf')]
+                includeDirs: [PROTO_DIR]
             });
 
             this.proto = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
@@ -55,7 +56,7 @@ class GrpcClientSingleton {
             this.proto = null;
         }
     }
-
+    
     public static getInstance(): GrpcClientSingleton {
         if (!GrpcClientSingleton.instance) {
             GrpcClientSingleton.instance = new GrpcClientSingleton();
@@ -64,4 +65,11 @@ class GrpcClientSingleton {
     }
 }
 
-export const GrpcClient = GrpcClientSingleton.getInstance();
+let grpcClientInstance: GrpcClientSingleton;
+
+export function getGrpcClient() {
+    if (!grpcClientInstance) {
+        grpcClientInstance = GrpcClientSingleton.getInstance();
+    }
+    return grpcClientInstance;
+}
