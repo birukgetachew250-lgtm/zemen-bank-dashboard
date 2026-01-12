@@ -1,19 +1,13 @@
 
 import * as grpc from '@grpc/grpc-js';
-import * as protoLoader from '@grpc/proto-loader';
-import path from 'path';
+import { AccountDetailServiceClient } from './grpc/generated/accountdetail';
 import config from './config';
 
-// This will cache the loaded package definition and its components
-let accountDetailPackage: any = null;
-let accountDetailServiceClient: grpc.Client | null = null;
-
-const PROTO_PATH = path.resolve(process.cwd(), 'public', 'protos');
+let accountDetailServiceClient: AccountDetailServiceClient | null = null;
 
 function loadGrpcClient() {
-    // If already loaded, do nothing
-    if (accountDetailPackage) {
-        return; 
+    if (accountDetailServiceClient) {
+        return;
     }
 
     if (!config.grpc.url) {
@@ -25,32 +19,7 @@ function loadGrpcClient() {
     console.log(`[gRPC Client] Initializing gRPC client for AccountDetailService at target URL: ${grpcUrl}`);
 
     try {
-        const packageDefinition = protoLoader.loadSync(
-            path.join(PROTO_PATH, 'accountdetail.proto'),
-            {
-                keepCase: true,
-                longs: String,
-                enums: String,
-                defaults: true,
-                oneofs: true,
-                includeDirs: [PROTO_PATH] 
-            }
-        );
-
-        const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
-        const loadedPackage = (protoDescriptor as any).accountdetail;
-
-        if (!loadedPackage || !loadedPackage.AccountDetailService) {
-            console.error("[gRPC Client] Proto definition for 'AccountDetailService' not found after loading.");
-            throw new Error("Could not load required components from proto definition.");
-        }
-        
-        console.log("[gRPC Client] Successfully loaded 'accountdetail' package from proto.");
-        
-        // Cache the entire loaded package
-        accountDetailPackage = loadedPackage;
-        
-        accountDetailServiceClient = new loadedPackage.AccountDetailService(
+        accountDetailServiceClient = new AccountDetailServiceClient(
             grpcUrl,
             grpc.credentials.createInsecure()
         );
@@ -62,17 +31,9 @@ function loadGrpcClient() {
     }
 }
 
-
-export function getAccountDetailServiceClient(): grpc.Client {
+export function getAccountDetailServiceClient(): AccountDetailServiceClient {
     if (!accountDetailServiceClient) {
         loadGrpcClient();
     }
     return accountDetailServiceClient!;
-}
-
-export function getAccountDetailPackage(): any {
-     if (!accountDetailPackage) {
-        loadGrpcClient();
-    }
-    return accountDetailPackage;
 }
