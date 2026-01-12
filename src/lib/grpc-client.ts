@@ -8,7 +8,6 @@ import { AccountDetailServiceClient } from './grpc/generated/accountdetail';
 import path from 'path';
 import config from '../config';
 
-// Singleton instance of the client
 let client: AccountDetailServiceClient | null = null;
 
 const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/service.proto');
@@ -42,13 +41,12 @@ function loadGrpcClient(): AccountDetailServiceClient {
             throw new Error("Service definition not found in loaded proto.");
         }
         
-        // Create a new client instance
         client = new proto.accountdetail.AccountDetailService(grpcUrl, grpc.credentials.createInsecure());
         console.log("[gRPC Client] gRPC client created successfully.");
 
     } catch (error) {
         console.error("[gRPC Client] Failed to initialize gRPC client:", error);
-        throw error; // Re-throw the error to be handled by the caller
+        throw error; 
     }
 
     return client;
@@ -61,8 +59,11 @@ export function getAccountDetailServiceClient(): AccountDetailServiceClient {
     return client;
 }
 
-// This function is useful for scenarios where you might need to re-establish a connection,
-// for example, in long-running services or to recover from connection errors.
+export function getAccountDetailPackage(packageDefinition: any) {
+    const proto = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
+    return proto.accountdetail;
+}
+
 export function resetGrpcClient(): void {
     if (client) {
         client.close();

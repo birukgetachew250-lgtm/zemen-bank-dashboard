@@ -3,11 +3,22 @@
 
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
-import { getAccountDetailServiceClient } from '@/lib/grpc-client';
+import { getAccountDetailServiceClient, getAccountDetailPackage } from '@/lib/grpc-client';
+import * as protoLoader from '@grpc/proto-loader';
+import path from 'path';
 import crypto from 'crypto';
-import { ServiceRequest } from '@/lib/grpc/generated/service';
-import { AccountDetailRequest, AccountDetailResponse } from '@/lib/grpc/generated/accountdetail';
-import { Any } from '@/lib/grpc/generated/google/protobuf/any';
+
+const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/service.proto');
+
+const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
+    keepCase: true,
+    longs: String,
+    enums: String,
+    defaults: true,
+    oneofs: true
+});
+
+const accountDetailPackage = getAccountDetailPackage(packageDefinition);
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -43,21 +54,19 @@ export async function POST(req: Request) {
 
         const client = getAccountDetailServiceClient();
         
-        const accountDetailRequestPayload: AccountDetailRequest = {
+        const accountDetailRequestPayload = {
             branch_code: branch_code,
             customer_id: customer_id
         };
 
-        const encodedValue = AccountDetailRequest.encode(accountDetailRequestPayload).finish();
-
-        const serviceRequest: ServiceRequest = {
+        const serviceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
             source_system: 'dashboard',
             channel: 'dash',
             user_id: customer_id,
             data: {
                 type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
-                value: encodedValue
+                value: accountDetailPackage.AccountDetailRequest.encode(accountDetailRequestPayload).finish()
             }
         };
 
@@ -78,7 +87,7 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                      if (response.code === '0' && response.data) {
                        try {
-                            const accountDetailResponse = AccountDetailResponse.decode(response.data.value);
+                            const accountDetailResponse = accountDetailPackage.AccountDetailResponse.decode(response.data.value);
                             resolve(NextResponse.json(accountDetailResponse));
                         } catch (unpackError) {
                             console.error("[gRPC Unpack Error]", unpackError);
