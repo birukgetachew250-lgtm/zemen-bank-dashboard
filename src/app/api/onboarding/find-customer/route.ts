@@ -7,7 +7,8 @@ import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import type { ServiceRequest } from '@/lib/grpc/generated/common';
 import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
-import { Any } from '@/lib/grpc/generated/google/protobuf/any';
+import { Any } from 'protobufjs';
+
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -41,9 +42,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Customer is already registered for mobile banking.' }, { status: 409 });
         }
 
-        const grpcSingleton = GrpcClient.getInstance();
-        await grpcSingleton.initialize();
-        const client = grpcSingleton.client;
+        await GrpcClient.initialize();
+        const client = GrpcClient.client;
         
         if (!client) {
              console.error("[gRPC] Client not available. Falling back to mock data for demo.");
@@ -53,29 +53,26 @@ export async function POST(req: Request) {
             throw new Error("gRPC client is not initialized. Please check server logs.");
         }
         
-        const proto = grpcSingleton.proto;
-        if (!proto?.accountdetail?.AccountDetailRequest || !proto?.common?.ServiceRequest) {
-             throw new Error("gRPC message types not loaded correctly.");
+        const protoRoot = GrpcClient.protoRoot;
+        if (!protoRoot) {
+             throw new Error("gRPC protoRoot is not initialized.");
         }
-        
-        const AccountDetailRequest = proto.accountdetail.AccountDetailRequest as any; // Cast to any to use constructor
-        const ServiceRequest = proto.common.ServiceRequest as any;
-        
-        const innerDetail: AccountDetailRequest = {
+
+        const AccountDetailRequest = protoRoot.lookupType("accountdetail.AccountDetailRequest");
+        const AccountDetailResponse = protoRoot.lookupType("accountdetail.AccountDetailResponse");
+
+        const innerDetail = {
             branch_code: branch_code,
             customer_id: customer_id,
         };
-
-        const message = new AccountDetailRequest(innerDetail);
         
-        // This is a workaround since proto-loader doesn't provide a direct way to get the encoded buffer
-        // without a full RPC call. The internal `toBuffer` is what we need.
-        const buffer = (message as any).constructor.encode(message).finish();
-
-        const anyPayload: Any = {
+        const message = AccountDetailRequest.create(innerDetail);
+        const buffer = AccountDetailRequest.encode(message).finish();
+        
+        const anyPayload = new Any({
             type_url: "type.googleapis.com/accountdetail.AccountDetailRequest",
-            value: Buffer.from(buffer),
-        };
+            value: buffer,
+        });
 
         const serviceRequest: ServiceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
@@ -102,9 +99,8 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                      if (response.code === '0' && response.data) {
                        try {
-                            const AccountDetailResponse = proto.accountdetail.AccountDetailResponse as any;
-                            const accountDetailResponse = AccountDetailResponse.decode(response.data.value);
-                            const responseObject = (AccountDetailResponse.toObject as any)(accountDetailResponse, {
+                            const decodedResponse = AccountDetailResponse.decode(response.data.value);
+                            const responseObject = AccountDetailResponse.toObject(decodedResponse, {
                                 longs: String,
                                 enums: String,
                                 bytes: String,
