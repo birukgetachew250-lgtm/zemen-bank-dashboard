@@ -4,12 +4,12 @@
 import {
   AccountDetailRequest,
   AccountDetailResponse,
-  Account,
 } from './grpc/generated/accountdetail_pb';
 import { AccountDetailServiceClient } from './grpc/generated/AccountdetailServiceClientPb';
 import { ServiceRequest, ServiceResponse } from './grpc/generated/service_pb';
 import config from '@/lib/config';
 import { Any } from 'google-protobuf/google/protobuf/any_pb';
+import * as grpcWeb from 'grpc-web';
 
 const GRPC_TIMEOUT_MS = 5000;
 const grpcUrl = (config.grpc.url.startsWith('http') ? '' : 'http://') + config.grpc.url.replace(/^(https?:\/\/)/, '');
@@ -30,13 +30,15 @@ class GrpcClientSingleton {
       const deadline = new Date();
       deadline.setMilliseconds(deadline.getMilliseconds() + GRPC_TIMEOUT_MS);
 
+      // The actual method on the generated client class
       const method = this.client[methodName];
 
       if (typeof method !== 'function') {
         return reject(new TypeError(`this.client.${methodName} is not a function`));
       }
 
-      method.call(this.client, request, { deadline: deadline.getTime().toString() }, (err: any, res: TResponse) => {
+      // Correctly call the method with its context (`this.client`)
+      method.call(this.client, request, { deadline: deadline.getTime().toString() }, (err: grpcWeb.RpcError, res: TResponse) => {
         if (err) {
           return reject(err);
         }
@@ -68,7 +70,8 @@ class GrpcClientSingleton {
         throw new Error('Response success but data field is missing from the payload.');
       }
       
-      return AccountDetailResponse.deserializeBinary(data.getValue_asU8());
+      // The `unpack` method is the correct way to deserialize from an `Any` type.
+      return data.unpack(AccountDetailResponse.deserializeBinary, 'accountdetail.AccountDetailResponse');
 
     } catch (err) {
       console.error(`Critical failure in queryCustomerDetail:`, err);
