@@ -16,7 +16,7 @@
     "seed:prod": "cross-env NODE_ENV=production node src/scripts/seed-prod.js",
     "test:db": "node src/scripts/test-db.js",
     "postinstall": "prisma generate",
-    "grpc:generate": "protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=./src/lib/grpc/generated --ts_proto_opt=outputServices=grpc-js,env=node,useDate=false,forceLong=string,outputJsonMethods=false,outputClientImpl=true ./src/lib/grpc/protos/*.proto"
+    "grpc:generate": "protoc --plugin=protoc-gen-ts_proto=node_modules/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=./src/lib/grpc/generated --ts_proto_opt=outputServices=grpc-js,env=node,useDate=false,forceLong=string,outputJsonMethods=false,outputClientImpl=true ./src/lib/grpc/protos/*.proto"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.20.0",
