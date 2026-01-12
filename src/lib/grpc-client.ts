@@ -19,10 +19,11 @@ function loadGrpcClient() {
     console.log(`[gRPC Client] Initializing gRPC client for AccountDetailService at target URL: ${grpcUrl}`);
 
     try {
-        accountDetailServiceClient = new AccountDetailServiceClient(
+        const client = new grpc.Client(
             grpcUrl,
             grpc.credentials.createInsecure()
         );
+        accountDetailServiceClient = new AccountDetailServiceClient(client as any);
         console.log("[gRPC Client] gRPC client created successfully.");
         
     } catch (error) {

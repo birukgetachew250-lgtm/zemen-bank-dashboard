@@ -5,7 +5,8 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { getAccountDetailServiceClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
-import { ServiceRequest } from '@/lib/grpc/generated/accountdetail';
+import { ServiceRequest } from '@/lib/grpc/generated/service';
+import { AccountDetailRequest, AccountDetailRequest$type, AccountDetailResponse$type } from '@/lib/grpc/generated/accountdetail';
 import { Any } from '@/lib/grpc/generated/google/protobuf/any';
 
 const mockCustomer = {
@@ -33,7 +34,6 @@ export async function POST(req: Request) {
     }
 
     try {
-        // 1. Check if user already exists in AppUsers table
         const existingUserQuery = `SELECT "Id" FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :cif`;
         const existingUserResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, existingUserQuery, [customer_id]);
         
@@ -41,13 +41,15 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Customer is already registered for mobile banking.' }, { status: 409 });
         }
 
-        // 2. If not, proceed to call gRPC service
         const client = getAccountDetailServiceClient();
         
-        const accountDetailRequestPayload = {
+        const accountDetailRequestPayload: AccountDetailRequest = {
             branch_code: branch_code,
             customer_id: customer_id
         };
+
+        const accountDetailRequestMessage = AccountDetailRequest$type.create(accountDetailRequestPayload);
+        const encodedValue = AccountDetailRequest$type.toBinary(accountDetailRequestMessage);
 
         const serviceRequest: ServiceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
@@ -56,14 +58,14 @@ export async function POST(req: Request) {
             user_id: customer_id,
             data: {
                 type_url: 'type.googleapis.com/accountdetail.AccountDetailRequest',
-                value: Buffer.from(JSON.stringify(accountDetailRequestPayload)) // The library will handle serialization
+                value: encodedValue
             }
         };
 
         console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
 
         return new Promise((resolve) => {
-             client.queryCustomerDetail(serviceRequest, (error: any, response: any) => {
+             client.queryCustomerDetail(serviceRequest, undefined, (error: any, response: any) => {
                 if (error) {
                     console.error("[gRPC Error] customer-details:", error);
                     if (customer_id === '0000238') {
@@ -77,8 +79,8 @@ export async function POST(req: Request) {
                     console.log("[gRPC Success] Received ServiceResponse:", response);
                     if (response.code === '0' && response.data) {
                        try {
-                            const accountDetailResponse = JSON.parse(response.data.value.toString('utf8'));
-                            resolve(NextResponse.json(accountDetailResponse));
+                            const anyData = Any.unpack(response.data, AccountDetailResponse$type);
+                            resolve(NextResponse.json(anyData));
                         } catch (unpackError) {
                             console.error("[gRPC Unpack Error]", unpackError);
                             resolve(NextResponse.json({ message: "Failed to unpack customer details from response." }, { status: 500 }));
@@ -99,4 +101,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: "Database error while checking for existing customer." }, { status: 500 });
     }
 }
-
