@@ -6,6 +6,7 @@ import { executeQuery } from '@/lib/oracle-db';
 import { GrpcClient } from '@/lib/grpc-client';
 import crypto from 'crypto';
 import type { ServiceRequest } from '@/lib/grpc/generated/common';
+import type { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -22,7 +23,6 @@ const mockCustomer = {
     "country": "Ethiopia",
     "branch": "Bole"
 };
-
 
 export async function POST(req: Request) {
     const { branch_code, customer_id } = await req.json();
@@ -63,15 +63,22 @@ export async function POST(req: Request) {
             customer_id: customer_id,
         };
         
-        const message = AccountDetailRequest.create(innerDetail);
+        const message = (AccountDetailRequest.fromObject as any)(innerDetail);
+        const buffer = (AccountDetailRequest.encode as any)(message).finish();
+        
+        const anyPayload = {
+            type_url: `type.googleapis.com/accountdetail.AccountDetailRequest`,
+            value: buffer
+        };
         
         const serviceRequest: ServiceRequest = {
             request_id: `req_${crypto.randomUUID()}`,
             source_system: 'dashboard',
             channel: 'web',
             user_id: customer_id,
-            data: GrpcClient.Any.pack(message, AccountDetailRequest),
+            data: anyPayload
         };
+
 
         console.log("[gRPC Request] Sending ServiceRequest:", JSON.stringify(serviceRequest, null, 2));
 
@@ -96,7 +103,6 @@ export async function POST(req: Request) {
                                 enums: String,
                                 bytes: String,
                             });
-                            // Assuming the actual customer detail is nested
                             resolve(NextResponse.json(responseObject.customer));
                         } catch (unpackError) {
                             console.error("[gRPC Unpack Error]", unpackError);
