@@ -5,7 +5,7 @@ import path from 'path';
 import config from '@/lib/config';
 import type { ProtoGrpcType as AccountDetailProtoGrpcType } from './grpc/generated/accountdetail';
 import type { ServiceRequest, ServiceResponse } from './grpc/generated/common';
-import type { AccountDetailRequest, AccountDetailResponse } from './grpc/generated/accountdetail';
+import { AccountDetailRequest, AccountDetailResponse } from './grpc/generated/accountdetail';
 import { Buffer } from 'buffer';
 
 const PROTO_FILE = 'accountdetail.proto';
@@ -15,9 +15,6 @@ const GRPC_TIMEOUT_MS = 5000;
 class GrpcClientSingleton {
     public client: AccountDetailProtoGrpcType['accountdetail']['AccountDetailServiceClient'];
     private AccountDetailResponse: any;
-    private isInitialized = false;
-    private initPromise: Promise<void> | null = null;
-
 
     constructor() {
         try {
@@ -75,8 +72,8 @@ class GrpcClientSingleton {
         });
 
         try {
-            const queryCustomerDetail = this.promisifyCall<ServiceRequest, ServiceResponse>('queryCustomerDetail');
-            const response = await queryCustomerDetail(request);
+            const queryFn = this.promisifyCall<ServiceRequest, ServiceResponse>('queryCustomerDetail');
+            const response = await queryFn(request);
 
             if (response.code !== '0') {
                 console.warn('gRPC call returned non-zero code:', response);
