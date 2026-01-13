@@ -8,6 +8,7 @@ import path from 'path';
 import * as protobuf from 'protobufjs';
 import crypto from 'crypto';
 import { executeQuery } from '@/lib/oracle-db';
+import { type ServiceRequest } from '@/lib/grpc/generated/service_pb';
 
 const mockAccounts = [
     { custacno: "1031110048533015", branch_code: "103", ccy: "ETB", account_type: "S", acclassdesc: "Personal Saving - Private and Individual", status: "Active" },
@@ -19,18 +20,49 @@ const mockAccounts = [
 const GRPC_SERVER_ADDRESS = process.env.FLEX_GRPC_URL || 'localhost:8081';
 const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/accountlist.proto');
 
+// Module-level variables for gRPC client
+let client: any = null;
+let AccountListRequest: protobuf.Type | null = null;
+let AccountListResponse: protobuf.Type | null = null;
 
-async function promisifyCall(client: any, methodName: string, request: any): Promise<any> {
+(async () => {
+  try {
+    const packageDef = protoLoader.loadSync(PROTO_PATH, {
+      keepCase: true,
+      longs: String,
+      enums: String,
+      defaults: true,
+      oneofs: true,
+      includeDirs: [path.join(process.cwd(), 'src/lib/grpc/protos')]
+    });
+
+    const grpcObj = grpc.loadPackageDefinition(packageDef) as any;
+    
+    client = new grpcObj.accountlist.AccountListService(
+      GRPC_SERVER_ADDRESS,
+      grpc.credentials.createInsecure()
+    );
+
+    const root = await protobuf.load(PROTO_PATH);
+    AccountListRequest = root.lookupType('accountlist.AccountListRequest');
+    AccountListResponse = root.lookupType('accountlist.AccountListResponse');
+
+    if (!AccountListRequest || !AccountListResponse) {
+      throw new Error('Protobuf types for AccountList not found.');
+    }
+
+  } catch (error) {
+    console.error('[gRPC Client Init Failed for find-accounts]', error);
+  }
+})();
+
+async function promisifyCall<TRequest, TResponse>(methodName: string, request: TRequest): Promise<TResponse> {
     return new Promise((resolve, reject) => {
+        if (!client) return reject(new Error("gRPC client not initialized"));
         const deadline = new Date();
         deadline.setSeconds(deadline.getSeconds() + 60);
-        
-        const method = client[methodName];
-        if (typeof method !== 'function') {
-            return reject(new TypeError(`this.client[${methodName}] is not a function`));
-        }
 
-        method.call(client, request, { deadline }, (err: any, res: any) => {
+        client[methodName](request, { deadline }, (err: any, res: TResponse) => {
             if (err) return reject(err);
             resolve(res);
         });
@@ -45,42 +77,33 @@ export async function POST(req: Request) {
     }
 
     try {
-        // First, get already linked accounts from our Oracle DB
         const linkedAccountsQuery = `SELECT "HashedAccountNumber" FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :cif AND "Status" = 'Active'`;
         const linkedResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, linkedAccountsQuery, [cif]);
         const linkedAccountHashes = new Set((linkedResult.rows || []).map((row: any) => row.HashedAccountNumber));
 
-        // Now, call the gRPC service to get all accounts from core banking
-        const packageDef = protoLoader.loadSync(PROTO_PATH, {
-            keepCase: true,
-            longs: String,
-            enums: String,
-            defaults: true,
-            oneofs: true,
-            includeDirs: [path.join(process.cwd(), 'src/lib/grpc/protos')]
-        });
-        const grpcObj = grpc.loadPackageDefinition(packageDef) as any;
-        const client = new grpcObj.accountlist.AccountListService(
-            GRPC_SERVER_ADDRESS,
-            grpc.credentials.createInsecure()
-        );
-    
-        const root = await protobuf.load(PROTO_PATH);
-        const AccountListResponse = root.lookupType('accountlist.AccountListResponse');
+        if (!AccountListRequest || !AccountListResponse) {
+             throw new Error("AccountList protobuf types not loaded.");
+        }
         
-        const request = {
-            data: {
-                "@type": "type.googleapis.com/accountlist.AccountListRequest",
-                customer_id: cif,
-                branch_code: branch_code,
-            },
+        const accountListRequestPayload = AccountListRequest.create({
+            customer_id: cif,
+            branch_code: branch_code,
+        });
+
+        const encodedValue = AccountListRequest.encode(accountListRequestPayload).finish();
+
+        const serviceRequest: ServiceRequest = {
             request_id: `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
             source_system: 'DASHBOARD',
             channel: 'WEB',
-            user_id: 'DASH_USER'
+            user_id: 'DASH_USER',
+            data: {
+                type_url: 'type.googleapis.com/accountlist.AccountListRequest',
+                value: Buffer.from(encodedValue)
+            }
         };
 
-        const grpcResponse = await promisifyCall(client, 'QueryCustomerAccountList', request);
+        const grpcResponse = await promisifyCall<any, any>('QueryCustomerAccountList', serviceRequest);
         
         if (!grpcResponse || (grpcResponse.code !== '0' && grpcResponse.code !== '00')) {
              return NextResponse.json({ message: grpcResponse.message || 'Upstream service error' }, { status: 502 });
