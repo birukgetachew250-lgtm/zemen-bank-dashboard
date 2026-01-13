@@ -131,7 +131,8 @@ async function main() {
     console.log('Cleared existing data from dashboard module.');
 
     // Clean up existing data from Oracle DBs
-    await clearOracleTables();
+    // Not calling clearOracleTables() to avoid issues in environments without Oracle drivers.
+    // The individual seed sections will handle their own data.
 
     // Seed Branches (in dashboard DB)
     const branch1 = await prisma.branch.create({ data: { id: 'br_1', name: 'Bole Branch', location: 'Bole, Addis Ababa' } });
@@ -237,6 +238,7 @@ async function main() {
         ]
     });
     console.log('Seeded 2 mini-apps.');
+
 
     console.log('Seeding finished.');
 }

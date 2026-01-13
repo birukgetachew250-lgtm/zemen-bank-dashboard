@@ -87,19 +87,19 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
       });
       const result = await response.json();
       if (response.ok) {
-        if (action === 'approve' && result.newPin) {
+        if (action === 'approve' && (result.newPin || result.tempPassword)) {
           toast({
-            duration: 10000,
-            title: `PIN Reset Successful`,
+            duration: 20000, // Show for longer
+            title: `Action Successful`,
             description: (
-              <div className="flex flex-col gap-2">
-                <span>The new PIN has been generated.</span>
-                <Alert>
+              <div className="flex flex-col gap-2 mt-2">
+                <span>{result.message}</span>
+                <Alert variant="destructive">
                   <Info className="h-4 w-4" />
-                  <AlertTitle>New Temporary PIN</AlertTitle>
-                  <AlertDescription className="font-mono text-lg">{result.newPin}</AlertDescription>
+                  <AlertTitle>Temporary Password</AlertTitle>
+                  <AlertDescription className="font-mono text-lg font-bold tracking-widest">{result.newPin || result.tempPassword}</AlertDescription>
                 </Alert>
-                <span className="text-xs">Please securely communicate this to the customer.</span>
+                <span className="text-xs text-muted-foreground">Please securely communicate this to the customer. It is valid for a short period.</span>
               </div>
             ),
           });
@@ -245,9 +245,9 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
                         <div>
                             <h3 className="font-semibold text-lg mb-2">Security & Channel</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-4 border rounded-lg bg-muted/50">
-                                <InfoItem icon={<Shield />} label="Main Auth Method" value={parsedDetails.onboardingData.signUpMainAuth} />
+                                <InfoItem icon={<Shield />} label="Main Auth Method" value={parsedDetails.onboardingData.mainAuthMethod} />
                                 <InfoItem icon={<Smartphone />} label="Channel" value={parsedDetails.onboardingData.channel} />
-                                <InfoItem icon={<Star />} label="2FA Method" value={parsedDetails.onboardingData.signUp2FA} />
+                                <InfoItem icon={<Star />} label="2FA Method" value={parsedDetails.onboardingData.twoFactorAuthMethod} />
                             </div>
                         </div>
                     )}

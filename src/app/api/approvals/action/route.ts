@@ -74,29 +74,30 @@ export async function POST(req: Request) {
                 const approvalDetails = JSON.parse(approval.details || '{}');
                 const { customerData, linkedAccounts, onboardingData } = approvalDetails;
                 
-                const appUserId = `user_${crypto.randomUUID()}`;
+                const appUserId = crypto.randomUUID();
                 const nameParts = customerData.full_name.split(' ');
                 
                 // --- Create AppUser ---
                 const appUserQuery = `
-                    INSERT INTO "USER_MODULE"."AppUsers" 
-                    ("Id", "CIFNumber", "FirstName", "SecondName", "LastName", "Email", "PhoneNumber", "Status", "SignUpMainAuth", "SignUp2FA", "BranchName", "AddressLine1", "Nationality", "Channel")
-                    VALUES (:Id, :CIFNumber, :FirstName, :SecondName, :LastName, :Email, :PhoneNumber, :Status, :SignUpMainAuth, :SignUp2FA, :BranchName, :AddressLine1, :Nationality, :Channel)`;
+                    INSERT INTO USER_MODULE."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","Status","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:Status,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
                 
                 const appUserBinds = {
-                    Id: appUserId,
                     CIFNumber: customerData.customer_number,
                     FirstName: encrypt(nameParts[0])!,
                     SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1])!,
                     LastName: encrypt(nameParts[nameParts.length - 1])!,
                     Email: encrypt(customerData.email_id)!,
                     PhoneNumber: encrypt(customerData.mobile_number)!,
-                    Status: 'Active',
-                    SignUpMainAuth: onboardingData.mainAuthMethod,
-                    SignUp2FA: onboardingData.twoFactorAuthMethod,
-                    BranchName: customerData.branch,
                     AddressLine1: customerData.address_line_1,
+                    AddressLine2: customerData.address_line_2,
+                    AddressLine3: customerData.address_line_3,
+                    AddressLine4: customerData.address_line_4,
                     Nationality: customerData.country,
+                    BranchCode: customerData.branch,
+                    BranchName: customerData.branch,
+                    Status: 'Pending',
+                    SignUp2FA: onboardingData.twoFactorAuthMethod,
+                    SignUpMainAuth: onboardingData.mainAuthMethod,
                     Channel: onboardingData.channel
                 };
 
@@ -104,42 +105,55 @@ export async function POST(req: Request) {
 
                 // --- Create Accounts ---
                 for (const acc of linkedAccounts) {
-                    const accountQuery = `
-                        INSERT INTO "USER_MODULE"."Accounts" 
-                        ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "Currency", "Status", "BranchName") 
-                        VALUES (:Id, :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :Currency, :Status, :BranchName)`;
+                    const accountQuery = `INSERT INTO USER_MODULE."Accounts" ("Id","CIFNumber","AccountNumber","HashedAccountNumber","FirstName","SecondName","LastName","BranchCode","BranchName","AccountType","Currency","Status","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (SYS_GUID(),:CIFNumber,:AccountNumber,:HashedAccountNumber,:FirstName,:SecondName,:LastName,:BranchCode,:BranchName,:AccountType,:Currency,:Status,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`;
                     
-                    const accountId = `acc_${crypto.randomUUID()}`;
                     const accountBinds = {
-                        Id: accountId,
                         CIFNumber: customerData.customer_number,
                         AccountNumber: encrypt(acc.CUSTACNO)!,
                         HashedAccountNumber: crypto.createHash('sha256').update(acc.CUSTACNO).digest('hex'),
                         FirstName: encrypt(nameParts[0])!,
                         SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1])!,
                         LastName: encrypt(nameParts[nameParts.length - 1])!,
+                        BranchCode: acc.BRANCH_CODE,
+                        BranchName: acc.BRANCH_CODE, // Assuming branch name can be same as code for now
                         AccountType: encrypt(acc.ACCLASSDESC)!,
                         Currency: encrypt(acc.CCY)!,
                         Status: 'Active',
-                        BranchName: acc.BRANCH_CODE
                     };
                     await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accountQuery, accountBinds);
                 }
 
-                // --- Create UserSecurity ---
-                const userSecurityQuery = `
-                    INSERT INTO "SECURITY_MODULE"."UserSecurities" 
-                    ("UserId", "CIFNumber", "Status", "IsLocked") 
-                    VALUES (:UserId, :CIFNumber, :Status, :IsLocked)`;
+                // --- Create UserSecurity with temp password ---
+                const tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
                 
+                const userSecurityQuery = `INSERT INTO SECURITY_MODULE."UserSecurities" ("UserId","CIFNumber","PinHash","Status","IsLoggedIn","FailedAttempts","IsLocked","OnTmpPassword","IsActivationUsed","ActivationExpiredAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (:UserId,:CIFNumber,NULL,'Active',0,0,0,1,0,SYSTIMESTAMP + 7,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`;
                 await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, userSecurityQuery, {
                     UserId: appUserId,
                     CIFNumber: customerData.customer_number,
-                    Status: 'Active',
-                    IsLocked: 0
                 });
                 
+                // --- Create OTP for Temp Password ---
+                const otpId = crypto.randomUUID();
+                const codeHash = crypto.createHash('sha256').update(tempPassword).digest('hex').toLowerCase();
+                const otpQueries = `
+                  INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version")
+                  VALUES ('${otpId}','${customerData.customer_number}','${codeHash}',NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID());
+
+                  INSERT INTO OTP_MODULE."OtpUsers" ("UserId","Status","LockedUntil","InsertDate","UpdateDate","OtpCodeId")
+                  VALUES ('${customerData.customer_number}',0,NULL,SYSTIMESTAMP,SYSTIMESTAMP,'${otpId}');
+                `;
+                // Note: The original C# code seems to execute these as separate queries.
+                // Depending on the Oracle driver, they might need to be run one by one.
+                // For simplicity here, assuming they can be run in a single block if the driver/setup supports it,
+                // otherwise, split into two executeQuery calls.
+                // We will split for safety.
+                await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES ('${otpId}','${customerData.customer_number}','${codeHash}',NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`);
+                await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpUsers" ("UserId","Status","LockedUntil","InsertDate","UpdateDate","OtpCodeId") VALUES ('${customerData.customer_number}',0,NULL,SYSTIMESTAMP,SYSTIMESTAMP,'${otpId}')`);
+
+                
                 await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
+                
+                responseData.tempPassword = tempPassword;
                 successMessage = 'New customer has been successfully onboarded and activated.';
                 break;
             case 'suspend-customer':
@@ -177,13 +191,11 @@ export async function POST(req: Request) {
                 const linkDetails = JSON.parse(approval.details || '{}');
                 const accQuery = `INSERT INTO "USER_MODULE"."Accounts" 
                     ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "Currency", "Status", "BranchName") 
-                    VALUES (:Id, :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :Currency, :Status, :BranchName)`;
+                    VALUES (SYS_GUID(), :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :Currency, :Status, :BranchName)`;
                 
                 const accNameParts = linkDetails.customerName.split(' ');
-                const accId = `acc_${crypto.randomUUID()}`;
                 
                 const accBinds = {
-                    Id: accId,
                     CIFNumber: linkDetails.cif,
                     AccountNumber: encrypt(linkDetails.accountNumber)!,
                     HashedAccountNumber: crypto.createHash('sha256').update(linkDetails.accountNumber).digest('hex'),
