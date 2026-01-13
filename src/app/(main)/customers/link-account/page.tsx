@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Card,
@@ -17,7 +17,6 @@ import { Search, Loader2, Link } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { CustomerDetails } from '@/components/customers/CustomerDetailsCard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -60,6 +59,31 @@ export default function LinkAccountPage() {
 
   const router = useRouter();
   const { toast } = useToast();
+  
+  useEffect(() => {
+    async function fetchAccounts() {
+      if (!customer?.cifNumber) return;
+      
+      setIsLoading(true);
+      try {
+        const accRes = await fetch(`/api/onboarding/find-accounts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cif: customer.cifNumber, branch_code: customer.branchCode || '103' })
+        });
+        if (!accRes.ok) throw new Error((await accRes.json()).message || 'Could not fetch accounts');
+        const accData = await accRes.json();
+        setAccounts(accData);
+        setSelection({});
+      } catch (error: any) {
+        toast({ variant: 'destructive', title: 'Could not fetch accounts', description: error.message });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchAccounts();
+  }, [customer, toast]);
 
   const handleSearch = async () => {
     if (!cifNumber) {
@@ -76,21 +100,11 @@ export default function LinkAccountPage() {
       if (!custRes.ok) throw new Error((await custRes.json()).message || 'Customer not found');
       const custData = await custRes.json();
       setCustomer(custData);
-
-      const accRes = await fetch(`/api/onboarding/find-accounts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cif: custData.cifNumber, branch_code: custData.branchCode || '103' })
-      });
-      if (!accRes.ok) throw new Error((await accRes.json()).message || 'Could not fetch accounts');
-      const accData = await accRes.json();
-      setAccounts(accData);
-
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Search Failed', description: error.message });
-    } finally {
-      setIsLoading(false);
-    }
+      setIsLoading(false); // Stop loading on search fail
+    } 
+    // Loading is stopped in useEffect after accounts are fetched
   };
   
   const handleSelectionChange = (accountNumber: string, isSelected: boolean) => {
@@ -98,13 +112,13 @@ export default function LinkAccountPage() {
   };
 
   const selectedAccounts = useMemo(() => {
-    return accounts.filter(acc => selection[acc.custacno]);
+    return accounts.filter(acc => !acc.isAlreadyLinked && selection[acc.custacno]);
   }, [accounts, selection]);
 
 
   const handleSubmitForApproval = async () => {
     if (!customer || selectedAccounts.length === 0) {
-        toast({ variant: 'destructive', title: 'No accounts selected', description: 'Please select at least one account to link.' });
+        toast({ variant: 'destructive', title: 'No accounts selected', description: 'Please select at least one new account to link.' });
         return;
     }
     setIsSubmitting(true);
@@ -170,7 +184,7 @@ export default function LinkAccountPage() {
         </CardContent>
       </Card>
       
-      {isLoading && (
+      {isLoading && !customer && (
         <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
       )}
 
@@ -181,7 +195,9 @@ export default function LinkAccountPage() {
             <CardDescription>Choose the accounts to link to this customer's mobile banking profile.</CardDescription>
           </CardHeader>
             <CardContent className="space-y-4">
-              {accounts.length > 0 ? (
+              {isLoading ? (
+                  <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+              ) : accounts.length > 0 ? (
                  <div className="rounded-md border">
                      <Table>
                         <TableHeader>
@@ -195,7 +211,7 @@ export default function LinkAccountPage() {
                         </TableHeader>
                         <TableBody>
                             {accounts.map(acc => (
-                                <TableRow key={acc.custacno} className={cn(acc.isAlreadyLinked && "bg-muted/30 text-muted-foreground")}>
+                                <TableRow key={acc.custacno} data-state={selection[acc.custacno] ? "selected" : undefined}>
                                     <TableCell>
                                         <Checkbox 
                                             checked={selection[acc.custacno] || acc.isAlreadyLinked}
@@ -218,9 +234,8 @@ export default function LinkAccountPage() {
                  </div>
               ) : (
                 <Alert>
-                  <AlertCircle className="h-4 w-4" />
                   <AlertTitle>No Unlinked Accounts Found</AlertTitle>
-                  <AlertDescription>No accounts were found for this customer that are not already linked to a mobile banking profile.</AlertDescription>
+                  <AlertDescription>No unlinked bank accounts were found for this customer.</AlertDescription>
                 </Alert>
               )}
             </CardContent>
