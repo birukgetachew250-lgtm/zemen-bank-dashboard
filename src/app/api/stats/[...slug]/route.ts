@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { subDays, startOfDay, endOfDay, parseISO } from 'date-fns';
+import { executeQuery } from '@/lib/oracle-db';
 
 function getDatesFromRange(range: string): { from: Date, to: Date } {
     const now = new Date();
