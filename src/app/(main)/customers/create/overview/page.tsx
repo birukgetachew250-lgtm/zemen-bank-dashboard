@@ -3,7 +3,7 @@
 
 import { Suspense, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Loader2, User, Phone, Mail, Fingerprint, Shield, Smartphone, Star, Landmark } from 'lucide-react';
+import { Loader2, User, Phone, Mail, Fingerprint, Shield, Smartphone, Star, Landmark, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,

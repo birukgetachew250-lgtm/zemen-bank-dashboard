@@ -149,7 +149,10 @@ export async function POST(req: Request) {
                     UPDATE "USER_MODULE"."AppUsers" SET
                         "Email" = :email,
                         "PhoneNumber" = :phoneNumber,
-                        "SignUpMainAuth" = :signUpMainAuth
+                        "SignUpMainAuth" = :signUpMainAuth,
+                        "SignUp2FA" = :signUp2FA,
+                        "UpdateDate" = SYSTIMESTAMP,
+                        "UpdateUser" = 'admin'
                     WHERE "CIFNumber" = :cif
                 `;
                 
@@ -157,12 +160,13 @@ export async function POST(req: Request) {
                     email: encrypt(changes.email.new),
                     phoneNumber: encrypt(changes.phoneNumber.new),
                     signUpMainAuth: changes.signUpMainAuth.new,
+                    signUp2FA: changes.signUp2FA.new,
                     cif: cif,
                 };
                 
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateQuery, updateBinds);
                 
-                await db.customer.updateMany({ where: { phone: changes.phoneNumber.old }, data: { phone: changes.phoneNumber.new } });
+                await db.customer.updateMany({ where: { phone: changes.phoneNumber.old }, data: { phone: changes.phoneNumber.new, name: changes.email.new } });
                 
                 successMessage = `Customer profile for CIF ${cif} has been updated.`;
                 break;
@@ -214,7 +218,7 @@ export async function POST(req: Request) {
                         HashedAccountNumber: crypto.createHash('sha256').update(acc.CUSTACNO).digest('hex'),
                         FirstName: encrypt(customerNameParts[0])!,
                         SecondName: encrypt(customerNameParts.length > 2 ? customerNameParts.slice(1, -1).join(' ') : (customerNameParts[1] || ''))!,
-                        LastName: encrypt(customerNameParts[customerNameParts.length - 1])!,
+                        LastName: encrypt(customerNameParts[nameParts.length - 1])!,
                         AccountType: encrypt(acc.ACCLASSDESC)!,
                         Currency: encrypt(acc.CCY)!,
                         Status: 'Active',

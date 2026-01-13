@@ -67,7 +67,6 @@ const getStatusVariant = (status: string) => {
 }
 
 const authMethods = [
-  { value: 'PIN', label: 'PIN Code' },
   { value: 'SMSOTP', label: 'SMS OTP' },
   { value: 'GAUTH', label: 'Google Authenticator' },
   { value: 'EMAILOTP', label: 'Email OTP' },
@@ -77,6 +76,10 @@ const editProfileSchema = z.object({
   email: z.string().email(),
   phoneNumber: z.string().min(1, 'Phone number is required.'),
   signUpMainAuth: z.string().min(1, 'Primary authentication method is required.'),
+  signUp2FA: z.string(),
+}).refine(data => data.signUpMainAuth !== data.signUp2FA, {
+    message: "Main auth and 2FA method cannot be the same.",
+    path: ["signUp2FA"],
 });
 
 type EditProfileFormValues = z.infer<typeof editProfileSchema>;
@@ -100,7 +103,12 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
                 if (!customerRes.ok) throw new Error("Customer not found");
                 const customerData = await customerRes.json();
                 setCustomer(customerData);
-                form.reset(customerData);
+                form.reset({
+                    email: customerData.email,
+                    phoneNumber: customerData.phoneNumber,
+                    signUpMainAuth: customerData.signUpMainAuth,
+                    signUp2FA: customerData.signUp2FA,
+                });
 
                 const accountsRes = await fetch(`/api/customers/${customerId}/accounts`);
                 if (!accountsRes.ok) throw new Error("Could not fetch accounts");
@@ -113,7 +121,9 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
                 setLoading(false);
             }
         }
-        fetchData();
+        if (customerId) {
+            fetchData();
+        }
     }, [customerId, toast, router, form]);
     
     const handleUnlink = async (accountNumber: string) => {
@@ -149,6 +159,7 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
           email: { old: customer.email, new: values.email },
           phoneNumber: { old: customer.phoneNumber, new: values.phoneNumber },
           signUpMainAuth: { old: customer.signUpMainAuth, new: values.signUpMainAuth },
+          signUp2FA: { old: customer.signUp2FA, new: values.signUp2FA },
         };
         
         try {
@@ -182,7 +193,9 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
     }
     
     if (!customer) {
-        return notFound();
+        // The notFound() from next/navigation should be used here if you have a `not-found.tsx` file.
+        // For now, just rendering a message.
+        return <div className="text-center p-8">Customer not found.</div>;
     }
 
     const fullName = customer.name;
@@ -385,6 +398,30 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
                                         {method.label}
                                         </SelectItem>
                                     ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                     <FormField
+                        control={form.control}
+                        name="signUp2FA"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Two-Factor (2FA) Method</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a 2FA method" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {authMethods.map(method => (
+                                        <SelectItem key={method.value} value={method.value}>
+                                          {method.label}
+                                        </SelectItem>
+                                      ))}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />

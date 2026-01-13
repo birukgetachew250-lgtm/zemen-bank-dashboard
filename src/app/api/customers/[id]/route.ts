@@ -5,19 +5,26 @@ import { decrypt, encrypt } from '@/lib/crypto';
 import crypto from 'crypto';
 
 const getCustomerByCifOrId = async (identifier: string) => {
-    // This query finds the base customer profile from the AppUsers table.
-    // It's flexible enough to search by CIFNumber or a hashed PhoneNumber.
-    
     let query;
     let binds: any;
 
-    // A simple heuristic to differentiate CIF from a potential internal ID
-    if (/^\d{7}$/.test(identifier)) { // Assuming CIF is a 7-digit number
+    const isCif = /^\d{7}$/.test(identifier) || /^\d{6}$/.test(identifier) || /^\d{5}$/.test(identifier);
+
+    if (isCif) {
         query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :id`;
         binds = { id: identifier };
     } else {
-        query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "Id" = :id`;
-        binds = { id: identifier };
+        // Fallback for non-cif identifiers, or phone numbers
+        const phoneHash = crypto.createHash('sha256').update(identifier).digest('hex');
+        query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "PhoneNumberHashed" = :hash`;
+        binds = { hash: phoneHash };
+    }
+    
+    // If it's a user_id from our local system, extract CIF and requery
+    if (identifier.startsWith('user_')) {
+        const cif = identifier.split('_')[1];
+        query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :id`;
+        binds = { id: cif };
     }
 
     try {
