@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+option csharp_namespace = "Flexcube_module_grpc";
+package accountlist;
+import "common.proto"; 
+
+message AccountDetail {
+    string custacno        = 1; // 3021110000238018
+    string branch_code     = 2; // 302
+    string ccy             = 3; // ETB
+    string currbal         = 4; // 3000 (kept as string for precision/formatting flexibility)
+    string account_type    = 5; // S
+    string customer_name   = 6; // TSEDALE ADAMU MEDHANE
+    string ac_desc         = 7; // TSEDALE ADAMU MEDHANE
+    string account_class   = 8; // SSZB
+    string acclassdesc     = 9; // Z-Club Gold – Saving
+}
+
+message AccountListRequest {
+  string branch_code     = 1;
+  string customer_id  = 2; 
+}
+
+message AccountListResponse {
+    repeated AccountDetail accounts = 1; 
+    string status                  = 2; 
+    string message                 = 3;
+}
+
+
+service AccountListService {
+  rpc QueryCustomerAccountList (common.ServiceRequest) returns (common.ServiceResponse);
+}

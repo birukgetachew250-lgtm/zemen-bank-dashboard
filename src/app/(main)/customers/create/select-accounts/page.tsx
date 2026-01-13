@@ -26,30 +26,14 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 
 interface Account {
-    CUSTACNO: string;
-    BRANCH_CODE: string;
-    CCY: string;
-    ACCOUNT_TYPE: string;
-    ACCLASSDESC: string;
+    custacno: string;
+    branch_code: string;
+    ccy: string;
+    account_type: string;
+    acclassdesc: string;
     status: string; 
     included: boolean;
 }
-
-const fetchAccountsByCif = async (cif: string): Promise<Omit<Account, 'included'>[]> => {
-    console.log("Fetching accounts for CIF:", cif);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    if (cif === '0000238') {
-        return [
-            { CUSTACNO: "3021110000238018", BRANCH_CODE: "302", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Z-Club Gold –  Saving", status: "Active" },
-        ];
-    }
-    return [
-        { CUSTACNO: "1031110048533015", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Private and Individual", status: "Active" },
-        { CUSTACNO: "1031110048533016", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "C", ACCLASSDESC: "Personal Current - Private and Individual", status: "Active" },
-        { CUSTACNO: "1031110048533017", BRANCH_CODE: "101", CCY: "USD", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Domiciliary Saving", status: "Dormant" },
-        { CUSTACNO: "1031110048533018", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Joint", status: "Inactive" },
-    ];
-};
 
 const getStatusVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -74,19 +58,43 @@ function SelectAccountsContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (customer.customer_number) {
-      fetchAccountsByCif(customer.customer_number).then(data => {
-        setAccounts(data.map(acc => ({ ...acc, included: true })));
-        setLoading(false);
-      });
-    } else {
-        setLoading(false);
+    async function fetchAccounts() {
+        if (!customer.customer_number) {
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/onboarding/find-accounts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cif: customer.customer_number,
+                    branch_code: customer.branch_code || '103' // Fallback branch code
+                }),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to fetch accounts.');
+            }
+            const data = await response.json();
+            setAccounts(data.map((acc: any) => ({ ...acc, included: acc.status?.toLowerCase() === 'active' })));
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: 'Could not fetch accounts',
+                description: error.message,
+            });
+        } finally {
+            setLoading(false);
+        }
     }
-  }, [customer.customer_number]);
+    fetchAccounts();
+  }, [customer.customer_number, customer.branch_code, toast]);
 
   const toggleAccountInclusion = (accountNumber: string) => {
     setAccounts(prev => prev.map(acc => 
-        acc.CUSTACNO === accountNumber ? { ...acc, included: !acc.included } : acc
+        acc.custacno === accountNumber ? { ...acc, included: !acc.included } : acc
     ));
   };
   
@@ -101,9 +109,19 @@ function SelectAccountsContent() {
       return;
     }
     
+    // The API expects the original field names (CUSTACNO etc), so we map back
+    const accountsToSubmit = includedAccounts.map(acc => ({
+        CUSTACNO: acc.custacno,
+        BRANCH_CODE: acc.branch_code,
+        CCY: acc.ccy,
+        ACCOUNT_TYPE: acc.account_type,
+        ACCLASSDESC: acc.acclassdesc,
+        status: acc.status,
+    }))
+
     const params = new URLSearchParams({
         customer: JSON.stringify(customer),
-        accounts: JSON.stringify(includedAccounts)
+        accounts: JSON.stringify(accountsToSubmit)
     });
     router.push(`/customers/create/overview?${params.toString()}`);
   };
@@ -157,12 +175,12 @@ function SelectAccountsContent() {
                 <TableRow><TableCell colSpan={7} className="h-24 text-center"><Loader2 className="animate-spin mx-auto" /></TableCell></TableRow>
               ) : accounts.length > 0 ? (
                 accounts.map((acc) => (
-                  <TableRow key={acc.CUSTACNO} className={cn(!acc.included && "bg-muted/50 text-muted-foreground")}>
-                    <TableCell className="font-medium">{acc.CUSTACNO}</TableCell>
-                    <TableCell>{acc.ACCLASSDESC}</TableCell>
-                    <TableCell><Badge variant="outline">{acc.ACCOUNT_TYPE}</Badge></TableCell>
-                    <TableCell><Badge variant="outline">{acc.CCY}</Badge></TableCell>
-                    <TableCell>{acc.BRANCH_CODE}</TableCell>
+                  <TableRow key={acc.custacno} className={cn(!acc.included && "bg-muted/50 text-muted-foreground")}>
+                    <TableCell className="font-medium">{acc.custacno}</TableCell>
+                    <TableCell>{acc.acclassdesc}</TableCell>
+                    <TableCell><Badge variant="outline">{acc.account_type}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{acc.ccy}</Badge></TableCell>
+                    <TableCell>{acc.branch_code}</TableCell>
                     <TableCell>
                       <Badge 
                         variant={getStatusVariant(acc.status)}
@@ -179,7 +197,7 @@ function SelectAccountsContent() {
                        <Button 
                           variant={acc.included ? "destructive" : "secondary"} 
                           size="sm"
-                          onClick={() => toggleAccountInclusion(acc.CUSTACNO)}
+                          onClick={() => toggleAccountInclusion(acc.custacno)}
                           className={cn(acc.included ? "bg-red-500 hover:bg-red-600" : "")}
                         >
                         {acc.included ? <MinusCircle className="mr-2 h-4 w-4" /> : <PlusCircle className="mr-2 h-4 w-4" />}
