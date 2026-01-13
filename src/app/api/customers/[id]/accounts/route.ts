@@ -2,42 +2,8 @@
 'use server';
 
 import { NextResponse } from 'next/server';
-import * as grpc from '@grpc/grpc-js';
-import * as protoLoader from '@grpc/proto-loader';
-import path from 'path';
-
-const GRPC_SERVER_ADDRESS = process.env.FLEX_GRPC_URL || 'localhost:50051';
-const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/accountdetail.proto');
-
-let client: any;
-try {
-    const packageDef = protoLoader.loadSync(PROTO_PATH, {
-      keepCase: true,
-      longs: String,
-      enums: String,
-      defaults: true,
-      oneofs: true,
-    });
-    const grpcObj = grpc.loadPackageDefinition(packageDef) as any;
-    client = new grpcObj.accountdetail.AccountDetailService(GRPC_SERVER_ADDRESS, grpc.credentials.createInsecure());
-} catch(e) {
-    console.error("Failed to initialize gRPC client for accounts", e);
-}
-
-
-const getMockAccounts = (cif: string) => {
-    if (cif === '0000238') {
-        return [
-            { custacno: "3021110000238018", branch_code: "302", ccy: "ETB", account_type: "S", acclassdesc: "Z-Club Gold –  Saving", status: "Active" },
-        ];
-    }
-    return [
-        { custacno: "1031110048533015", branch_code: "103", ccy: "ETB", account_type: "S", acclassdesc: "Personal Saving - Private and Individual", status: "Active" },
-        { custacno: "1031110048533016", branch_code: "103", ccy: "ETB", account_type: "C", acclassdesc: "Personal Current - Private and Individual", status: "Active" },
-        { custacno: "1031110048533017", branch_code: "101", ccy: "USD", account_type: "S", acclassdesc: "Personal Domiciliary Saving", status: "Dormant" },
-        { custacno: "1031110048533018", branch_code: "103", ccy: "ETB", account_type: "S", acclassdesc: "Personal Saving - Joint", status: "Inactive" },
-    ];
-};
+import { executeQuery } from '@/lib/oracle-db';
+import { decrypt } from '@/lib/crypto';
 
 export async function GET(
   req: Request,
@@ -47,36 +13,45 @@ export async function GET(
     const customerId = params.id;
     let cif = customerId;
 
+    // If the ID is a user_id from our local DB, extract the CIF
     if (customerId.startsWith('user_')) {
         cif = customerId.split('_')[1];
+    } else if (customerId.length !== 7) { // Basic CIF length check
+        // If it's not a user_id and not a likely CIF, check the AppUsers table
+        const userQuery = `SELECT "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "Id" = :id`;
+        const userResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, userQuery, [customerId]);
+        if (!userResult.rows || userResult.rows.length === 0) {
+            return NextResponse.json({ message: 'Could not determine CIF for the given customer ID.' }, { status: 404 });
+        }
+        cif = userResult.rows[0].CIFNumber;
     }
+
 
     if (!cif) {
         return NextResponse.json({ message: 'Could not determine CIF for the given customer ID.' }, { status: 404 });
     }
 
-    const accountDetailRequestPayload = {
-        branch_code: "103", // This seems to be hardcoded in the original file, review if needed
-        customer_id: cif,
-    };
+    const linkedAccountsQuery = `SELECT * FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :cif AND "Status" = 'Active'`;
+    const linkedResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, linkedAccountsQuery, [cif]);
+
+    if (!linkedResult.rows) {
+        return NextResponse.json([]);
+    }
+
+    const accounts = linkedResult.rows.map((acc: any) => ({
+      id: acc.Id,
+      accountNumber: decrypt(acc.AccountNumber),
+      accountType: decrypt(acc.AccountType),
+      currency: decrypt(acc.Currency),
+      status: acc.Status,
+      branchName: acc.BranchName,
+    }));
     
-    const response: any = await new Promise((resolve, reject) => {
-        if (!client) {
-            return reject(new Error("gRPC client not initialized"));
-        }
-        client.QueryCustomerDetail(accountDetailRequestPayload, (err: any, res: any) => {
-            if (err) reject(err);
-            else resolve(res);
-        })
-    });
-    
-    return NextResponse.json(response.accounts || []);
+    return NextResponse.json(accounts);
 
   } catch (error: any) {
-    console.error('Failed to fetch accounts:', error);
-    
-    let cif = params.id.startsWith('user_') ? params.id.split('_')[1] : params.id;
-    const mockAccounts = getMockAccounts(cif);
-    return NextResponse.json(mockAccounts);
+    console.error('Failed to fetch linked accounts:', error);
+    const errorMessage = error.details || error.message || 'An unexpected error occurred while fetching accounts.';
+    return NextResponse.json({ message: `Failed to fetch accounts. ${errorMessage}` }, { status: 502 });
   }
 }

@@ -56,7 +56,7 @@ export default function UnlinkAccountPage() {
       const accRes = await fetch(`/api/customers/${cifNumber}/accounts`);
       if (!accRes.ok) throw new Error('Could not fetch accounts');
       const accData = await accRes.json();
-      setAccounts(accData.filter((acc: LinkedAccount) => acc.status === 'Active'));
+      setAccounts(accData);
 
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Search Failed', description: error.message });
