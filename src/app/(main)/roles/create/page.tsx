@@ -68,7 +68,8 @@ async function getRoleData(id?: string) {
 
 
 export default async function CreateRolePage({ searchParams }: { searchParams: { id?: string }}) {
-    const { permissions, role } = await getRoleData(searchParams.id);
+    const { id } = searchParams;
+    const { permissions, role } = await getRoleData(id);
     return (
         <div className="w-full h-full">
            <CreateRoleForm permissions={permissions} initialData={role} />

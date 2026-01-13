@@ -2,6 +2,21 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+export async function GET(req: Request) {
+    try {
+        const roles = await db.role.findMany({
+            orderBy: {
+                name: 'asc',
+            },
+        });
+        return NextResponse.json(roles);
+    } catch (error) {
+        console.error('Failed to fetch roles:', error);
+        return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+
 export async function POST(req: Request) {
     try {
         const { name, description, permissions } = await req.json();
