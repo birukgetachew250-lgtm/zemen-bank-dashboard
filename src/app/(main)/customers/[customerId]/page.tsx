@@ -15,6 +15,15 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,13 +35,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { User, Landmark, Activity, Smartphone, Shield, Edit, Ban, History, Unlink, Link } from "lucide-react";
+import { User, Landmark, Activity, Smartphone, Shield, Edit, History, Unlink } from "lucide-react";
 import { notFound, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import * as z from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const activityLogs = [
     { id: 1, action: "Logged In", timestamp: "2023-10-27 10:00 AM", ip: "192.168.1.1", device: "iPhone 14 Pro" },
@@ -51,12 +66,31 @@ const getStatusVariant = (status: string) => {
     }
 }
 
+const authMethods = [
+  { value: 'PIN', label: 'PIN Code' },
+  { value: 'SMSOTP', label: 'SMS OTP' },
+  { value: 'GAUTH', label: 'Google Authenticator' },
+  { value: 'EMAILOTP', label: 'Email OTP' },
+];
+
+const editProfileSchema = z.object({
+  email: z.string().email(),
+  phoneNumber: z.string().min(1, 'Phone number is required.'),
+  signUpMainAuth: z.string().min(1, 'Primary authentication method is required.'),
+});
+
+type EditProfileFormValues = z.infer<typeof editProfileSchema>;
+
+
 function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
     const [customer, setCustomer] = useState<any>(null);
     const [accounts, setAccounts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isEditOpen, setIsEditOpen] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
+
+    const form = useForm<EditProfileFormValues>();
 
     useEffect(() => {
         async function fetchData() {
@@ -66,6 +100,7 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
                 if (!customerRes.ok) throw new Error("Customer not found");
                 const customerData = await customerRes.json();
                 setCustomer(customerData);
+                form.reset(customerData);
 
                 const accountsRes = await fetch(`/api/customers/${customerId}/accounts`);
                 if (!accountsRes.ok) throw new Error("Could not fetch accounts");
@@ -74,14 +109,13 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
 
             } catch (error: any) {
                 toast({ variant: 'destructive', title: "Error", description: error.message });
-                // router.push('/customers'); // Redirect if customer not found
             } finally {
                 setLoading(false);
             }
         }
         fetchData();
-    }, [customerId, toast, router]);
-
+    }, [customerId, toast, router, form]);
+    
     const handleUnlink = async (accountNumber: string) => {
         if (!customer) return;
 
@@ -109,6 +143,39 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
             toast({ variant: "destructive", title: "Action Failed", description: error.message });
         }
     };
+    
+    const onEditSubmit = async (values: EditProfileFormValues) => {
+        const changes = {
+          email: { old: customer.email, new: values.email },
+          phoneNumber: { old: customer.phoneNumber, new: values.phoneNumber },
+          signUpMainAuth: { old: customer.signUpMainAuth, new: values.signUpMainAuth },
+        };
+        
+        try {
+            const response = await fetch('/api/approvals/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cif: customer.cifNumber,
+                    type: 'updated-customer',
+                    customerName: customer.name,
+                    customerPhone: customer.phoneNumber, // Use original phone for lookup
+                    details: { changes }
+                }),
+            });
+            if (!response.ok) {
+                throw new Error((await response.json()).message || 'Failed to submit update for approval.');
+            }
+            toast({
+                title: "Update Request Submitted",
+                description: "The requested changes have been sent for approval."
+            });
+            setIsEditOpen(false);
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Submission Failed", description: error.message });
+        }
+    }
+
 
     if (loading) {
         return <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -121,6 +188,7 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
     const fullName = customer.name;
 
   return (
+    <>
     <div className="w-full space-y-6">
         <Card>
             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -135,7 +203,7 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline"><Edit className="mr-2 h-4 w-4" /> Edit Profile</Button>
+                    <Button variant="outline" onClick={() => setIsEditOpen(true)}><Edit className="mr-2 h-4 w-4" /> Edit Profile</Button>
                 </div>
             </CardHeader>
        </Card>
@@ -264,6 +332,74 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
         </TabsContent>
       </Tabs>
     </div>
+
+    <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Edit Customer Profile</DialogTitle>
+                <DialogDescription>Submit changes for approval.</DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onEditSubmit)} className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Email Address</FormLabel>
+                                <FormControl>
+                                    <Input type="email" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="phoneNumber"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Phone Number</FormLabel>
+                                <FormControl>
+                                    <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="signUpMainAuth"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Primary Authentication Method</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a method" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {authMethods.map(method => (
+                                        <SelectItem key={method.value} value={method.value}>
+                                        {method.label}
+                                        </SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    <DialogFooter>
+                        <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
+                        <Button type="submit">Submit for Approval</Button>
+                    </DialogFooter>
+                </form>
+            </Form>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
 
@@ -271,7 +407,7 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
     return (
         <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">{label}</p>
-            <div className={className}>{value}</div>
+            <div className={cn("font-medium", className)}>{value}</div>
         </div>
     )
 }

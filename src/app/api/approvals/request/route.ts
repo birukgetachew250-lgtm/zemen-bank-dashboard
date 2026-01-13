@@ -23,6 +23,7 @@ export async function POST(req: Request) {
              });
         }
 
+        // Always include the CIF number in the details object.
         const finalDetails = JSON.stringify({
             cif: cif,
             ...(details || {})

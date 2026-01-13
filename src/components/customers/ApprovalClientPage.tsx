@@ -16,7 +16,7 @@ import { format, parseISO } from 'date-fns';
 import { Input } from "../ui/input";
 import { Skeleton } from "../ui/skeleton";
 import { Card, CardContent } from "../ui/card";
-import { Loader2, Info, User, Phone, Mail, Fingerprint, Shield, Smartphone, Star, Landmark } from "lucide-react";
+import { Loader2, Info, User, Phone, Mail, Fingerprint, Shield, Smartphone, Star, Landmark, ArrowRight } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import {
   Dialog,
@@ -89,14 +89,14 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
       if (response.ok) {
         if (action === 'approve' && (result.newPin || result.tempPassword)) {
           toast({
-            duration: 20000, // Show for longer
+            duration: 20000, 
             title: `Action Successful`,
             description: (
               <div className="flex flex-col gap-2 mt-2">
                 <span>{result.message}</span>
                 <Alert variant="destructive">
                   <Info className="h-4 w-4" />
-                  <AlertTitle>Temporary Password</AlertTitle>
+                  <AlertTitle>Temporary Password or PIN</AlertTitle>
                   <AlertDescription className="font-mono text-lg font-bold tracking-widest">{result.newPin || result.tempPassword}</AlertDescription>
                 </Alert>
                 <span className="text-xs text-muted-foreground">Please securely communicate this to the customer. It is valid for a short period.</span>
@@ -221,6 +221,18 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
                             </div>
                         </div>
                     )}
+                    
+                    {approvalType === 'updated-customer' && parsedDetails.changes && (
+                        <div>
+                            <h3 className="font-semibold text-lg mb-2">Requested Changes</h3>
+                             <div className="grid grid-cols-1 gap-y-4 p-4 border rounded-lg bg-muted/50">
+                                {Object.entries(parsedDetails.changes).map(([key, value]: [string, any]) => (
+                                    <ChangeItem key={key} label={key.replace(/([A-Z])/g, ' $1')} oldValue={value.old} newValue={value.new} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
 
                     {approvalType === 'new-customer' && parsedDetails.linkedAccounts && (
                         <div>
@@ -309,6 +321,20 @@ function InfoItem({ icon, label, value, className }: { icon: React.ReactNode, la
             <div>
                 <p className="text-sm text-muted-foreground">{label}</p>
                 <p className="font-medium text-sm">{value}</p>
+            </div>
+        </div>
+    )
+}
+
+function ChangeItem({ label, oldValue, newValue }: { label: string, oldValue: string, newValue: string}) {
+    if (oldValue === newValue) return null;
+    return (
+        <div>
+            <p className="text-sm font-medium text-muted-foreground">{label}</p>
+            <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground line-through">{oldValue}</span>
+                <ArrowRight className="h-4 w-4 text-muted-foreground"/>
+                <span className="text-sm font-medium text-foreground">{newValue}</span>
             </div>
         </div>
     )

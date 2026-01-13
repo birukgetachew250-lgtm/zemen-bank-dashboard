@@ -19,12 +19,8 @@ const getCifFromApproval = async (approval: any) => {
     }
 
     if (approval.customerPhone) {
-        // This is a fallback and assumes the user is already in the Oracle DB,
-        // which isn't true for 'new-customer'. We primarily rely on the details JSON.
         try {
             const encryptedPhone = encrypt(approval.customerPhone);
-            // This is a conceptual fallback. In reality, AppUsers might not exist yet.
-            // The logic primarily relies on details from the approval request itself.
         } catch (e) {
             console.error("Error during Oracle fallback to get CIF:", e);
         }
@@ -58,7 +54,6 @@ export async function POST(req: Request) {
         const cif = await getCifFromApproval(approval);
 
         if (!cif && approval.type !== 'new-customer') {
-             // For new customers, CIF comes from details, not a pre-existing record.
             console.error(`Could not determine CIF for approvalId: ${approvalId}. Approval removed without action.`);
             await db.pendingApproval.delete({ where: { id: approvalId } });
             throw new Error(`Could not determine customer CIF for approval ID ${approvalId}. The request was cleared without action.`);
@@ -83,7 +78,6 @@ export async function POST(req: Request) {
                 const normalizedPhone = customerData.mobile_number.replace(/\D/g, '');
                 const phoneHash = crypto.createHash('sha256').update(normalizedPhone).digest('hex');
 
-                // --- Create AppUser ---
                 const appUserQuery = `
                     INSERT INTO "USER_MODULE"."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","PhoneNumberHashed","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","Status","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:PhoneNumberHashed,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:Status,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
                 
@@ -110,7 +104,6 @@ export async function POST(req: Request) {
 
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, appUserQuery, appUserBinds);
 
-                // --- Create Accounts ---
                 for (const acc of linkedAccounts) {
                     const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id","CIFNumber","AccountNumber","HashedAccountNumber","FirstName","SecondName","LastName","BranchCode","BranchName","AccountType","Currency","Status","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (SYS_GUID(),:CIFNumber,:AccountNumber,:HashedAccountNumber,:FirstName,:SecondName,:LastName,:BranchCode,:BranchName,:AccountType,:Currency,:Status,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`;
                     
@@ -122,7 +115,7 @@ export async function POST(req: Request) {
                         SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : (nameParts[1] || ''))!,
                         LastName: encrypt(nameParts[nameParts.length - 1])!,
                         BranchCode: acc.BRANCH_CODE,
-                        BranchName: acc.BRANCH_CODE, // Assuming branch name can be same as code for now
+                        BranchName: acc.BRANCH_CODE, 
                         AccountType: encrypt(acc.ACCLASSDESC)!,
                         Currency: encrypt(acc.CCY)!,
                         Status: 'Active',
@@ -130,13 +123,11 @@ export async function POST(req: Request) {
                     await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accountQuery, accountBinds);
                 }
 
-                // --- Create UserSecurity with temp password ---
                 const tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
                 
                 const userSecurityQuery = `INSERT INTO SECURITY_MODULE."UserSecurities" ("UserId","CIFNumber","PinHash","Status","SecurityQuestionId","SecurityAnswer","IsLoggedIn","FailedAttempts","LastLoginAttempt","IsLocked","UnlockedTime","LockedIntervalMinutes","EncKey","EncIV","IsBiometricsLogin","IsBiometricsPayment","DeviceSwitchConsent","OnTmpPassword","IsActivationUsed","ActivationExpiredAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES ('${appUserId}','${customerData.customer_number}',NULL,'Active',NULL,NULL,0,0,NULL,0,NULL,0,NULL,NULL,0,0,1,1,0,SYSTIMESTAMP + 7,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`;
                 await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, userSecurityQuery, {});
                 
-                // --- Create OTP for Temp Password ---
                 const otpId = crypto.randomUUID();
                 const codeHash = crypto.createHash('sha256').update(tempPassword).digest('hex').toLowerCase();
                 
@@ -148,6 +139,32 @@ export async function POST(req: Request) {
                 
                 responseData.tempPassword = tempPassword;
                 successMessage = 'New customer has been successfully onboarded and activated.';
+                break;
+            case 'updated-customer':
+                const updateDetails = JSON.parse(approval.details || '{}');
+                const { changes } = updateDetails;
+                if (!changes) throw new Error('Update details are missing from approval request.');
+
+                const updateQuery = `
+                    UPDATE "USER_MODULE"."AppUsers" SET
+                        "Email" = :email,
+                        "PhoneNumber" = :phoneNumber,
+                        "SignUpMainAuth" = :signUpMainAuth
+                    WHERE "CIFNumber" = :cif
+                `;
+                
+                const updateBinds = {
+                    email: encrypt(changes.email.new),
+                    phoneNumber: encrypt(changes.phoneNumber.new),
+                    signUpMainAuth: changes.signUpMainAuth.new,
+                    cif: cif,
+                };
+                
+                await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateQuery, updateBinds);
+                
+                await db.customer.updateMany({ where: { phone: changes.phoneNumber.old }, data: { phone: changes.phoneNumber.new } });
+                
+                successMessage = `Customer profile for CIF ${cif} has been updated.`;
                 break;
             case 'suspend-customer':
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Suspended', cif });
@@ -193,16 +210,16 @@ export async function POST(req: Request) {
                     
                     const accBinds = {
                         CIFNumber: linkDetails.cif,
-                        AccountNumber: encrypt(acc.custacno)!,
-                        HashedAccountNumber: crypto.createHash('sha256').update(acc.custacno).digest('hex'),
+                        AccountNumber: encrypt(acc.CUSTACNO)!,
+                        HashedAccountNumber: crypto.createHash('sha256').update(acc.CUSTACNO).digest('hex'),
                         FirstName: encrypt(customerNameParts[0])!,
                         SecondName: encrypt(customerNameParts.length > 2 ? customerNameParts.slice(1, -1).join(' ') : (customerNameParts[1] || ''))!,
                         LastName: encrypt(customerNameParts[customerNameParts.length - 1])!,
-                        AccountType: encrypt(acc.acclassdesc)!,
-                        Currency: encrypt(acc.ccy)!,
+                        AccountType: encrypt(acc.ACCLASSDESC)!,
+                        Currency: encrypt(acc.CCY)!,
                         Status: 'Active',
-                        BranchCode: acc.branch_code,
-                        BranchName: acc.branch_code
+                        BranchCode: acc.BRANCH_CODE,
+                        BranchName: acc.BRANCH_CODE
                     };
                     await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accountQuery, accBinds);
                 }
@@ -227,5 +244,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }
-
-    
