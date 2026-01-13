@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,7 +30,7 @@ const userFormSchema = z.object({
     email: z.string().email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     role: z.string().min(1, "Role is required"),
-    branch: z.string().min(1, "Branch is required"),
+    branch: z.string().optional(),
     department: z.string().min(1, "Department is required"),
 });
 
@@ -60,27 +59,29 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
         },
     });
 
-    const branchWatcher = form.watch("branch");
+    const roleWatcher = form.watch("role");
 
-    const filteredDepartments = useMemo(() => {
-        if (!branchWatcher) return [];
-        const selectedBranchName = branches.find(b => b.id === branchWatcher)?.name;
-        if (!selectedBranchName) return [];
-        return departments.filter(d => d.branchName === selectedBranchName);
-    }, [branchWatcher, departments, branches]);
+    const isBranchRequired = useMemo(() => {
+        return roleWatcher === 'Operations Lead';
+    }, [roleWatcher]);
+
+    useEffect(() => {
+      if (!isBranchRequired) {
+        form.clearErrors("branch");
+      }
+    }, [isBranchRequired, form]);
     
 
     const handleAddUser = async (values: z.infer<typeof userFormSchema>) => {
         setIsLoading(true);
 
-        const branchName = branches.find(b => b.id === values.branch)?.name;
-        const departmentName = departments.find(d => d.id === values.department)?.name;
+        if (isBranchRequired && !values.branch) {
+            form.setError("branch", { type: "manual", message: "Branch is required for this role." });
+            setIsLoading(false);
+            return;
+        }
 
-        const submissionData = {
-            ...values,
-            branch: branchName,
-            department: departmentName
-        };
+        const submissionData = { ...values };
 
         const res = await fetch("/api/users", {
             method: "POST",
@@ -127,24 +128,22 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
                                 </Select><FormMessage />
                             </FormItem>
                         )} />
-                        <div />
-                         <FormField control={form.control} name="branch" render={({ field }) => (
-                            <FormItem><FormLabel>Branch</FormLabel>
-                                <Select onValueChange={(value) => {
-                                    field.onChange(value);
-                                    form.setValue('department', '');
-                                }} defaultValue={field.value}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a branch" /></SelectTrigger></FormControl>
-                                    <SelectContent>{branches.map(branch => (<SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>))}</SelectContent>
+                         <FormField control={form.control} name="department" render={({ field }) => (
+                            <FormItem><FormLabel>Department</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a department" /></SelectTrigger></FormControl>
+                                    <SelectContent>{departments.map(dept => (<SelectItem key={dept.id} value={dept.name}>{dept.name}</SelectItem>))}</SelectContent>
                                 </Select><FormMessage />
                             </FormItem>
                         )} />
-                         <FormField control={form.control} name="department" render={({ field }) => (
-                            <FormItem><FormLabel>Department</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!branchWatcher}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder={branchWatcher ? "Select a department" : "Select a branch first"} /></SelectTrigger></FormControl>
-                                    <SelectContent>{filteredDepartments.map(dept => (<SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>))}</SelectContent>
-                                </Select><FormMessage />
+                         <FormField control={form.control} name="branch" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Branch {isBranchRequired && <span className="text-destructive">*</span>}</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a branch" /></SelectTrigger></FormControl>
+                                    <SelectContent>{branches.map(branch => (<SelectItem key={branch.id} value={branch.name}>{branch.name}</SelectItem>))}</SelectContent>
+                                </Select>
+                                <FormMessage />
                             </FormItem>
                         )} />
                     </CardContent>
@@ -160,3 +159,4 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
         </Form>
     );
 }
+

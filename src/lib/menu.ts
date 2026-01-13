@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Building2,
@@ -98,11 +99,11 @@ export const menu: MenuItem[] = [
     href: "/transactions/all-transactions",
     children: [
         { icon: List, label: "All Transactions", href: "/transactions/all-transactions" },
-        { icon: Users2, label: "P2P & Wallet Transfers", href: "/transactions/p2p-wallet" },
+        { icon: Users2, label: "P2P & Wallet", href: "/transactions/p2p-wallet" },
         { icon: Network, label: "Interoperability", href: "/transactions/interoperability" },
         { icon: Receipt, label: "Bill Payments", href: "/transactions/bills-utilities" },
         { icon: Globe, label: "Remittances", href: "/transactions/remittances" },
-        { icon: SlidersHorizontal, label: "Transaction Limits & Overrides", href: "/transactions/limits-overrides" },
+        { icon: SlidersHorizontal, label: "Limits & Overrides", href: "/transactions/limits-overrides" },
         { icon: BookCheck, label: "Settlements", href: "/transactions/settlements" },
     ]
   },
@@ -111,8 +112,8 @@ export const menu: MenuItem[] = [
     icon: AppWindow,
     href: "/mini-apps",
     children: [
-      { icon: AppWindow, label: "Existing Mini Apps", href: "/mini-apps" },
-      { icon: AppWindow, label: "Add New Mini App", href: "/mini-apps/create" },
+      { icon: AppWindow, label: "Existing Apps", href: "/mini-apps" },
+      { icon: AppWindow, label: "Add New App", href: "/mini-apps/create" },
     ]
   },
   {
@@ -124,14 +125,14 @@ export const menu: MenuItem[] = [
         icon: CheckSquare,
         href: "/customers/approve-new",
         children: [
-          { icon: Users, label: "Create Customer", href: "/customers/approve-new" },
-          { icon: Users, label: "Updated Customers", href: "/customers/approve-updated" },
+          { icon: Users, label: "New Customer", href: "/customers/approve-new" },
+          { icon: Users, label: "Update Customer", href: "/customers/approve-updated" },
           { icon: Link, label: "Link Account", href: "/customers/approve-accounts" },
           { icon: Unlink, label: "Unlink Account", href: "/customers/approve-unlink" },
-          { icon: UserX, label: "Suspended Customers", href: "/customers/approve-suspension" },
-          { icon: UserCheck, label: "Unsuspended Customers", href: "/customers/approve-unblocked" },
-          { icon: KeyRound, label: "Pin Resets", href: "/customers/approve-pin-reset" },
-          { icon: ShieldCheck, label: "Security Resets", href: "/customers/approve-security" },
+          { icon: UserX, label: "Suspend Customer", href: "/customers/approve-suspension" },
+          { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/approve-unblocked" },
+          { icon: KeyRound, label: "Pin Reset", href: "/customers/approve-pin-reset" },
+          { icon: ShieldCheck, label: "Security Reset", href: "/customers/approve-security" },
         ]
       },
       {
@@ -141,7 +142,7 @@ export const menu: MenuItem[] = [
         children: [
           { icon: Siren, label: "Fraud Monitoring", href: "/risk/fraud-monitoring" },
           { icon: AlertTriangle, label: "Suspicious Activity", href: "/risk/suspicious-activity" },
-          { icon: FileWarning, label: "AML / KYC Flags", href: "/risk/aml-kyc" },
+          { icon: FileWarning, label: "AML/KYC Flags", href: "/risk/aml-kyc" },
           { icon: FileText, label: "NBE Reporting", href: "/risk/nbe-reporting" },
           { icon: MessagesSquare, label: "Dispute Resolution", href: "/risk/dispute-resolution" },
           { icon: Gauge, label: "Risk Scoring", href: "/risk/risk-scoring" },
@@ -152,9 +153,9 @@ export const menu: MenuItem[] = [
         icon: History,
         href: "/customers/audit",
         children: [
-          { icon: Users, label: "Customers Audit", href: "/customers/audit" },
-          { icon: UserCog, label: "System Users Audit", href: "/users/audit" },
-          { icon: Mail, label: "Authentications Logs", href: "/otp" },
+          { icon: Users, label: "Customers", href: "/customers/audit" },
+          { icon: UserCog, label: "System Users", href: "/users/audit" },
+          { icon: Mail, label: "Authentications", href: "/otp" },
         ],
       },
     ]
@@ -166,7 +167,7 @@ export const menu: MenuItem[] = [
       { icon: HeartPulse, label: "Microservices Health", href: "/monitoring/health" },
       { icon: GaugeCircle, label: "Performance Metrics", href: "/monitoring/performance" },
       { icon: Waypoints, label: "Transaction Tracing", href: "/monitoring/tracing" },
-      { icon: Bell, label: "Alerts & Notifications", href: "/monitoring/alerts" },
+      { icon: Bell, label: "Alerts", href: "/monitoring/alerts" },
     ]
   },
   {
@@ -186,11 +187,11 @@ export const menu: MenuItem[] = [
     label: "Integrations",
     icon: Network,
     children: [
-      { icon: Plug, label: "Integration Config", href: "/integrations/config" },
+      { icon: Plug, label: "Configuration", href: "/integrations/config" },
       { icon: Building2, label: "Partner Management", href: "/integrations/partner-management" },
       { icon: Activity, label: "API Monitoring", href: "/integrations/api-monitoring" },
-      { icon: Globe, label: "Third-Party Integrations", href: "/integrations/third-party" },
-      { icon: History, label: "Webhook & Callback Logs", href: "/integrations/webhooks" },
+      { icon: Globe, label: "Third-Party Apps", href: "/integrations/third-party" },
+      { icon: History, label: "Webhooks", href: "/integrations/webhooks" },
     ],
   },
   {
@@ -207,8 +208,8 @@ export const menu: MenuItem[] = [
         ]
       },
       { icon: Table, label: "Permissions Matrix", href: "/security/permission-matrix" },
-      { icon: KeyRound, label: "Login & Activity Logs", href: "/security/sessions" },
-      { icon: Shield, label: "MFA / Security Policies", href: "/security/mfa-policies" },
+      { icon: KeyRound, label: "Session Logs", href: "/security/sessions" },
+      { icon: Shield, label: "Security Policies", href: "/security/mfa-policies" },
     ]
   },
   {
