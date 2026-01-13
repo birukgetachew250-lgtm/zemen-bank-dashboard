@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Ban } from "lucide-react";
+import { Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
@@ -52,8 +52,7 @@ export function CustomerDetailsCard({ customer }: CustomerDetailsCardProps) {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => router.push(`/customers/${customer.id}`)}><Edit className="mr-2 h-4 w-4" /> View Full Profile</Button>
-                    <Button variant="destructive" className="bg-red-600 hover:bg-red-700"><Ban className="mr-2 h-4 w-4" /> Suspend</Button>
+                    <Button variant="outline" onClick={() => router.push(`/customers/${customer.cifNumber}`)}><Edit className="mr-2 h-4 w-4" /> View Full Profile</Button>
                 </div>
             </CardHeader>
             <CardContent className="grid gap-6 p-6">
