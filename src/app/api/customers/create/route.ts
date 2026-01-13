@@ -5,10 +5,10 @@ import crypto from 'crypto';
 
 export async function POST(req: Request) {
     try {
-        const { customer, accounts, manualData } = await req.json();
+        const { customer, accounts, onboardingData } = await req.json();
 
-        if (!customer || !customer.customer_number || !accounts || !manualData) {
-            return NextResponse.json({ message: 'Incomplete customer, account, or manual data' }, { status: 400 });
+        if (!customer || !customer.customer_number || !accounts || !onboardingData) {
+            return NextResponse.json({ message: 'Incomplete customer, account, or onboarding data' }, { status: 400 });
         }
 
         // Find or create a "legacy" customer record to link the approval to.
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
             cif: customer.customer_number, 
             customerData: customer, 
             linkedAccounts: accounts, 
-            onboardingData: manualData 
+            onboardingData: onboardingData 
         };
 
         // Create the approval request in the dashboard's database.
