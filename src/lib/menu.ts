@@ -124,7 +124,7 @@ export const menu: MenuItem[] = [
         icon: CheckSquare,
         href: "/customers/approve-new",
         children: [
-          { icon: Users, label: "New Customers", href: "/customers/approve-new" },
+          { icon: Users, label: "Create Customer", href: "/customers/approve-new" },
           { icon: Users, label: "Updated Customers", href: "/customers/approve-updated" },
           { icon: Link, label: "Link Account Requests", href: "/customers/approve-accounts" },
           { icon: Unlink, label: "Unlink Account Requests", href: "/customers/approve-unlink" },
