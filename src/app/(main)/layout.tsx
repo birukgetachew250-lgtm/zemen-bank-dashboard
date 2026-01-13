@@ -48,23 +48,25 @@ const getSessionData = async () => {
             return { isLoggedIn: false, user: null, permissions: [] };
         }
         
-        let permissions = [];
-        switch (user.role) {
-            case 'Super Admin':
+        let permissions: string[] = ['Dashboard']; // All users get Dashboard
+        
+        const role = await db.role.findFirst({
+            where: { name: user.role }
+        });
+
+        if (role) {
+            if (role.name === 'Super Admin') {
                 permissions = ['all'];
-                break;
-            case 'Operations Lead':
-                permissions = ['Dashboard', 'Banking Users', 'Transactions', 'Mini Apps', 'Oversight'];
-                break;
-            case 'Compliance Officer':
-                permissions = ['Oversight', 'Reporting'];
-                break;
-            case 'Support Staff':
-                 permissions = ['Dashboard', 'Banking Users'];
-                 break;
-            default:
-                permissions = ['Dashboard'];
-                break;
+            } else {
+                try {
+                    const roleData = JSON.parse(role.description);
+                    if (roleData.permissions && Array.isArray(roleData.permissions)) {
+                       permissions = ['Dashboard', ...roleData.permissions];
+                    }
+                } catch(e) {
+                    console.error(`Failed to parse permissions for role: ${role.name}`);
+                }
+            }
         }
         
         const { password, ...userWithoutPassword } = user;
