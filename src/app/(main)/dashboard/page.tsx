@@ -4,17 +4,34 @@ import { UserPlus, Users, UserX, UserCheck, AlertCircle, Link } from 'lucide-rea
 import { StatsCard, StatsCardSkeleton } from '@/components/dashboard/StatsCard';
 import { TransactionsSummary } from '@/components/dashboard/TransactionsSummary';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { executeQuery } from '@/lib/oracle-db';
 
 async function getCustomerStats() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/stats/customers`, { next: { revalidate: 300 } });
-    if (!res.ok) {
-      throw new Error((await res.json()).message || 'Failed to fetch');
-    }
-    return res.json();
-  } catch(e: any) {
+    const totalResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers"`);
+    const activeResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers" WHERE "Status" = 'Active'`);
+    const linkedAccountsResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."Accounts"`);
+    
+    const total = totalResult.rows[0]?.COUNT || 0;
+    const active = activeResult.rows[0]?.COUNT || 0;
+    const linkedAccounts = linkedAccountsResult.rows[0]?.COUNT || 0;
+
+    const inactiveResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers" WHERE "Status" = 'Inactive' OR "Status" = 'Dormant'`);
+    const inactiveAndDormant = inactiveResult.rows[0]?.COUNT || 0;
+    
+    const registeredResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers" WHERE "Status" = 'Registered'`);
+    const registered = registeredResult.rows[0]?.COUNT || 0;
+
+
+    return { total, active, inactive: inactiveAndDormant, registered: registered, linkedAccounts };
+
+  } catch (e: any) {
     console.error("Failed to fetch customer stats:", e);
-    // Return mock data for other errors
+    
+    if (e.message.includes('NJS-530')) {
+        throw new Error(`Failed to connect to the Oracle database. Please ensure the USER_MODULE_DB_CONNECTION_STRING in your .env file is correct and the database is accessible.`);
+    }
+    
     throw new Error(`Failed to fetch stats from the database: ${e.message}`);
   }
 }
