@@ -252,8 +252,23 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
                         </div>
                     )}
                      
-                    {approvalType === 'customer-account' && (
-                       <InfoItem icon={<Landmark />} label="Account to Link" value={parsedDetails.accountNumber} />
+                    {approvalType === 'customer-account' && parsedDetails.linkedAccounts && (
+                       <div>
+                            <h3 className="font-semibold text-lg mb-2">Accounts to be Linked ({parsedDetails.linkedAccounts.length})</h3>
+                            <div className="border rounded-lg">
+                                <ul className="divide-y divide-border">
+                                    {parsedDetails.linkedAccounts.map((acc: any) => (
+                                        <li key={acc.custacno} className="px-4 py-3 flex justify-between items-center text-sm">
+                                            <div>
+                                                <p className="font-medium text-foreground">{acc.custacno}</p>
+                                                <p className="text-muted-foreground">{acc.acclassdesc}</p>
+                                            </div>
+                                            <Badge variant="outline">{acc.ccy}</Badge>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
                     )}
                     {approvalType === 'unlink-account' && (
                        <InfoItem icon={<Landmark />} label="Account to Unlink" value={parsedDetails.accountNumber} />

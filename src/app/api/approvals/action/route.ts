@@ -85,7 +85,7 @@ export async function POST(req: Request) {
 
                 // --- Create AppUser ---
                 const appUserQuery = `
-                    INSERT INTO USER_MODULE."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","PhoneNumberHashed","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","Status","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:PhoneNumberHashed,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:Status,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
+                    INSERT INTO "USER_MODULE"."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","PhoneNumberHashed","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","Status","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:PhoneNumberHashed,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:Status,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
                 
                 const appUserBinds = {
                     CIFNumber: customerData.customer_number,
@@ -182,27 +182,31 @@ export async function POST(req: Request) {
                 break;
             case 'customer-account':
                 const linkDetails = JSON.parse(approval.details || '{}');
-                const accQuery = `INSERT INTO "USER_MODULE"."Accounts" 
-                    ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "Currency", "Status", "BranchName") 
-                    VALUES (SYS_GUID(), :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :Currency, :Status, :BranchName)`;
+                const accountsToLink = linkDetails.linkedAccounts || [];
                 
-                const accNameParts = linkDetails.customerName.split(' ');
-                
-                const accBinds = {
-                    CIFNumber: linkDetails.cif,
-                    AccountNumber: encrypt(linkDetails.accountNumber)!,
-                    HashedAccountNumber: crypto.createHash('sha256').update(linkDetails.accountNumber).digest('hex'),
-                    FirstName: encrypt(accNameParts[0])!,
-                    SecondName: encrypt(accNameParts.length > 2 ? accNameParts.slice(1, -1).join(' ') : (accNameParts[1] || ''))!,
-                    LastName: encrypt(accNameParts[accNameParts.length - 1])!,
-                    AccountType: encrypt(linkDetails.accountType)!,
-                    Currency: encrypt(linkDetails.currency)!,
-                    Status: 'Active',
-                    BranchName: 'MAIN' // Placeholder
-                };
+                const customerNameParts = linkDetails.customerName.split(' ');
 
-                await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accQuery, accBinds);
-                successMessage = `Successfully linked account ${linkDetails.accountNumber}.`;
+                for (const acc of accountsToLink) {
+                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" 
+                        ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "Currency", "Status", "BranchCode", "BranchName") 
+                        VALUES (SYS_GUID(), :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :Currency, :Status, :BranchCode, :BranchName)`;
+                    
+                    const accBinds = {
+                        CIFNumber: linkDetails.cif,
+                        AccountNumber: encrypt(acc.custacno)!,
+                        HashedAccountNumber: crypto.createHash('sha256').update(acc.custacno).digest('hex'),
+                        FirstName: encrypt(customerNameParts[0])!,
+                        SecondName: encrypt(customerNameParts.length > 2 ? customerNameParts.slice(1, -1).join(' ') : (customerNameParts[1] || ''))!,
+                        LastName: encrypt(customerNameParts[customerNameParts.length - 1])!,
+                        AccountType: encrypt(acc.acclassdesc)!,
+                        Currency: encrypt(acc.ccy)!,
+                        Status: 'Active',
+                        BranchCode: acc.branch_code,
+                        BranchName: acc.branch_code
+                    };
+                    await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accountQuery, accBinds);
+                }
+                successMessage = `Successfully linked ${accountsToLink.length} account(s).`;
                 break;
             case 'unlink-account':
                 const unlinkDetails = JSON.parse(approval.details || '{}');
