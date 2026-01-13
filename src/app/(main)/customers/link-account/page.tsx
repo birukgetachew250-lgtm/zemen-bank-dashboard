@@ -13,9 +13,11 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2, Link } from 'lucide-react';
+import { Search, Loader2, Link, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { CustomerDetails } from '@/components/customers/CustomerDetailsCard';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -73,6 +75,7 @@ export default function LinkAccountPage() {
         });
         if (!accRes.ok) throw new Error((await accRes.json()).message || 'Could not fetch accounts');
         const accData = await accRes.json();
+        console.log("Fetched Accounts Data:", accData); // <-- Added for debugging
         setAccounts(accData);
         setSelection({});
       } catch (error: any) {
@@ -234,6 +237,7 @@ export default function LinkAccountPage() {
                  </div>
               ) : (
                 <Alert>
+                  <AlertTriangle className="h-4 w-4" />
                   <AlertTitle>No Unlinked Accounts Found</AlertTitle>
                   <AlertDescription>No unlinked bank accounts were found for this customer.</AlertDescription>
                 </Alert>
