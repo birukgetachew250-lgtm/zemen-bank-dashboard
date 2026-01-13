@@ -106,7 +106,7 @@ export async function POST(req: Request) {
         const grpcResponse = await promisifyCall<any, any>('QueryCustomerAccountList', serviceRequest);
         
         if (!grpcResponse || (grpcResponse.code !== '0' && grpcResponse.code !== '00')) {
-             return NextResponse.json({ message: grpcResponse.message || 'Upstream service error' }, { status: 502 });
+             return NextResponse.json({ message: grpcResponse.message || 'Failed to fetch accounts from core banking system.' }, { status: 502 });
         }
 
         const dataValue = grpcResponse.data?.value;
@@ -135,11 +135,18 @@ export async function POST(req: Request) {
 
     } catch (error: any) {
         console.error('[gRPC/DB Error] find-accounts:', error);
+        
+        // This is a specific fallback for the demo environment.
         if (cif === '0000238') {
             return NextResponse.json([
                  { custacno: "3021110000238018", branch_code: "302", ccy: "ETB", account_type: "S", acclassdesc: "Z-Club Gold –  Saving", status: "Active", isAlreadyLinked: false },
             ]);
         }
-        return NextResponse.json(mockAccounts.map(acc => ({...acc, isAlreadyLinked: acc.custacno === '1031110048533015'})));
+        if (cif === '0048533') {
+            return NextResponse.json(mockAccounts.map(acc => ({...acc, isAlreadyLinked: acc.custacno === '1031110048533015'})));
+        }
+
+        const errorMessage = error.details || error.message || 'An unexpected error occurred while fetching accounts.';
+        return NextResponse.json({ message: errorMessage }, { status: 500 });
     }
 }
