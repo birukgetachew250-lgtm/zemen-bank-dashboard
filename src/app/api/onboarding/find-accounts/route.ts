@@ -87,12 +87,11 @@ export async function POST(req: Request) {
 
         const grpcResponse = await promisifyCall<any, any>('QueryCustomerAccountList', serviceRequest);
         
-        if (!grpcResponse || grpcResponse.code !== '0') {
-             const errorMessage = grpcResponse?.message || 'USSD returned status failure.';
-             console.error('[gRPC Call Failed] QueryCustomerAccountList:', errorMessage);
-             throw new Error(errorMessage);
-        }
-
+        if (!grpcResponse || (grpcResponse.code !== '0' && grpcResponse.code !== '00' )) {
+            const errorMessage = grpcResponse?.message || 'USSD returned status failure.';
+            console.error('[gRPC Call Failed] QueryCustomerAccountList:', errorMessage);
+            throw new Error(errorMessage);
+       }
         const accounts = grpcResponse?.accounts || [];
         
         const transformedAccounts = accounts.map((acc: any) => {
