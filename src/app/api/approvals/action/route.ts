@@ -80,9 +80,12 @@ export async function POST(req: Request) {
                 const appUserId = crypto.randomUUID();
                 const nameParts = customerData.full_name.split(' ');
                 
+                const normalizedPhone = customerData.mobile_number.replace(/\D/g, '');
+                const phoneHash = crypto.createHash('sha256').update(normalizedPhone).digest('hex');
+
                 // --- Create AppUser ---
                 const appUserQuery = `
-                    INSERT INTO USER_MODULE."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","Status","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:Status,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
+                    INSERT INTO USER_MODULE."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","PhoneNumberHashed","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","Status","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:PhoneNumberHashed,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:Status,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
                 
                 const appUserBinds = {
                     CIFNumber: customerData.customer_number,
@@ -90,14 +93,15 @@ export async function POST(req: Request) {
                     SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : (nameParts[1] || ''))!,
                     LastName: encrypt(nameParts[nameParts.length - 1])!,
                     Email: encrypt(customerData.email_id)!,
-                    PhoneNumber: encrypt(customerData.mobile_number)!,
+                    PhoneNumber: encrypt(normalizedPhone)!,
+                    PhoneNumberHashed: phoneHash,
                     AddressLine1: customerData.address_line_1,
                     AddressLine2: customerData.address_line_2,
                     AddressLine3: customerData.address_line_3,
                     AddressLine4: customerData.address_line_4,
                     Nationality: customerData.country,
                     BranchCode: customerData.branch,
-                    BranchName: customerData.branch, // This might need a lookup in a real scenario
+                    BranchName: customerData.branch,
                     Status: 'Pending',
                     SignUp2FA: onboardingData.twoFactorAuthMethod,
                     SignUpMainAuth: onboardingData.mainAuthMethod,
