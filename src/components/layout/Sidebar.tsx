@@ -22,22 +22,34 @@ function hasPermission(userPermissions: string[], requiredPermission: string): b
     return userPermissions.includes(requiredPermission);
 }
 
+function hasAccessToAnyChild(item: MenuItem, userPermissions: string[]): boolean {
+    if (item.children) {
+        return item.children.some(child => {
+            if (child.href && hasPermission(userPermissions, child.label)) {
+                return true;
+            }
+            return hasAccessToAnyChild(child, userPermissions);
+        });
+    }
+    return false;
+}
 
 function SidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; pathname: string, userPermissions: string[] }) {
     const Icon = item.icon;
 
-    if (item.label !== "Dashboard" && !hasPermission(userPermissions, item.label)) {
+    const canAccess = item.label === "Dashboard" || hasPermission(userPermissions, item.label) || hasAccessToAnyChild(item, userPermissions);
+
+    if (!canAccess) {
         return null;
     }
 
     if (item.children) {
-      // Filter children based on permissions
-      const accessibleChildren = item.children.filter(child => hasPermission(userPermissions, child.label) || (child.children && child.children.some(subChild => hasPermission(userPermissions, subChild.label))));
-
-      // If no children are accessible, don't render the parent
-      if (accessibleChildren.length === 0) {
-          // Exception for top-level items that also have a direct href
-          if (!item.href) return null;
+      const accessibleChildren = item.children.filter(child => 
+          hasPermission(userPermissions, child.label) || hasAccessToAnyChild(child, userPermissions)
+      );
+        
+      if (accessibleChildren.length === 0 && !item.href) {
+          return null;
       }
         
       const isChildActive = accessibleChildren.some(child => 
