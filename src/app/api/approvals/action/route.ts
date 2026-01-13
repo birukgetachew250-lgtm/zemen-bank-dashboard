@@ -7,7 +7,6 @@ import crypto from 'crypto';
 import { Prisma } from '@prisma/client';
 
 const getCifFromApproval = async (approval: any) => {
-    // 1. Try to get CIF from the details JSON
     if (approval.details) {
         try {
             const detailsObject = JSON.parse(approval.details);
@@ -19,12 +18,12 @@ const getCifFromApproval = async (approval: any) => {
         }
     }
 
-    // 2. Fallback: Get phone from approval, then query Oracle for CIF
     if (approval.customerPhone) {
+        // This is a fallback and assumes the user is already in the Oracle DB,
+        // which isn't true for 'new-customer'. We primarily rely on the details JSON.
         try {
-            console.log(`[Oracle Fallback] Searching for CIF with phone number: ${approval.customerPhone}`);
             const encryptedPhone = encrypt(approval.customerPhone);
-            const userResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "PhoneNumber" = :phone`, [encryptedPhone]);
+            const userResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "PhoneNumber" = :phone`, {phone: encryptedPhone});
             if (userResult && userResult.rows && userResult.rows.length > 0) {
                 return userResult.rows[0].CIFNumber;
             }
@@ -71,13 +70,77 @@ export async function POST(req: Request) {
         let responseData: any = { success: true };
 
         switch (approval.type) {
-            case 'new-customer':
-                // The user and accounts are already created in a 'Registered' state by the /api/customers/create endpoint.
-                // We just need to activate them.
-                await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Active', cif });
+             case 'new-customer':
+                const approvalDetails = JSON.parse(approval.details || '{}');
+                const { customerData, linkedAccounts, onboardingData } = approvalDetails;
+                
+                const appUserId = `user_${crypto.randomUUID()}`;
+                const nameParts = customerData.full_name.split(' ');
+                
+                // --- Create AppUser ---
+                const appUserQuery = `
+                    INSERT INTO "USER_MODULE"."AppUsers" 
+                    ("Id", "CIFNumber", "FirstName", "SecondName", "LastName", "Email", "PhoneNumber", "Status", "SignUpMainAuth", "SignUp2FA", "BranchName", "AddressLine1", "Nationality", "Channel")
+                    VALUES (:Id, :CIFNumber, :FirstName, :SecondName, :LastName, :Email, :PhoneNumber, :Status, :SignUpMainAuth, :SignUp2FA, :BranchName, :AddressLine1, :Nationality, :Channel)`;
+                
+                const appUserBinds = {
+                    Id: appUserId,
+                    CIFNumber: customerData.customer_number,
+                    FirstName: encrypt(nameParts[0])!,
+                    SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1])!,
+                    LastName: encrypt(nameParts[nameParts.length - 1])!,
+                    Email: encrypt(customerData.email_id)!,
+                    PhoneNumber: encrypt(customerData.mobile_number)!,
+                    Status: 'Active',
+                    SignUpMainAuth: onboardingData.mainAuthMethod,
+                    SignUp2FA: onboardingData.twoFactorAuthMethod,
+                    BranchName: customerData.branch,
+                    AddressLine1: customerData.address_line_1,
+                    Nationality: customerData.country,
+                    Channel: onboardingData.channel
+                };
+
+                await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, appUserQuery, appUserBinds);
+
+                // --- Create Accounts ---
+                for (const acc of linkedAccounts) {
+                    const accountQuery = `
+                        INSERT INTO "USER_MODULE"."Accounts" 
+                        ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "Currency", "Status", "BranchName") 
+                        VALUES (:Id, :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :Currency, :Status, :BranchName)`;
+                    
+                    const accountId = `acc_${crypto.randomUUID()}`;
+                    const accountBinds = {
+                        Id: accountId,
+                        CIFNumber: customerData.customer_number,
+                        AccountNumber: encrypt(acc.CUSTACNO)!,
+                        HashedAccountNumber: crypto.createHash('sha256').update(acc.CUSTACNO).digest('hex'),
+                        FirstName: encrypt(nameParts[0])!,
+                        SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1])!,
+                        LastName: encrypt(nameParts[nameParts.length - 1])!,
+                        AccountType: encrypt(acc.ACCLASSDESC)!,
+                        Currency: encrypt(acc.CCY)!,
+                        Status: 'Active',
+                        BranchName: acc.BRANCH_CODE
+                    };
+                    await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accountQuery, accountBinds);
+                }
+
+                // --- Create UserSecurity ---
+                const userSecurityQuery = `
+                    INSERT INTO "SECURITY_MODULE"."UserSecurities" 
+                    ("UserId", "CIFNumber", "Status", "IsLocked") 
+                    VALUES (:UserId, :CIFNumber, :Status, :IsLocked)`;
+                
+                await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, userSecurityQuery, {
+                    UserId: appUserId,
+                    CIFNumber: customerData.customer_number,
+                    Status: 'Active',
+                    IsLocked: 0
+                });
+                
                 await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
-                await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `UPDATE "USER_MODULE"."Accounts" SET "Status" = 'Active' WHERE "CIFNumber" = :cif`, { cif });
-                await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, `UPDATE "SECURITY_MODULE"."UserSecurities" SET "Status" = 'Active' WHERE "CIFNumber" = :cif`, { cif });
+                successMessage = 'New customer has been successfully onboarded and activated.';
                 break;
             case 'suspend-customer':
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Suspended', cif });
@@ -101,50 +164,47 @@ export async function POST(req: Request) {
                         "LockedIntervalMinutes" = 0
                     WHERE "CIFNumber" = :cif`;
                 
-                const securityBinds = {
+                await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, updateSecurityQuery, {
                     pinHash: newPinHash,
                     unlockedTime: new Date(),
                     cif: cif,
-                };
-                
-                const securityResult: any = await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, updateSecurityQuery, securityBinds);
-                console.log(`PIN reset approved and executed for customer CIF ${cif}. Rows affected: ${securityResult?.rowsAffected}`);
+                });
                 
                 responseData.newPin = newPin; // Add pin to response
                 successMessage = `PIN for customer ${approval.customerName} has been reset.`
                 break;
             case 'customer-account':
-                const details = JSON.parse(approval.details || '{}');
-                const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" 
+                const linkDetails = JSON.parse(approval.details || '{}');
+                const accQuery = `INSERT INTO "USER_MODULE"."Accounts" 
                     ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "Currency", "Status", "BranchName") 
                     VALUES (:Id, :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :Currency, :Status, :BranchName)`;
                 
-                const nameParts = details.customerName.split(' ');
-                const accountId = `acc_${crypto.randomUUID()}`;
+                const accNameParts = linkDetails.customerName.split(' ');
+                const accId = `acc_${crypto.randomUUID()}`;
                 
-                const accountBinds = {
-                    Id: accountId,
-                    CIFNumber: details.cif,
-                    AccountNumber: encrypt(details.accountNumber),
-                    HashedAccountNumber: crypto.createHash('sha256').update(details.accountNumber).digest('hex'),
-                    FirstName: encrypt(nameParts[0]),
-                    SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1]),
-                    LastName: encrypt(nameParts[nameParts.length - 1]),
-                    AccountType: encrypt(details.accountType),
-                    Currency: encrypt(details.currency),
+                const accBinds = {
+                    Id: accId,
+                    CIFNumber: linkDetails.cif,
+                    AccountNumber: encrypt(linkDetails.accountNumber)!,
+                    HashedAccountNumber: crypto.createHash('sha256').update(linkDetails.accountNumber).digest('hex'),
+                    FirstName: encrypt(accNameParts[0])!,
+                    SecondName: encrypt(accNameParts.length > 2 ? accNameParts.slice(1, -1).join(' ') : accNameParts[1])!,
+                    LastName: encrypt(accNameParts[accNameParts.length - 1])!,
+                    AccountType: encrypt(linkDetails.accountType)!,
+                    Currency: encrypt(linkDetails.currency)!,
                     Status: 'Active',
                     BranchName: 'MAIN' // Placeholder
                 };
 
-                const accountResult = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accountQuery, accountBinds);
-                console.log(`Successfully linked account for CIF ${details.cif}. Result:`, { rowsAffected: accountResult?.rowsAffected });
+                await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accQuery, accBinds);
+                successMessage = `Successfully linked account ${linkDetails.accountNumber}.`;
                 break;
             case 'unlink-account':
                 const unlinkDetails = JSON.parse(approval.details || '{}');
                 const hashedAccountNumber = crypto.createHash('sha256').update(unlinkDetails.accountNumber).digest('hex');
                 const unlinkQuery = `UPDATE "USER_MODULE"."Accounts" SET "Status" = 'Inactive' WHERE "HashedAccountNumber" = :hashedAccountNumber`;
-                const unlinkResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, unlinkQuery, { hashedAccountNumber });
-                console.log(`Successfully unlinked account ${unlinkDetails.accountNumber}. Result:`, { rowsAffected: unlinkResult?.rowsAffected });
+                await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, unlinkQuery, { hashedAccountNumber });
+                successMessage = `Successfully unlinked account ${unlinkDetails.accountNumber}.`;
                 break;
         }
 

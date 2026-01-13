@@ -2,13 +2,98 @@
 const { PrismaClient } = require('@prisma/client');
 const { faker } = require('@faker-js/faker');
 const crypto = require('crypto');
+const oracledb = require('oracledb');
 
 const prisma = new PrismaClient();
+
+const config = {
+    security: {
+        encryptionMasterKey: process.env.ENCRYPTION_MASTER_KEY || 'mUbnc+YQ+V9RjdmWdLMG4QxULn3wGuozxlQpo/jj9Pk='
+    }
+};
+
+const ALGORITHM = 'aes-256-cbc';
+const IV_LENGTH = 16;
+const masterKey = Buffer.from(config.security.encryptionMasterKey, 'base64');
+
+function encrypt(value) {
+    if (!value) return null;
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv(ALGORITHM, masterKey, iv);
+    let encrypted = cipher.update(value, 'utf8', 'binary');
+    encrypted += cipher.final('binary');
+    const result = Buffer.concat([iv, Buffer.from(encrypted, 'binary')]);
+    return result.toString('base64');
+}
+
+async function clearOracleTables() {
+    let connection;
+    console.log('[Oracle] Clearing user module tables...');
+    try {
+        const connString = process.env.USER_MODULE_DB_CONNECTION_STRING;
+        if (!connString) {
+            console.warn('[Oracle] USER_MODULE_DB_CONNECTION_STRING not set. Skipping user module cleanup.');
+            return;
+        }
+
+        const userMatch = connString.match(/^(.*?)\//);
+        const passwordMatch = connString.match(/\/(.*?)@/);
+        const serverMatch = connString.match(/@(.*?)$/);
+        if (!userMatch || !passwordMatch || !serverMatch) throw new Error("Invalid Oracle connection string format");
+        
+        connection = await oracledb.getConnection({
+            user: userMatch[1],
+            password: passwordMatch[1],
+            connectString: serverMatch[1],
+        });
+
+        const tables = ["AppUsers", "Accounts"];
+        for (const table of tables) {
+            await connection.execute(`DELETE FROM "USER_MODULE"."${table}"`);
+        }
+        await connection.commit();
+        console.log('[Oracle] Cleared USER_MODULE tables.');
+
+    } catch(e) {
+        console.error('[Oracle] Failed to clear user module tables, might not exist yet.', e);
+    } finally {
+        if (connection) await connection.close();
+    }
+    
+    console.log('[Oracle] Clearing security module tables...');
+    try {
+        const connString = process.env.SECURITY_MODULE_DB_CONNECTION_STRING;
+        if (!connString) {
+            console.warn('[Oracle] SECURITY_MODULE_DB_CONNECTION_STRING not set. Skipping security module cleanup.');
+            return;
+        }
+        const userMatch = connString.match(/^(.*?)\//);
+        const passwordMatch = connString.match(/\/(.*?)@/);
+        const serverMatch = connString.match(/@(.*?)$/);
+        if (!userMatch || !passwordMatch || !serverMatch) throw new Error("Invalid Oracle connection string format");
+
+         connection = await oracledb.getConnection({
+            user: userMatch[1],
+            password: passwordMatch[1],
+            connectString: serverMatch[1],
+        });
+        const tables = ["UserSecurities", "SecurityQuestions"];
+         for (const table of tables) {
+            await connection.execute(`DELETE FROM "SECURITY_MODULE"."${table}"`);
+        }
+        await connection.commit();
+        console.log('[Oracle] Cleared SECURITY_MODULE tables.');
+    } catch(e) {
+        console.error('[Oracle] Failed to clear security module tables, might not exist yet.', e);
+    } finally {
+        if (connection) await connection.close();
+    }
+}
 
 async function main() {
     console.log('Start seeding...');
 
-    // Clean up existing data from the dashboard module
+    // Clean up existing data from the dashboard module (Postgres)
     await prisma.pendingApproval.deleteMany();
     await prisma.transaction.deleteMany();
     await prisma.customer.deleteMany();
@@ -21,13 +106,16 @@ async function main() {
     await prisma.user.deleteMany();
     console.log('Cleared existing data from dashboard module.');
 
-    // Seed Branches
+    // Clean up existing data from Oracle DBs
+    await clearOracleTables();
+
+    // Seed Branches (in dashboard DB)
     const branch1 = await prisma.branch.create({ data: { id: 'br_1', name: 'Bole Branch', location: 'Bole, Addis Ababa' } });
     const branch2 = await prisma.branch.create({ data: { id: 'br_2', name: 'Head Office', location: 'HQ, Addis Ababa' } });
     const branch3 = await prisma.branch.create({ data: { id: 'br_3', name: 'Arada Branch', location: 'Arada, Addis Ababa' } });
     console.log('Seeded 3 branches.');
 
-    // Seed Departments
+    // Seed Departments (in dashboard DB)
     await prisma.department.createMany({
         data: [
             { id: 'dept_1', name: 'IT Department', branchId: branch2.id },
@@ -38,7 +126,7 @@ async function main() {
     });
     console.log('Seeded 4 departments.');
 
-    // Seed Roles
+    // Seed Roles (in dashboard DB)
     await prisma.role.createMany({
         data: [
             { name: 'Super Admin', description: 'Full system access.' },
@@ -49,7 +137,7 @@ async function main() {
     });
     console.log('Seeded 4 roles.');
 
-    // Seed Admin Users
+    // Seed Admin Users (in dashboard DB)
     await prisma.user.create({ data: { employeeId: 'admin001', name: 'Admin User', email: 'admin@zemen.com', password: 'password', role: 'Super Admin', department: 'IT Department', branch: 'Head Office' } });
     await prisma.user.create({ data: { employeeId: 'ops001', name: 'Operations Lead User', email: 'ops@zemen.com', password: 'password', role: 'Operations Lead', department: 'Branch Operations', branch: 'Bole Branch' } });
     console.log('Seeded 2 admin users.');

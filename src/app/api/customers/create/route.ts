@@ -2,8 +2,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
-import { encrypt } from '@/lib/crypto';
-import { Prisma } from '@prisma/client';
 
 export async function POST(req: Request) {
     try {
@@ -13,94 +11,45 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Incomplete customer, account, or manual data' }, { status: 400 });
         }
 
-        const appUserId = `user_${crypto.randomUUID()}`;
-        const nameParts = customer.full_name.split(' ');
-        
-        await db.$transaction(async (tx) => {
-            // Create user in the main DB
-            await tx.appUser.create({
-                data: {
-                    Id: appUserId,
-                    CIFNumber: customer.customer_number,
-                    FirstName: encrypt(nameParts[0])!,
-                    SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1])!,
-                    LastName: encrypt(nameParts[nameParts.length - 1])!,
-                    Email: encrypt(customer.email_id)!,
-                    PhoneNumber: encrypt(customer.mobile_number)!,
-                    Status: 'Registered',
-                    SignUpMainAuth: manualData.signUpMainAuth,
-                    SignUp2FA: manualData.twoFactorAuthMethod,
-                    BranchName: customer.branch,
-                    AddressLine1: customer.address_line_1,
-                    AddressLine2: customer.address_line_2,
-                    AddressLine3: customer.address_line_3,
-                    AddressLine4: customer.address_line_4,
-                    Nationality: customer.country,
-                    Channel: manualData.channel
-                }
-            });
-
-            const accountData = accounts.map((acc: any) => ({
-                Id: `acc_${crypto.randomUUID()}`,
-                CIFNumber: customer.customer_number,
-                AccountNumber: encrypt(acc.CUSTACNO)!,
-                HashedAccountNumber: crypto.createHash('sha256').update(acc.CUSTACNO).digest('hex'),
-                FirstName: encrypt(nameParts[0])!,
-                SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1])!,
-                LastName: encrypt(nameParts[nameParts.length - 1])!,
-                AccountType: encrypt(acc.ACCLASSDESC)!,
-                Currency: encrypt(acc.CCY)!,
-                Status: acc.status,
-                BranchName: acc.BRANCH_CODE
-            }));
-            await tx.account.createMany({ data: accountData });
-
-            await tx.userSecurity.create({
-                data: {
-                    UserId: appUserId,
-                    CIFNumber: customer.customer_number,
-                    Status: 'Registered'
-                }
-            });
-
-            // Create legacy customer and approval record
-            let legacyCustomer = await tx.customer.findFirst({ where: { phone: customer.mobile_number }});
-            if (!legacyCustomer) {
-                 legacyCustomer = await tx.customer.create({
-                    data: {
-                        name: customer.full_name,
-                        phone: customer.mobile_number,
-                        status: 'Registered'
-                    }
-                });
-            }
-            
-            const detailsForApproval = { 
-                cif: customer.customer_number, 
-                customerData: customer, 
-                linkedAccounts: accounts, 
-                onboardingData: manualData 
-            };
-
-            await tx.pendingApproval.create({
-                data: {
-                    customerId: legacyCustomer.id,
-                    type: 'new-customer',
-                    customerName: customer.full_name,
-                    customerPhone: customer.mobile_number,
-                    details: JSON.stringify(detailsForApproval)
-                }
-            });
+        // Find or create a "legacy" customer record to link the approval to.
+        // This is a simplified representation in the dashboard DB.
+        let legacyCustomer = await db.customer.findFirst({
+            where: { phone: customer.mobile_number },
         });
 
+        if (!legacyCustomer) {
+            legacyCustomer = await db.customer.create({
+                data: {
+                    name: customer.full_name,
+                    phone: customer.mobile_number,
+                    status: 'Pending',
+                },
+            });
+        }
+        
+        const detailsForApproval = { 
+            cif: customer.customer_number, 
+            customerData: customer, 
+            linkedAccounts: accounts, 
+            onboardingData: manualData 
+        };
 
-        return NextResponse.json({ success: true, message: 'Customer registration submitted for approval', customerId: appUserId });
+        // Create the approval request in the dashboard's database.
+        await db.pendingApproval.create({
+            data: {
+                customerId: legacyCustomer.id,
+                type: 'new-customer',
+                customerName: customer.full_name,
+                customerPhone: customer.mobile_number,
+                details: JSON.stringify(detailsForApproval),
+                status: 'pending',
+            }
+        });
+
+        return NextResponse.json({ success: true, message: 'Customer registration submitted for approval' });
 
     } catch (error: any) {
-        console.error('Failed to create customer for approval:', error);
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-             return NextResponse.json({ message: 'A user with this CIF Number or another unique field already exists.' }, { status: 409 });
-        }
+        console.error('Failed to create approval request:', error);
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }
