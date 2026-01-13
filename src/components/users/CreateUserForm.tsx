@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import type { Branch } from "@/app/(main)/branches/page";
 import type { Department } from "@/app/(main)/departments/page";
-import type { Role } from "@/app/(main)/roles/page";
+import type { Role, User } from "@prisma/client";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, RefreshCw } from "lucide-react";
@@ -31,7 +31,7 @@ const userFormSchema = z.object({
     email: z.string().email("Invalid email address").refine(email => email.endsWith('@zemenbank.com'), {
         message: "Email must be a @zemenbank.com address"
     }),
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    password: z.string().optional(),
     role: z.string().min(1, "Role is required"),
     branch: z.string().optional(),
     department: z.string().min(1, "Department is required"),
@@ -42,21 +42,22 @@ interface CreateUserFormProps {
     branches: Branch[];
     departments: Department[];
     roles: Role[];
+    initialData?: User | null;
 }
 
 const generatePassword = () => {
-    // Generate a secure random password
     return crypto.randomBytes(8).toString('hex').slice(0, 12);
 };
 
-export function CreateUserForm({ branches, departments, roles }: CreateUserFormProps) {
+export function CreateUserForm({ branches, departments, roles, initialData }: CreateUserFormProps) {
     const router = useRouter();
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
+    const isEditing = !!initialData;
 
     const form = useForm<z.infer<typeof userFormSchema>>({
         resolver: zodResolver(userFormSchema),
-        defaultValues: {
+        defaultValues: initialData ? { ...initialData, password: '' } : {
             employeeId: "",
             name: "",
             email: "",
@@ -80,7 +81,7 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
     }, [isBranchRequired, form]);
     
 
-    const handleAddUser = async (values: z.infer<typeof userFormSchema>) => {
+    const handleFormSubmit = async (values: z.infer<typeof userFormSchema>) => {
         setIsLoading(true);
 
         if (isBranchRequired && !values.branch) {
@@ -90,30 +91,41 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
         }
 
         const submissionData = { ...values };
+        if (isEditing && !submissionData.password) {
+            delete submissionData.password;
+        } else if (!isEditing && !submissionData.password) {
+            form.setError("password", { type: 'manual', message: 'Password is required for new users.' });
+            setIsLoading(false);
+            return;
+        }
+        
+        const url = isEditing ? `/api/users/${initialData.id}` : '/api/users';
+        const method = isEditing ? 'PUT' : 'POST';
 
-        const res = await fetch("/api/users", {
-            method: "POST",
+        const res = await fetch(url, {
+            method,
             body: JSON.stringify(submissionData),
             headers: { "Content-Type": "application/json" },
         });
         const result = await res.json();
+
         if (res.ok) {
-            toast({ title: "Success", description: "New user created successfully." });
+            toast({ title: "Success", description: `User ${isEditing ? 'updated' : 'created'} successfully.` });
             router.push('/users');
             router.refresh();
         } else {
-            toast({ variant: "destructive", title: "Error", description: result.message || "Failed to add user." });
+            toast({ variant: "destructive", title: "Error", description: result.message || "An unknown error occurred." });
         }
         setIsLoading(false);
     };
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleAddUser)}>
+            <form onSubmit={form.handleSubmit(handleFormSubmit)}>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Add New System User</CardTitle>
-                        <CardDescription>Fill in the details to create a new admin user.</CardDescription>
+                        <CardTitle>{isEditing ? 'Edit System User' : 'Add New System User'}</CardTitle>
+                        <CardDescription>{isEditing ? `Update details for ${initialData.name}.` : 'Fill in the details to create a new admin user.'}</CardDescription>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField control={form.control} name="employeeId" render={({ field }) => (
@@ -129,7 +141,7 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
                             <FormItem><FormLabel>Password</FormLabel>
                                 <FormControl>
                                     <div className="flex items-center gap-2">
-                                        <Input type="text" {...field} />
+                                        <Input type="text" placeholder={isEditing ? "Leave blank to keep unchanged" : ""} {...field} />
                                         <Button type="button" variant="outline" size="icon" onClick={() => form.setValue('password', generatePassword())}>
                                             <RefreshCw className="h-4 w-4" />
                                         </Button>
@@ -156,7 +168,7 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
                          <FormField control={form.control} name="branch" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Branch {isBranchRequired && <span className="text-destructive">*</span>}</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value ?? ""}>
                                     <FormControl><SelectTrigger><SelectValue placeholder="Select a branch" /></SelectTrigger></FormControl>
                                     <SelectContent>{branches.map(branch => (<SelectItem key={branch.id} value={branch.name}>{branch.name}</SelectItem>))}</SelectContent>
                                 </Select>
@@ -165,10 +177,10 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
                         )} />
                     </CardContent>
                     <CardFooter className="flex justify-end gap-2">
-                        <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
+                        <Button type="button" variant="outline" onClick={() => router.push('/users')}>Cancel</Button>
                         <Button type="submit" disabled={isLoading}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Create User
+                            {isEditing ? 'Save Changes' : 'Create User'}
                         </Button>
                     </CardFooter>
                 </Card>

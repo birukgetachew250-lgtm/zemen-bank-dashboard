@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2, Edit } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -49,6 +49,10 @@ export function UserManagementClient({
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const { toast } = useToast();
   const router = useRouter();
+
+  const handleEditUser = (user: User) => {
+    router.push(`/users/create?id=${user.id}`);
+  };
 
   const handleDeleteUser = async () => {
     if (!userToDelete) return;
@@ -112,9 +116,14 @@ export function UserManagementClient({
                         <TableCell>{user.department}</TableCell>
                         <TableCell>{user.branch || "N/A"}</TableCell>
                         <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" onClick={() => setUserToDelete(user)}>
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
+                            <div className="flex gap-2 justify-end">
+                                <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)}>
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => setUserToDelete(user)}>
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                            </div>
                         </TableCell>
                     </TableRow>
                 ))}
