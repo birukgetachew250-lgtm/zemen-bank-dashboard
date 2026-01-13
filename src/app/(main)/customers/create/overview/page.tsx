@@ -40,8 +40,6 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const authMethods = [
-  { value: 'PIN', label: 'PIN' },
-  { value: 'PASSWORD', label: 'Password' },
   { value: 'SMSOTP', label: 'SMS OTP' },
   { value: 'GAUTH', label: 'Google Authenticator' },
   { value: 'SQ', label: 'Security Question' },
@@ -81,8 +79,8 @@ function OverviewContent() {
   const form = useForm<OverviewFormValues>({
     resolver: zodResolver(overviewFormSchema),
     defaultValues: {
-      mainAuthMethod: 'PIN',
-      twoFactorAuthMethod: 'SMSOTP',
+      mainAuthMethod: 'SMSOTP',
+      twoFactorAuthMethod: 'GAUTH',
       channel: 'Mobile App',
     },
   });
