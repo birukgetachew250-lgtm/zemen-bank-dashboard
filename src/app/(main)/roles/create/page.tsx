@@ -12,21 +12,23 @@ export interface Permission {
 const flattenMenu = (items: MenuItem[], level = 0, prefix = ''): Permission[] => {
   let permissions: Permission[] = [];
   for (const item of items) {
-    // Create a more robust unique ID to prevent collisions
-    const uniqueId = prefix ? `${prefix}>${item.label}` : item.label;
+    // Use href as the primary ID if it exists, otherwise construct a unique ID.
+    // This ensures what we check against in the sidebar is what we store.
+    const uniqueId = item.href || (prefix ? `${prefix}>${item.label}` : item.label);
     
-    if (item.href) {
-      permissions.push({ id: item.href, label: item.label, level });
-    } else if (item.label && item.children) {
-      // It's a parent category without a direct link, use its uniqueId
+    // Add the current item
+    if (item.label) {
       permissions.push({ id: uniqueId, label: item.label, level });
     }
     
+    // Recurse into children
     if (item.children) {
       permissions = permissions.concat(flattenMenu(item.children, level + 1, uniqueId));
     }
   }
-  return permissions;
+  // Remove duplicates that might arise from parent items having the same href as a child
+  const uniquePermissions = Array.from(new Map(permissions.map(p => [p.id, p])).values());
+  return uniquePermissions;
 };
 
 

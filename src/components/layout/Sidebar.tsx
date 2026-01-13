@@ -15,29 +15,31 @@ import { cn } from '@/lib/utils';
 import { menu, type MenuItem } from '@/lib/menu';
 import { ScrollArea } from '../ui/scroll-area';
 
-function hasPermission(userPermissions: string[], requiredPermission: string): boolean {
+function hasPermission(userPermissions: string[], item: MenuItem): boolean {
     if (userPermissions.includes('all')) {
         return true;
     }
-    return userPermissions.includes(requiredPermission);
+    // Use href for permission check if it exists, otherwise use the label as a fallback for parent categories.
+    const permissionId = item.href || item.label;
+    return userPermissions.includes(permissionId);
 }
 
 function hasAccessToAnyChild(item: MenuItem, userPermissions: string[]): boolean {
-    if (item.children) {
-        return item.children.some(child => {
-            if (child.href && hasPermission(userPermissions, child.label)) {
-                return true;
-            }
-            return hasAccessToAnyChild(child, userPermissions);
-        });
+    if (!item.children) {
+        return false;
     }
-    return false;
+    return item.children.some(child => {
+        // A child is accessible if the user has direct permission for it OR if it has accessible children itself.
+        return hasPermission(userPermissions, child) || hasAccessToAnyChild(child, userPermissions);
+    });
 }
+
 
 function SidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; pathname: string, userPermissions: string[] }) {
     const Icon = item.icon;
 
-    const canAccess = item.label === "Dashboard" || hasPermission(userPermissions, item.label) || hasAccessToAnyChild(item, userPermissions);
+    // An item is accessible if it's the dashboard, if user has direct permission, or if user has permission to any of its descendants.
+    const canAccess = item.label === "Dashboard" || hasPermission(userPermissions, item) || hasAccessToAnyChild(item, userPermissions);
 
     if (!canAccess) {
         return null;
@@ -45,7 +47,7 @@ function SidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; p
 
     if (item.children) {
       const accessibleChildren = item.children.filter(child => 
-          hasPermission(userPermissions, child.label) || hasAccessToAnyChild(child, userPermissions)
+         hasPermission(userPermissions, child) || hasAccessToAnyChild(child, userPermissions)
       );
         
       if (accessibleChildren.length === 0 && !item.href) {
@@ -80,7 +82,7 @@ function SidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; p
             <AccordionContent className="pl-4 pt-1 pb-0">
               <div className="flex flex-col space-y-1">
                 {accessibleChildren.map((child) => (
-                  <SidebarNavItem key={child.label} item={child} pathname={pathname} userPermissions={userPermissions} />
+                  <SidebarNavItem key={child.href || child.label} item={child} pathname={pathname} userPermissions={userPermissions} />
                 ))}
               </div>
             </AccordionContent>
