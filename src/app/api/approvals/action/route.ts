@@ -211,7 +211,7 @@ export async function POST(req: Request) {
             case 'unlink-account':
                 const unlinkDetails = JSON.parse(approval.details || '{}');
                 const hashedAccountNumber = crypto.createHash('sha256').update(unlinkDetails.accountNumber).digest('hex');
-                const unlinkQuery = `UPDATE "USER_MODULE"."Accounts" SET "Status" = 'Inactive' WHERE "HashedAccountNumber" = :hashedAccountNumber`;
+                const unlinkQuery = `UPDATE "USER_MODULE"."Accounts" SET "Status" = 'Unlinked' WHERE "HashedAccountNumber" = :hashedAccountNumber`;
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, unlinkQuery, { hashedAccountNumber });
                 successMessage = `Successfully unlinked account ${unlinkDetails.accountNumber}.`;
                 break;

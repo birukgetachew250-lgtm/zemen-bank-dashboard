@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Card,
@@ -73,8 +73,8 @@ export default function UnlinkAccountPage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                cif: customer.cifNumber,
-                type: 'unlink-account',
+                cif: customer.cifNumber, 
+                type: 'unlink-account', 
                 customerName: customer.name, 
                 customerPhone: customer.phoneNumber,
                 details: { accountNumber: selectedAccount }
