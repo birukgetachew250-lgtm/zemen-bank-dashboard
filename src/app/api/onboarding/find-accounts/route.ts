@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
+import * as protobuf from 'protobufjs';
 import crypto from 'crypto';
 import { executeQuery } from '@/lib/oracle-db';
 
