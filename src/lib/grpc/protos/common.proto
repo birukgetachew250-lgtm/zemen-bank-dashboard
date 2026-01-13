@@ -1,22 +1,30 @@
 syntax = "proto3";
 
+option csharp_namespace = "Flexcube_module_grpc";
 package common;
 import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
 
-// The service request message containing the request details.
 message ServiceRequest {
-  string request_id = 1;
-  string source_system = 2;
-  string channel = 3;
-  string user_id = 4;
-  google.protobuf.Any data = 5;
+  google.protobuf.Any data          = 1;
+  string              request_id    = 2;
+  string              source_system = 3;
+  string              channel       = 4;
+  string              user_id       = 5;
 }
 
-// The service response message containing the response details.
 message ServiceResponse {
-  string request_id = 1;
-  string response_id = 2;
-  string code = 3;
-  string message = 4;
-  google.protobuf.Any data = 5;
+  bool                 success    = 1;
+  string               code       = 2;
+  string               message    = 3;
+  google.protobuf.Any  data       = 4;
+  repeated ErrorDetail errors     = 5;
+  string               request_id = 6;
+  int64                timestamp  = 7;
+}
+
+message ErrorDetail {
+  string field       = 1;
+  string code        = 2;
+  string description = 3;
 }
