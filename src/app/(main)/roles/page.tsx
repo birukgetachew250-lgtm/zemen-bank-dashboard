@@ -37,7 +37,7 @@ export interface Role {
     id: number;
     name: string;
     description: string;
-    userCount?: number; // Make optional as we might not fetch this always
+    userCount?: number;
 }
 
 
@@ -54,9 +54,7 @@ export default function RolesAndPermissionsPage() {
         const response = await fetch('/api/roles');
         if (!response.ok) throw new Error("Failed to fetch roles.");
         const data = await response.json();
-        // Here we would ideally fetch the user count for each role
-        // For now, we'll assign a mock count.
-        setRoles(data.map((role: Role) => ({...role, userCount: Math.floor(Math.random() * 10)})));
+        setRoles(data);
     } catch (error: any) {
         toast({ variant: "destructive", title: "Error", description: error.message });
     } finally {

@@ -9,7 +9,15 @@ export async function GET(req: Request) {
                 name: 'asc',
             },
         });
-        return NextResponse.json(roles);
+
+        const rolesWithCounts = await Promise.all(roles.map(async (role) => {
+            const userCount = await db.user.count({
+                where: { role: role.name },
+            });
+            return { ...role, userCount };
+        }));
+
+        return NextResponse.json(rolesWithCounts);
     } catch (error) {
         console.error('Failed to fetch roles:', error);
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
