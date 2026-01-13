@@ -9,20 +9,26 @@ export interface Permission {
   level: number;
 }
 
-const flattenMenu = (items: MenuItem[], level = 0): Permission[] => {
+const flattenMenu = (items: MenuItem[], level = 0, prefix = ''): Permission[] => {
   let permissions: Permission[] = [];
   for (const item of items) {
+    // Create a more robust unique ID to prevent collisions
+    const uniqueId = prefix ? `${prefix}>${item.label}` : item.label;
+    
     if (item.href) {
       permissions.push({ id: item.href, label: item.label, level });
-    } else if (item.label) { // Also include parent menu items that are not links themselves
-      permissions.push({ id: item.label, label: item.label, level });
+    } else if (item.label && item.children) {
+      // It's a parent category without a direct link, use its uniqueId
+      permissions.push({ id: uniqueId, label: item.label, level });
     }
+    
     if (item.children) {
-      permissions = permissions.concat(flattenMenu(item.children, level + 1));
+      permissions = permissions.concat(flattenMenu(item.children, level + 1, uniqueId));
     }
   }
   return permissions;
 };
+
 
 async function getRoleData(id?: string) {
     const permissions = flattenMenu(menu);
