@@ -15,9 +15,14 @@ async function getCustomerStats() {
     const active = activeResult.rows[0]?.COUNT || 0;
     const linkedAccounts = linkedAccountsResult.rows[0]?.COUNT || 0;
 
-    const inactiveAndDormant = await db.customer.count({ where: { status: { in: ['Inactive', 'Dormant'] } } });
+    const inactiveResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers" WHERE "Status" = 'Inactive' OR "Status" = 'Dormant'`);
+    const inactiveAndDormant = inactiveResult.rows[0]?.COUNT || 0;
+    
+    const registeredResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers" WHERE "Status" = 'Registered'`);
+    const registered = registeredResult.rows[0]?.COUNT || 0;
 
-    return { total, active, inactive: inactiveAndDormant, registered: total - active - inactiveAndDormant, linkedAccounts };
+
+    return { total, active, inactive: inactiveAndDormant, registered: registered, linkedAccounts };
 
   } catch (e: any) {
     console.error("Failed to fetch customer stats:", e);
