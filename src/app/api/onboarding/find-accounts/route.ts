@@ -8,6 +8,7 @@ import path from 'path';
 import * as protobuf from 'protobufjs';
 import crypto from 'crypto';
 import { executeQuery } from '@/lib/oracle-db';
+import { ServiceRequest } from '@/lib/grpc/generated/service_pb';
 
 const mockAccounts = [
     { custacno: "1031110048533015", branch_code: "103", ccy: "ETB", account_type: "S", acclassdesc: "Personal Saving - Private and Individual", status: "Active" },
@@ -21,7 +22,12 @@ const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/accountlist.pro
 
 
 let client: any = null;
-try {
+let accountListRequestType: protobuf.Type | null = null;
+let accountListResponseType: protobuf.Type | null = null;
+
+
+(async () => {
+  try {
     const packageDef = protoLoader.loadSync(PROTO_PATH, {
       keepCase: true,
       longs: String,
@@ -37,9 +43,29 @@ try {
       GRPC_SERVER_ADDRESS,
       grpc.credentials.createInsecure()
     );
-} catch (error) {
+
+    const root = await protobuf.load(PROTO_PATH);
+    accountListRequestType = root.lookupType('accountlist.AccountListRequest');
+    accountListResponseType = root.lookupType('accountlist.AccountListResponse');
+
+  } catch (error) {
     console.error('[gRPC Client Init Failed for find-accounts]', error);
+  }
+})();
+
+function promisifyCall<TRequest, TResponse>(methodName: string, request: TRequest): Promise<TResponse> {
+  return new Promise((resolve, reject) => {
+    if (!client) return reject(new Error("gRPC client not initialized"));
+    const deadline = new Date();
+    deadline.setSeconds(deadline.getSeconds() + 60);
+
+    client[methodName](request, { deadline }, (err: any, res: TResponse) => {
+      if (err) return reject(err);
+      resolve(res);
+    });
+  });
 }
+
 
 export async function POST(req: Request) {
     const { cif, branch_code } = await req.json();
@@ -48,8 +74,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: 'CIF and branch code are required' }, { status: 400 });
     }
 
-    if (!client) {
-        console.error('gRPC client for AccountListService is not available.');
+    if (!client || !accountListRequestType || !accountListResponseType) {
+        console.error('gRPC client or protobuf types for AccountListService are not available.');
         return NextResponse.json({ message: 'Internal server error: Could not connect to banking service.' }, { status: 500 });
     }
 
@@ -58,22 +84,42 @@ export async function POST(req: Request) {
         const linkedResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, linkedAccountsQuery, [cif]);
         const linkedAccountHashes = new Set((linkedResult.rows || []).map((row: any) => row.HashedAccountNumber));
 
-        const requestPayload = {
+        const accountListRequestPayload = accountListRequestType.create({
             customer_id: cif,
             branch_code: branch_code,
-        };
-
-        const grpcResponse: any = await new Promise((resolve, reject) => {
-             client.QueryCustomerAccountList(requestPayload, (err: any, res: any) => {
-                if (err) {
-                    console.error('[gRPC Call Failed] QueryCustomerAccountList:', err);
-                    return reject(err);
-                }
-                resolve(res);
-            });
         });
         
-        const accounts = grpcResponse?.accounts || [];
+        const encodedValue = accountListRequestType.encode(accountListRequestPayload).finish();
+
+        const serviceRequest = {
+            data: {
+                type_url: "type.googleapis.com/accountlist.AccountListRequest",
+                value: Buffer.from(encodedValue)
+            },
+            request_id: `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            source_system: 'MOBILE',
+            channel: 'mobile',
+            user_id: 'DASH_USER'
+        };
+
+        const grpcResponse = await promisifyCall<any, any>('QueryCustomerAccountList', serviceRequest);
+        
+        if (!grpcResponse || grpcResponse.code !== '0') {
+             const errorMessage = grpcResponse?.message || 'Upstream service error while fetching accounts.';
+             console.error('[gRPC Call Failed] QueryCustomerAccountList:', errorMessage);
+             throw new Error(errorMessage);
+        }
+
+        const dataValue = grpcResponse.data?.value;
+        if (!dataValue) {
+            throw new Error("Response success but data.value is missing from gRPC response");
+        }
+    
+        const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue);
+        const decodedResponse = accountListResponseType.decode(buffer);
+        const responseObject = accountListResponseType.toObject(decodedResponse, { arrays: true });
+
+        const accounts = responseObject?.accounts || [];
         
         const transformedAccounts = accounts.map((acc: any) => {
             const hashed = crypto.createHash('sha256').update(acc.custacno).digest('hex');
