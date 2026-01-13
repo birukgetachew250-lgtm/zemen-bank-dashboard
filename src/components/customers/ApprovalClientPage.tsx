@@ -245,9 +245,9 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
                         <div>
                             <h3 className="font-semibold text-lg mb-2">Security & Channel</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-4 border rounded-lg bg-muted/50">
-                                <InfoItem icon={<Shield />} label="Main Auth Method" value={parsedDetails.onboardingData.mainAuthMethod} />
+                                <InfoItem icon={<Shield />} label="Main Auth Method" value={parsedDetails.onboardingData.signUpMainAuth} />
                                 <InfoItem icon={<Smartphone />} label="Channel" value={parsedDetails.onboardingData.channel} />
-                                <InfoItem icon={<Star />} label="2FA Method" value={parsedDetails.onboardingData.twoFactorAuthMethod} />
+                                <InfoItem icon={<Star />} label="2FA Method" value={parsedDetails.onboardingData.signUp2FA} />
                             </div>
                         </div>
                     )}
@@ -298,5 +298,3 @@ function InfoItem({ icon, label, value, className }: { icon: React.ReactNode, la
         </div>
     )
 }
-
-    

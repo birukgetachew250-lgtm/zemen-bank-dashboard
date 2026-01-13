@@ -3,7 +3,7 @@
 
 import { Suspense, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Loader2, User, Phone, Mail, Fingerprint, ShieldOff, Smartphone, Star } from 'lucide-react';
+import { Loader2, User, Phone, Mail, Fingerprint, Shield, Smartphone, Star, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -63,6 +63,9 @@ const overviewFormSchema = z.object({
   mainAuthMethod: z.string().min(1, 'Main authentication method is required.'),
   twoFactorAuthMethod: z.string(),
   channel: z.string().min(1, 'You need to select a channel.'),
+}).refine(data => data.mainAuthMethod !== data.twoFactorAuthMethod, {
+    message: "Main auth and 2FA method cannot be the same.",
+    path: ["twoFactorAuthMethod"],
 });
 
 type OverviewFormValues = z.infer<typeof overviewFormSchema>;
@@ -283,7 +286,7 @@ function OverviewContent() {
 
 function InfoItem({ icon, label, value, className }: { icon: React.ReactNode, label: string, value: React.ReactNode, className?: string }) {
     return (
-        <div className={cn("flex items-start gap-4", className)}>
+        <div className={cn("flex items-start gap-3", className)}>
             <div className="w-6 h-6 text-muted-foreground mt-1">{icon}</div>
             <div>
                 <p className="text-sm text-muted-foreground">{label}</p>
