@@ -43,6 +43,12 @@ const getStatusVariant = (status: string) => {
     }
 }
 
+const statusColorMap: { [key: string]: string } = {
+    Active: 'bg-green-100 text-green-800 border-green-200',
+    Dormant: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    Inactive: 'bg-red-100 text-red-800 border-red-200',
+};
+
 
 export default function LinkAccountPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -213,8 +219,8 @@ export default function LinkAccountPage() {
               ) : (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>No Accounts Found</AlertTitle>
-                  <AlertDescription>No accounts were found for this customer CIF in the core banking system.</AlertDescription>
+                  <AlertTitle>No Unlinked Accounts Found</AlertTitle>
+                  <AlertDescription>No accounts were found for this customer that are not already linked to a mobile banking profile.</AlertDescription>
                 </Alert>
               )}
             </CardContent>
