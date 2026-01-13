@@ -42,15 +42,17 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 const authMethods = [
   { value: 'PIN', label: 'PIN' },
   { value: 'PASSWORD', label: 'Password' },
-];
-
-const twoFactorMethods = [
   { value: 'SMSOTP', label: 'SMS OTP' },
   { value: 'GAUTH', label: 'Google Authenticator' },
   { value: 'SQ', label: 'Security Question' },
   { value: 'EMAILOTP', label: 'Email OTP' },
-  { value: 'None', label: 'None'},
 ];
+
+const twoFactorMethods = [
+    ...authMethods,
+    { value: 'None', label: 'None'},
+];
+
 
 const channelOptions = [
     { value: 'Mobile App', label: 'Mobile App' },
@@ -127,7 +129,7 @@ function OverviewContent() {
         body: JSON.stringify({
           customer: customer,
           accounts: accounts,
-          manualData: { 
+          onboardingData: { 
             signUpMainAuth: data.mainAuthMethod, 
             signUp2FA: data.twoFactorAuthMethod,
             channel: data.channel,
@@ -290,7 +292,7 @@ function InfoItem({ icon, label, value, className }: { icon: React.ReactNode, la
             <div className="w-6 h-6 text-muted-foreground mt-1">{icon}</div>
             <div>
                 <p className="text-sm text-muted-foreground">{label}</p>
-                <p className="font-medium">{value}</p>
+                <p className="font-medium text-sm">{value}</p>
             </div>
         </div>
     )
@@ -305,5 +307,7 @@ export default function OverviewPage() {
         </Suspense>
     );
 }
+
+    
 
     
