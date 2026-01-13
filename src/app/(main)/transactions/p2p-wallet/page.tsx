@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from "react";
@@ -38,16 +39,18 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 const transactionTypes = ['All', 'P2P Send', 'P2P Receive', 'Wallet Top-up', 'Withdrawal', 'Airtime'];
-const transactionStatuses = ['All', 'Successful', 'Failed', 'Pending'];
+const transactionStatuses = ['All', 'Successful', 'Failed', 'Pending', 'Reversed'];
 const statusVariantMap: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
     Successful: "secondary",
     Pending: "default",
     Failed: "destructive",
+    Reversed: "outline",
 };
 const statusColorMap: { [key: string]: string } = {
     Successful: 'bg-green-100 text-green-800 border-green-200',
     Pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     Failed: 'bg-red-100 text-red-800 border-red-200',
+    Reversed: 'bg-gray-100 text-gray-800 border-gray-200',
 };
 
 
