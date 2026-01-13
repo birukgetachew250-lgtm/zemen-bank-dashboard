@@ -1,33 +1,34 @@
 
 import { NextResponse } from 'next/server';
-import { executeQuery } from '@/lib/oracle-db';
-import { decrypt } from '@/lib/crypto';
+import { db } from '@/lib/db';
 
 const getCustomerByCifOrId = async (id: string) => {
     // This query finds the base customer profile from the AppUsers table.
     // It's flexible enough to search by CIFNumber or the AppUser ID.
-    const query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :id OR "Id" = :id`;
-    const result: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, query, [id, id]);
+    // NOTE: This now uses the local Prisma client. In a real scenario, this might call another service.
+    const user = await db.user.findFirst({
+        where: {
+            OR: [
+                { employeeId: id },
+                { id: parseInt(id, 10) }
+            ]
+        }
+    });
 
-    if (result && result.rows && result.rows.length > 0) {
-        const d = result.rows[0];
-        const firstName = decrypt(d.FirstName);
-        const secondName = decrypt(d.SecondName);
-        const lastName = decrypt(d.LastName);
-
+    if (user) {
         return {
-            id: d.Id,
-            cifNumber: d.CIFNumber,
-            name: [firstName, secondName, lastName].filter(Boolean).join(' '),
-            firstName: firstName,
-            lastName: lastName,
-            email: decrypt(d.Email),
-            phoneNumber: decrypt(d.PhoneNumber),
-            address: [d.AddressLine1, d.AddressLine2, d.AddressLine3, d.AddressLine4].filter(Boolean).join(', '),
-            nationality: d.Nationality,
-            branchName: d.BranchName,
-            status: d.Status,
-            insertDate: d.InsertDate,
+            id: user.id.toString(),
+            cifNumber: user.employeeId,
+            name: user.name,
+            firstName: user.name.split(' ')[0],
+            lastName: user.name.split(' ').slice(-1)[0],
+            email: user.email,
+            phoneNumber: 'N/A', // Not in User model
+            address: 'N/A', // Not in User model
+            nationality: 'N/A', // Not in User model
+            branchName: user.branch,
+            status: 'Active', // Mocked status
+            insertDate: user.createdAt.toISOString(),
         };
     }
     return null;
@@ -51,3 +52,4 @@ export async function GET(
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
+
