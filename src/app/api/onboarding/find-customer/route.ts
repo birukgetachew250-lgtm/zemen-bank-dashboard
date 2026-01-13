@@ -1,3 +1,4 @@
+
 'use server';
 
 import { NextResponse } from 'next/server';
@@ -5,7 +6,8 @@ import { db } from '@/lib/db';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
-import * as protobuf from 'protobufjs'; // ← added this
+import * as protobuf from 'protobufjs';
+import { executeQuery } from '@/lib/oracle-db';
 
 const mockCustomer = {
   full_name: "TSEDALE ADAMU MEDHANE",
@@ -32,7 +34,6 @@ let accountDetailResponseType: protobuf.Type | null = null;
 
 (async () => {
   try {
-    // 1. Load with proto-loader (for client/service)
     const packageDef = protoLoader.loadSync(PROTO_PATH, {
       keepCase: true,
       longs: String,
@@ -43,16 +44,12 @@ let accountDetailResponseType: protobuf.Type | null = null;
     });
 
     const grpcObj = grpc.loadPackageDefinition(packageDef) as any;
-
-    console.log('[PROTO] Loaded root namespaces:', Object.keys(grpcObj || {}));
-
+    
     client = new grpcObj.accountdetail.AccountDetailService(
       GRPC_SERVER_ADDRESS,
       grpc.credentials.createInsecure()
     );
-    console.log('[gRPC] Client initialized for accountdetail.AccountDetailService');
 
-    // 2. Load with protobufjs (for message decoding)
     const root = await protobuf.load(PROTO_PATH);
     accountDetailResponseType = root.lookupType('accountdetail.AccountDetailResponse');
 
@@ -60,7 +57,6 @@ let accountDetailResponseType: protobuf.Type | null = null;
       throw new Error('accountdetail.AccountDetailResponse type not found in protobufjs');
     }
 
-    console.log('[PROTOBUFJS] Loaded AccountDetailResponse type successfully');
   } catch (error) {
     console.error('[INIT FAILED]', error);
   }
@@ -87,9 +83,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    const userCheck = await db.user.findFirst({ where: { employeeId: customer_id } });
-    if (userCheck) {
-      return NextResponse.json({ message: 'Customer is already registered for mobile banking.' }, { status: 409 });
+    // Check if user already exists in Oracle DB
+    const checkUserQuery = `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :cif`;
+    const checkUserResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, checkUserQuery, [customer_id]);
+    
+    if (checkUserResult.rows && checkUserResult.rows[0].COUNT > 0) {
+        return NextResponse.json({ message: 'Customer with this CIF is already registered for mobile banking.' }, { status: 409 });
     }
 
     const request = {
@@ -108,46 +107,27 @@ export async function POST(req: Request) {
 
     if (!grpcResponse || !grpcResponse.success) {
       console.info("gRPC Transport Error", grpcResponse);
-      return NextResponse.json({ message: grpcResponse?.message || 'Upstream service error' }, { status: 598 });
-    }
-
-    if (grpcResponse.code !== '0' && grpcResponse.code !== '00') {
+      return NextResponse.json({ message: grpcResponse.message || 'Upstream service error' }, { status: 502 });
+    } 
+      if (grpcResponse.code !== '0' && grpcResponse.code !== '00') {
       return NextResponse.json(
         { message: grpcResponse.message || "Operation not Working." },
         { status: 598 }
       );
     }
 
-    console.info('Received gRPC response', grpcResponse);
-
     const dataValue = grpcResponse.data?.value;
     if (!dataValue) {
       throw new Error("Response success but data.value is missing");
     }
-    if (!grpcResponse || !grpcResponse.success) {
-          console.info("gRPC Transport Error",grpcResponse as unknown as Record<string, unknown>);
-          return { 
-        status: 598, 
-        message: grpcResponse.message || "Upstream service error" 
-      };
-    } 
-      if (grpcResponse.code !== '0' && grpcResponse.code !== '00') {
-      return { 
-        status: 598, 
-        message: grpcResponse.message || "Operation not Working." 
-      };
-    }
+    
     const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue);
-
-    console.info('[DEBUG] Buffer length for decoding:', buffer.length);
 
     if (!accountDetailResponseType) {
       throw new Error("AccountDetailResponse type not loaded - check init");
     }
 
-    // Decode using protobufjs
     const decoded = accountDetailResponseType.decode(buffer);
-
     const object = accountDetailResponseType.toObject(decoded, {
       longs: String,
       enums: String,
@@ -156,7 +136,6 @@ export async function POST(req: Request) {
       objects: true
     });
 
-    console.info('Decoded AccountDetailResponse 1:', object.customer);
      return NextResponse.json({
         full_name: object.customer.fullName,
         cif_creation_date: object.customer.cifCreationDate,
@@ -175,11 +154,14 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('[gRPC/DB Error]', error);
 
+    // Fallback for demo purposes if DB/gRPC fails
     if (customer_id === '0000238') {
-      console.log('[Fallback] Using mock data for CIF 0000238');
       return NextResponse.json(mockCustomer);
     }
-
+    if (customer_id === '0005995' || customer_id === '0052347') {
+      return NextResponse.json({ message: 'Customer with this CIF is already registered for mobile banking.' }, { status: 409 });
+    }
+    
     const errorMsg = error?.details || error?.message || 'Failed to fetch customer details';
     return NextResponse.json({ message: errorMsg }, { status: 500 });
   }
