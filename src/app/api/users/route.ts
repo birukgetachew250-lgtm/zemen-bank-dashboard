@@ -11,8 +11,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'All fields except branch are required' }, { status: 400 });
         }
         
-        if (department === 'Branch Operations' && !branch) {
-             return NextResponse.json({ message: 'Branch is required for users in Branch Operations' }, { status: 400 });
+        // Custom validation for email
+        if (!email.endsWith('@zemenbank.com')) {
+            return NextResponse.json({ message: 'Email must be a @zemenbank.com address' }, { status: 400 });
         }
 
         const existingUserByEmail = await db.user.findUnique({ where: { email } });
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'User with this Employee ID already exists' }, { status: 409 });
         }
 
-        // In a real app, password should be hashed before storing
+        // In a real app, password should be securely hashed. Storing as is for this context.
         const newUser = await db.user.create({
             data: {
                 employeeId,
@@ -37,8 +38,10 @@ export async function POST(req: Request) {
                 department
             }
         });
+        
+        const { password: _, ...userWithoutPassword } = newUser;
 
-        return NextResponse.json({ success: true, message: 'User created successfully', user: newUser }, { status: 201 });
+        return NextResponse.json({ success: true, message: 'User created successfully', user: userWithoutPassword }, { status: 201 });
 
     } catch (error) {
         console.error('Failed to create user:', error);

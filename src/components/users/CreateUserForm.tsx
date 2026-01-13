@@ -22,12 +22,15 @@ import type { Department } from "@/app/(main)/departments/page";
 import type { Role } from "@/app/(main)/roles/page";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
+import crypto from "crypto";
 
 const userFormSchema = z.object({
     employeeId: z.string().min(1, "Employee ID is required"),
     name: z.string().min(1, "Name is required"),
-    email: z.string().email("Invalid email address"),
+    email: z.string().email("Invalid email address").refine(email => email.endsWith('@zemenbank.com'), {
+        message: "Email must be a @zemenbank.com address"
+    }),
     password: z.string().min(8, "Password must be at least 8 characters"),
     role: z.string().min(1, "Role is required"),
     branch: z.string().optional(),
@@ -41,6 +44,11 @@ interface CreateUserFormProps {
     roles: Role[];
 }
 
+const generatePassword = () => {
+    // Generate a secure random password
+    return crypto.randomBytes(8).toString('hex').slice(0, 12);
+};
+
 export function CreateUserForm({ branches, departments, roles }: CreateUserFormProps) {
     const router = useRouter();
     const { toast } = useToast();
@@ -52,7 +60,7 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
             employeeId: "",
             name: "",
             email: "",
-            password: "",
+            password: generatePassword(),
             role: "",
             branch: "",
             department: "",
@@ -62,7 +70,7 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
     const roleWatcher = form.watch("role");
 
     const isBranchRequired = useMemo(() => {
-        return roleWatcher === 'Operations Lead';
+        return roleWatcher === 'Operations Lead' || roleWatcher === 'Support Staff';
     }, [roleWatcher]);
 
     useEffect(() => {
@@ -109,7 +117,7 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField control={form.control} name="employeeId" render={({ field }) => (
-                            <FormItem><FormLabel>Employee ID</FormLabel><FormControl><Input placeholder="e.g. 12345" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Employee ID</FormLabel><FormControl><Input placeholder="e.g. ZM12345" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="name" render={({ field }) => (
                             <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="e.g. John Doe" {...field} /></FormControl><FormMessage /></FormItem>
@@ -118,7 +126,16 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
                             <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="e.g. john.doe@zemenbank.com" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="password" render={({ field }) => (
-                            <FormItem><FormLabel>Password</FormLabel><FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Password</FormLabel>
+                                <FormControl>
+                                    <div className="flex items-center gap-2">
+                                        <Input type="text" {...field} />
+                                        <Button type="button" variant="outline" size="icon" onClick={() => form.setValue('password', generatePassword())}>
+                                            <RefreshCw className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </FormControl><FormMessage />
+                            </FormItem>
                         )} />
                         <FormField control={form.control} name="role" render={({ field }) => (
                             <FormItem><FormLabel>Role</FormLabel>
@@ -159,4 +176,3 @@ export function CreateUserForm({ branches, departments, roles }: CreateUserFormP
         </Form>
     );
 }
-
