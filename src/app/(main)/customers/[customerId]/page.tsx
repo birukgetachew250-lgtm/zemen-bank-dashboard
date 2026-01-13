@@ -38,7 +38,7 @@ import {
 import { User, Landmark, Activity, Smartphone, Shield, Edit, History, Unlink } from "lucide-react";
 import { notFound, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, use } from "react";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -457,10 +457,29 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
     )
 }
 
+function ChangeItem({ label, oldValue, newValue }: { label: string, oldValue: string, newValue: string}) {
+    if (oldValue === newValue) return null;
+    return (
+        <div>
+            <p className="text-sm font-medium text-muted-foreground">{label}</p>
+            <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground line-through">{oldValue}</span>
+                <ArrowRight className="h-4 w-4 text-muted-foreground"/>
+                <span className="text-sm font-medium text-foreground">{newValue}</span>
+            </div>
+        </div>
+    )
+}
+
 export default function CustomerDetailsPage({ params }: { params: { customerId: string } }) {
+  // Directly use `params` in the Server Component part
+  const customerId = params.customerId;
+
   return (
     <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
-      <CustomerDetailsPageContent customerId={params.customerId} />
+      <CustomerDetailsPageContent customerId={customerId} />
     </Suspense>
   )
 }
+
+    
