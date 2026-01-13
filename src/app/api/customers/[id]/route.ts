@@ -4,22 +4,20 @@ import { executeQuery } from '@/lib/oracle-db';
 import { decrypt, encrypt } from '@/lib/crypto';
 import crypto from 'crypto';
 
-const getCustomerDetails = async (identifier: string) => {
+const getCustomerByCifOrId = async (identifier: string) => {
     // This query finds the base customer profile from the AppUsers table.
     // It's flexible enough to search by CIFNumber or a hashed PhoneNumber.
     
-    const isCif = /^\d+$/.test(identifier);
     let query;
     let binds: any;
 
-    if (isCif) {
+    // A simple heuristic to differentiate CIF from a potential internal ID
+    if (/^\d{7}$/.test(identifier)) { // Assuming CIF is a 7-digit number
         query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :id`;
         binds = { id: identifier };
     } else {
-        // Assume it's a phone number. Hash it for lookup.
-        const phoneHash = crypto.createHash('sha256').update(identifier).digest('hex');
-        query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "PhoneNumberHashed" = :hash`;
-        binds = { hash: phoneHash };
+        query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "Id" = :id`;
+        binds = { id: identifier };
     }
 
     try {
@@ -52,9 +50,9 @@ const getCustomerDetails = async (identifier: string) => {
             signUp2FA: user.SignUp2FA
         };
     } catch(e) {
-        console.error(`[Oracle Error] in getCustomerDetails for identifier ${identifier}:`, e);
+        console.error(`[Oracle Error] in getCustomerByCifOrId for identifier ${identifier}:`, e);
         // Fallback for demo if DB fails
-        if (identifier === "0048533" || identifier === "0000238" || identifier === '+251911223345') {
+        if (identifier === "0048533" || identifier === "user_0048533") {
              return {
                 id: 'user_0048533',
                 cifNumber: '0048533',
@@ -82,8 +80,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const customerIdentifier = params.id;
-    const customer = await getCustomerDetails(customerIdentifier);
+    const customerId = params.id;
+    const customer = await getCustomerByCifOrId(customerId);
 
     if (!customer) {
       return NextResponse.json({ message: 'Customer not found with that CIF or Phone Number' }, { status: 404 });
