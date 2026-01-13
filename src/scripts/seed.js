@@ -33,27 +33,25 @@ async function clearOracleTables() {
         const connString = process.env.USER_MODULE_DB_CONNECTION_STRING;
         if (!connString) {
             console.warn('[Oracle] USER_MODULE_DB_CONNECTION_STRING not set. Skipping user module cleanup.');
-            return;
+        } else {
+            const userMatch = connString.match(/^(.*?)\//);
+            const passwordMatch = connString.match(/\/(.*?)@/);
+            const serverMatch = connString.match(/@(.*?)$/);
+            if (!userMatch || !passwordMatch || !serverMatch) throw new Error("Invalid Oracle connection string format");
+            
+            connection = await oracledb.getConnection({
+                user: userMatch[1],
+                password: passwordMatch[1],
+                connectString: serverMatch[1],
+            });
+
+            const tables = ["AppUsers", "Accounts"];
+            for (const table of tables) {
+                await connection.execute(`DELETE FROM "USER_MODULE"."${table}"`);
+            }
+            await connection.commit();
+            console.log('[Oracle] Cleared USER_MODULE tables.');
         }
-
-        const userMatch = connString.match(/^(.*?)\//);
-        const passwordMatch = connString.match(/\/(.*?)@/);
-        const serverMatch = connString.match(/@(.*?)$/);
-        if (!userMatch || !passwordMatch || !serverMatch) throw new Error("Invalid Oracle connection string format");
-        
-        connection = await oracledb.getConnection({
-            user: userMatch[1],
-            password: passwordMatch[1],
-            connectString: serverMatch[1],
-        });
-
-        const tables = ["AppUsers", "Accounts"];
-        for (const table of tables) {
-            await connection.execute(`DELETE FROM "USER_MODULE"."${table}"`);
-        }
-        await connection.commit();
-        console.log('[Oracle] Cleared USER_MODULE tables.');
-
     } catch(e) {
         console.error('[Oracle] Failed to clear user module tables, might not exist yet.', e);
     } finally {
@@ -65,26 +63,52 @@ async function clearOracleTables() {
         const connString = process.env.SECURITY_MODULE_DB_CONNECTION_STRING;
         if (!connString) {
             console.warn('[Oracle] SECURITY_MODULE_DB_CONNECTION_STRING not set. Skipping security module cleanup.');
-            return;
-        }
-        const userMatch = connString.match(/^(.*?)\//);
-        const passwordMatch = connString.match(/\/(.*?)@/);
-        const serverMatch = connString.match(/@(.*?)$/);
-        if (!userMatch || !passwordMatch || !serverMatch) throw new Error("Invalid Oracle connection string format");
+        } else {
+            const userMatch = connString.match(/^(.*?)\//);
+            const passwordMatch = connString.match(/\/(.*?)@/);
+            const serverMatch = connString.match(/@(.*?)$/);
+            if (!userMatch || !passwordMatch || !serverMatch) throw new Error("Invalid Oracle connection string format");
 
-         connection = await oracledb.getConnection({
-            user: userMatch[1],
-            password: passwordMatch[1],
-            connectString: serverMatch[1],
-        });
-        const tables = ["UserSecurities", "SecurityQuestions"];
-         for (const table of tables) {
-            await connection.execute(`DELETE FROM "SECURITY_MODULE"."${table}"`);
+             connection = await oracledb.getConnection({
+                user: userMatch[1],
+                password: passwordMatch[1],
+                connectString: serverMatch[1],
+            });
+            const tables = ["UserSecurities", "SecurityQuestions"];
+             for (const table of tables) {
+                await connection.execute(`DELETE FROM "SECURITY_MODULE"."${table}"`);
+            }
+            await connection.commit();
+            console.log('[Oracle] Cleared SECURITY_MODULE tables.');
         }
-        await connection.commit();
-        console.log('[Oracle] Cleared SECURITY_MODULE tables.');
     } catch(e) {
         console.error('[Oracle] Failed to clear security module tables, might not exist yet.', e);
+    } finally {
+        if (connection) await connection.close();
+    }
+
+    console.log('[Oracle] Clearing OTP module tables...');
+    try {
+        const connString = process.env.OTP_MODULE_DB_CONNECTION_STRING;
+        if (!connString) {
+            console.warn('[Oracle] OTP_MODULE_DB_CONNECTION_STRING not set. Skipping OTP module cleanup.');
+        } else {
+            const userMatch = connString.match(/^(.*?)\//);
+            const passwordMatch = connString.match(/\/(.*?)@/);
+            const serverMatch = connString.match(/@(.*?)$/);
+            if (!userMatch || !passwordMatch || !serverMatch) throw new Error("Invalid Oracle connection string format");
+
+            connection = await oracledb.getConnection({
+                user: userMatch[1],
+                password: passwordMatch[1],
+                connectString: serverMatch[1],
+            });
+            await connection.execute(`DELETE FROM "OTP_MODULE"."OtpCodes"`);
+            await connection.commit();
+            console.log('[Oracle] Cleared OTP_MODULE tables.');
+        }
+    } catch(e) {
+        console.error('[Oracle] Failed to clear OTP module tables, might not exist yet.', e);
     } finally {
         if (connection) await connection.close();
     }
@@ -131,7 +155,7 @@ async function main() {
         data: [
             { name: 'Super Admin', description: 'Full system access.' },
             { name: 'Operations Lead', description: 'Manages approvals.' },
-            { name: 'Support Staff', description: 'Customer support.' },
+            { name: 'Support Staff', description: 'Handles customer inquiries and first-level support tickets.' },
             { name: 'Compliance Officer', description: 'Handles risk and compliance.' },
         ],
     });
