@@ -8,3 +8,5 @@ export default function ApproveNewCustomersPage() {
     </div>
   );
 }
+
+    
