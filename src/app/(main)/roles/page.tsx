@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -18,67 +18,81 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, PlusCircle, Trash2, Users } from "lucide-react";
+import { Edit, PlusCircle, Trash2, Users, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export interface Role {
     id: number;
     name: string;
-    userCount: number;
     description: string;
+    userCount?: number; // Make optional as we might not fetch this always
 }
 
 
-const initialRoles: Role[] = [
-  {
-    id: 1,
-    name: "Super Admin",
-    userCount: 2,
-    description: "Full access to all system features, including security settings.",
-  },
-  {
-    id: 2,
-    name: "Operations Lead",
-    userCount: 5,
-    description: "Manages day-to-day customer and transaction approvals.",
-  },
-  {
-    id: 3,
-    name: "Support Staff",
-    userCount: 15,
-    description: "Handles customer inquiries and first-level support tickets.",
-  },
-  {
-    id: 4,
-    name: "Compliance Officer",
-    userCount: 3,
-    description: "Audits trails, reviews high-risk transactions, and generates NBE reports.",
-  },
-  {
-    id: 5,
-    name: "Read-Only Auditor",
-    userCount: 4,
-    description: "View-only access to all transactional and user data for auditing purposes.",
-  }
-];
-
-
 export default function RolesAndPermissionsPage() {
-  const [roles, setRoles] = useState(initialRoles);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
   const router = useRouter();
   const { toast } = useToast();
+
+  const fetchRoles = async () => {
+    setIsLoading(true);
+    try {
+        const response = await fetch('/api/roles');
+        if (!response.ok) throw new Error("Failed to fetch roles.");
+        const data = await response.json();
+        // Here we would ideally fetch the user count for each role
+        // For now, we'll assign a mock count.
+        setRoles(data.map((role: Role) => ({...role, userCount: Math.floor(Math.random() * 10)})));
+    } catch (error: any) {
+        toast({ variant: "destructive", title: "Error", description: error.message });
+    } finally {
+        setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchRoles();
+  }, [toast]);
   
   const handleEditRole = (role: Role) => {
-    router.push(`/roles/create?roleId=${role.id}`);
+    router.push(`/roles/create?id=${role.id}`);
   };
 
+  const handleDeleteRole = async () => {
+    if (!roleToDelete) return;
+    
+    const res = await fetch(`/api/roles/${roleToDelete.id}`, {
+      method: "DELETE",
+    });
+    
+    if (res.ok) {
+      toast({ title: "Success", description: `Role "${roleToDelete.name}" deleted.` });
+      fetchRoles();
+    } else {
+      const error = await res.json();
+      toast({ variant: "destructive", title: "Error", description: error.message || "Failed to delete role." });
+    }
+    setRoleToDelete(null);
+  };
 
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex-row items-center justify-between">
           <div>
             <CardTitle>Roles & Permissions</CardTitle>
             <CardDescription>Define user roles and their access levels across the application.</CardDescription>
@@ -100,33 +114,64 @@ export default function RolesAndPermissionsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {roles.map((role) => (
-                  <TableRow key={role.id}>
-                    <TableCell className="font-semibold w-1/4">{role.name}</TableCell>
-                    <TableCell className="text-muted-foreground w-1/2">{role.description}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        {role.userCount}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Button variant="ghost" size="icon" onClick={() => handleEditRole(role)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {isLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                        <TableRow key={i}>
+                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-10" /></TableCell>
+                            <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+                        </TableRow>
+                    ))
+                ) : roles.map((role) => {
+                    let parsedDesc = role.description;
+                    try {
+                        const descObj = JSON.parse(role.description);
+                        parsedDesc = descObj.main || role.description;
+                    } catch {}
+                    return (
+                        <TableRow key={role.id}>
+                            <TableCell className="font-semibold w-1/4">{role.name}</TableCell>
+                            <TableCell className="text-muted-foreground w-1/2">{parsedDesc}</TableCell>
+                            <TableCell>
+                            <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                                {role.userCount}
+                            </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                            <div className="flex gap-2 justify-end">
+                                <Button variant="ghost" size="icon" onClick={() => handleEditRole(role)}>
+                                <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => setRoleToDelete(role)} className="text-red-500 hover:text-red-600">
+                                <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            </TableCell>
+                        </TableRow>
+                    );
+                })}
               </TableBody>
             </Table>
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!roleToDelete} onOpenChange={(open) => !open && setRoleToDelete(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the role <span className="font-semibold">{roleToDelete?.name}</span>.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteRole} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

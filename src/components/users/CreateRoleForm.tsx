@@ -26,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Loader2 } from 'lucide-react';
 
 interface CreateRoleFormProps {
     permissions: Permission[];
@@ -40,6 +41,7 @@ interface CreateRoleFormProps {
 export function CreateRoleForm({ permissions, initialData }: CreateRoleFormProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const [roleName, setRoleName] = useState(initialData?.name || '');
   const [roleDescription, setRoleDescription] = useState(initialData?.description || '');
   const [selectedPermissions, setSelectedPermissions] = useState<Record<string, boolean>>(
@@ -48,20 +50,55 @@ export function CreateRoleForm({ permissions, initialData }: CreateRoleFormProps
   
   const isEditing = !!initialData;
 
-  const handleSaveRole = () => {
+  const handleSaveRole = async () => {
+    setIsLoading(true);
     if (!roleName) {
       toast({
         variant: "destructive",
         title: "Role Name Required",
         description: "Please enter a name for the role before saving.",
       });
+      setIsLoading(false);
       return;
     }
-    toast({
-      title: `Role ${isEditing ? 'Updated' : 'Saved'} (UI Only)`,
-      description: `The role "${roleName}" and its permissions have been saved.`,
-    });
-    router.push('/roles');
+    
+    const permissionList = Object.keys(selectedPermissions).filter(p => selectedPermissions[p]);
+    const payload = {
+        name: roleName,
+        description: roleDescription,
+        permissions: permissionList,
+    };
+    
+    const url = isEditing ? `/api/roles/${initialData.id}` : '/api/roles';
+    const method = isEditing ? 'PUT' : 'POST';
+
+    try {
+        const response = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || `Failed to ${isEditing ? 'update' : 'create'} role.`);
+        }
+        
+        toast({
+            title: `Role ${isEditing ? 'Updated' : 'Created'}`,
+            description: `The role "${roleName}" has been successfully saved.`,
+        });
+        router.push('/roles');
+        router.refresh();
+    } catch (error: any) {
+         toast({
+            variant: "destructive",
+            title: `Error ${isEditing ? 'Updating' : 'Creating'} Role`,
+            description: error.message,
+        });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   const togglePermission = (permissionId: string) => {
@@ -136,9 +173,11 @@ export function CreateRoleForm({ permissions, initialData }: CreateRoleFormProps
       </CardContent>
       <CardFooter className="flex justify-end gap-2">
         <Button variant="outline" onClick={() => router.push('/roles')}>Cancel</Button>
-        <Button onClick={handleSaveRole}>Save Role</Button>
+        <Button onClick={handleSaveRole} disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Save Role
+        </Button>
       </CardFooter>
     </Card>
   );
 }
-
