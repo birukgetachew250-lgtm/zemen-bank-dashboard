@@ -3,17 +3,12 @@ import type { Branch } from "@/app/(main)/branches/page";
 import type { Department } from "@/app/(main)/departments/page";
 import { CreateUserForm } from "@/components/users/CreateUserForm";
 import { db } from "@/lib/db";
-import type { Role } from "@/app/(main)/roles/page";
-import { Prisma } from "@prisma/client";
+import type { Role } from "@prisma/client";
 
 async function getFormData() {
-    // This data is still coming from the local SQLite DB via the legacy connection.
-    // In a full microservice architecture, this would call other services.
-    const branches: Branch[] = []; // You would fetch this from your structure service
-    const departments: Department[] = []; // You would fetch this from your structure service
-
-    // Roles can be fetched from the same DB as users via Prisma
-    const roles = await db.role.findMany();
+    const branches = await db.branch.findMany({ orderBy: { name: 'asc' } });
+    const departments = await db.department.findMany({ orderBy: { name: 'asc' } });
+    const roles = await db.role.findMany({ orderBy: { name: 'asc' } });
 
     // Add default roles if none exist
     if (roles.length === 0) {

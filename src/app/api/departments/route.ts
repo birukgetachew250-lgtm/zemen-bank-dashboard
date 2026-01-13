@@ -31,13 +31,29 @@ export async function DELETE(req: Request) {
         if (!id) {
             return NextResponse.json({ message: 'Department ID is required' }, { status: 400 });
         }
+        
+        const department = await db.department.findUnique({
+            where: { id },
+        });
+
+        if (!department) {
+            return NextResponse.json({ message: 'Department not found' }, { status: 404 });
+        }
+
+        const userCount = await db.user.count({
+            where: { department: department.name },
+        });
+
+        if (userCount > 0) {
+            return NextResponse.json({ message: `Cannot delete department. It is currently assigned to ${userCount} user(s).` }, { status: 409 });
+        }
 
         await db.department.delete({ where: { id }});
 
         return NextResponse.json({ success: true, message: 'Department deleted successfully' });
     } catch (error: any) {
         if (error.code === 'P2025') {
-            return NextResponse.json({ message: 'Department not found' }, { status: 404 });
+             return NextResponse.json({ message: 'Department not found' }, { status: 404 });
         }
         console.error('Failed to delete department:', error);
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
