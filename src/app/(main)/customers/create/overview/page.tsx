@@ -125,8 +125,8 @@ function OverviewContent() {
           customer: customer,
           accounts: accounts,
           onboardingData: { 
-            signUpMainAuth: data.mainAuthMethod, 
-            signUp2FA: data.twoFactorAuthMethod,
+            mainAuthMethod: data.mainAuthMethod, 
+            twoFactorAuthMethod: data.twoFactorAuthMethod,
             channel: data.channel,
           },
         }),
