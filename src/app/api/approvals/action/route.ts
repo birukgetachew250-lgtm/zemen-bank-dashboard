@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { executeQuery } from '@/lib/oracle-db';
 import { encrypt } from '@/lib/crypto';
 import crypto from 'crypto';
-import { Prisma } from '@prisma/client';
+import { Prisma } from "@prisma/client";
 
 const getCifFromApproval = async (approval: any) => {
     if (approval.details) {
@@ -23,10 +23,8 @@ const getCifFromApproval = async (approval: any) => {
         // which isn't true for 'new-customer'. We primarily rely on the details JSON.
         try {
             const encryptedPhone = encrypt(approval.customerPhone);
-            const userResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "PhoneNumber" = :phone`, {phone: encryptedPhone});
-            if (userResult && userResult.rows && userResult.rows.length > 0) {
-                return userResult.rows[0].CIFNumber;
-            }
+            // This is a conceptual fallback. In reality, AppUsers might not exist yet.
+            // The logic primarily relies on details from the approval request itself.
         } catch (e) {
             console.error("Error during Oracle fallback to get CIF:", e);
         }
@@ -84,7 +82,7 @@ export async function POST(req: Request) {
                 
                 // --- Create AppUser ---
                 const appUserQuery = `
-                    INSERT INTO "USER_MODULE"."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","Status","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:Status,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
+                    INSERT INTO USER_MODULE."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","Status","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:Status,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
                 
                 const appUserBinds = {
                     CIFNumber: customerData.customer_number,
@@ -103,7 +101,7 @@ export async function POST(req: Request) {
                     Status: 'Pending',
                     SignUp2FA: onboardingData.twoFactorAuthMethod,
                     SignUpMainAuth: onboardingData.mainAuthMethod,
-                    Channel: onboardingData.channel
+                    Channel: onboardingData.channel,
                 };
 
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, appUserQuery, appUserBinds);
@@ -131,18 +129,15 @@ export async function POST(req: Request) {
                 // --- Create UserSecurity with temp password ---
                 const tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
                 
-                const userSecurityQuery = `INSERT INTO "SECURITY_MODULE"."UserSecurities" ("UserId","CIFNumber","PinHash","Status","IsLoggedIn","FailedAttempts","IsLocked","OnTmpPassword","IsActivationUsed","ActivationExpiredAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (:UserId,:CIFNumber,NULL,'Active',0,0,0,1,0,SYSTIMESTAMP + 7,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`;
-                await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, userSecurityQuery, {
-                    UserId: appUserId,
-                    CIFNumber: customerData.customer_number,
-                });
+                const userSecurityQuery = `INSERT INTO SECURITY_MODULE."UserSecurities" ("UserId","CIFNumber","PinHash","Status","SecurityQuestionId","SecurityAnswer","IsLoggedIn","FailedAttempts","LastLoginAttempt","IsLocked","UnlockedTime","LockedIntervalMinutes","EncKey","EncIV","IsBiometricsLogin","IsBiometricsPayment","DeviceSwitchConsent","OnTmpPassword","IsActivationUsed","ActivationExpiredAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES ('${appUserId}','${customerData.customer_number}',NULL,'Active',NULL,NULL,0,0,NULL,0,NULL,0,NULL,NULL,0,0,1,1,0,SYSTIMESTAMP + 7,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`;
+                await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, userSecurityQuery, {});
                 
                 // --- Create OTP for Temp Password ---
                 const otpId = crypto.randomUUID();
                 const codeHash = crypto.createHash('sha256').update(tempPassword).digest('hex').toLowerCase();
                 
-                await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES ('${otpId}','${customerData.customer_number}','${codeHash}',NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`);
-                await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpUsers" ("UserId","Status","LockedUntil","InsertDate","UpdateDate","OtpCodeId") VALUES ('${customerData.customer_number}',0,NULL,SYSTIMESTAMP,SYSTIMESTAMP,'${otpId}')`);
+                await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES ('${otpId}','${customerData.customer_number}','${codeHash}',NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`, {});
+                await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpUsers" ("UserId","Status","LockedUntil","InsertDate","UpdateDate","OtpCodeId") VALUES ('${customerData.customer_number}',0,NULL,SYSTIMESTAMP,SYSTIMESTAMP,'${otpId}')`, {});
 
                 
                 await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
@@ -159,7 +154,7 @@ export async function POST(req: Request) {
                  await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
                 break;
             case 'pin-reset':
-                const newPin = Math.floor(100000 + Math.random() * 900000).toString();
+                const newPin = Math.floor(1000 + Math.random() * 9000).toString(); // 4 digit PIN
                 const newPinHash = crypto.createHash('sha256').update(newPin).digest('hex');
                 
                 const updateSecurityQuery = `
@@ -224,3 +219,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }
+
+    
