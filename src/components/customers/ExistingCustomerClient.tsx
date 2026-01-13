@@ -16,24 +16,24 @@ import { CustomerDetailsCard } from "@/components/customers/CustomerDetailsCard"
 import type { CustomerDetails } from "@/components/customers/CustomerDetailsCard";
 
 export function ExistingCustomerClient() {
-  const [cifNumber, setCifNumber] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
   const { toast } = useToast();
 
   const handleSearch = async () => {
-    if (!cifNumber) {
+    if (!searchTerm) {
         toast({
             variant: "destructive",
-            title: "CIF number required",
-            description: "Please enter a CIF number to search.",
+            title: "Search term required",
+            description: "Please enter a CIF or Phone Number to search.",
         });
         return;
     }
     setIsLoading(true);
     setCustomer(null);
     try {
-        const response = await fetch(`/api/customers/${cifNumber}`);
+        const response = await fetch(`/api/customers/${encodeURIComponent(searchTerm)}`);
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.message || "Customer not found");
@@ -55,18 +55,18 @@ export function ExistingCustomerClient() {
     <>
         <Card className="max-w-2xl mx-auto">
             <CardHeader>
-            <CardTitle>Search Customer</CardTitle>
+            <CardTitle>Search Existing Customer</CardTitle>
             <CardDescription>
-                Enter a CIF number to find a specific app user and view their details.
+                Enter a CIF number or phone number to find a specific app user and view their details.
             </CardDescription>
             </CardHeader>
             <CardContent>
             <div className="flex w-full items-center space-x-2">
                 <Input
                 type="text"
-                placeholder="Enter CIF Number (e.g., 0048533)"
-                value={cifNumber}
-                onChange={(e) => setCifNumber(e.target.value)}
+                placeholder="Enter CIF or Phone Number..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
                 <Button onClick={handleSearch} disabled={isLoading}>
@@ -78,13 +78,13 @@ export function ExistingCustomerClient() {
         </Card>
         
         {isLoading && (
-            <div className="flex justify-center">
+            <div className="flex justify-center pt-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         )}
 
         {customer && (
-            <div className="animate-in fade-in-50">
+            <div className="animate-in fade-in-50 mt-8">
                 <CustomerDetailsCard customer={customer} />
             </div>
         )}
