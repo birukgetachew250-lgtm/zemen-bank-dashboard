@@ -12,13 +12,15 @@ export interface Permission {
 const flattenMenu = (items: MenuItem[], level = 0, prefix = ''): Permission[] => {
   let permissions: Permission[] = [];
   for (const item of items) {
-    // Use href as the primary ID if it exists, otherwise construct a unique ID.
-    // This ensures what we check against in the sidebar is what we store.
-    const uniqueId = item.href || (prefix ? `${prefix}>${item.label}` : item.label);
+    // Generate a unique ID based on the path from the root.
+    // This is more robust than relying on href alone.
+    const uniqueId = prefix ? `${prefix}>${item.label}` : item.label;
     
     // Add the current item
     if (item.label) {
-      permissions.push({ id: uniqueId, label: item.label, level });
+      // Use the href as the permission identifier if it exists, as this is what's used for routing checks.
+      // The uniqueId is just for React's key prop.
+      permissions.push({ id: item.href || uniqueId, label: item.label, level });
     }
     
     // Recurse into children
