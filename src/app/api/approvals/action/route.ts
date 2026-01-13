@@ -67,24 +67,23 @@ export async function POST(req: Request) {
         }
             
         const updateUserStatusQuery = `UPDATE "USER_MODULE"."AppUsers" SET "Status" = :status WHERE "CIFNumber" = :cif`;
-        let statusToSet = '';
         let successMessage = 'Request has been approved and actioned.';
         let responseData: any = { success: true };
 
         switch (approval.type) {
             case 'new-customer':
-                statusToSet = 'Active';
+                // The user and accounts are already created in a 'Registered' state by the /api/customers/create endpoint.
+                // We just need to activate them.
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Active', cif });
-                // Also update the local customer record
                 await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
+                await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `UPDATE "USER_MODULE"."Accounts" SET "Status" = 'Active' WHERE "CIFNumber" = :cif`, { cif });
+                await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, `UPDATE "SECURITY_MODULE"."UserSecurities" SET "Status" = 'Active' WHERE "CIFNumber" = :cif`, { cif });
                 break;
             case 'suspend-customer':
-                statusToSet = 'Suspended';
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Suspended', cif });
                  await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Suspended' } });
                 break;
             case 'unsuspend-customer':
-                statusToSet = 'Active';
                  await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Active', cif });
                  await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
                 break;

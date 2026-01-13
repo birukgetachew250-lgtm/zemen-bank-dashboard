@@ -15,10 +15,7 @@ const mockAccounts = [
 ];
 
 const GRPC_SERVER_ADDRESS = process.env.FLEX_GRPC_URL || 'localhost:8081';
-const PROTO_DIR = path.join(process.cwd(), 'src/lib/grpc/protos');
-
-const accountListProtoPath = path.join(PROTO_DIR, 'accountlist.proto');
-const commonProtoPath = path.join(PROTO_DIR, 'service.proto');
+const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/accountlist.proto');
 
 
 async function promisifyCall(client: any, methodName: string, request: any): Promise<any> {
@@ -46,13 +43,24 @@ export async function POST(req: Request) {
     }
 
     try {
-        const packageDef = protoLoader.loadSync([accountListProtoPath, commonProtoPath], {
-            keepCase: true, longs: String, enums: String, defaults: true, oneofs: true, includeDirs: [PROTO_DIR]
-        });
-        const grpcObj = grpc.loadPackageDefinition(packageDef) as any;
-        const client = new grpcObj.accountlist.AccountListService(GRPC_SERVER_ADDRESS, grpc.credentials.createInsecure());
-        
-        const root = await protobuf.load(accountListProtoPath);
+        const packageDef = protoLoader.loadSync(PROTO_PATH, {
+              keepCase: true,
+              longs: String,
+              enums: String,
+              defaults: true,
+              oneofs: true,
+              includeDirs: [path.join(process.cwd(), 'src/lib/grpc/protos')]
+            });
+             const grpcObj = grpc.loadPackageDefinition(packageDef) as any;
+            
+                console.log('[PROTO] Loaded root namespaces:', Object.keys(grpcObj || {}));
+            
+               const client2 = new grpcObj.accountlist.AccountListService(
+                  GRPC_SERVER_ADDRESS,
+                  grpc.credentials.createInsecure()
+                );
+    
+        const root = await protobuf.load(PROTO_PATH);
         const AccountListResponse = root.lookupType('accountlist.AccountListResponse');
         
         const request = {
@@ -67,7 +75,7 @@ export async function POST(req: Request) {
             user_id: 'DASH_USER'
         };
 
-        const grpcResponse = await promisifyCall(client, 'QueryCustomerAccountList', request);
+        const grpcResponse = await promisifyCall(client2, 'QueryCustomerAccountList', request);
         
         if (!grpcResponse || grpcResponse.code !== '0' && grpcResponse.code !== '00') {
              return NextResponse.json({ message: grpcResponse.message || 'Upstream service error' }, { status: 502 });
@@ -81,8 +89,17 @@ export async function POST(req: Request) {
         const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue.data || dataValue);
         const decoded = AccountListResponse.decode(buffer);
         const object = AccountListResponse.toObject(decoded, { defaults: true });
-
-        return NextResponse.json(object.accounts || []);
+        console.log('find-accounts result:', object.accounts || []);
+        const transformedAccounts = (object.accounts || []).map((acc: any) => ({
+                        custacno: acc.custacno || "",
+                        branch_code: acc.branchCode || "",          // note: real data has branchCode (camelCase)
+                        ccy: acc.ccy || "",
+                        account_type: acc.accountType || "",        // real: accountType
+                        acclassdesc: acc.acclassdesc || "",
+                        status: "Active"                            // default value (change logic later if needed)
+         }));
+        
+        return NextResponse.json(transformedAccounts);
 
     } catch (error: any) {
         console.error('[gRPC/DB Error] find-accounts:', error);
