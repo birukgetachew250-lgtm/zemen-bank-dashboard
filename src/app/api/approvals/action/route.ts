@@ -59,9 +59,10 @@ export async function POST(req: Request) {
         
         const cif = await getCifFromApproval(approval);
 
-        if (!cif) {
-            await db.pendingApproval.delete({ where: { id: approvalId } });
+        if (!cif && approval.type !== 'new-customer') {
+             // For new customers, CIF comes from details, not a pre-existing record.
             console.error(`Could not determine CIF for approvalId: ${approvalId}. Approval removed without action.`);
+            await db.pendingApproval.delete({ where: { id: approvalId } });
             throw new Error(`Could not determine customer CIF for approval ID ${approvalId}. The request was cleared without action.`);
         }
             
@@ -74,17 +75,21 @@ export async function POST(req: Request) {
                 const approvalDetails = JSON.parse(approval.details || '{}');
                 const { customerData, linkedAccounts, onboardingData } = approvalDetails;
                 
+                if (!customerData || !linkedAccounts || !onboardingData) {
+                    throw new Error('Incomplete customer, account, or onboarding data in approval request.');
+                }
+                
                 const appUserId = crypto.randomUUID();
                 const nameParts = customerData.full_name.split(' ');
                 
                 // --- Create AppUser ---
                 const appUserQuery = `
-                    INSERT INTO USER_MODULE."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","Status","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:Status,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
+                    INSERT INTO "USER_MODULE"."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","Status","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:Status,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
                 
                 const appUserBinds = {
                     CIFNumber: customerData.customer_number,
                     FirstName: encrypt(nameParts[0])!,
-                    SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1])!,
+                    SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : (nameParts[1] || ''))!,
                     LastName: encrypt(nameParts[nameParts.length - 1])!,
                     Email: encrypt(customerData.email_id)!,
                     PhoneNumber: encrypt(customerData.mobile_number)!,
@@ -94,7 +99,7 @@ export async function POST(req: Request) {
                     AddressLine4: customerData.address_line_4,
                     Nationality: customerData.country,
                     BranchCode: customerData.branch,
-                    BranchName: customerData.branch,
+                    BranchName: customerData.branch, // This might need a lookup in a real scenario
                     Status: 'Pending',
                     SignUp2FA: onboardingData.twoFactorAuthMethod,
                     SignUpMainAuth: onboardingData.mainAuthMethod,
@@ -105,14 +110,14 @@ export async function POST(req: Request) {
 
                 // --- Create Accounts ---
                 for (const acc of linkedAccounts) {
-                    const accountQuery = `INSERT INTO USER_MODULE."Accounts" ("Id","CIFNumber","AccountNumber","HashedAccountNumber","FirstName","SecondName","LastName","BranchCode","BranchName","AccountType","Currency","Status","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (SYS_GUID(),:CIFNumber,:AccountNumber,:HashedAccountNumber,:FirstName,:SecondName,:LastName,:BranchCode,:BranchName,:AccountType,:Currency,:Status,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`;
+                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id","CIFNumber","AccountNumber","HashedAccountNumber","FirstName","SecondName","LastName","BranchCode","BranchName","AccountType","Currency","Status","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (SYS_GUID(),:CIFNumber,:AccountNumber,:HashedAccountNumber,:FirstName,:SecondName,:LastName,:BranchCode,:BranchName,:AccountType,:Currency,:Status,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`;
                     
                     const accountBinds = {
                         CIFNumber: customerData.customer_number,
                         AccountNumber: encrypt(acc.CUSTACNO)!,
                         HashedAccountNumber: crypto.createHash('sha256').update(acc.CUSTACNO).digest('hex'),
                         FirstName: encrypt(nameParts[0])!,
-                        SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1])!,
+                        SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : (nameParts[1] || ''))!,
                         LastName: encrypt(nameParts[nameParts.length - 1])!,
                         BranchCode: acc.BRANCH_CODE,
                         BranchName: acc.BRANCH_CODE, // Assuming branch name can be same as code for now
@@ -126,7 +131,7 @@ export async function POST(req: Request) {
                 // --- Create UserSecurity with temp password ---
                 const tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
                 
-                const userSecurityQuery = `INSERT INTO SECURITY_MODULE."UserSecurities" ("UserId","CIFNumber","PinHash","Status","IsLoggedIn","FailedAttempts","IsLocked","OnTmpPassword","IsActivationUsed","ActivationExpiredAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (:UserId,:CIFNumber,NULL,'Active',0,0,0,1,0,SYSTIMESTAMP + 7,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`;
+                const userSecurityQuery = `INSERT INTO "SECURITY_MODULE"."UserSecurities" ("UserId","CIFNumber","PinHash","Status","IsLoggedIn","FailedAttempts","IsLocked","OnTmpPassword","IsActivationUsed","ActivationExpiredAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (:UserId,:CIFNumber,NULL,'Active',0,0,0,1,0,SYSTIMESTAMP + 7,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`;
                 await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, userSecurityQuery, {
                     UserId: appUserId,
                     CIFNumber: customerData.customer_number,
@@ -135,18 +140,7 @@ export async function POST(req: Request) {
                 // --- Create OTP for Temp Password ---
                 const otpId = crypto.randomUUID();
                 const codeHash = crypto.createHash('sha256').update(tempPassword).digest('hex').toLowerCase();
-                const otpQueries = `
-                  INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version")
-                  VALUES ('${otpId}','${customerData.customer_number}','${codeHash}',NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID());
-
-                  INSERT INTO OTP_MODULE."OtpUsers" ("UserId","Status","LockedUntil","InsertDate","UpdateDate","OtpCodeId")
-                  VALUES ('${customerData.customer_number}',0,NULL,SYSTIMESTAMP,SYSTIMESTAMP,'${otpId}');
-                `;
-                // Note: The original C# code seems to execute these as separate queries.
-                // Depending on the Oracle driver, they might need to be run one by one.
-                // For simplicity here, assuming they can be run in a single block if the driver/setup supports it,
-                // otherwise, split into two executeQuery calls.
-                // We will split for safety.
+                
                 await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES ('${otpId}','${customerData.customer_number}','${codeHash}',NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`);
                 await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpUsers" ("UserId","Status","LockedUntil","InsertDate","UpdateDate","OtpCodeId") VALUES ('${customerData.customer_number}',0,NULL,SYSTIMESTAMP,SYSTIMESTAMP,'${otpId}')`);
 
@@ -200,7 +194,7 @@ export async function POST(req: Request) {
                     AccountNumber: encrypt(linkDetails.accountNumber)!,
                     HashedAccountNumber: crypto.createHash('sha256').update(linkDetails.accountNumber).digest('hex'),
                     FirstName: encrypt(accNameParts[0])!,
-                    SecondName: encrypt(accNameParts.length > 2 ? accNameParts.slice(1, -1).join(' ') : accNameParts[1])!,
+                    SecondName: encrypt(accNameParts.length > 2 ? accNameParts.slice(1, -1).join(' ') : (accNameParts[1] || ''))!,
                     LastName: encrypt(accNameParts[accNameParts.length - 1])!,
                     AccountType: encrypt(linkDetails.accountType)!,
                     Currency: encrypt(linkDetails.currency)!,
