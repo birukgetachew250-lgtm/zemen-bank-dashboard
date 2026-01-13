@@ -30,14 +30,12 @@ class GrpcClientSingleton {
       const deadline = new Date();
       deadline.setMilliseconds(deadline.getMilliseconds() + GRPC_TIMEOUT_MS);
 
-      // The actual method on the generated client class
       const method = this.client[methodName];
 
       if (typeof method !== 'function') {
         return reject(new TypeError(`this.client.${methodName} is not a function`));
       }
-
-      // Correctly call the method with its context (`this.client`)
+      
       method.call(this.client, request, { deadline: deadline.getTime().toString() }, (err: grpcWeb.RpcError, res: TResponse) => {
         if (err) {
           return reject(err);
@@ -54,28 +52,33 @@ class GrpcClientSingleton {
     });
 
     try {
-      const response = await this.promisifyCall<ServiceRequest, ServiceResponse>(
-        'queryCustomerDetail',
-        request
-      );
+        const response = await this.promisifyCall<ServiceRequest, ServiceResponse>(
+            'queryCustomerDetail',
+            request
+        );
 
-      const responseObj = response.toObject();
+        const responseObj = response.toObject();
 
-      if (responseObj.code !== '0') {
-        throw new Error(responseObj.message || 'Operation failed in core banking service.');
-      }
-      
-      const data = response.getData();
-      if (!data) {
-        throw new Error('Response success but data field is missing from the payload.');
-      }
-      
-      // The `unpack` method is the correct way to deserialize from an `Any` type.
-      return data.unpack(AccountDetailResponse.deserializeBinary, 'accountdetail.AccountDetailResponse');
+        if (responseObj.code !== '0') {
+            throw new Error(responseObj.message || 'Operation failed in core banking service.');
+        }
+        
+        const data = response.getData();
+        if (!data) {
+            throw new Error('Response success but data field is missing from the payload.');
+        }
+        
+        const accountDetailResponse = data.unpack(AccountDetailResponse.deserializeBinary, 'accountdetail.AccountDetailResponse');
+        
+        if (!accountDetailResponse) {
+             throw new Error("Failed to unpack AccountDetailResponse from Any type.");
+        }
+
+        return accountDetailResponse;
 
     } catch (err) {
-      console.error(`Critical failure in queryCustomerDetail:`, err);
-      throw err;
+        console.error(`Critical failure in queryCustomerDetail:`, err);
+        throw err;
     }
   }
 }

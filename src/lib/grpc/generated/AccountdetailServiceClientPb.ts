@@ -40,27 +40,27 @@ export class AccountDetailServiceClient {
     grpcWeb.MethodType.UNARY,
     service_pb.ServiceRequest,
     service_pb.ServiceResponse,
-    (request: service_pb.ServiceRequest) => {
+    (request: typeof service_pb.ServiceRequest) => {
       return request.serializeBinary();
     },
     service_pb.ServiceResponse.deserializeBinary
   );
 
   queryCustomerDetail(
-    request: service_pb.ServiceRequest,
-    metadata: grpcWeb.Metadata | null): Promise<service_pb.ServiceResponse>;
+    request: typeof service_pb.ServiceRequest,
+    metadata: grpcWeb.Metadata | null): Promise<typeof service_pb.ServiceResponse>;
 
   queryCustomerDetail(
-    request: service_pb.ServiceRequest,
+    request: typeof service_pb.ServiceRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: service_pb.ServiceResponse) => void): grpcWeb.ClientReadableStream<service_pb.ServiceResponse>;
+               response: typeof service_pb.ServiceResponse) => void): grpcWeb.ClientReadableStream<typeof service_pb.ServiceResponse>;
 
   queryCustomerDetail(
-    request: service_pb.ServiceRequest,
+    request: typeof service_pb.ServiceRequest,
     metadata: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: service_pb.ServiceResponse) => void) {
+               response: typeof service_pb.ServiceResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +

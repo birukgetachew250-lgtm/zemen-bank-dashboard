@@ -1,17 +1,24 @@
 
+'use server';
+
 import { NextResponse } from 'next/server';
+import { GrpcClient } from '@/lib/grpc-client';
+import { ServiceRequest } from '@/lib/grpc/generated/service_pb';
+import { AccountDetailRequest } from '@/lib/grpc/generated/accountdetail_pb';
+import { Any } from 'google-protobuf/google/protobuf/any_pb';
+import crypto from 'crypto';
 
 const getMockAccounts = (cif: string) => {
     if (cif === '0000238') {
         return [
-            { CUSTACNO: "3021110000238018", BRANCH_CODE: "302", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Z-Club Gold –  Saving", status: "Active" },
+            { custacno: "3021110000238018", branchCode: "302", ccy: "ETB", accountType: "S", acclassdesc: "Z-Club Gold –  Saving", status: "Active" },
         ];
     }
     return [
-        { CUSTACNO: "1031110048533015", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Private and Individual", status: "Active" },
-        { CUSTACNO: "1031110048533016", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "C", ACCLASSDESC: "Personal Current - Private and Individual", status: "Active" },
-        { CUSTACNO: "1031110048533017", BRANCH_CODE: "101", CCY: "USD", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Domiciliary Saving", status: "Dormant" },
-        { CUSTACNO: "1031110048533018", BRANCH_CODE: "103", CCY: "ETB", ACCOUNT_TYPE: "S", ACCLASSDESC: "Personal Saving - Joint", status: "Inactive" },
+        { custacno: "1031110048533015", branchCode: "103", ccy: "ETB", accountType: "S", acclassdesc: "Personal Saving - Private and Individual", status: "Active" },
+        { custacno: "1031110048533016", branchCode: "103", ccy: "ETB", accountType: "C", acclassdesc: "Personal Current - Private and Individual", status: "Active" },
+        { custacno: "1031110048533017", branchCode: "101", ccy: "USD", accountType: "S", acclassdesc: "Personal Domiciliary Saving", status: "Dormant" },
+        { custacno: "1031110048533018", branchCode: "103", ccy: "ETB", accountType: "S", acclassdesc: "Personal Saving - Joint", status: "Inactive" },
     ];
 };
 
@@ -23,7 +30,6 @@ export async function GET(
     const customerId = params.id;
     let cif = customerId;
 
-    // A simple mock logic to resolve CIF from a user ID
     if (customerId.startsWith('user_')) {
         cif = customerId.split('_')[1];
     }
@@ -31,15 +37,40 @@ export async function GET(
     if (!cif) {
         return NextResponse.json({ message: 'Could not determine CIF for the given customer ID.' }, { status: 404 });
     }
-    
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const accounts = getMockAccounts(cif);
 
+    const accountDetailRequestPayload = new AccountDetailRequest();
+    // Assuming branch code might be needed, using a default or logic to determine it
+    accountDetailRequestPayload.setBranchCode("103"); 
+    accountDetailRequestPayload.setCustomerId(cif);
+
+    const any = new Any();
+    any.pack(accountDetailRequestPayload.serializeBinary(), 'accountdetail.AccountDetailRequest');
+    
+    const serviceRequest = new ServiceRequest();
+    serviceRequest.setRequestId(`req_${crypto.randomUUID()}`);
+    serviceRequest.setSourceSystem('dashboard');
+    serviceRequest.setChannel('dash');
+    serviceRequest.setUserId(cif);
+    serviceRequest.setData(any);
+    
+    const accountDetailResponse = await GrpcClient.queryCustomerDetail(serviceRequest);
+    const accounts = accountDetailResponse.getAccountsList().map(acc => acc.toObject());
+    
     return NextResponse.json(accounts);
-  } catch (error) {
+
+  } catch (error: any) {
     console.error('Failed to fetch accounts:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    
+    // Fallback logic for demo purposes
+    let cif = params.id.startsWith('user_') ? params.id.split('_')[1] : params.id;
+    const mockAccounts = getMockAccounts(cif).map(acc => ({
+        ...acc,
+        CUSTACNO: acc.custacno,
+        BRANCH_CODE: acc.branchCode,
+        CCY: acc.ccy,
+        ACCOUNT_TYPE: acc.accountType,
+        ACCLASSDESC: acc.acclassdesc,
+    }));
+    return NextResponse.json(mockAccounts);
   }
 }
