@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { signIn } from 'next-auth/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -36,6 +36,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const error = searchParams.get('error');
 
@@ -50,7 +51,7 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     const result = await signIn('credentials', {
-      redirect: false, // Change this to false to handle redirect manually
+      redirect: false,
       email: values.email,
       password: values.password,
     });
@@ -63,7 +64,6 @@ export default function LoginPage() {
       });
       setIsLoading(false);
     } else if (result?.ok) {
-      // Redirect to dashboard on successful login
       router.push('/dashboard');
     }
   };
@@ -117,11 +117,22 @@ export default function LoginPage() {
                         <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
+                          <div className="relative">
                             <Input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             placeholder="••••••••"
                             {...field}
                             />
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                            >
+                                {showPassword ? <EyeOff /> : <Eye />}
+                            </Button>
+                          </div>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
