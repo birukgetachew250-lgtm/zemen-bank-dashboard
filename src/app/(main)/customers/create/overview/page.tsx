@@ -51,13 +51,11 @@ const twoFactorMethods = [
     { value: 'None', label: 'None'},
 ];
 
-
 const channelOptions = [
     { value: 'Mobile App', label: 'Mobile App' },
     { value: 'USSD', label: 'USSD' },
     { value: 'Both', label: 'Both' },
-]
-
+];
 
 const overviewFormSchema = z.object({
   mainAuthMethod: z.string().min(1, 'Main authentication method is required.'),
@@ -117,7 +115,6 @@ function OverviewContent() {
     );
   }
 
-
   const onSubmit = async (data: OverviewFormValues) => {
     setSubmitting(true);
     try {
@@ -153,134 +150,139 @@ function OverviewContent() {
   };
 
   return (
-    <Form {...form}>
-    <form onSubmit={form.handleSubmit(onSubmit)} className="h-full flex flex-col">
-    <Card className="flex-grow flex flex-col">
-      <CardHeader>
-        <CardTitle>Onboard New Customer: Overview & Finalize</CardTitle>
-        <CardDescription>
-          Review all customer information and set security details before submitting for approval.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6 flex-grow">
-        <div>
-            <h3 className="font-semibold text-lg mb-2">Customer Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-4 border rounded-lg bg-muted/50">
-                <InfoItem icon={<User />} label="Name" value={customer.full_name} />
-                <InfoItem icon={<Fingerprint />} label="CIF Number" value={customer.customer_number} />
-                <InfoItem icon={<Phone />} label="Phone" value={customer.mobile_number} />
-                <InfoItem icon={<Mail />} label="Email" value={customer.email_id} />
-            </div>
-        </div>
-         <div>
-            <h3 className="font-semibold text-lg mb-2">Accounts to be Linked ({accounts.length})</h3>
-            <div className="border rounded-lg">
-                <ul className="divide-y divide-border">
-                    {accounts.map((acc: any) => (
-                        <li key={acc.CUSTACNO} className="px-4 py-3 flex justify-between items-center text-sm">
-                            <div>
-                                <p className="font-medium text-foreground">{acc.CUSTACNO}</p>
-                                <p className="text-muted-foreground">{acc.ACCLASSDESC}</p>
-                            </div>
-                            <Badge variant="outline">{acc.CCY}</Badge>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        </div>
-        <Separator />
-         <div>
-            <h3 className="font-semibold text-lg mb-2">Channel & Security</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-4 border rounded-lg">
-                <div className="space-y-6">
-                    <FormField
-                        control={form.control}
-                        name="channel"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Channel</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a channel" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    {channelOptions.map(option => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                        {option.label}
-                                        </SelectItem>
-                                    ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-                 <div className="space-y-6">
-                    <FormField
-                        control={form.control}
-                        name="mainAuthMethod"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Main Authentication Method</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a main auth method" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                {authMethods.map(method => (
-                                    <SelectItem key={method.value} value={method.value}>
-                                    {method.label}
-                                    </SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="twoFactorAuthMethod"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Two-Factor (2FA) Method</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a 2FA method" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                {twoFactorMethods.map(method => (
-                                    <SelectItem key={method.value} value={method.value}>
-                                    {method.label}
-                                    </SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                 </div>
-            </div>
-        </div>
-      </CardContent>
-      <CardFooter className="flex justify-between items-center p-6">
-        <Button type="button" variant="outline" onClick={() => router.back()}>Back</Button>
-        <Button type="submit" disabled={submitting}>
-            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Submit for Approval
-        </Button>
-    </CardFooter>
-    </Card>
-    </form>
-    </Form>
+    <div className="flex flex-col h-full">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex-grow flex flex-col">
+          <Card className="flex-grow flex flex-col">
+            <CardHeader>
+              <CardTitle>Onboard New Customer: Overview & Finalize</CardTitle>
+              <CardDescription>
+                Review all customer information and set security details before submitting for approval.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 flex-grow">
+              <div>
+                  <h3 className="font-semibold text-lg mb-2">Customer Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-4 border rounded-lg bg-muted/50">
+                      <InfoItem icon={<User />} label="Name" value={customer.full_name} />
+                      <InfoItem icon={<Fingerprint />} label="CIF Number" value={customer.customer_number} />
+                      <InfoItem icon={<Phone />} label="Phone" value={customer.mobile_number} />
+                      <InfoItem icon={<Mail />} label="Email" value={customer.email_id} />
+                  </div>
+              </div>
+              <div>
+                  <h3 className="font-semibold text-lg mb-2">Accounts to be Linked ({accounts.length})</h3>
+                  <div className="border rounded-lg">
+                      <ul className="divide-y divide-border">
+                          {accounts.map((acc: any) => (
+                              <li key={acc.CUSTACNO} className="px-4 py-3 flex justify-between items-center text-sm">
+                                  <div>
+                                      <p className="font-medium text-foreground">{acc.CUSTACNO}</p>
+                                      <p className="text-muted-foreground">{acc.ACCLASSDESC}</p>
+                                  </div>
+                                  <Badge variant="outline">{acc.CCY}</Badge>
+                              </li>
+                          ))}
+                      </ul>
+                  </div>
+              </div>
+              <Separator />
+              <div>
+                  <h3 className="font-semibold text-lg mb-2">Channel & Security</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-4 border rounded-lg">
+                      <div className="space-y-6">
+                          <FormField
+                              control={form.control}
+                              name="channel"
+                              render={({ field }) => (
+                                  <FormItem>
+                                      <FormLabel>Channel</FormLabel>
+                                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                          <FormControl>
+                                          <SelectTrigger>
+                                              <SelectValue placeholder="Select a channel" />
+                                          </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                          {channelOptions.map(option => (
+                                              <SelectItem key={option.value} value={option.value}>
+                                              {option.label}
+                                              </SelectItem>
+                                          ))}
+                                          </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                      </div>
+                      <div className="space-y-6">
+                          <FormField
+                              control={form.control}
+                              name="mainAuthMethod"
+                              render={({ field }) => (
+                                  <FormItem>
+                                  <FormLabel>Main Authentication Method</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                      <SelectTrigger>
+                                          <SelectValue placeholder="Select a main auth method" />
+                                      </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                      {authMethods.map(method => (
+                                          <SelectItem key={method.value} value={method.value}>
+                                          {method.label}
+                                          </SelectItem>
+                                      ))}
+                                      </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                          <FormField
+                              control={form.control}
+                              name="twoFactorAuthMethod"
+                              render={({ field }) => (
+                                  <FormItem>
+                                  <FormLabel>Two-Factor (2FA) Method</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                      <SelectTrigger>
+                                          <SelectValue placeholder="Select a 2FA method" />
+                                      </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                      {twoFactorMethods.map(method => (
+                                          <SelectItem key={method.value} value={method.value}>
+                                          {method.label}
+                                          </SelectItem>
+                                      ))}
+                                      </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                      </div>
+                  </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between items-center p-6">
+              <Button type="button" variant="outline" onClick={() => router.back()}>Back</Button>
+              <Button type="submit" disabled={submitting}>
+                  {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Submit for Approval
+              </Button>
+            </CardFooter>
+          </Card>
+        </form>
+      </Form>
+      <p className="text-center text-xs text-muted-foreground mt-4">
+        © {new Date().getFullYear()} Zemen Bank. All rights reserved.
+      </p>
+    </div>
   );
 }
 
@@ -305,7 +307,3 @@ export default function OverviewPage() {
         </Suspense>
     );
 }
-
-    
-
-    
