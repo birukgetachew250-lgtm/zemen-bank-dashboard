@@ -5,10 +5,8 @@ import { NextResponse } from 'next/server';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
-import * as protobuf from 'protobufjs';
 import crypto from 'crypto';
 import { executeQuery } from '@/lib/oracle-db';
-import { type ServiceRequest } from '@/lib/grpc/generated/service_pb';
 
 const mockAccounts = [
     { custacno: "1031110048533015", branch_code: "103", ccy: "ETB", account_type: "S", acclassdesc: "Personal Saving - Private and Individual", status: "Active" },
@@ -20,13 +18,9 @@ const mockAccounts = [
 const GRPC_SERVER_ADDRESS = process.env.FLEX_GRPC_URL || 'localhost:8081';
 const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/accountlist.proto');
 
-// Module-level variables for gRPC client
-let client: any = null;
-let AccountListRequest: protobuf.Type | null = null;
-let AccountListResponse: protobuf.Type | null = null;
 
-(async () => {
-  try {
+let client: any = null;
+try {
     const packageDef = protoLoader.loadSync(PROTO_PATH, {
       keepCase: true,
       longs: String,
@@ -42,31 +36,8 @@ let AccountListResponse: protobuf.Type | null = null;
       GRPC_SERVER_ADDRESS,
       grpc.credentials.createInsecure()
     );
-
-    const root = await protobuf.load(PROTO_PATH);
-    AccountListRequest = root.lookupType('accountlist.AccountListRequest');
-    AccountListResponse = root.lookupType('accountlist.AccountListResponse');
-
-    if (!AccountListRequest || !AccountListResponse) {
-      throw new Error('Protobuf types for AccountList not found.');
-    }
-
-  } catch (error) {
+} catch (error) {
     console.error('[gRPC Client Init Failed for find-accounts]', error);
-  }
-})();
-
-async function promisifyCall<TRequest, TResponse>(methodName: string, request: TRequest): Promise<TResponse> {
-    return new Promise((resolve, reject) => {
-        if (!client) return reject(new Error("gRPC client not initialized"));
-        const deadline = new Date();
-        deadline.setSeconds(deadline.getSeconds() + 60);
-
-        client[methodName](request, { deadline }, (err: any, res: TResponse) => {
-            if (err) return reject(err);
-            resolve(res);
-        });
-    });
 }
 
 export async function POST(req: Request) {
@@ -76,49 +47,34 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: 'CIF and branch code are required' }, { status: 400 });
     }
 
+    if (!client) {
+        console.error('gRPC client for AccountListService is not available.');
+        return NextResponse.json({ message: 'Internal server error: Could not connect to banking service.' }, { status: 500 });
+    }
+
     try {
         const linkedAccountsQuery = `SELECT "HashedAccountNumber" FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :cif AND "Status" = 'Active'`;
         const linkedResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, linkedAccountsQuery, [cif]);
         const linkedAccountHashes = new Set((linkedResult.rows || []).map((row: any) => row.HashedAccountNumber));
 
-        if (!AccountListRequest || !AccountListResponse) {
-             throw new Error("AccountList protobuf types not loaded.");
-        }
-        
-        const accountListRequestPayload = AccountListRequest.create({
+        const requestPayload = {
             customer_id: cif,
             branch_code: branch_code,
-        });
-
-        const encodedValue = AccountListRequest.encode(accountListRequestPayload).finish();
-
-        const serviceRequest: ServiceRequest = {
-            request_id: `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-            source_system: 'DASHBOARD',
-            channel: 'WEB',
-            user_id: 'DASH_USER',
-            data: {
-                type_url: 'type.googleapis.com/accountlist.AccountListRequest',
-                value: Buffer.from(encodedValue)
-            }
         };
 
-        const grpcResponse = await promisifyCall<any, any>('QueryCustomerAccountList', serviceRequest);
+        const grpcResponse: any = await new Promise((resolve, reject) => {
+             client.QueryCustomerAccountList(requestPayload, (err: any, res: any) => {
+                if (err) {
+                    console.error('[gRPC Call Failed] QueryCustomerAccountList:', err);
+                    return reject(err);
+                }
+                resolve(res);
+            });
+        });
         
-        if (!grpcResponse || (grpcResponse.code !== '0' && grpcResponse.code !== '00')) {
-             return NextResponse.json({ message: grpcResponse.message || 'Failed to fetch accounts from core banking system.' }, { status: 502 });
-        }
-
-        const dataValue = grpcResponse.data?.value;
-        if (!dataValue) {
-            throw new Error("Response success but data field is missing");
-        }
-
-        const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue.data || dataValue);
-        const decoded = AccountListResponse.decode(buffer);
-        const object = AccountListResponse.toObject(decoded, { defaults: true, arrays: true });
-
-        const transformedAccounts = (object.accounts || []).map((acc: any) => {
+        const accounts = grpcResponse?.accounts || [];
+        
+        const transformedAccounts = accounts.map((acc: any) => {
             const hashed = crypto.createHash('sha256').update(acc.custacno).digest('hex');
             return {
                 custacno: acc.custacno || "",
@@ -126,7 +82,7 @@ export async function POST(req: Request) {
                 ccy: acc.ccy || "",
                 account_type: acc.accountType || "",
                 acclassdesc: acc.acclassdesc || "",
-                status: "Active", // Assuming core only returns linkable accounts
+                status: "Active", 
                 isAlreadyLinked: linkedAccountHashes.has(hashed)
             };
         });
@@ -147,6 +103,6 @@ export async function POST(req: Request) {
         }
 
         const errorMessage = error.details || error.message || 'An unexpected error occurred while fetching accounts.';
-        return NextResponse.json({ message: errorMessage }, { status: 500 });
+        return NextResponse.json({ message: `Failed to fetch accounts. ${errorMessage}` }, { status: 502 });
     }
 }
