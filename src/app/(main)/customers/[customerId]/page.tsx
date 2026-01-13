@@ -69,7 +69,13 @@ const getStatusVariant = (status: string) => {
 const authMethods = [
   { value: 'SMSOTP', label: 'SMS OTP' },
   { value: 'GAUTH', label: 'Google Authenticator' },
+  { value: 'SQ', label: 'Security Question' },
   { value: 'EMAILOTP', label: 'Email OTP' },
+];
+
+const twoFactorMethods = [
+    ...authMethods,
+    { value: 'None', label: 'None'},
 ];
 
 const editProfileSchema = z.object({
@@ -77,7 +83,7 @@ const editProfileSchema = z.object({
   phoneNumber: z.string().min(1, 'Phone number is required.'),
   signUpMainAuth: z.string().min(1, 'Primary authentication method is required.'),
   signUp2FA: z.string(),
-}).refine(data => data.signUpMainAuth !== data.signUp2FA, {
+}).refine(data => data.signUp2FA === 'None' || data.signUpMainAuth !== data.signUp2FA, {
     message: "Main auth and 2FA method cannot be the same.",
     path: ["signUp2FA"],
 });
@@ -93,7 +99,9 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
     const { toast } = useToast();
     const router = useRouter();
 
-    const form = useForm<EditProfileFormValues>();
+    const form = useForm<EditProfileFormValues>({
+      resolver: zodResolver(editProfileSchema),
+    });
 
     useEffect(() => {
         async function fetchData() {
@@ -417,7 +425,7 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
                                     </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                      {authMethods.map(method => (
+                                      {twoFactorMethods.map(method => (
                                         <SelectItem key={method.value} value={method.value}>
                                           {method.label}
                                         </SelectItem>

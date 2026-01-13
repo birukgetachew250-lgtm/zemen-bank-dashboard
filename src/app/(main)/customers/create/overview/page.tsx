@@ -61,7 +61,7 @@ const overviewFormSchema = z.object({
   mainAuthMethod: z.string().min(1, 'Main authentication method is required.'),
   twoFactorAuthMethod: z.string(),
   channel: z.string().min(1, 'You need to select a channel.'),
-}).refine(data => data.mainAuthMethod !== data.twoFactorAuthMethod, {
+}).refine(data => data.twoFactorAuthMethod === 'None' || data.mainAuthMethod !== data.twoFactorAuthMethod, {
     message: "Main auth and 2FA method cannot be the same.",
     path: ["twoFactorAuthMethod"],
 });
