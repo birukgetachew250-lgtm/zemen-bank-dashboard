@@ -7,7 +7,6 @@ const getCustomerByCifOrId = async (id: string) => {
     // This query finds the base customer profile from the AppUsers table.
     // It's flexible enough to search by CIFNumber or the AppUser ID.
     
-    // First, let's determine if the ID is a CIF or an AppUser ID (GUID)
     const isCif = /^\d+$/.test(id);
     let query;
     let binds: any[];
@@ -46,11 +45,13 @@ const getCustomerByCifOrId = async (id: string) => {
             branchCode: user.BranchCode,
             status: user.Status,
             insertDate: user.InsertDate.toISOString(),
+            signUpMainAuth: user.SignUpMainAuth,
+            signUp2FA: user.SignUp2FA
         };
     } catch(e) {
         console.error(`[Oracle Error] in getCustomerByCifOrId for id ${id}:`, e);
         // Fallback for demo if DB fails
-        if (id === "0048533") {
+        if (id === "0048533" || id === "0000238") {
              return {
                 id: 'user_0048533',
                 cifNumber: '0048533',
@@ -65,6 +66,8 @@ const getCustomerByCifOrId = async (id: string) => {
                 branchCode: '103',
                 status: 'Active',
                 insertDate: new Date().toISOString(),
+                signUpMainAuth: "SMSOTP",
+                signUp2FA: "GAUTH"
             };
         }
         return null;
