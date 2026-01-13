@@ -70,7 +70,7 @@ export default async function ProfilePage() {
 }
 
 
-function InfoItem({ label, value, className }: { label: string, value: React.ReactNode, className?: string }) {
+function InfoItem({ icon, label, value, className }: { icon: React.ReactNode, label: string, value: React.ReactNode, className?: string }) {
     return (
         <div className={cn("flex items-start gap-4", className)}>
             <div className="w-6 h-6 text-muted-foreground mt-1">{icon}</div>
