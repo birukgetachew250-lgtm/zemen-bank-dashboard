@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
+import * as protobuf from 'protobufjs';
 import crypto from 'crypto';
 import { executeQuery } from '@/lib/oracle-db';
 
@@ -19,7 +20,9 @@ const GRPC_SERVER_ADDRESS = process.env.FLEX_GRPC_URL || 'localhost:8081';
 const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/accountlist.proto');
 
 
+// Module-level variables
 let client: any = null;
+let accountListResponseType: protobuf.Type | null = null;
 
 (async () => {
   try {
@@ -38,6 +41,14 @@ let client: any = null;
       GRPC_SERVER_ADDRESS,
       grpc.credentials.createInsecure()
     );
+    
+    const root = await protobuf.load(PROTO_PATH);
+    accountListResponseType = root.lookupType('accountlist.AccountListResponse');
+
+    if (!accountListResponseType) {
+        throw new Error('accountlist.AccountListResponse type not found in protobufjs');
+    }
+
   } catch (error) {
     console.error('[gRPC Client Init Failed for find-accounts]', error);
   }
@@ -73,11 +84,15 @@ export async function POST(req: Request) {
         const linkedResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, linkedAccountsQuery, [cif]);
         const linkedAccountHashes = new Set((linkedResult.rows || []).map((row: any) => row.HashedAccountNumber));
 
+        const requestPayload = {
+            customer_id: cif,
+            branch_code: branch_code,
+        };
+
         const serviceRequest = {
             data: {
                 "@type": "type.googleapis.com/accountlist.AccountListRequest",
-                customer_id: cif,
-                branch_code: branch_code
+                ...requestPayload
             },
             request_id: `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
             source_system: 'MOBILE',
@@ -87,12 +102,26 @@ export async function POST(req: Request) {
 
         const grpcResponse = await promisifyCall<any, any>('QueryCustomerAccountList', serviceRequest);
         
-        if (!grpcResponse || (grpcResponse.code !== '0' && grpcResponse.code !== '00' )) {
-            const errorMessage = grpcResponse?.message || 'USSD returned status failure.';
+       if (!grpcResponse || (grpcResponse.code !== '0' && grpcResponse.code !== '00' )) {
+            const errorMessage = grpcResponse?.message || 'Upstream service returned a failure status.';
             console.error('[gRPC Call Failed] QueryCustomerAccountList:', errorMessage);
             throw new Error(errorMessage);
        }
-        const accounts = grpcResponse?.accounts || [];
+        
+        const dataValue = grpcResponse.data?.value;
+        if (!dataValue) {
+          throw new Error("Response from service was successful, but contained no data.");
+        }
+
+        if (!accountListResponseType) {
+          throw new Error("AccountListResponse type not loaded - check gRPC initialization.");
+        }
+
+        const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue);
+        const decodedResponse = accountListResponseType.decode(buffer);
+        const responseObject = accountListResponseType.toObject(decodedResponse, { arrays: true });
+
+        const accounts = responseObject.accounts || [];
         
         const transformedAccounts = accounts.map((acc: any) => {
             const hashed = crypto.createHash('sha256').update(acc.custacno).digest('hex');
@@ -102,7 +131,7 @@ export async function POST(req: Request) {
                 ccy: acc.ccy || "",
                 account_type: acc.accountType || "",
                 acclassdesc: acc.acclassdesc || "",
-                status: "Active", 
+                status: "Active", // Assuming core banking only returns active/valid accounts for linking
                 isAlreadyLinked: linkedAccountHashes.has(hashed)
             };
         });
@@ -112,11 +141,7 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error('[gRPC/DB Error] find-accounts:', error);
         
-        if (cif === '0000238') {
-            return NextResponse.json([
-                 { custacno: "3021110000238018", branch_code: "302", ccy: "ETB", account_type: "S", acclassdesc: "Z-Club Gold –  Saving", status: "Active", isAlreadyLinked: false },
-            ]);
-        }
+        // Demo fallback
         if (cif === '0048533') {
             return NextResponse.json(mockAccounts.map(acc => ({...acc, isAlreadyLinked: acc.custacno === '1031110048533015'})));
         }
