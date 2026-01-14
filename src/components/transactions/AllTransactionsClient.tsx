@@ -41,6 +41,7 @@ import {
 import { format } from "date-fns";
 import { Transaction } from "@/types/transaction";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface AllTransactionsClientProps {
   initialTransactions: Transaction[];
@@ -66,7 +67,9 @@ const transactionStatuses = ['All', 'Successful', 'Failed', 'Pending', 'Reversed
 export function AllTransactionsClient({ initialTransactions }: AllTransactionsClientProps) {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [summary, setSummary] = useState({ totalVolume: 0, totalTransactions: 0, failedTransactions: 0 });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const { toast } = useToast();
   const [filters, setFilters] = useState({
     query: "",
     status: "All",
@@ -92,19 +95,56 @@ export function AllTransactionsClient({ initialTransactions }: AllTransactionsCl
       console.error("Failed to fetch transactions", error);
       setTransactions([]);
       setSummary({ totalVolume: 0, totalTransactions: 0, failedTransactions: 0 });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not fetch transactions.",
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [filters]);
+  }, [filters, toast]);
   
   useEffect(() => {
-    fetchTransactions();
+    // Initial load is now done on server, so we just set loading to false.
+    setIsLoading(false);
   }, []);
 
 
   const handleFilter = () => {
     fetchTransactions();
   }
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    toast({ title: 'Export Started', description: 'Your CSV file is being generated...' });
+
+    const params = new URLSearchParams();
+    if (filters.query) params.append('query', filters.query);
+    if (filters.status !== 'All') params.append('status', filters.status);
+    if (filters.type !== 'All') params.append('type', filters.type);
+    if (filters.dateRange?.from) params.append('from', filters.dateRange.from.toISOString());
+    if (filters.dateRange?.to) params.append('to', filters.dateRange.to.toISOString());
+
+    try {
+        const response = await fetch(`/api/transactions/export?${params.toString()}`);
+        if (!response.ok) throw new Error('Failed to generate export');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not generate the transaction export.' });
+    } finally {
+        setIsExporting(false);
+    }
+  };
 
   const successRate = summary.totalTransactions > 0 ? ((summary.totalTransactions - summary.failedTransactions) / summary.totalTransactions) * 100 : 100;
 
@@ -191,8 +231,8 @@ export function AllTransactionsClient({ initialTransactions }: AllTransactionsCl
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Search className="mr-2 h-4 w-4" />}
               Filter
             </Button>
-             <Button variant="outline" className="w-full md:w-auto">
-              <Download className="mr-2 h-4 w-4" />
+             <Button variant="outline" className="w-full md:w-auto" onClick={handleExport} disabled={isExporting}>
+              {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
               Export
             </Button>
           </div>

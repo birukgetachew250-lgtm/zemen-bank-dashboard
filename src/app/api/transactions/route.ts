@@ -72,7 +72,7 @@ export async function GET(req: Request) {
 
         const data = transactions.map((row: any) => ({
             id: row.id,
-            timestamp: row.timestamp,
+            timestamp: row.timestamp.toISOString(),
             type: row.type,
             amount: row.amount,
             fee: row.fee,
