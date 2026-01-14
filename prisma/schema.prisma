@@ -1,6 +1,8 @@
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 generator client {
@@ -15,17 +17,17 @@ generator system {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  employeeId String   @unique
-  name       String
-  email      String   @unique
-  password   String
-  role       String
-  branch     String?
-  department String
-  mfaEnabled Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  employeeId  String   @unique
+  name        String
+  email       String   @unique
+  password    String
+  role        String
+  branch      String?
+  department  String
+  mfaEnabled  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Role {
@@ -34,20 +36,29 @@ model Role {
   description String
 }
 
-model Branch {
-  id          String       @id @unique
-  name        String       @unique
-  location    String
-  createdAt   DateTime     @default(now())
-  departments Department[]
+model SystemActivityLog {
+  id        Int      @id @default(autoincrement())
+  timestamp DateTime @default(now())
+  userEmail String
+  action    String
+  status    String
+  details   String?
+  ipAddress String?
 }
 
-model Department {
-  id        String   @id @unique
-  name      String   @unique
-  branch    Branch   @relation(fields: [branchId], references: [id])
-  branchId  String
+model IpWhitelist {
+  id        Int      @id @default(autoincrement())
+  cidr      String   @unique
+  label     String
   createdAt DateTime @default(now())
+}
+
+model SecurityPolicy {
+  id                 Int      @id @default(1)
+  mfaRequired        Boolean  @default(true)
+  allowedMfaMethods  String[]
+  sessionTimeout     Int      @default(30) // in minutes
+  concurrentSessions Int      @default(1)
 }
 
 model Customer {
@@ -88,15 +99,6 @@ model Transaction {
   anomaly_reason String?
 }
 
-model Corporate {
-  id                      String @id @unique
-  name                    String
-  industry                String
-  status                  String
-  internet_banking_status String
-  logo_url                String
-}
-
 model MiniApp {
   id             String @id @default(cuid())
   name           String
@@ -107,55 +109,42 @@ model MiniApp {
   encryption_key String
 }
 
-model OtpCode {
-  Id         Int      @id @default(autoincrement())
-  Purpose    String
-  UserId     String
-  OtpType    String
-  Code       String?
-  IsUsed     Boolean  @default(false)
-  ExpiresAt  DateTime
-  Attempts   Int      @default(0)
-  InsertDate DateTime @default(now())
-  UpdateDate DateTime @updatedAt
+model Corporate {
+  id                      String @id @unique
+  name                    String
+  industry                String
+  status                  String
+  internet_banking_status String
+  logo_url                String
 }
 
-model SystemActivityLog {
-  id          Int      @id @default(autoincrement())
-  timestamp   DateTime @default(now())
-  userEmail   String
-  action      String
-  status      String
-  details     String?
-  ipAddress   String?
+model Branch {
+  id          String       @id @unique
+  name        String       @unique
+  location    String
+  createdAt   DateTime     @default(now())
+  departments Department[]
 }
 
-model SecurityPolicy {
-  id                  Int      @id @default(1)
-  mfaRequired         Boolean  @default(true)
-  allowedMfaMethods   String[] @default(["email"])
-  sessionTimeout      Int      @default(30)
-  concurrentSessions  Int      @default(1)
-}
-
-model IpWhitelist {
-    id        Int      @id @default(autoincrement())
-    cidr      String   @unique
-    label     String
-    createdAt DateTime @default(now())
+model Department {
+  id        String   @id @unique
+  name      String   @unique
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  branchId  String
+  createdAt DateTime @default(now())
 }
 
 model Integration {
-  id            Int      @id @default(autoincrement())
-  name          String   @unique
-  service       String
-  endpointUrl   String
-  username      String?
-  password      String?
-  isProduction  Boolean  @default(false)
-  status        String   @default("Disconnected")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  service      String
+  endpointUrl  String
+  username     String?
+  password     String?
+  status       String   @default("Disconnected")
+  isProduction Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model IPSBank {
@@ -170,6 +159,15 @@ model IPSBank {
   updatedAt             DateTime @updatedAt
 }
 
-// The models below are managed in separate Oracle databases
-// and are removed from this schema to avoid conflicts.
-// AppUser, Account, SecurityQuestion, UserSecurity
+model OtpCode {
+  Id         Int      @id @default(autoincrement())
+  Purpose    String
+  UserId     String
+  OtpType    String
+  Code       String?
+  IsUsed     Boolean  @default(false)
+  ExpiresAt  DateTime
+  Attempts   Int      @default(0)
+  InsertDate DateTime @default(now())
+  UpdateDate DateTime @updatedAt
+}
