@@ -44,8 +44,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 export interface Integration {
     id: number;
     name: string;
-    type: 'WSO2' | 'Flexcube' | 'SMS';
-    baseUrl: string;
+    service: 'WSO2' | 'Flexcube' | 'SMS';
+    endpointUrl: string;
     username?: string | null;
     password?: string | null;
     status: 'Connected' | 'Disconnected';
@@ -89,8 +89,8 @@ export default function IntegrationConfigPage() {
     const handleAddNew = () => {
       setSelectedIntegration({
         name: '',
-        type: 'WSO2',
-        baseUrl: '',
+        service: 'WSO2',
+        endpointUrl: '',
         username: '',
         password: '',
         isProduction: false,
@@ -114,7 +114,11 @@ export default function IntegrationConfigPage() {
       if (!integrationToDelete) return;
 
       try {
-        const res = await fetch(`/api/integrations?id=${integrationToDelete.id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/integrations`, { 
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: integrationToDelete.id })
+        });
         if (!res.ok) throw new Error((await res.json()).message || 'Failed to delete');
         toast({ title: 'Success', description: 'Integration deleted.' });
         fetchIntegrations();
@@ -155,11 +159,11 @@ export default function IntegrationConfigPage() {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Integration Services</CardTitle>
+                    <CardTitle>Integration Endpoints</CardTitle>
                     <CardDescription>Manage connections to core banking, middleware, and other third-party APIs.</CardDescription>
                 </div>
                 <Button onClick={handleAddNew}>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add New Integration
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add New Endpoint
                 </Button>
             </CardHeader>
             <CardContent>
@@ -172,9 +176,9 @@ export default function IntegrationConfigPage() {
                   <Table>
                       <TableHeader>
                           <TableRow>
+                              <TableHead>Endpoint Name</TableHead>
                               <TableHead>Service</TableHead>
-                              <TableHead>Type</TableHead>
-                              <TableHead>Base URL</TableHead>
+                              <TableHead>Endpoint URL</TableHead>
                               <TableHead>Environment</TableHead>
                               <TableHead>Status</TableHead>
                               <TableHead className="text-right">Actions</TableHead>
@@ -186,8 +190,8 @@ export default function IntegrationConfigPage() {
                               return (
                                   <TableRow key={p.id}>
                                       <TableCell className="font-medium">{p.name}</TableCell>
-                                      <TableCell><Badge variant="outline">{p.type}</Badge></TableCell>
-                                      <TableCell className="font-mono text-xs">{p.baseUrl}</TableCell>
+                                      <TableCell><Badge variant="outline">{p.service}</Badge></TableCell>
+                                      <TableCell className="font-mono text-xs">{p.endpointUrl}</TableCell>
                                       <TableCell>
                                         <Badge variant={p.isProduction ? 'destructive' : 'secondary'}>{p.isProduction ? 'Production' : 'Test'}</Badge>
                                       </TableCell>
@@ -214,27 +218,27 @@ export default function IntegrationConfigPage() {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>{dialogMode === 'edit' ? 'Edit' : 'Add'} Integration</DialogTitle>
-                    <DialogDescription>Manage configuration details for the service.</DialogDescription>
+                    <DialogTitle>{dialogMode === 'edit' ? 'Edit' : 'Add'} Integration Endpoint</DialogTitle>
+                    <DialogDescription>Manage configuration details for a specific service endpoint.</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                  <ConfigItem label="Service Name">
-                    <Input value={selectedIntegration.name || ''} onChange={(e) => handleFieldChange('name', e.target.value)} />
+                  <ConfigItem label="Endpoint Name">
+                    <Input placeholder="e.g., Telebirr Transfer" value={selectedIntegration.name || ''} onChange={(e) => handleFieldChange('name', e.target.value)} />
                   </ConfigItem>
-                  <ConfigItem label="Service Type">
-                    <Select value={selectedIntegration.type || ''} onValueChange={(val) => handleFieldChange('type', val)}>
+                  <ConfigItem label="Service">
+                    <Select value={selectedIntegration.service || ''} onValueChange={(val) => handleFieldChange('service', val)}>
                       <SelectTrigger><SelectValue/></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="WSO2">WSO2</SelectItem>
-                        <SelectItem value="Flexcube">Flexcube</SelectItem>
-                        <SelectItem value="SMS">SMS</SelectItem>
+                        <SelectItem value="WSO2">WSO2 Middleware</SelectItem>
+                        <SelectItem value="Flexcube">Flexcube Core</SelectItem>
+                        <SelectItem value="SMS">SMS Gateway</SelectItem>
                       </SelectContent>
                     </Select>
                   </ConfigItem>
-                  <ConfigItem label="Base URL">
-                    <Input value={selectedIntegration.baseUrl || ''} onChange={(e) => handleFieldChange('baseUrl', e.target.value)} />
+                  <ConfigItem label="Endpoint URL">
+                    <Input placeholder="https://api.example.com/v1/transfer" value={selectedIntegration.endpointUrl || ''} onChange={(e) => handleFieldChange('endpointUrl', e.target.value)} />
                   </ConfigItem>
-                  {selectedIntegration.type !== 'Flexcube' && (
+                  {selectedIntegration.service !== 'Flexcube' && (
                     <>
                       <ConfigItem label="Username">
                           <Input value={selectedIntegration.username || ''} onChange={(e) => handleFieldChange('username', e.target.value)} />

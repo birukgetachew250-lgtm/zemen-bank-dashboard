@@ -5,7 +5,11 @@ import { encrypt, decrypt } from '@/lib/crypto';
 
 export async function GET() {
     try {
-        const integrations = await db.integration.findMany();
+        const integrations = await db.integration.findMany({
+            orderBy: {
+                service: 'asc',
+            }
+        });
         const decryptedIntegrations = integrations.map(int => ({
             ...int,
             password: int.password ? '••••••••' : null, // Never send password to client
@@ -19,12 +23,12 @@ export async function GET() {
 
 export async function POST(req: Request) {
     try {
-        const { name, type, baseUrl, username, password, isProduction } = await req.json();
+        const { name, service, endpointUrl, username, password, isProduction } = await req.json();
         
         const data: any = {
             name,
-            type,
-            baseUrl,
+            service,
+            endpointUrl,
             isProduction,
         };
 
@@ -35,7 +39,10 @@ export async function POST(req: Request) {
 
         const { password: _, ...responseData } = newIntegration;
         return NextResponse.json(responseData, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            return NextResponse.json({ message: 'An integration with this name already exists.' }, { status: 409 });
+        }
         console.error("Failed to create integration:", error);
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
@@ -43,13 +50,13 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
     try {
-        const { id, name, type, baseUrl, username, password, isProduction, status } = await req.json();
+        const { id, name, service, endpointUrl, username, password, isProduction, status } = await req.json();
 
-        const dataToUpdate: any = { name, type, baseUrl, isProduction, status };
+        const dataToUpdate: any = { name, service, endpointUrl, isProduction, status };
 
         if (username) dataToUpdate.username = username;
-        // Only update password if a new one is provided (not '••••••••')
-        if (password && password !== '••••••••') {
+        // Only update password if a new one is provided
+        if (password && !password.includes('••••')) {
             dataToUpdate.password = encrypt(password);
         }
 
@@ -67,5 +74,27 @@ export async function PUT(req: Request) {
         }
         console.error('Failed to update integration:', error);
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+export async function DELETE(req: Request) {
+    try {
+        const { id } = await req.json();
+        if (!id) {
+            return NextResponse.json({ message: 'ID is required for deletion' }, { status: 400 });
+        }
+
+        await db.integration.delete({
+            where: { id: Number(id) }
+        });
+
+        return new Response(null, { status: 204 });
+
+    } catch (error: any) {
+        if (error.code === 'P2025') {
+             return NextResponse.json({ message: 'Integration not found' }, { status: 404 });
+        }
+        console.error("Failed to delete integration:", error);
+        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
 }
