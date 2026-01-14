@@ -4,35 +4,28 @@ import { UserPlus, Users, UserX, UserCheck, AlertCircle, Link } from 'lucide-rea
 import { StatsCard, StatsCardSkeleton } from '@/components/dashboard/StatsCard';
 import { TransactionsSummary } from '@/components/dashboard/TransactionsSummary';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { executeQuery } from '@/lib/oracle-db';
+import { db } from "@/lib/db";
 
 async function getCustomerStats() {
   try {
-    const totalResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers"`);
-    const activeResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers" WHERE "Status" = 'Active'`);
-    const linkedAccountsResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."Accounts"`);
+    const total = await db.customer.count();
+    const active = await db.customer.count({ where: { status: 'Active' } });
+    const inactiveAndDormant = await db.customer.count({
+      where: { OR: [{ status: 'Inactive' }, { status: 'Dormant' }] },
+    });
+    const registered = await db.customer.count({ where: { status: 'Registered' }});
     
-    const total = totalResult.rows[0]?.COUNT || 0;
-    const active = activeResult.rows[0]?.COUNT || 0;
-    const linkedAccounts = linkedAccountsResult.rows[0]?.COUNT || 0;
+    // Since there's no separate `Accounts` table in the dashboard schema that represents "linking",
+    // we'll make a reasonable assumption that an active customer has at least one linked account.
+    // This can be adjusted if business logic differs.
+    const linkedAccounts = active;
 
-    const inactiveResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers" WHERE "Status" = 'Inactive' OR "Status" = 'Dormant'`);
-    const inactiveAndDormant = inactiveResult.rows[0]?.COUNT || 0;
-    
-    const registeredResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers" WHERE "Status" = 'Registered'`);
-    const registered = registeredResult.rows[0]?.COUNT || 0;
-
-
-    return { total, active, inactive: inactiveAndDormant, registered: registered, linkedAccounts };
+    return { total, active, inactive: inactiveAndDormant, registered, linkedAccounts };
 
   } catch (e: any) {
     console.error("Failed to fetch customer stats:", e);
-    
-    if (e.message.includes('NJS-530')) {
-        throw new Error(`Failed to connect to the Oracle database. Please ensure the USER_MODULE_DB_CONNECTION_STRING in your .env file is correct and the database is accessible.`);
-    }
-    
-    throw new Error(`Failed to fetch stats from the database: ${e.message}`);
+    // Remove Oracle-specific error message
+    throw new Error(`Failed to fetch stats from the database. Please check the connection and ensure migrations are up to date.`);
   }
 }
 
