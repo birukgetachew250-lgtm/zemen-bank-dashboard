@@ -14,17 +14,30 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
+          console.log('Authorize: Missing email or password.');
           return null;
         }
 
         const ip = req.headers?.['x-forwarded-for'] || req.headers?.['x-real-ip'] || req.socket?.remoteAddress;
+        console.log(`Authorize: Attempting login for ${credentials.email}`);
 
         try {
           const user = await db.user.findUnique({
             where: { email: credentials.email },
           });
 
+          console.log('Authorize: User found in DB:', user ? { id: user.id, email: user.email, role: user.role } : null);
+
+          if (!user) {
+            console.log('Authorize: User not found.');
+          } else {
+            console.log('Authorize: Comparing passwords.');
+            console.log(`Authorize: Provided password: "${credentials.password}"`);
+            console.log(`Authorize: Stored password:   "${user.password}"`);
+          }
+
           if (!user || user.password !== credentials.password) {
+            console.log('Authorize: Password mismatch or user not found. Returning null.');
             await logActivity({
                 userEmail: credentials.email,
                 action: 'LOGIN_FAILURE',
@@ -35,6 +48,7 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
           
+          console.log('Authorize: Login successful.');
           await logActivity({
             userEmail: credentials.email,
             action: 'LOGIN_SUCCESS',
