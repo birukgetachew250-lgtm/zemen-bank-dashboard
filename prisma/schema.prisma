@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DASH_MODULE_PROD_DATABASE_URL")
 }
 
 generator client {
@@ -124,7 +124,7 @@ model SystemActivityLog {
   timestamp   DateTime @default(now())
   userEmail   String
   action      String
-  status      String // e.g., 'Success', 'Failure'
+  status      String // e.g., "Success", "Failure"
   details     String?  @db.Text
   ipAddress   String?
 }
@@ -137,11 +137,11 @@ model IpWhitelist {
 }
 
 model SecurityPolicy {
-  id                 Int      @id @default(1)
-  mfaRequired        Boolean  @default(true)
-  allowedMfaMethods  String[] @default(["email"])
-  sessionTimeout     Int      @default(30) // in minutes
-  concurrentSessions Int      @default(1)  // 1: single, 0: unlimited
+  id                  Int      @id @default(1)
+  mfaRequired         Boolean  @default(true)
+  allowedMfaMethods   String[] @default(["email"])
+  sessionTimeout      Int      @default(30) // in minutes
+  concurrentSessions  Int      @default(1)  // 0 for unlimited
 }
 
 // The models below are managed in separate Oracle databases
