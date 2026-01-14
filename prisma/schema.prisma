@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DASH_MODULE_PROD_DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -19,7 +19,7 @@ model User {
   employeeId String   @unique
   name       String
   email      String   @unique
-  password   String // In a real app, this would be a hash
+  password   String
   role       String
   branch     String?
   department String
@@ -107,37 +107,35 @@ model MiniApp {
   encryption_key String
 }
 
-model Integration {
-  id           Int      @id @default(autoincrement())
-  name         String   @unique
-  service      String
-  endpointUrl  String
-  username     String?
-  password     String? // Encrypted
-  isProduction Boolean  @default(false)
-  status       String   @default("Disconnected")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-model Partner {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  type      String // Bank, Wallet, Utility, Government
-  status    String   @default("Active") // Active, Inactive
-  logoUrl   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model OtpCode {
+  Id         Int      @id @default(autoincrement())
+  Purpose    String
+  UserId     String
+  OtpType    String
+  Code       String?
+  IsUsed     Boolean  @default(false)
+  ExpiresAt  DateTime
+  Attempts   Int      @default(0)
+  InsertDate DateTime @default(now())
+  UpdateDate DateTime @updatedAt
 }
 
 model SystemActivityLog {
-    id        Int      @id @default(autoincrement())
-    timestamp DateTime @default(now())
-    userEmail String
-    action    String
-    status    String // e.g., Success, Failure
-    details   String?  @db.Text
-    ipAddress String?
+  id          Int      @id @default(autoincrement())
+  timestamp   DateTime @default(now())
+  userEmail   String
+  action      String
+  status      String
+  details     String?
+  ipAddress   String?
+}
+
+model SecurityPolicy {
+  id                  Int      @id @default(1)
+  mfaRequired         Boolean  @default(true)
+  allowedMfaMethods   String[] @default(["email"])
+  sessionTimeout      Int      @default(30)
+  concurrentSessions  Int      @default(1)
 }
 
 model IpWhitelist {
@@ -147,14 +145,31 @@ model IpWhitelist {
     createdAt DateTime @default(now())
 }
 
-model SecurityPolicy {
-    id                 Int      @id @default(1)
-    mfaRequired        Boolean  @default(true)
-    allowedMfaMethods  String[] @default(["email"])
-    sessionTimeout     Int      @default(30) // in minutes
-    concurrentSessions Int      @default(1) // 0 for unlimited
+model Integration {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  service       String
+  endpointUrl   String
+  username      String?
+  password      String?
+  isProduction  Boolean  @default(false)
+  status        String   @default("Disconnected")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model IPSBank {
+  id                    String   @id @default(cuid())
+  bankName              String   @unique
+  bankCode              String   @unique
+  reconciliationAccount String
+  bankLogo              String?
+  status                String   @default("Active")
+  rank                  Int
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 // The models below are managed in separate Oracle databases
 // and are removed from this schema to avoid conflicts.
-// AppUser, Account, SecurityQuestion, UserSecurity, OtpCode
+// AppUser, Account, SecurityQuestion, UserSecurity
