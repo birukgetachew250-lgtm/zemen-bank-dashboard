@@ -119,6 +119,24 @@ model OtpCode {
   UpdateDate DateTime @updatedAt
 }
 
+model SystemActivityLog {
+  id          Int      @id @default(autoincrement())
+  timestamp   DateTime @default(now())
+  userEmail   String
+  action      String
+  status      String // e.g., 'Success', 'Failure'
+  details     String?  @db.Text
+  ipAddress   String?
+  device      String?
+}
+
+model IpWhitelist {
+  id          Int      @id @default(autoincrement())
+  cidr        String   @unique
+  label       String
+  createdAt   DateTime @default(now())
+}
+
 // The models below are managed in separate Oracle databases
 // and are removed from this schema to avoid conflicts.
 // AppUser, Account, SecurityQuestion, UserSecurity
