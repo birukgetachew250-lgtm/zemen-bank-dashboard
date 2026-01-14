@@ -2,6 +2,7 @@
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { db } from '@/lib/db';
+import { logActivity } from '@/lib/activity-log';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -11,54 +12,47 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email', placeholder: 'admin@zemen.com' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
+        const ip = req.headers?.['x-forwarded-for'] || req.headers?.['x-real-ip'] || req.socket?.remoteAddress;
+
         try {
-          // Attempt to connect to the database and find the user
           const user = await db.user.findUnique({
             where: { email: credentials.email },
           });
 
-          if (!user) {
-            // If user not found, try demo user as a fallback in any environment if DB fails to connect
-            if (credentials.email === 'admin@zemen.com' && credentials.password === 'password') {
-                return { 
-                  id: "1", 
-                  name: 'Demo Admin', 
-                  email: 'admin@zemen.com', 
-                  role: 'Super Admin' 
-                };
-            }
-            return null;
-          }
-
-          // In a real app, you'd use bcrypt to compare passwords
-          const isPasswordValid = user.password === credentials.password;
-
-          if (!isPasswordValid) {
+          if (!user || user.password !== credentials.password) {
+            await logActivity({
+                userEmail: credentials.email,
+                action: 'LOGIN_FAILURE',
+                status: 'Failure',
+                details: 'Invalid credentials provided.',
+                ipAddress: typeof ip === 'string' ? ip : undefined,
+            });
             return null;
           }
           
-          // Return a user object without the password
+          await logActivity({
+            userEmail: credentials.email,
+            action: 'LOGIN_SUCCESS',
+            status: 'Success',
+            details: 'User successfully logged in.',
+            ipAddress: typeof ip === 'string' ? ip : undefined,
+          });
+
           const { password, ...userWithoutPassword } = user;
           return userWithoutPassword;
 
         } catch (error) {
           console.error("Database connection failed during auth:", error);
-          // If any DB error occurs, allow login with mock data as a fallback
           if (credentials.email === 'admin@zemen.com' && credentials.password === 'password') {
-            console.log("Database connection failed, falling back to demo mode user.");
-            return { 
-              id: "1", 
-              name: 'Demo Admin', 
-              email: 'admin@zemen.com', 
-              role: 'Super Admin' 
-            };
+            await logActivity({ userEmail: credentials.email, action: 'LOGIN_SUCCESS', status: 'Success', details: 'Fallback login successful.' });
+            return { id: "1", name: 'Demo Admin', email: 'admin@zemen.com', role: 'Super Admin' };
           }
-          // If credentials don't match demo user, fail authentication
+          await logActivity({ userEmail: credentials.email, action: 'LOGIN_FAILURE', status: 'Failure', details: 'Database error during login.' });
           return null;
         }
       },
@@ -70,17 +64,15 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      // On sign-in, add user details to the token
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
-        token.role = (user as any).role; // Cast to access custom properties
+        token.role = (user as any).role;
       }
       return token;
     },
     async session({ session, token }) {
-      // Add token details to the session object
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
