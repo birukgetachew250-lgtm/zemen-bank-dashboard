@@ -126,6 +126,7 @@ async function main() {
     await prisma.branch.deleteMany();
     await prisma.miniApp.deleteMany();
     await prisma.otpCode.deleteMany();
+    await prisma.iPSBank.deleteMany();
     await prisma.role.deleteMany();
     await prisma.user.deleteMany();
     console.log('Cleared existing data from dashboard module.');
@@ -251,3 +252,4 @@ main()
     .finally(async () => {
         await prisma.$disconnect();
     });
+
