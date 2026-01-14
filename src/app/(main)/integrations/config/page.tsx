@@ -16,9 +16,30 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from '@/components/ui/label';
 import { Switch } from "@/components/ui/switch";
-import { CheckCircle, XCircle, Power, Edit, Save, TestTube2, RotateCw, Loader2, PlusCircle } from "lucide-react";
+import { CheckCircle, XCircle, Power, Edit, Save, Trash2, Loader2, PlusCircle, Server } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 
 export interface Integration {
     id: number;
@@ -39,8 +60,12 @@ const statusConfig: { [key in Integration['status']]: { Icon: React.ElementType,
 export default function IntegrationConfigPage() {
     const [integrations, setIntegrations] = useState<Integration[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
+    const [selectedIntegration, setSelectedIntegration] = useState<Partial<Integration>>({});
     const [isSaving, setIsSaving] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add');
+    const [integrationToDelete, setIntegrationToDelete] = useState<Integration | null>(null);
+
     const { toast } = useToast();
 
     const fetchIntegrations = useCallback(async () => {
@@ -50,33 +75,70 @@ export default function IntegrationConfigPage() {
             if (!res.ok) throw new Error("Failed to fetch integrations.");
             const data = await res.json();
             setIntegrations(data);
-            if (data.length > 0 && !selectedIntegration) {
-                setSelectedIntegration(data[0]);
-            }
         } catch (error: any) {
             toast({ variant: 'destructive', title: 'Error', description: error.message });
         } finally {
             setIsLoading(false);
         }
-    }, [toast, selectedIntegration]);
+    }, [toast]);
 
     useEffect(() => {
         fetchIntegrations();
     }, [fetchIntegrations]);
 
+    const handleAddNew = () => {
+      setSelectedIntegration({
+        name: '',
+        type: 'WSO2',
+        baseUrl: '',
+        username: '',
+        password: '',
+        isProduction: false,
+        status: 'Disconnected'
+      });
+      setDialogMode('add');
+      setIsDialogOpen(true);
+    }
+    
+    const handleEdit = (integration: Integration) => {
+      setSelectedIntegration({ ...integration, password: '' });
+      setDialogMode('edit');
+      setIsDialogOpen(true);
+    };
+    
+    const handleDeleteClick = (integration: Integration) => {
+      setIntegrationToDelete(integration);
+    }
+
+    const handleConfirmDelete = async () => {
+      if (!integrationToDelete) return;
+
+      try {
+        const res = await fetch(`/api/integrations?id=${integrationToDelete.id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error((await res.json()).message || 'Failed to delete');
+        toast({ title: 'Success', description: 'Integration deleted.' });
+        fetchIntegrations();
+      } catch (error: any) {
+        toast({ variant: 'destructive', title: 'Error', description: error.message });
+      } finally {
+        setIntegrationToDelete(null);
+      }
+    }
+
     const handleSave = async () => {
-      if (!selectedIntegration) return;
       setIsSaving(true);
       try {
+        const method = dialogMode === 'edit' ? 'PUT' : 'POST';
         const res = await fetch('/api/integrations', {
-          method: 'PUT',
+          method,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(selectedIntegration)
         });
         const result = await res.json();
         if (!res.ok) throw new Error(result.message);
-        toast({ title: 'Success', description: 'Configuration saved successfully.' });
-        fetchIntegrations(); // Refresh the list
+        toast({ title: 'Success', description: `Configuration ${dialogMode === 'edit' ? 'updated' : 'created'}.` });
+        setIsDialogOpen(false);
+        fetchIntegrations();
       } catch (error: any) {
         toast({ variant: 'destructive', title: 'Save Failed', description: error.message });
       } finally {
@@ -85,106 +147,134 @@ export default function IntegrationConfigPage() {
     };
     
     const handleFieldChange = (field: keyof Integration, value: any) => {
-        if (selectedIntegration) {
-            setSelectedIntegration({ ...selectedIntegration, [field]: value });
-        }
+        setSelectedIntegration(prev => ({ ...prev, [field]: value }));
     };
 
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-        <Card className="lg:col-span-1 flex flex-col">
-            <CardHeader>
-                <CardTitle>Integration Services</CardTitle>
+    return (
+      <>
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Integration Services</CardTitle>
+                    <CardDescription>Manage connections to core banking, middleware, and other third-party APIs.</CardDescription>
+                </div>
+                <Button onClick={handleAddNew}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add New Integration
+                </Button>
             </CardHeader>
-            <CardContent className="flex-grow">
+            <CardContent>
                 {isLoading ? (
-                    <div className="flex justify-center items-center h-full">
+                    <div className="flex justify-center items-center h-48">
                         <Loader2 className="animate-spin h-8 w-8 text-primary" />
                     </div>
                 ) : (
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Service</TableHead>
-                            <TableHead>Status</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {integrations.map(p => {
-                            const { Icon, color } = statusConfig[p.status];
-                            return (
-                                <TableRow key={p.id} onClick={() => setSelectedIntegration(p)} className={cn("cursor-pointer", selectedIntegration?.id === p.id && "bg-muted/50")}>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{p.name}</span>
-                                            <span className="text-xs text-muted-foreground">{p.type}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <Icon className={cn("h-4 w-4", color)} />
-                                            <span>{p.status}</span>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            )
-                        })}
-                    </TableBody>
-                </Table>
+                <div className="rounded-md border">
+                  <Table>
+                      <TableHeader>
+                          <TableRow>
+                              <TableHead>Service</TableHead>
+                              <TableHead>Type</TableHead>
+                              <TableHead>Base URL</TableHead>
+                              <TableHead>Environment</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                          {integrations.map(p => {
+                              const { Icon, color } = statusConfig[p.status];
+                              return (
+                                  <TableRow key={p.id}>
+                                      <TableCell className="font-medium">{p.name}</TableCell>
+                                      <TableCell><Badge variant="outline">{p.type}</Badge></TableCell>
+                                      <TableCell className="font-mono text-xs">{p.baseUrl}</TableCell>
+                                      <TableCell>
+                                        <Badge variant={p.isProduction ? 'destructive' : 'secondary'}>{p.isProduction ? 'Production' : 'Test'}</Badge>
+                                      </TableCell>
+                                      <TableCell>
+                                          <div className="flex items-center gap-2">
+                                              <Icon className={cn("h-4 w-4", color)} />
+                                              <span>{p.status}</span>
+                                          </div>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(p)}><Edit className="h-4 w-4"/></Button>
+                                        <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => handleDeleteClick(p)}><Trash2 className="h-4 w-4"/></Button>
+                                      </TableCell>
+                                  </TableRow>
+                              )
+                          })}
+                      </TableBody>
+                  </Table>
+                </div>
                 )}
             </CardContent>
         </Card>
-      
-        <Card className="lg:col-span-2 flex flex-col">
-           {isLoading ? (
-               <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>
-           ) : selectedIntegration ? (
-            <div className="flex flex-col h-full">
-                <CardHeader>
-                    <div>
-                        <CardTitle>{selectedIntegration.name} Configuration</CardTitle>
-                        <CardDescription>Manage API endpoints, credentials, and settings for this integration.</CardDescription>
-                    </div>
-                </CardHeader>
-                <CardContent className="flex-grow space-y-6">
-                    <ConfigItem label="Base URL">
-                        <Input value={selectedIntegration.baseUrl} onChange={(e) => handleFieldChange('baseUrl', e.target.value)} />
-                    </ConfigItem>
-                    
-                    {selectedIntegration.type !== 'Flexcube' && (
-                        <>
-                            <ConfigItem label="Username">
-                                <Input value={selectedIntegration.username || ''} onChange={(e) => handleFieldChange('username', e.target.value)} />
-                            </ConfigItem>
-                            <ConfigItem label="Password">
-                                <Input type="password" value={selectedIntegration.password || ''} onChange={(e) => handleFieldChange('password', e.target.value)} />
-                            </ConfigItem>
-                        </>
-                    )}
-
-                    <div className="flex items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                        <FormLabel>Production Mode</FormLabel>
-                        <FormDescription>Toggle between test and production environments.</FormDescription>
-                        </div>
-                        <Switch checked={selectedIntegration.isProduction} onCheckedChange={(checked) => handleFieldChange('isProduction', checked)} />
-                    </div>
-                </CardContent>
-                <CardFooter className="flex justify-end gap-2 border-t pt-6">
-                    <Button variant="secondary"><TestTube2 className="mr-2"/> Test Connection</Button>
+        
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{dialogMode === 'edit' ? 'Edit' : 'Add'} Integration</DialogTitle>
+                    <DialogDescription>Manage configuration details for the service.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <ConfigItem label="Service Name">
+                    <Input value={selectedIntegration.name || ''} onChange={(e) => handleFieldChange('name', e.target.value)} />
+                  </ConfigItem>
+                  <ConfigItem label="Service Type">
+                    <Select value={selectedIntegration.type || ''} onValueChange={(val) => handleFieldChange('type', val)}>
+                      <SelectTrigger><SelectValue/></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="WSO2">WSO2</SelectItem>
+                        <SelectItem value="Flexcube">Flexcube</SelectItem>
+                        <SelectItem value="SMS">SMS</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </ConfigItem>
+                  <ConfigItem label="Base URL">
+                    <Input value={selectedIntegration.baseUrl || ''} onChange={(e) => handleFieldChange('baseUrl', e.target.value)} />
+                  </ConfigItem>
+                  {selectedIntegration.type !== 'Flexcube' && (
+                    <>
+                      <ConfigItem label="Username">
+                          <Input value={selectedIntegration.username || ''} onChange={(e) => handleFieldChange('username', e.target.value)} />
+                      </ConfigItem>
+                      <ConfigItem label="Password">
+                          <Input type="password" placeholder={dialogMode === 'edit' ? 'Enter new password to update' : ''} onChange={(e) => handleFieldChange('password', e.target.value)} />
+                      </ConfigItem>
+                    </>
+                  )}
+                   <div className="flex items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <Label>Production Mode</Label>
+                      </div>
+                      <Switch checked={selectedIntegration.isProduction || false} onCheckedChange={(checked) => handleFieldChange('isProduction', checked)} />
+                  </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
                     <Button onClick={handleSave} disabled={isSaving}>
                         {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                         Save Configuration
                     </Button>
-                </CardFooter>
-            </div>
-           ) : (
-            <div className="flex h-full items-center justify-center text-muted-foreground">Select a service to configure.</div>
-           )}
-        </Card>
-    </div>
-  );
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        
+        <AlertDialog open={!!integrationToDelete} onOpenChange={(open) => !open && setIntegrationToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>This will permanently delete the "{integrationToDelete?.name}" integration configuration. This action cannot be undone.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
+    );
 }
 
 const ConfigItem = ({ label, children }: { label: string, children: React.ReactNode }) => (
@@ -193,13 +283,3 @@ const ConfigItem = ({ label, children }: { label: string, children: React.ReactN
         <div className="col-span-2">{children}</div>
     </div>
 );
-
-const FormLabel = ({ children }: { children: React.ReactNode}) => (
-    <p className="text-sm font-medium leading-none">{children}</p>
-);
-
-const FormDescription = ({ children }: { children: React.ReactNode}) => (
-    <p className="text-sm text-muted-foreground">{children}</p>
-);
-
-    
