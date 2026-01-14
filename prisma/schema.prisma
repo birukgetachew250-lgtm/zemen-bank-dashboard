@@ -1,3 +1,4 @@
+
 datasource db {
   provider = "postgresql"
   url      = env("DASH_MODULE_PROD_DATABASE_URL")
@@ -23,6 +24,7 @@ model User {
   role       String
   branch     String?
   department String
+  mfaEnabled Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -124,8 +126,8 @@ model SystemActivityLog {
   timestamp   DateTime @default(now())
   userEmail   String
   action      String
-  status      String // e.g., "Success", "Failure"
-  details     String?  @db.Text
+  status      String
+  details     String?
   ipAddress   String?
 }
 
@@ -137,11 +139,11 @@ model IpWhitelist {
 }
 
 model SecurityPolicy {
-  id                  Int      @id @default(1)
-  mfaRequired         Boolean  @default(true)
-  allowedMfaMethods   String[] @default(["email"])
-  sessionTimeout      Int      @default(30) // in minutes
-  concurrentSessions  Int      @default(1)  // 0 for unlimited
+  id                 Int      @id @default(1)
+  mfaRequired        Boolean  @default(true)
+  allowedMfaMethods  String[] @default(["email"])
+  sessionTimeout     Int      @default(30) // in minutes
+  concurrentSessions Int      @default(1) // 0 for unlimited
 }
 
 // The models below are managed in separate Oracle databases
