@@ -26,98 +26,10 @@ function encrypt(value) {
     return result.toString('base64');
 }
 
-async function clearOracleTables() {
-    let connection;
-    console.log('[Oracle] Clearing user module tables...');
-    try {
-        const connString = process.env.USER_MODULE_DB_CONNECTION_STRING;
-        if (!connString) {
-            console.warn('[Oracle] USER_MODULE_DB_CONNECTION_STRING not set. Skipping user module cleanup.');
-        } else {
-            const userMatch = connString.match(/^(.*?)\//);
-            const passwordMatch = connString.match(/\/(.*?)@/);
-            const serverMatch = connString.match(/@(.*?)$/);
-            if (!userMatch || !passwordMatch || !serverMatch) throw new Error("Invalid Oracle connection string format");
-            
-            connection = await oracledb.getConnection({
-                user: userMatch[1],
-                password: passwordMatch[1],
-                connectString: serverMatch[1],
-            });
-
-            const tables = ["AppUsers", "Accounts"];
-            for (const table of tables) {
-                await connection.execute(`DELETE FROM "USER_MODULE"."${table}"`);
-            }
-            await connection.commit();
-            console.log('[Oracle] Cleared USER_MODULE tables.');
-        }
-    } catch(e) {
-        console.error('[Oracle] Failed to clear user module tables, might not exist yet.', e);
-    } finally {
-        if (connection) await connection.close();
-    }
-    
-    console.log('[Oracle] Clearing security module tables...');
-    try {
-        const connString = process.env.SECURITY_MODULE_DB_CONNECTION_STRING;
-        if (!connString) {
-            console.warn('[Oracle] SECURITY_MODULE_DB_CONNECTION_STRING not set. Skipping security module cleanup.');
-        } else {
-            const userMatch = connString.match(/^(.*?)\//);
-            const passwordMatch = connString.match(/\/(.*?)@/);
-            const serverMatch = connString.match(/@(.*?)$/);
-            if (!userMatch || !passwordMatch || !serverMatch) throw new Error("Invalid Oracle connection string format");
-
-             connection = await oracledb.getConnection({
-                user: userMatch[1],
-                password: passwordMatch[1],
-                connectString: serverMatch[1],
-            });
-            const tables = ["UserSecurities", "SecurityQuestions"];
-             for (const table of tables) {
-                await connection.execute(`DELETE FROM "SECURITY_MODULE"."${table}"`);
-            }
-            await connection.commit();
-            console.log('[Oracle] Cleared SECURITY_MODULE tables.');
-        }
-    } catch(e) {
-        console.error('[Oracle] Failed to clear security module tables, might not exist yet.', e);
-    } finally {
-        if (connection) await connection.close();
-    }
-
-    console.log('[Oracle] Clearing OTP module tables...');
-    try {
-        const connString = process.env.OTP_MODULE_DB_CONNECTION_STRING;
-        if (!connString) {
-            console.warn('[Oracle] OTP_MODULE_DB_CONNECTION_STRING not set. Skipping OTP module cleanup.');
-        } else {
-            const userMatch = connString.match(/^(.*?)\//);
-            const passwordMatch = connString.match(/\/(.*?)@/);
-            const serverMatch = connString.match(/@(.*?)$/);
-            if (!userMatch || !passwordMatch || !serverMatch) throw new Error("Invalid Oracle connection string format");
-
-            connection = await oracledb.getConnection({
-                user: userMatch[1],
-                password: passwordMatch[1],
-                connectString: serverMatch[1],
-            });
-            await connection.execute(`DELETE FROM "OTP_MODULE"."OtpCodes"`);
-            await connection.commit();
-            console.log('[Oracle] Cleared OTP_MODULE tables.');
-        }
-    } catch(e) {
-        console.error('[Oracle] Failed to clear OTP module tables, might not exist yet.', e);
-    } finally {
-        if (connection) await connection.close();
-    }
-}
-
 async function main() {
     console.log('Start seeding...');
 
-    // Clean up existing data from the dashboard module (Postgres)
+    // Clean up existing data
     await prisma.pendingApproval.deleteMany();
     await prisma.transaction.deleteMany();
     await prisma.customer.deleteMany();
@@ -125,23 +37,22 @@ async function main() {
     await prisma.department.deleteMany();
     await prisma.branch.deleteMany();
     await prisma.miniApp.deleteMany();
-    await prisma.otpCode.deleteMany();
-    await prisma.iPSBank.deleteMany();
     await prisma.role.deleteMany();
     await prisma.user.deleteMany();
-    console.log('Cleared existing data from dashboard module.');
+    await prisma.iPSBank.deleteMany();
+    await prisma.integration.deleteMany();
+    await prisma.systemActivityLog.deleteMany();
+    await prisma.securityPolicy.deleteMany();
+    await prisma.ipWhitelist.deleteMany();
+    console.log('Cleared existing data.');
 
-    // Clean up existing data from Oracle DBs
-    // Not calling clearOracleTables() to avoid issues in environments without Oracle drivers.
-    // The individual seed sections will handle their own data.
-
-    // Seed Branches (in dashboard DB)
+    // Seed Branches
     const branch1 = await prisma.branch.create({ data: { id: 'br_1', name: 'Bole Branch', location: 'Bole, Addis Ababa' } });
     const branch2 = await prisma.branch.create({ data: { id: 'br_2', name: 'Head Office', location: 'HQ, Addis Ababa' } });
     const branch3 = await prisma.branch.create({ data: { id: 'br_3', name: 'Arada Branch', location: 'Arada, Addis Ababa' } });
     console.log('Seeded 3 branches.');
 
-    // Seed Departments (in dashboard DB)
+    // Seed Departments
     await prisma.department.createMany({
         data: [
             { id: 'dept_1', name: 'IT Department', branchId: branch2.id },
@@ -152,23 +63,22 @@ async function main() {
     });
     console.log('Seeded 4 departments.');
 
-    // Seed Roles (in dashboard DB)
+    // Seed Roles
     await prisma.role.createMany({
         data: [
             { name: 'Super Admin', description: 'Full system access.' },
             { name: 'Operations Lead', description: 'Manages approvals.' },
-            { name: 'Support Staff', description: 'Handles customer inquiries and first-level support tickets.' },
+            { name: 'Support Staff', description: 'Handles customer inquiries.' },
             { name: 'Compliance Officer', description: 'Handles risk and compliance.' },
         ],
     });
     console.log('Seeded 4 roles.');
 
-    // Seed Admin Users (in dashboard DB)
-    await prisma.user.create({ data: { employeeId: 'admin001', name: 'Admin User', email: 'admin@zemen.com', password: 'password', role: 'Super Admin', department: 'IT Department', branch: 'Head Office' } });
-    await prisma.user.create({ data: { employeeId: 'ops001', name: 'Operations Lead User', email: 'ops@zemen.com', password: 'password', role: 'Operations Lead', department: 'Branch Operations', branch: 'Bole Branch' } });
+    // Seed Admin Users
+    await prisma.user.create({ data: { employeeId: 'admin001', name: 'Admin User', email: 'admin@zemenbank.com', password: 'password', role: 'Super Admin', department: 'IT Department', branch: 'Head Office', mfaEnabled: false } });
+    await prisma.user.create({ data: { employeeId: 'ops001', name: 'Operations Lead User', email: 'ops@zemen.com', password: 'password', role: 'Operations Lead', department: 'Branch Operations', branch: 'Bole Branch', mfaEnabled: false } });
     console.log('Seeded 2 admin users.');
 
-    // Seed Customers (for dashboard relations)
     const customerList = [
         { name: 'John Adebayo Doe', phone: '+2348012345678', status: 'Active' },
         { name: 'Jane Smith', phone: '+2348012345679', status: 'Active' },
@@ -239,6 +149,37 @@ async function main() {
         ]
     });
     console.log('Seeded 2 mini-apps.');
+
+     // Seed Integrations
+    await prisma.integration.createMany({
+        data: [
+        { name: 'Main WSO2 Gateway', service: 'WSO2', endpointUrl: 'https://wso2.zemenbank.com:8243/services', username: 'admin', password: encrypt('wso2-password'), status: 'Connected', isProduction: false },
+        { name: 'Flexcube Core Service', service: 'Flexcube', endpointUrl: '192.168.1.10:9090', status: 'Connected', isProduction: false },
+        { name: 'Primary SMS Provider', service: 'SMS', endpointUrl: 'https://sms.provider.com/api', username: 'smsuser', password: encrypt('sms-password'), status: 'Disconnected', isProduction: false },
+        ]
+    });
+    console.log('Seeded 3 integration configs.');
+    
+    // Seed IPS Banks
+    await prisma.iPSBank.createMany({
+        data: [
+            { bankName: 'Awash Bank', bankCode: 'AWASH', reconciliationAccount: '01320789546300', bankLogo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Awash_Bank_Final_logo.jpg/960px-Awash_Bank_Final_logo.jpg', status: 'Active', rank: 1},
+            { bankName: 'Abyssinia Bank', bankCode: 'ABYSSINIA', reconciliationAccount: '1234567890123', bankLogo: 'https://www.bankofabyssinia.com/wp-content/uploads/2021/08/BOA-LOGO-1.png', status: 'Active', rank: 2},
+            { bankName: 'Commercial Bank of Ethiopia', bankCode: 'CBE', reconciliationAccount: '9876543210987', bankLogo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Commercial_Bank_of_Ethiopia.svg/1200px-Commercial_Bank_of_Ethiopia.svg.png', status: 'Active', rank: 3},
+        ]
+    });
+    console.log('Seeded 3 IPS banks.');
+
+    await prisma.securityPolicy.create({
+        data: {
+            id: 1,
+            mfaRequired: true,
+            allowedMfaMethods: ['email'],
+            sessionTimeout: 30,
+            concurrentSessions: 1,
+        }
+    });
+    console.log('Seeded default security policy.');
 
 
     console.log('Seeding finished.');
