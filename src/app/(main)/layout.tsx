@@ -35,7 +35,7 @@ const getSessionData = async () => {
         // If all else fails, and we have no session, try the ultimate fallback
         return {
             isLoggedIn: true, // Assume logged in for demo
-            user: { id: "1", name: 'Demo Admin', email: 'admin@zemen.com', role: 'Super Admin' },
+            user: { id: "1", name: 'Demo Admin', email: 'admin@zemen.com', role: 'Super Admin', mfaEnabled: false },
             permissions: ['all']
         };
     }
@@ -82,7 +82,7 @@ const getSessionData = async () => {
          // If db fails, but we have a session, we can still proceed with session data
          return {
             isLoggedIn: true,
-            user: session.user,
+            user: { ...session.user, mfaEnabled: false, role: 'Super Admin' },
             permissions: ['all'], // Assume super admin in this failure case for demo
          }
     }
