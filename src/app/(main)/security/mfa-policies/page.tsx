@@ -1,12 +1,12 @@
 
 'use client';
 
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -14,14 +14,16 @@ import { CheckCircle, AlertTriangle, KeyRound, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
-const mockUsers = [
-    { id: 'usr_1', name: 'Admin User', email: 'admin@zemenbank.com', role: 'Super Admin', mfaStatus: 'Enrolled', method: 'Email', lastVerified: '2026-01-15T10:00:00Z' },
-    { id: 'usr_2', name: 'Abebe Bikila', email: 'abebe.b@zemenbank.com', role: 'Compliance Officer', mfaStatus: 'Enrolled', method: 'Email', lastVerified: '2026-01-15T09:30:00Z' },
-    { id: 'usr_3', name: 'Tirunesh Dibaba', email: 'tirunesh.d@zemenbank.com', role: 'Operations Lead', mfaStatus: 'Not Enrolled', method: 'N/A', lastVerified: null },
-    { id: 'usr_4', name: 'Haile Gebrselassie', email: 'haile.g@zemenbank.com', role: 'Support Staff', mfaStatus: 'Pending', method: 'Email', lastVerified: null },
-];
+interface UserMfaStatus {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    mfaStatus: string;
+    method: string;
+}
 
-const statusConfig = {
+const statusConfig: { [key: string]: { Icon: React.ElementType, color: string } } = {
     Enrolled: { Icon: CheckCircle, color: 'text-green-500' },
     'Not Enrolled': { Icon: AlertTriangle, color: 'text-red-500' },
     Pending: { Icon: AlertTriangle, color: 'text-yellow-500' },
@@ -36,24 +38,42 @@ export default function MfaPoliciesPage() {
         sessionTimeout: 30,
         concurrentSessions: 1,
     });
+    const [userMfaStatuses, setUserMfaStatuses] = useState<UserMfaStatus[]>([]);
+    const [usersLoading, setUsersLoading] = useState(true);
     const { toast } = useToast();
 
-    useEffect(() => {
-        const fetchPolicies = async () => {
-            setIsLoading(true);
-            try {
-                const res = await fetch('/api/security/policies');
-                if (!res.ok) throw new Error("Failed to fetch policies.");
-                const data = await res.json();
-                setPolicies(data);
-            } catch (error: any) {
-                toast({ variant: 'destructive', title: 'Error', description: error.message });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchPolicies();
+    const fetchPolicies = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const res = await fetch('/api/security/policies');
+            if (!res.ok) throw new Error("Failed to fetch policies.");
+            const data = await res.json();
+            setPolicies(data);
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error', description: error.message });
+        } finally {
+            setIsLoading(false);
+        }
     }, [toast]);
+    
+    const fetchUserMfaStatuses = useCallback(async () => {
+        setUsersLoading(true);
+        try {
+            const res = await fetch('/api/users/mfa-status');
+            if (!res.ok) throw new Error("Failed to fetch user MFA statuses.");
+            const data = await res.json();
+            setUserMfaStatuses(data);
+        } catch (error: any) {
+             toast({ variant: 'destructive', title: 'Error Loading Users', description: error.message });
+        } finally {
+            setUsersLoading(false);
+        }
+    }, [toast]);
+
+    useEffect(() => {
+        fetchPolicies();
+        fetchUserMfaStatuses();
+    }, [fetchPolicies, fetchUserMfaStatuses]);
     
     const handlePolicyChange = (key: string, value: any) => {
         setPolicies(prev => ({...prev, [key]: value}));
@@ -73,7 +93,7 @@ export default function MfaPoliciesPage() {
             }
             toast({ title: 'Success', description: 'Security policies have been updated.'});
          } catch (error: any) {
-            toast({ variant: 'destructive', title: 'Error', description: error.message });
+            toast({ variant: "destructive", title: 'Error', description: error.message });
          } finally {
             setIsSaving(false);
          }
@@ -113,7 +133,7 @@ export default function MfaPoliciesPage() {
                             <Slider
                                 id="session-timeout"
                                 min={5}
-                                max={60}
+                                max={120}
                                 step={5}
                                 value={[policies.sessionTimeout]}
                                 onValueChange={(value) => handlePolicyChange('sessionTimeout', value[0])}
@@ -155,16 +175,24 @@ export default function MfaPoliciesPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Admin User</TableHead>
-                                <TableHead>Role</TableHead>
+                                <TableHead>App User</TableHead>
+                                <TableHead>Role / Status</TableHead>
                                 <TableHead>MFA Status</TableHead>
                                 <TableHead>Enrolled Method</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {mockUsers.map(user => {
-                                const { Icon, color } = statusConfig[user.mfaStatus as keyof typeof statusConfig];
+                            {usersLoading ? (
+                                 Array.from({ length: 4 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell colSpan={5} className="py-4">
+                                            <div className="animate-pulse bg-muted h-5 rounded-md"></div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : userMfaStatuses.map(user => {
+                                const { Icon, color } = statusConfig[user.mfaStatus] || { Icon: AlertTriangle, color: 'text-gray-500' };
                                 return (
                                     <TableRow key={user.id}>
                                         <TableCell>
@@ -181,7 +209,7 @@ export default function MfaPoliciesPage() {
                                         <TableCell>{user.method}</TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="outline" size="sm">
-                                                <KeyRound className="mr-2" />
+                                                <KeyRound className="mr-2 h-3 w-3" />
                                                 Reset MFA
                                             </Button>
                                         </TableCell>
