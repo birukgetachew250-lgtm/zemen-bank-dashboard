@@ -26,7 +26,8 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        <link rel="icon" href="/images/logo.png" sizes="any" />
+        {/* Force a refresh of the favicon by adding a version query string */}
+        <link rel="icon" href={`/images/logo.png?v=${new Date().getTime()}`} sizes="any" />
       </head>
       <body className="font-body antialiased h-full flex flex-col">
         <AuthProvider>
