@@ -3,7 +3,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Settings, User } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -1,110 +1,56 @@
 
+'use client';
+
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Watermark } from "@/components/layout/Watermark";
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/db';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from "lucide-react";
 
-const getSessionData = async () => {
-    let session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      // Not logged in, but we might be in demo mode.
-      // Let's check for the mock user case directly.
-       try {
-            // This is a check to see if we can connect to the DB at all.
-            await db.$connect();
-            const user = await db.user.findFirst({
-                where: { email: 'admin@zemen.com' },
-            });
-
-            if (user) {
-                const { password, ...userWithoutPassword } = user;
-                return {
-                    isLoggedIn: true,
-                    user: userWithoutPassword,
-                    permissions: ['all']
-                };
-            }
-        } catch (e) {
-            console.error("Layout DB check failed, using fallback mock user.", e);
-        }
-
-        // If all else fails, and we have no session, try the ultimate fallback
-        return {
-            isLoggedIn: true, // Assume logged in for demo
-            user: { id: "1", name: 'Demo Admin', email: 'admin@zemen.com', role: 'Super Admin', mfaEnabled: false },
-            permissions: ['all']
-        };
+// Mock permissions for now as we can't easily fetch them on the client
+// In a real-world app, this would likely be part of the session token
+const getPermissions = (role: string): string[] => {
+    if (role === 'Super Admin') {
+        return ['all'];
     }
-    
-    // Logged in user exists, fetch their details
-    try {
-        const user = await db.user.findUnique({ where: { email: session.user.email } });
+    // Add other role-based permission logic here if needed
+    return ['Dashboard']; 
+}
 
-        if (!user) {
-            return { isLoggedIn: false, user: null, permissions: [] };
-        }
-        
-        let permissions: string[] = ['Dashboard']; // All users get Dashboard
-        
-        const role = await db.role.findFirst({
-            where: { name: user.role }
-        });
-
-        if (role) {
-            if (role.name === 'Super Admin') {
-                permissions = ['all'];
-            } else {
-                try {
-                    const roleData = JSON.parse(role.description);
-                    if (roleData.permissions && Array.isArray(roleData.permissions)) {
-                       permissions = ['Dashboard', ...roleData.permissions];
-                    }
-                } catch(e) {
-                    console.error(`Failed to parse permissions for role: ${role.name}`);
-                }
-            }
-        }
-        
-        const { password, ...userWithoutPassword } = user;
-
-        return {
-            isLoggedIn: true,
-            user: userWithoutPassword,
-            permissions: permissions
-        };
-
-    } catch (e) {
-         console.error("Layout DB check for session user failed, using session user as fallback.", e);
-         // If db fails, but we have a session, we can still proceed with session data
-         return {
-            isLoggedIn: true,
-            user: { ...session.user, mfaEnabled: false, role: 'Super Admin' },
-            permissions: ['all'], // Assume super admin in this failure case for demo
-         }
-    }
-};
-
-
-export default async function MainLayout({
+export default function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSessionData();
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
-  if (!session?.isLoggedIn) {
-    redirect('/login');
+  if (status === 'loading') {
+    return (
+        <div className="flex h-screen w-full items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    );
   }
+
+  if (status === 'unauthenticated') {
+    router.replace('/login');
+    return null;
+  }
+  
+  // The session user object from next-auth might not have all our custom fields.
+  // The 'user' property on the session is what we defined in the authorize callback.
+  // We'll proceed with what we have, assuming role is on the token and session.
+  const user = session?.user;
+  const userPermissions = user?.role ? getPermissions(user.role) : [];
+
 
   return (
       <div className="flex h-screen bg-background">
-        <Sidebar userPermissions={session.permissions} />
+        <Sidebar userPermissions={userPermissions} />
         <div className="flex-1 flex flex-col h-screen">
-          <Header user={session.user} />
+          <Header user={user} />
           <main className="flex-1 p-4 md:p-6 lg:p-8 relative overflow-y-auto">
             <Watermark />
             {children}
