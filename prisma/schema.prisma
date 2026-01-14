@@ -1,4 +1,3 @@
-
 datasource db {
   provider = "postgresql"
   url      = env("DASH_MODULE_PROD_DATABASE_URL")
@@ -108,27 +107,14 @@ model MiniApp {
   encryption_key String
 }
 
-model OtpCode {
-  Id         Int      @id @default(autoincrement())
-  Purpose    String
-  UserId     String
-  OtpType    String
-  Code       String?
-  IsUsed     Boolean  @default(false)
-  ExpiresAt  DateTime
-  Attempts   Int      @default(0)
-  InsertDate DateTime @default(now())
-  UpdateDate DateTime @updatedAt
-}
-
 model SystemActivityLog {
-  id          Int      @id @default(autoincrement())
-  timestamp   DateTime @default(now())
-  userEmail   String
-  action      String
-  status      String
-  details     String?
-  ipAddress   String?
+  id        Int      @id @default(autoincrement())
+  timestamp DateTime @default(now())
+  userEmail String
+  action    String
+  status    String
+  details   String?
+  ipAddress String?
 }
 
 model IpWhitelist {
@@ -139,13 +125,24 @@ model IpWhitelist {
 }
 
 model SecurityPolicy {
-  id                 Int      @id @default(1)
-  mfaRequired        Boolean  @default(true)
-  allowedMfaMethods  String[] @default(["email"])
-  sessionTimeout     Int      @default(30) // in minutes
-  concurrentSessions Int      @default(1) // 0 for unlimited
+  id                  Int      @id @default(1)
+  mfaRequired         Boolean  @default(true)
+  allowedMfaMethods   String[] @default(["email"])
+  sessionTimeout      Int      @default(30) // in minutes
+  concurrentSessions  Int      @default(1) // 0 for unlimited
+}
+
+model Integration {
+  id            Int    @id @default(autoincrement())
+  name          String @unique
+  type          String // 'WSO2', 'Flexcube', 'SMS'
+  baseUrl       String
+  username      String?
+  password      String? // Encrypted
+  status        String @default("Disconnected")
+  isProduction  Boolean @default(false)
 }
 
 // The models below are managed in separate Oracle databases
 // and are removed from this schema to avoid conflicts.
-// AppUser, Account, SecurityQuestion, UserSecurity
+// AppUser, Account, SecurityQuestion, UserSecurity, OtpCode
