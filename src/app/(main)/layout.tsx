@@ -7,6 +7,7 @@ import { Watermark } from "@/components/layout/Watermark";
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 // Mock permissions for now as we can't easily fetch them on the client
 // In a real-world app, this would likely be part of the session token
@@ -26,17 +27,18 @@ export default function MainLayout({
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  if (status === 'loading') {
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace('/login');
+    }
+  }, [status, router]);
+
+  if (status === 'loading' || !session) {
     return (
         <div className="flex h-screen w-full items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
         </div>
     );
-  }
-
-  if (status === 'unauthenticated') {
-    router.replace('/login');
-    return null;
   }
   
   // The session user object from next-auth might not have all our custom fields.
