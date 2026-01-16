@@ -2,7 +2,6 @@
 const { PrismaClient } = require('@prisma/client');
 const { faker } = require('@faker-js/faker');
 const crypto = require('crypto');
-const oracledb = require('oracledb');
 
 const prisma = new PrismaClient();
 
@@ -193,4 +192,3 @@ main()
     .finally(async () => {
         await prisma.$disconnect();
     });
-

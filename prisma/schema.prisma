@@ -15,17 +15,17 @@ generator system {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  employeeId  String   @unique
-  name        String
-  email       String   @unique
-  password    String // In a real app, this would be a hash
-  role        String
-  branch      String?
-  department  String
-  mfaEnabled  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  employeeId String   @unique
+  name       String
+  email      String   @unique
+  password   String // In a real app, this would be a hash
+  role       String
+  branch     String?
+  department String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  mfaEnabled Boolean @default(false)
 }
 
 model Role {
@@ -73,20 +73,19 @@ model PendingApproval {
 }
 
 model Transaction {
-  id             String    @id @default(cuid())
+  id             String   @id @default(cuid())
   customerId     Int
-  customer       Customer  @relation(fields: [customerId], references: [id])
+  customer       Customer @relation(fields: [customerId], references: [id])
   amount         Float
   fee            Float
   status         String
-  timestamp      DateTime  @default(now())
+  timestamp      DateTime @default(now())
   type           String
   channel        String
   from_account   String?
   to_account     String?
-  is_anomalous   Boolean   @default(false)
+  is_anomalous   Boolean  @default(false)
   anomaly_reason String?
-  aiResult       Json?
 }
 
 model Corporate {
@@ -108,56 +107,68 @@ model MiniApp {
   encryption_key String
 }
 
-model Integration {
-    id Int @id @default(autoincrement())
-    name String @unique
-    service String // e.g. WSO2, Flexcube, SMS
-    endpointUrl String
-    username String?
-    password String?
-    isProduction Boolean @default(false)
-    status String @default("Disconnected")
+model IPSBank {
+    id        String   @id @default(cuid())
+    bankName  String   @unique
+    bankCode  String   @unique
+    reconciliationAccount String
+    bankLogo  String?
+    status    String
+    rank      Int
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
 
-model IPSBank {
-  id                    String   @id @default(cuid())
-  bankName              String   @unique
-  bankCode              String   @unique
-  reconciliationAccount String
-  bankLogo              String?
-  status                String
-  rank                  Int
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-model SecurityPolicy {
-    id                 Int      @id @default(1)
-    mfaRequired        Boolean  @default(true)
-    allowedMfaMethods  String[] @default(["email"])
-    sessionTimeout     Int      @default(30) // in minutes
-    concurrentSessions Int      @default(1) // 0 for unlimited
+model Integration {
+    id           Int     @id @default(autoincrement())
+    name         String  @unique
+    service      String
+    endpointUrl  String
+    username     String?
+    password     String?
+    isProduction Boolean @default(false)
+    status       String
 }
 
 model SystemActivityLog {
-    id        Int      @id @default(autoincrement())
-    timestamp DateTime @default(now())
-    userEmail String
-    action    String
-    status    String
-    details   String?
-    ipAddress String?
+  id        Int      @id @default(autoincrement())
+  timestamp DateTime @default(now())
+  userEmail String
+  action    String
+  status    String
+  details   String?
+  ipAddress String?
+}
+
+model SecurityPolicy {
+  id                  Int      @id @default(1)
+  mfaRequired         Boolean  @default(true)
+  allowedMfaMethods   String[] @default(["email"])
+  sessionTimeout      Int      @default(30)
+  concurrentSessions  Int      @default(1)
 }
 
 model IpWhitelist {
-  id        Int      @id @default(autoincrement())
-  cidr      String   @unique
-  label     String
-  createdAt DateTime @default(now())
+    id        Int @id @default(autoincrement())
+    cidr      String @unique
+    label     String
+    createdAt DateTime @default(now())
+}
+
+
+model OtpCode {
+  Id         Int      @id @default(autoincrement())
+  Purpose    String
+  UserId     String
+  OtpType    String
+  Code       String?
+  IsUsed     Boolean  @default(false)
+  ExpiresAt  DateTime
+  Attempts   Int      @default(0)
+  InsertDate DateTime @default(now())
+  UpdateDate DateTime @updatedAt
 }
 
 // The models below are managed in separate Oracle databases
 // and are removed from this schema to avoid conflicts.
-// AppUser, Account, SecurityQuestion, UserSecurity, OtpCode
+// AppUser, Account, SecurityQuestion, UserSecurity
