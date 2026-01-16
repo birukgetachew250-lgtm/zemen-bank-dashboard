@@ -1,5 +1,5 @@
 
-"use client";
+'use client';
 
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Settings, User } from "lucide-react";
@@ -106,9 +106,8 @@ export function Header({ user }: { user: any }) {
   const currentPage = findCurrentPage(menu, pathname);
 
   const handleLogout = async () => {
-    await signOut({ redirect: false });
-    toast({ title: 'Logged out successfully.' });
-    router.push('/login');
+    toast({ title: 'Logging out...' });
+    await signOut({ callbackUrl: '/login' });
   };
 
   return (

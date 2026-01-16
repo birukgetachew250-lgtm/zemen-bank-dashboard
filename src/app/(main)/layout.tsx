@@ -28,17 +28,29 @@ export default function MainLayout({
   const router = useRouter();
 
   useEffect(() => {
+    // Only redirect if the session is confirmed to be unauthenticated, and not just in a loading state.
     if (status === 'unauthenticated') {
       router.replace('/login');
     }
   }, [status, router]);
 
-  if (status === 'loading' || !session) {
+  if (status === 'loading') {
     return (
         <div className="flex h-screen w-full items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
         </div>
     );
+  }
+
+  // If there's no session and it's not loading, it means `unauthenticated` status
+  // will be handled by the useEffect. We can return a loader here to avoid
+  // flashing the layout while the redirect happens.
+  if (!session) {
+      return (
+         <div className="flex h-screen w-full items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      );
   }
   
   // The session user object from next-auth might not have all our custom fields.
