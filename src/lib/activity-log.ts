@@ -12,8 +12,7 @@ export type ActivityLogAction =
     | 'ROLE_CREATED'
     | 'ROLE_UPDATED'
     | 'ROLE_DELETED'
-    | 'MFA_ENABLED'
-    | 'MFA_DISABLED';
+    | 'APPROVAL_PROCESSED';
 
 export type LogEntry = {
     userEmail: string;

@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   Building2,
@@ -151,9 +150,8 @@ export const menu: MenuItem[] = [
        {
         label: "Audit Trails",
         icon: History,
-        href: "/customers/audit",
+        href: "/users/audit",
         children: [
-          { icon: Users, label: "Customers", href: "/customers/audit" },
           { icon: UserCog, label: "System Users", href: "/users/audit" },
           { icon: Mail, label: "Authentications", href: "/otp" },
         ],
@@ -208,7 +206,6 @@ export const menu: MenuItem[] = [
         ]
       },
       { icon: Table, label: "Permissions Matrix", href: "/security/permission-matrix" },
-      { icon: KeyRound, label: "Session Logs", href: "/security/sessions" },
       { icon: Shield, label: "Security Policies", href: "/security/mfa-policies" },
     ]
   },

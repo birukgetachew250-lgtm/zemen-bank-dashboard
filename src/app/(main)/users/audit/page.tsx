@@ -1,30 +1,72 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+'use client';
 
-// Mock data for audit trail
-const auditLogs = [
-  { id: 1, user: 'Admin User', action: 'Updated System Settings', details: 'Changed transaction limit to $10,000', timestamp: '2023-10-27 11:00 AM' },
-  { id: 2, user: 'Admin User', action: 'Accessed Corporate Report', details: 'Viewed report for Dangote Cement', timestamp: '2023-10-27 10:55 AM' },
-  { id: 3, user: 'Support Lead', action: 'Granted Permissions', details: 'Gave "Approve Pin Reset" permission to new support staff', timestamp: '2023-10-26 04:00 PM' },
-];
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search, Loader2 } from "lucide-react";
+import { DateRangePicker } from '@/components/transactions/DateRangePicker';
+import { DateRange } from 'react-day-picker';
+import { format } from "date-fns";
+
+interface AuditLog {
+  id: number;
+  timestamp: string;
+  userEmail: string;
+  action: string;
+  details: string | null;
+  ipAddress: string | null;
+  status: string;
+}
 
 export default function UsersAuditTrailPage() {
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
+  const fetchLogs = useCallback(async () => {
+    setIsLoading(true);
+    const params = new URLSearchParams();
+    if (query) params.append('query', query);
+    if (dateRange?.from) params.append('from', dateRange.from.toISOString());
+    if (dateRange?.to) params.append('to', dateRange.to.toISOString());
+
+    try {
+      const res = await fetch(`/api/security/activity-logs?${params.toString()}`);
+      if (!res.ok) throw new Error('Failed to fetch logs');
+      const data = await res.json();
+      setLogs(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [query, dateRange]);
+
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
+
+
   return (
-    <div className="w-full h-full">
-      <Card>
-        <CardHeader>
-          <CardTitle>System Users Audit Trail</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <Card>
+      <CardHeader>
+        <CardTitle>System Users Audit Trail</CardTitle>
+        <CardDescription>A detailed log of all actions performed by system users.</CardDescription>
+      </CardHeader>
+      <CardContent>
+          <div className="flex items-center gap-4 mb-4">
+              <Input placeholder='Search by user email, action, details...' className="flex-grow" value={query} onChange={(e) => setQuery(e.target.value)} />
+              <DateRangePicker date={dateRange} onDateChange={setDateRange} />
+              <Button onClick={fetchLogs} disabled={isLoading}>
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                Search
+              </Button>
+          </div>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -33,24 +75,29 @@ export default function UsersAuditTrailPage() {
                   <TableHead>User</TableHead>
                   <TableHead>Action</TableHead>
                   <TableHead>Details</TableHead>
+                  <TableHead>IP Address</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {auditLogs.map((log) => (
+                {isLoading ? (
+                    Array.from({ length: 10 }).map((_, i) => (
+                        <TableRow key={i}><TableCell colSpan={5} className="py-4"><div className="animate-pulse bg-muted h-5 rounded-md"></div></TableCell></TableRow>
+                    ))
+                ) : logs.map((log) => (
                   <TableRow key={log.id}>
-                    <TableCell>{log.timestamp}</TableCell>
-                    <TableCell className="font-medium">{log.user}</TableCell>
+                    <TableCell>{format(new Date(log.timestamp), 'dd MMM yyyy, HH:mm:ss')}</TableCell>
+                    <TableCell className="font-medium">{log.userEmail}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{log.action}</Badge>
+                      <Badge variant={log.status === 'Failure' ? 'destructive' : 'secondary'}>{log.action}</Badge>
                     </TableCell>
-                    <TableCell>{log.details}</TableCell>
+                    <TableCell>{log.details || 'N/A'}</TableCell>
+                    <TableCell className="font-mono">{log.ipAddress}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,6 +1,10 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../auth/[...nextauth]/route';
+import { logActivity } from '@/lib/activity-log';
+
 
 // GET a single user
 export async function GET(
@@ -36,6 +40,9 @@ export async function PUT(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+    const session = await getServerSession(authOptions);
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
+
     try {
         const id = parseInt(params.id, 10);
          if (isNaN(id)) {
@@ -45,9 +52,8 @@ export async function PUT(
 
         const dataToUpdate: any = { employeeId, name, email, role, branch, department };
 
-        // Only update password if it's provided
         if (password) {
-            dataToUpdate.password = password; // In a real app, hash this password
+            dataToUpdate.password = password; 
         }
 
         const updatedUser = await db.user.update({
@@ -55,10 +61,27 @@ export async function PUT(
             data: dataToUpdate,
         });
 
+         await logActivity({
+            userEmail: session?.user?.email || 'system',
+            action: 'USER_UPDATED',
+            status: 'Success',
+            details: `Updated user: ${email}`,
+            ipAddress: typeof ip === 'string' ? ip : undefined,
+        });
+
+
         const { password: _, ...userWithoutPassword } = updatedUser;
         return NextResponse.json(userWithoutPassword);
 
     } catch (error: any) {
+        await logActivity({
+            userEmail: session?.user?.email || 'system',
+            action: 'USER_UPDATED',
+            status: 'Failure',
+            details: `Failed to update user ID ${params.id}. Error: ${error.message}`,
+            ipAddress: typeof ip === 'string' ? ip : undefined,
+        });
+
          if (error.code === 'P2025') {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });
         }
@@ -72,4 +95,3 @@ export async function PUT(
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }
-

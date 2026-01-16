@@ -5,6 +5,9 @@ import { executeQuery } from '@/lib/oracle-db';
 import { encrypt } from '@/lib/crypto';
 import crypto from 'crypto';
 import { Prisma } from "@prisma/client";
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../auth/[...nextauth]/route';
+import { logActivity } from '@/lib/activity-log';
 
 const getCifFromApproval = async (approval: any) => {
     if (approval.details) {
@@ -31,6 +34,9 @@ const getCifFromApproval = async (approval: any) => {
 
 
 export async function POST(req: Request) {
+    const session = await getServerSession(authOptions);
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
+    
     try {
         const { approvalId, action } = await req.json();
 
@@ -44,8 +50,17 @@ export async function POST(req: Request) {
              return NextResponse.json({ message: 'Approval not found' }, { status: 404 });
         }
 
+        const logDetails = `Request ID: ${approval.id}, Type: ${approval.type}, Customer: ${approval.customerName} (${approval.customerPhone})`;
+
         if (action === 'reject') {
             await db.pendingApproval.delete({ where: { id: approvalId } });
+             await logActivity({
+                userEmail: session?.user?.email || 'system',
+                action: 'APPROVAL_PROCESSED',
+                status: 'Success',
+                details: `Rejected: ${logDetails}`,
+                ipAddress: typeof ip === 'string' ? ip : undefined,
+            });
             return NextResponse.json({ success: true, message: `Request has been rejected` });
         }
 
@@ -239,12 +254,28 @@ export async function POST(req: Request) {
         }
 
         await db.pendingApproval.delete({ where: { id: approvalId } });
+        
+        await logActivity({
+            userEmail: session?.user?.email || 'system',
+            action: 'APPROVAL_PROCESSED',
+            status: 'Success',
+            details: `Approved: ${logDetails}`,
+            ipAddress: typeof ip === 'string' ? ip : undefined,
+        });
+
 
         responseData.message = successMessage;
         return NextResponse.json(responseData);
 
     } catch (error: any) {
         console.error('Approval action failed:', error);
+         await logActivity({
+            userEmail: session?.user?.email || 'system',
+            action: 'APPROVAL_PROCESSED',
+            status: 'Failure',
+            details: `Failed to process approval for request ID ${req.url}. Reason: ${error.message}`,
+            ipAddress: typeof ip === 'string' ? ip : undefined,
+        });
         return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }

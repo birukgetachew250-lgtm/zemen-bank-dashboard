@@ -29,6 +29,7 @@ async function main() {
     console.log('Start seeding...');
 
     // Clean up existing data
+    await prisma.systemActivityLog.deleteMany();
     await prisma.pendingApproval.deleteMany();
     await prisma.transaction.deleteMany();
     await prisma.customer.deleteMany();
@@ -40,7 +41,6 @@ async function main() {
     await prisma.user.deleteMany();
     await prisma.iPSBank.deleteMany();
     await prisma.integration.deleteMany();
-    await prisma.systemActivityLog.deleteMany();
     await prisma.securityPolicy.deleteMany();
     await prisma.ipWhitelist.deleteMany();
     console.log('Cleared existing data.');
