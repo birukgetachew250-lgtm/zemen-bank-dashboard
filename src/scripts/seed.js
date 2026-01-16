@@ -29,6 +29,10 @@ async function main() {
     console.log('Start seeding...');
 
     // Clean up existing data
+    await prisma.limitCustomerTransaction.deleteMany();
+    await prisma.limitRule.deleteMany();
+    await prisma.limitException.deleteMany();
+    await prisma.chargeRule.deleteMany();
     await prisma.systemActivityLog.deleteMany();
     await prisma.pendingApproval.deleteMany();
     await prisma.transaction.deleteMany();
