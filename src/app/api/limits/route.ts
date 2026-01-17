@@ -10,17 +10,17 @@ export async function GET() {
     try {
         const query = `
             SELECT
-                lr.Id as "id",
-                cc.Name as "category",
-                tt.Name as "transactionType",
-                (SELECT li.LimitAmount FROM "LIMIT_CHARGE_MODULE"."LimitRuleIntervals" li JOIN "LIMIT_CHARGE_MODULE"."PeriodIntervals" pi ON li.PeriodIntervalId = pi.Id WHERE li.LimitRuleId = lr.Id AND pi.Name = 'Daily') as "dailyLimit",
-                (SELECT li.LimitAmount FROM "LIMIT_CHARGE_MODULE"."LimitRuleIntervals" li JOIN "LIMIT_CHARGE_MODULE"."PeriodIntervals" pi ON li.PeriodIntervalId = pi.Id WHERE li.LimitRuleId = lr.Id AND pi.Name = 'Weekly') as "weeklyLimit",
-                (SELECT li.LimitAmount FROM "LIMIT_CHARGE_MODULE"."LimitRuleIntervals" li JOIN "LIMIT_CHARGE_MODULE"."PeriodIntervals" pi ON li.PeriodIntervalId = pi.Id WHERE li.LimitRuleId = lr.Id AND pi.Name = 'Monthly') as "monthlyLimit"
+                lr."Id" as "id",
+                cc."Name" as "category",
+                tt."Name" as "transactionType",
+                (SELECT li."LimitAmount" FROM "LIMIT_CHARGE_MODULE"."LimitRuleIntervals" li JOIN "LIMIT_CHARGE_MODULE"."PeriodIntervals" pi ON li."PeriodIntervalId" = pi."Id" WHERE li."LimitRuleId" = lr."Id" AND pi."Name" = 'Daily') as "dailyLimit",
+                (SELECT li."LimitAmount" FROM "LIMIT_CHARGE_MODULE"."LimitRuleIntervals" li JOIN "LIMIT_CHARGE_MODULE"."PeriodIntervals" pi ON li."PeriodIntervalId" = pi."Id" WHERE li."LimitRuleId" = lr."Id" AND pi."Name" = 'Weekly') as "weeklyLimit",
+                (SELECT li."LimitAmount" FROM "LIMIT_CHARGE_MODULE"."LimitRuleIntervals" li JOIN "LIMIT_CHARGE_MODULE"."PeriodIntervals" pi ON li."PeriodIntervalId" = pi."Id" WHERE li."LimitRuleId" = lr."Id" AND pi."Name" = 'Monthly') as "monthlyLimit"
             FROM ${TABLE} lr
-            JOIN "LIMIT_CHARGE_MODULE"."CustomerCategories" cc ON lr.CustomerCategoryId = cc.Id
-            JOIN "LIMIT_CHARGE_MODULE"."TransactionTypes" tt ON lr.TransactionTypeId = tt.Id
-            WHERE lr.IsActive = 1
-            ORDER BY cc.Name, tt.Name`;
+            JOIN "LIMIT_CHARGE_MODULE"."CustomerCategories" cc ON lr."CustomerCategoryId" = cc."Id"
+            JOIN "LIMIT_CHARGE_MODULE"."TransactionTypes" tt ON lr."TransactionTypeId" = tt."Id"
+            WHERE lr."IsActive" = 1
+            ORDER BY cc."Name", tt."Name"`;
         
         const result: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, query);
         
@@ -133,4 +133,3 @@ export async function DELETE(req: Request) {
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }
-

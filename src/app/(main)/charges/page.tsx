@@ -7,16 +7,16 @@ async function getChargeRules(): Promise<ChargeRule[]> {
   try {
     const query = `
       SELECT 
-        cr.Id as "id",
-        cc.Name as "category",
-        tt.Name as "transactionType",
-        cr.Percentage as "percentage",
-        cr.FixedAmount as "fixedAmount"
+        cr."Id" as "id",
+        cc."Name" as "category",
+        tt."Name" as "transactionType",
+        cr."Percentage" as "percentage",
+        cr."FixedAmount" as "fixedAmount"
       FROM "LIMIT_CHARGE_MODULE"."ChargeRules" cr
-      JOIN "LIMIT_CHARGE_MODULE"."CustomerCategories" cc ON cr.CustomerCategoryId = cc.Id
-      JOIN "LIMIT_CHARGE_MODULE"."TransactionTypes" tt ON cr.TransactionTypeId = tt.Id
-      WHERE cr.IsActive = 1 
-      ORDER BY cc.Name, tt.Name
+      JOIN "LIMIT_CHARGE_MODULE"."CustomerCategories" cc ON cr."CustomerCategoryId" = cc."Id"
+      JOIN "LIMIT_CHARGE_MODULE"."TransactionTypes" tt ON cr."TransactionTypeId" = tt."Id"
+      WHERE cr."IsActive" = 1 
+      ORDER BY cc."Name", tt."Name"
     `;
     const result: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, query);
     
@@ -67,4 +67,3 @@ export default async function TransactionChargesPage() {
         </div>
     );
 }
-
