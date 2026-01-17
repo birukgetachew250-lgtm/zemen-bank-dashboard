@@ -28,6 +28,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LimitManagementClient } from "@/components/limits/LimitManagementClient";
+import LimitsPage from "../../limits/page";
 
 const statusVariantMap: { [key: string]: "default" | "secondary" | "destructive" } = {
     Approved: "secondary",
@@ -46,13 +47,11 @@ const mockOverrides = [
     { id: 'ov-3', timestamp: new Date(Date.now() - 3 * 60 * 60000), customer: '0922334455 (Sam T.)', limit: 'Daily', originalLimit: 100000, requestedAmount: 120000, status: 'Rejected', approver: 'Admin Lead', reason: 'Insufficient justification' },
 ];
 
-// This page now acts as a wrapper, so we can't fetch server-side data directly here.
-// LimitManagementClient will fetch its own data. For overrides, we continue with mock data for now.
 export default function TransactionLimitsPage() {
   
   return (
     <Tabs defaultValue="overrides" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid grid-cols-2 w-full max-w-lg">
             <TabsTrigger value="overrides">Limit Overrides</TabsTrigger>
             <TabsTrigger value="config">Limit Configuration</TabsTrigger>
         </TabsList>
@@ -126,8 +125,9 @@ export default function TransactionLimitsPage() {
             </Card>
         </TabsContent>
         <TabsContent value="config" className="mt-4">
-             <LimitManagementClient initialLimitRules={[]} />
+             <LimitsPage />
         </TabsContent>
     </Tabs>
   );
 }
+
