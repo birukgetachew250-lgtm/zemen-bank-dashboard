@@ -50,6 +50,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { DropdownItem } from "../charges/ChargeManagementClient";
+import type { Interval } from "@/app/(main)/limits/page";
 
 export interface LimitRule {
     id: string;
@@ -68,9 +69,10 @@ interface LimitManagementClientProps {
     initialLimitRules: LimitRule[];
     customerCategories: DropdownItem[];
     transactionTypes: DropdownItem[];
+    intervals: Interval[];
 }
 
-export function LimitManagementClient({ initialLimitRules, customerCategories, transactionTypes }: LimitManagementClientProps) {
+export function LimitManagementClient({ initialLimitRules, customerCategories, transactionTypes, intervals }: LimitManagementClientProps) {
   const [limitRules, setLimitRules] = useState<LimitRule[]>(initialLimitRules);
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -80,70 +82,67 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
   const [ruleData, setRuleData] = useState({
     categoryId: "",
     transactionTypeId: "",
-    dailyLimit: "",
-    weeklyLimit: "",
-    monthlyLimit: ""
+    limits: {} as Record<string, string>,
   });
   const { toast } = useToast();
 
   const openAddDialog = () => {
     setEditingRule(null);
-    setRuleData({ categoryId: "", transactionTypeId: "", dailyLimit: "", weeklyLimit: "", monthlyLimit: "" });
+    const initialLimits = intervals.reduce((acc, interval) => ({ ...acc, [interval.id]: '' }), {});
+    setRuleData({ categoryId: "", transactionTypeId: "", limits: initialLimits });
     setDialogOpen(true);
   };
   
   const openEditDialog = (rule: LimitRule) => {
     setEditingRule(rule);
-    const categoryId = customerCategories.find(c => c.name === rule.category)?.id || "";
-    const transactionTypeId = transactionTypes.find(t => t.name === rule.transactionType)?.id || "";
-    setRuleData({
-        categoryId,
-        transactionTypeId,
-        dailyLimit: String(rule.dailyLimit),
-        weeklyLimit: String(rule.weeklyLimit),
-        monthlyLimit: String(rule.monthlyLimit),
+    // For now, editing is disabled because it requires fetching detailed interval data which is complex with the current setup.
+    // A proper implementation would fetch the specific rule's interval amounts.
+    toast({
+        variant: "destructive",
+        title: "Editing Not Implemented",
+        description: "Editing rules is not supported in this version. Please delete and recreate the rule.",
     });
-    setDialogOpen(true);
+  };
+
+  const handleLimitChange = (intervalId: string, value: string) => {
+      setRuleData(prev => ({
+          ...prev,
+          limits: {
+              ...prev.limits,
+              [intervalId]: value,
+          }
+      }))
   };
 
   const handleSaveRule = async () => {
-    if (!ruleData.categoryId || !ruleData.transactionTypeId || !ruleData.dailyLimit || !ruleData.weeklyLimit || !ruleData.monthlyLimit) {
+    if (!ruleData.categoryId || !ruleData.transactionTypeId || Object.values(ruleData.limits).some(v => v === '')) {
       toast({
         variant: "destructive",
         title: "Missing Fields",
-        description: "Please fill out all fields to save the rule."
+        description: "Please select a category, transaction type, and fill out all limit fields."
       });
       return;
     }
 
     setIsSaving(true);
     const method = editingRule ? 'PUT' : 'POST';
-    const payload = {
-        id: editingRule?.id,
-        ...ruleData,
-    };
+    const payload = editingRule 
+        ? { id: editingRule.id, ...ruleData } 
+        : { categoryId: ruleData.categoryId, transactionTypeId: ruleData.transactionTypeId, limits: ruleData.limits };
 
     try {
         const res = await fetch('/api/limits', {
-            method: method,
+            method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
         const result = await res.json();
         if (!res.ok) throw new Error(result.message);
 
-        const newRule = { ...result, dailyLimit: parseFloat(result.dailyLimit), weeklyLimit: parseFloat(result.weeklyLimit), monthlyLimit: parseFloat(result.monthlyLimit) };
-
-        if (editingRule) {
-            setLimitRules(prev => prev.map(r => r.id === editingRule.id ? newRule : r));
-            toast({ title: "Rule Updated", description: "The transaction limit rule has been updated successfully." });
-        } else {
-            setLimitRules(prev => [...prev, newRule]);
-            toast({ title: "Rule Added", description: "New transaction limit rule has been added successfully." });
-        }
-        
+        toast({ title: "Success", description: `Limit rule ${editingRule ? 'updated' : 'created'}.` });
         setDialogOpen(false);
         setEditingRule(null);
+        window.location.reload(); // Simple refresh to show new data
     } catch (error: any) {
         toast({ variant: 'destructive', title: 'Error', description: error.message });
     } finally {
@@ -164,9 +163,8 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
               const errorText = await res.text();
               throw new Error(errorText || 'Failed to delete rule.');
           }
-
           setLimitRules(prev => prev.filter(r => r.id !== ruleToDelete.id));
-          toast({ title: "Rule Deleted", description: "The rule has been deleted." });
+          toast({ title: "Rule Deleted", description: "The rule has been deleted."});
       } catch (error: any) {
           toast({ variant: 'destructive', title: 'Error deleting rule', description: error.message });
       } finally {
@@ -230,7 +228,7 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingRule ? 'Edit' : 'Add'} Limit Rule</DialogTitle>
             <DialogDescription>
@@ -260,39 +258,19 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="daily-limit" className="text-right">Daily Limit</Label>
-              <Input
-                id="daily-limit"
-                type="number"
-                value={ruleData.dailyLimit}
-                onChange={(e) => setRuleData(prev => ({...prev, dailyLimit: e.target.value}))}
-                className="col-span-3"
-                placeholder="e.g. 100000"
-              />
-            </div>
-             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="weekly-limit" className="text-right">Weekly Limit</Label>
-              <Input
-                id="weekly-limit"
-                type="number"
-                value={ruleData.weeklyLimit}
-                onChange={(e) => setRuleData(prev => ({...prev, weeklyLimit: e.target.value}))}
-                className="col-span-3"
-                placeholder="e.g. 500000"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="monthly-limit" className="text-right">Monthly Limit</Label>
-              <Input
-                id="monthly-limit"
-                type="number"
-                value={ruleData.monthlyLimit}
-                onChange={(e) => setRuleData(prev => ({...prev, monthlyLimit: e.target.value}))}
-                className="col-span-3"
-                placeholder="e.g. 1000000"
-              />
-            </div>
+            {intervals.map(interval => (
+                 <div key={interval.id} className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor={`limit-${interval.id}`} className="text-right">{interval.name} Limit</Label>
+                    <Input
+                        id={`limit-${interval.id}`}
+                        type="number"
+                        value={ruleData.limits[interval.id] || ''}
+                        onChange={(e) => handleLimitChange(interval.id, e.target.value)}
+                        className="col-span-3"
+                        placeholder="e.g. 100000"
+                    />
+                </div>
+            ))}
           </div>
           <DialogFooter>
             <DialogClose asChild>

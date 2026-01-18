@@ -4,6 +4,11 @@ import type { LimitRule } from "@/components/limits/LimitManagementClient";
 import type { DropdownItem } from "@/components/charges/ChargeManagementClient";
 import { executeQuery } from "@/lib/oracle-db";
 
+export interface Interval {
+    id: string;
+    name: string;
+}
+
 async function getLimitRules(): Promise<LimitRule[]> {
   try {
     const query = `
@@ -53,9 +58,21 @@ async function getDropdownData(): Promise<{ categories: DropdownItem[], transact
     }
 }
 
+async function getIntervals(): Promise<Interval[]> {
+    try {
+        const result: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, `SELECT "Id", "Name" FROM "LIMIT_CHARGE_MODULE"."PeriodIntervals" ORDER BY "Days"`);
+        return result.rows.map((r: any) => ({ id: r.Id, name: r.Name })) || [];
+    } catch (error) {
+        console.error("Failed to fetch intervals for limits:", error);
+        return [];
+    }
+}
+
+
 export default async function LimitsPage() {
     const limitRules = await getLimitRules();
     const { categories, transactionTypes } = await getDropdownData();
+    const intervals = await getIntervals();
 
     return (
         <div className="w-full h-full">
@@ -63,6 +80,7 @@ export default async function LimitsPage() {
                 initialLimitRules={limitRules}
                 customerCategories={categories}
                 transactionTypes={transactionTypes}
+                intervals={intervals}
             />
         </div>
     );

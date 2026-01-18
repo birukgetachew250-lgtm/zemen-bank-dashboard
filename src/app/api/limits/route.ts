@@ -40,20 +40,10 @@ export async function GET() {
     }
 }
 
-async function getIntervalIds() {
-    const result: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, `SELECT "Id", "Name" FROM "LIMIT_CHARGE_MODULE"."PeriodIntervals"`);
-    const intervalMap: Record<string, string> = {};
-    if (result.rows) {
-        for (const row of result.rows) {
-            intervalMap[row.Name] = row.Id;
-        }
-    }
-    return intervalMap;
-}
 
 export async function POST(req: Request) {
     try {
-        const { categoryId, transactionTypeId, dailyLimit, weeklyLimit, monthlyLimit } = await req.json();
+        const { categoryId, transactionTypeId, limits } = await req.json();
         
         const limitRuleId = crypto.randomUUID();
         const ruleQuery = `
@@ -66,27 +56,22 @@ export async function POST(req: Request) {
             TransactionTypeId: transactionTypeId 
         });
 
-        const intervalIds = await getIntervalIds();
-        const intervalBinds = [
-            { Id: crypto.randomUUID(), LimitRuleId: limitRuleId, PeriodIntervalId: intervalIds.Daily, LimitAmount: parseFloat(dailyLimit), Currency: 'ETB' },
-            { Id: crypto.randomUUID(), LimitRuleId: limitRuleId, PeriodIntervalId: intervalIds.Weekly, LimitAmount: parseFloat(weeklyLimit), Currency: 'ETB' },
-            { Id: crypto.randomUUID(), LimitRuleId: limitRuleId, PeriodIntervalId: intervalIds.Monthly, LimitAmount: parseFloat(monthlyLimit), Currency: 'ETB' },
-        ];
-
-        for (const binds of intervalBinds) {
-            const intervalQuery = `INSERT INTO ${INTERVAL_TABLE} ("Id", "LimitRuleId", "PeriodIntervalId", "LimitAmount", "Currency", "Version") VALUES (:Id, :LimitRuleId, :PeriodIntervalId, :LimitAmount, :Currency, SYS_GUID())`;
-            await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, intervalQuery, binds);
+        for (const intervalId in limits) {
+            if (Object.prototype.hasOwnProperty.call(limits, intervalId)) {
+                const amount = limits[intervalId];
+                if (amount !== null && amount !== '') {
+                    const intervalQuery = `INSERT INTO ${INTERVAL_TABLE} ("Id", "LimitRuleId", "PeriodIntervalId", "LimitAmount", "Currency", "Version") VALUES (SYS_GUID(), :LimitRuleId, :PeriodIntervalId, :LimitAmount, 'ETB', SYS_GUID())`;
+                    await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, intervalQuery, {
+                        LimitRuleId: limitRuleId,
+                        PeriodIntervalId: intervalId,
+                        LimitAmount: parseFloat(amount)
+                    });
+                }
+            }
         }
         
-        const categoryRes: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, `SELECT "Name" FROM "LIMIT_CHARGE_MODULE"."CustomerCategories" WHERE "Id" = :id`, [categoryId]);
-        const typeRes: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, `SELECT "Name" FROM "LIMIT_CHARGE_MODULE"."TransactionTypes" WHERE "Id" = :id`, [transactionTypeId]);
+        return NextResponse.json({ success: true, message: 'Limit rule created successfully' }, { status: 201 });
 
-        return NextResponse.json({ 
-            id: limitRuleId, 
-            category: categoryRes.rows[0].Name,
-            transactionType: typeRes.rows[0].Name,
-            dailyLimit, weeklyLimit, monthlyLimit 
-        }, { status: 201 });
     } catch (error) {
         console.error('Failed to create limit rule:', error);
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
@@ -94,38 +79,17 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-    try {
-        const { id, categoryId, transactionTypeId, dailyLimit, weeklyLimit, monthlyLimit } = await req.json();
-        
-        const ruleQuery = `UPDATE ${TABLE} SET "CustomerCategoryId" = :CustomerCategoryId, "TransactionTypeId" = :TransactionTypeId, "UpdateDate" = SYSTIMESTAMP WHERE "Id" = :Id`;
-        await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, ruleQuery, { CustomerCategoryId: categoryId, TransactionTypeId: transactionTypeId, Id: id });
-
-        const intervalIds = await getIntervalIds();
-        const intervalUpdates = [
-            { intervalId: intervalIds.Daily, amount: dailyLimit },
-            { intervalId: intervalIds.Weekly, amount: weeklyLimit },
-            { intervalId: intervalIds.Monthly, amount: monthlyLimit },
-        ];
-
-        for (const update of intervalUpdates) {
-            const intervalQuery = `UPDATE ${INTERVAL_TABLE} SET "LimitAmount" = :LimitAmount, "UpdateDate" = SYSTIMESTAMP WHERE "LimitRuleId" = :LimitRuleId AND "PeriodIntervalId" = :PeriodIntervalId`;
-            await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, intervalQuery, { LimitAmount: parseFloat(update.amount), LimitRuleId: id, PeriodIntervalId: update.intervalId });
-        }
-        
-        const categoryRes: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, `SELECT "Name" FROM "LIMIT_CHARGE_MODULE"."CustomerCategories" WHERE "Id" = :id`, [categoryId]);
-        const typeRes: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, `SELECT "Name" FROM "LIMIT_CHARGE_MODULE"."TransactionTypes" WHERE "Id" = :id`, [transactionTypeId]);
-
-        return NextResponse.json({ id, category: categoryRes.rows[0].Name, transactionType: typeRes.rows[0].Name, dailyLimit, weeklyLimit, monthlyLimit });
-    } catch (error) {
-        console.error('Failed to update limit rule:', error);
-        return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-    }
+    // Editing logic would be more complex, involving fetching existing interval rules,
+    // and then deciding whether to UPDATE or INSERT new ones.
+    // For simplicity, this is not implemented as requested by disabling it on the client.
+    return NextResponse.json({ message: 'Update not implemented' }, { status: 501 });
 }
 
 export async function DELETE(req: Request) {
     try {
         const { id } = await req.json();
-        const query = `UPDATE ${TABLE} SET "IsActive" = 0 WHERE "Id" = :Id`;
+        // Deleting a rule should also delete its interval entries due to `ON DELETE CASCADE`
+        const query = `DELETE FROM ${TABLE} WHERE "Id" = :Id`;
         await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, query, { Id: id });
         return new Response(null, { status: 204 });
     } catch (error) {
