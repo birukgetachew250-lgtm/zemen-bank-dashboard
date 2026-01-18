@@ -28,7 +28,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Code, Name, and Days are required' }, { status: 400 });
         }
         const id = crypto.randomUUID();
-        const query = `INSERT INTO ${TABLE} ("Id", "Code", "Name", "Days") VALUES (:Id, :Code, :Name, :Days)`;
+        const query = `INSERT INTO ${TABLE} ("Id", "Code", "Name", "Days", "Version") VALUES (:Id, :Code, :Name, :Days, SYS_GUID())`;
         const binds = { Id: id, Code: code, Name: name, Days: parseInt(days, 10) };
         await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, query, binds);
         return NextResponse.json({ id, code, name, days: parseInt(days, 10) }, { status: 201 });

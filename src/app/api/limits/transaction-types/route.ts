@@ -28,7 +28,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Code and Name are required' }, { status: 400 });
         }
         const id = crypto.randomUUID();
-        const query = `INSERT INTO ${TABLE} ("Id", "Code", "Name", "Description") VALUES (:Id, :Code, :Name, :Description)`;
+        const query = `INSERT INTO ${TABLE} ("Id", "Code", "Name", "Description", "Version") VALUES (:Id, :Code, :Name, :Description, SYS_GUID())`;
         const binds = { Id: id, Code: code, Name: name, Description: description };
         await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, query, binds);
         return NextResponse.json({ id, code, name, description }, { status: 201 });
