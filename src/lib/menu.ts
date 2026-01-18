@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Building2,
@@ -87,6 +88,7 @@ export const menu: MenuItem[] = [
         children: [
           { icon: Building2, label: "Create Corporate", href: "/corporates/create" },
           { icon: Building2, label: "Existing Corporates", href: "/corporates" },
+          { icon: SlidersHorizontal, label: "Exceptional Limits", href: "/corporates/exceptional-limits" },
         ],
       },
     ]
@@ -187,8 +189,6 @@ export const menu: MenuItem[] = [
       { icon: Plug, label: "Configuration", href: "/integrations/config" },
       { icon: Building, label: "IPS Bank Management", href: "/integrations/ips-bank-management" },
       { icon: Activity, label: "API Monitoring", href: "/integrations/api-monitoring" },
-      { icon: Globe, label: "Third-Party Apps", href: "/integrations/third-party" },
-      { icon: History, label: "Webhooks", href: "/integrations/webhooks" },
     ],
   },
   {
