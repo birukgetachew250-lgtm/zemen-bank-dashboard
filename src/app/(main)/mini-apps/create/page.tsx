@@ -29,23 +29,20 @@ async function getMiniApp(id: string | undefined): Promise<MiniApp | null> {
     }
 }
 
-
-export default function CreateMiniAppPage({ searchParams }: { searchParams: { id?: string }}) {
-  return (
-    <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
-      <div className="w-full h-full">
-        <MiniAppFormLoader id={searchParams.id} />
-      </div>
-    </Suspense>
-  )
-}
-
-async function MiniAppFormLoader({ id }: { id?: string}) {
-    const miniApp = await getMiniApp(id);
-    const initialData = miniApp ? {
+export default async function CreateMiniAppPage({ searchParams }: { searchParams: { id?: string }}) {
+  const { id } = searchParams;
+  const miniApp = await getMiniApp(id);
+  const initialData = miniApp ? {
         ...miniApp,
         password: "", // Never pre-fill password
         encryption_key: "" // Never pre-fill key
-    } : null;
-    return <MiniAppForm miniApp={initialData} />;
+  } : null;
+
+  return (
+    <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
+      <div className="w-full h-full">
+        <MiniAppForm miniApp={initialData} />
+      </div>
+    </Suspense>
+  )
 }

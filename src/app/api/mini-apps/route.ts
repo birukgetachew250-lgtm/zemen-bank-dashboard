@@ -72,14 +72,21 @@ export async function PUT(req: Request) {
         }
         
         let query = `UPDATE ${TABLE} SET "Name" = :Name, "Url" = :Url, "LogoUrl" = :LogoUrl, "Username" = :Username, "EncryptionKey" = :EncryptionKey`;
-        const binds: any = { id, name, url, logo_url, username, encryption_key };
+        const binds: any = {
+            Id: id,
+            Name: name,
+            Url: url,
+            LogoUrl: logo_url,
+            Username: username,
+            EncryptionKey: encryption_key
+        };
 
         if (password) {
             query += ', "Password" = :Password';
             binds.Password = encrypt(password);
         }
 
-        query += ' WHERE "Id" = :id';
+        query += ' WHERE "Id" = :Id';
 
         await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, query, binds);
 
