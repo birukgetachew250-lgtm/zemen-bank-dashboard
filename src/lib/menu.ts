@@ -87,7 +87,6 @@ export const menu: MenuItem[] = [
         children: [
           { icon: Building2, label: "Create Corporate", href: "/corporates/create" },
           { icon: Building2, label: "Existing Corporates", href: "/corporates" },
-          { icon: SlidersHorizontal, label: "Exceptional Limits", href: "/corporates/exceptional-limits" },
         ],
       },
     ]
@@ -232,6 +231,7 @@ export const menu: MenuItem[] = [
           { icon: List, label: "Transaction Types", href: "/limits/types" },
           { icon: Users, label: "Customer Categories", href: "/limits/categories" },
           { icon: History, label: "Intervals", href: "/limits/intervals" },
+          { icon: ShieldAlert, label: "Exceptional Limits", href: "/limits/exceptional-limits" },
         ]
       },
     ]
