@@ -36,10 +36,8 @@ async function main() {
     await prisma.corporate.deleteMany();
     await prisma.department.deleteMany();
     await prisma.branch.deleteMany();
-    await prisma.miniApp.deleteMany();
     await prisma.role.deleteMany();
     await prisma.user.deleteMany();
-    await prisma.iPSBank.deleteMany();
     await prisma.integration.deleteMany();
     await prisma.securityPolicy.deleteMany();
     await prisma.ipWhitelist.deleteMany();
@@ -139,17 +137,8 @@ async function main() {
         ]
     });
     console.log('Seeded 4 corporates.');
-
-    // Seed Mini Apps
-    await prisma.miniApp.createMany({
-        data: [
-            { name: "Cinema Ticket", url: "https://cinema.example.com", logo_url: "https://picsum.photos/seed/cinema/100/100", username: "cinema_api", password: "secure_password_1", encryption_key: crypto.randomBytes(32).toString('hex') },
-            { name: "Event Booking", url: "https://events.example.com", logo_url: "https://picsum.photos/seed/events/100/100", username: "event_api_user", password: "secure_password_2", encryption_key: crypto.randomBytes(32).toString('hex') }
-        ]
-    });
-    console.log('Seeded 2 mini-apps.');
-
-     // Seed Integrations
+    
+    // Seed Integrations
     await prisma.integration.createMany({
         data: [
         { name: 'Main WSO2 Gateway', service: 'WSO2', endpointUrl: 'https://wso2.zemenbank.com:8243/services', username: 'admin', password: encrypt('wso2-password'), status: 'Connected', isProduction: false },
@@ -158,16 +147,6 @@ async function main() {
         ]
     });
     console.log('Seeded 3 integration configs.');
-    
-    // Seed IPS Banks
-    await prisma.iPSBank.createMany({
-        data: [
-            { bankName: 'Awash Bank', bankCode: 'AWASH', reconciliationAccount: '01320789546300', bankLogo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Awash_Bank_Final_logo.jpg/960px-Awash_Bank_Final_logo.jpg', status: 'Active', rank: 1},
-            { bankName: 'Abyssinia Bank', bankCode: 'ABYSSINIA', reconciliationAccount: '1234567890123', bankLogo: 'https://www.bankofabyssinia.com/wp-content/uploads/2021/08/BOA-LOGO-1.png', status: 'Active', rank: 2},
-            { bankName: 'Commercial Bank of Ethiopia', bankCode: 'CBE', reconciliationAccount: '9876543210987', bankLogo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Commercial_Bank_of_Ethiopia.svg/1200px-Commercial_Bank_of_Ethiopia.svg.png', status: 'Active', rank: 3},
-        ]
-    });
-    console.log('Seeded 3 IPS banks.');
 
     await prisma.securityPolicy.create({
         data: {
