@@ -40,7 +40,7 @@ export async function POST(req: Request) {
         }
 
         const id = crypto.randomUUID();
-        const query = `INSERT INTO ${TABLE} ("Id", "BankName", "BankCode", "ReconciliationAccount", "BankLogo", "Status", "Rank") VALUES (:Id, :BankName, :BankCode, :ReconciliationAccount, :BankLogo, :Status, :Rank)`;
+        const query = `INSERT INTO ${TABLE} ("Id", "BankName", "BankCode", "ReconciliationAccount", "BankLogo", "Status", "Rank", "CreatedAt", "UpdatedAt") VALUES (:Id, :BankName, :BankCode, :ReconciliationAccount, :BankLogo, :Status, :Rank, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`;
         
         const binds = {
             Id: id,
