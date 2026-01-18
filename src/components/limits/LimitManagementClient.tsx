@@ -49,6 +49,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { DropdownItem } from "../charges/ChargeManagementClient";
 
 export interface LimitRule {
     id: string;
@@ -59,18 +60,17 @@ export interface LimitRule {
     monthlyLimit: number;
 }
 
-const customerCategories = ["Retail", "Premium", "Corporate"];
-const transactionTypes = ["Fund Transfer", "Bill Payment", "Airtime/Data", "Bulk Payment"];
-
 const formatCurrency = (amount: number) => {
     return `ETB ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 interface LimitManagementClientProps {
     initialLimitRules: LimitRule[];
+    customerCategories: DropdownItem[];
+    transactionTypes: DropdownItem[];
 }
 
-export function LimitManagementClient({ initialLimitRules }: LimitManagementClientProps) {
+export function LimitManagementClient({ initialLimitRules, customerCategories, transactionTypes }: LimitManagementClientProps) {
   const [limitRules, setLimitRules] = useState<LimitRule[]>(initialLimitRules);
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -78,8 +78,8 @@ export function LimitManagementClient({ initialLimitRules }: LimitManagementClie
   const [ruleToDelete, setRuleToDelete] = useState<LimitRule | null>(null);
 
   const [ruleData, setRuleData] = useState({
-    category: "",
-    transactionType: "",
+    categoryId: "",
+    transactionTypeId: "",
     dailyLimit: "",
     weeklyLimit: "",
     monthlyLimit: ""
@@ -88,15 +88,17 @@ export function LimitManagementClient({ initialLimitRules }: LimitManagementClie
 
   const openAddDialog = () => {
     setEditingRule(null);
-    setRuleData({ category: "", transactionType: "", dailyLimit: "", weeklyLimit: "", monthlyLimit: "" });
+    setRuleData({ categoryId: "", transactionTypeId: "", dailyLimit: "", weeklyLimit: "", monthlyLimit: "" });
     setDialogOpen(true);
   };
   
   const openEditDialog = (rule: LimitRule) => {
     setEditingRule(rule);
+    const categoryId = customerCategories.find(c => c.name === rule.category)?.id || "";
+    const transactionTypeId = transactionTypes.find(t => t.name === rule.transactionType)?.id || "";
     setRuleData({
-        category: rule.category,
-        transactionType: rule.transactionType,
+        categoryId,
+        transactionTypeId,
         dailyLimit: String(rule.dailyLimit),
         weeklyLimit: String(rule.weeklyLimit),
         monthlyLimit: String(rule.monthlyLimit),
@@ -105,7 +107,7 @@ export function LimitManagementClient({ initialLimitRules }: LimitManagementClie
   };
 
   const handleSaveRule = async () => {
-    if (!ruleData.category || !ruleData.transactionType || !ruleData.dailyLimit || !ruleData.weeklyLimit || !ruleData.monthlyLimit) {
+    if (!ruleData.categoryId || !ruleData.transactionTypeId || !ruleData.dailyLimit || !ruleData.weeklyLimit || !ruleData.monthlyLimit) {
       toast({
         variant: "destructive",
         title: "Missing Fields",
@@ -130,11 +132,13 @@ export function LimitManagementClient({ initialLimitRules }: LimitManagementClie
         const result = await res.json();
         if (!res.ok) throw new Error(result.message);
 
+        const newRule = { ...result, dailyLimit: parseFloat(result.dailyLimit), weeklyLimit: parseFloat(result.weeklyLimit), monthlyLimit: parseFloat(result.monthlyLimit) };
+
         if (editingRule) {
-            setLimitRules(prev => prev.map(r => r.id === editingRule.id ? result : r));
+            setLimitRules(prev => prev.map(r => r.id === editingRule.id ? newRule : r));
             toast({ title: "Rule Updated", description: "The transaction limit rule has been updated successfully." });
         } else {
-            setLimitRules(prev => [...prev, result]);
+            setLimitRules(prev => [...prev, newRule]);
             toast({ title: "Rule Added", description: "New transaction limit rule has been added successfully." });
         }
         
@@ -236,23 +240,23 @@ export function LimitManagementClient({ initialLimitRules }: LimitManagementClie
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="category" className="text-right">Category</Label>
-              <Select value={ruleData.category} onValueChange={(value) => setRuleData(prev => ({...prev, category: value}))}>
+              <Select value={ruleData.categoryId} onValueChange={(value) => setRuleData(prev => ({...prev, categoryId: value}))}>
                 <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                    {customerCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                    {customerCategories.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="transaction-type" className="text-right">Txn Type</Label>
-               <Select value={ruleData.transactionType} onValueChange={(value) => setRuleData(prev => ({...prev, transactionType: value}))}>
+               <Select value={ruleData.transactionTypeId} onValueChange={(value) => setRuleData(prev => ({...prev, transactionTypeId: value}))}>
                 <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
                 <SelectContent>
-                    {transactionTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                    {transactionTypes.map(type => <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

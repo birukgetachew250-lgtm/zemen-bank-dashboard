@@ -28,8 +28,8 @@ async function getChargeRules(): Promise<ChargeRule[]> {
       id: row.id,
       category: row.category,
       transactionType: row.transactionType,
-      chargeType: row.fixedAmount > 0 ? 'Fixed' : 'Percentage',
-      value: row.fixedAmount > 0 ? row.fixedAmount : row.percentage,
+      chargeType: row.FixedAmount > 0 ? 'Fixed' : 'Percentage',
+      value: row.FixedAmount > 0 ? row.FixedAmount : row.Percentage,
     }));
   } catch (error) {
     console.error("Failed to fetch charge rules:", error);

@@ -30,9 +30,9 @@ export async function GET() {
             id: row.id,
             category: row.category,
             transactionType: row.transactionType,
-            dailyLimit: row.dailyLimit,
-            weeklyLimit: row.weeklyLimit,
-            monthlyLimit: row.monthlyLimit,
+            dailyLimit: row.dailyLimit || 0,
+            weeklyLimit: row.weeklyLimit || 0,
+            monthlyLimit: row.monthlyLimit || 0,
         })));
     } catch (error) {
         console.error('Failed to fetch limit rules:', error);
@@ -57,8 +57,8 @@ export async function POST(req: Request) {
         
         const limitRuleId = crypto.randomUUID();
         const ruleQuery = `
-            INSERT INTO ${TABLE} ("Id", "CustomerCategoryId", "TransactionTypeId", "Currency", "IsActive") 
-            VALUES (:Id, :CustomerCategoryId, :TransactionTypeId, 'ETB', 1)
+            INSERT INTO ${TABLE} ("Id", "CustomerCategoryId", "TransactionTypeId", "Currency", "IsActive", "Version") 
+            VALUES (:Id, :CustomerCategoryId, :TransactionTypeId, 'ETB', 1, SYS_GUID())
         `;
         await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, ruleQuery, { 
             Id: limitRuleId, 
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
         ];
 
         for (const binds of intervalBinds) {
-            const intervalQuery = `INSERT INTO ${INTERVAL_TABLE} ("Id", "LimitRuleId", "PeriodIntervalId", "LimitAmount", "Currency") VALUES (:Id, :LimitRuleId, :PeriodIntervalId, :LimitAmount, :Currency)`;
+            const intervalQuery = `INSERT INTO ${INTERVAL_TABLE} ("Id", "LimitRuleId", "PeriodIntervalId", "LimitAmount", "Currency", "Version") VALUES (:Id, :LimitRuleId, :PeriodIntervalId, :LimitAmount, :Currency, SYS_GUID())`;
             await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, intervalQuery, binds);
         }
         
@@ -97,7 +97,7 @@ export async function PUT(req: Request) {
     try {
         const { id, categoryId, transactionTypeId, dailyLimit, weeklyLimit, monthlyLimit } = await req.json();
         
-        const ruleQuery = `UPDATE ${TABLE} SET "CustomerCategoryId" = :CustomerCategoryId, "TransactionTypeId" = :TransactionTypeId WHERE "Id" = :Id`;
+        const ruleQuery = `UPDATE ${TABLE} SET "CustomerCategoryId" = :CustomerCategoryId, "TransactionTypeId" = :TransactionTypeId, "UpdateDate" = SYSTIMESTAMP WHERE "Id" = :Id`;
         await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, ruleQuery, { CustomerCategoryId: categoryId, TransactionTypeId: transactionTypeId, Id: id });
 
         const intervalIds = await getIntervalIds();
@@ -108,7 +108,7 @@ export async function PUT(req: Request) {
         ];
 
         for (const update of intervalUpdates) {
-            const intervalQuery = `UPDATE ${INTERVAL_TABLE} SET "LimitAmount" = :LimitAmount WHERE "LimitRuleId" = :LimitRuleId AND "PeriodIntervalId" = :PeriodIntervalId`;
+            const intervalQuery = `UPDATE ${INTERVAL_TABLE} SET "LimitAmount" = :LimitAmount, "UpdateDate" = SYSTIMESTAMP WHERE "LimitRuleId" = :LimitRuleId AND "PeriodIntervalId" = :PeriodIntervalId`;
             await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, intervalQuery, { LimitAmount: parseFloat(update.amount), LimitRuleId: id, PeriodIntervalId: update.intervalId });
         }
         

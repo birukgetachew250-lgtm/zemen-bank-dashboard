@@ -27,7 +27,6 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LimitManagementClient } from "@/components/limits/LimitManagementClient";
 import LimitsPage from "../../limits/page";
 
 const statusVariantMap: { [key: string]: "default" | "secondary" | "destructive" } = {
@@ -125,9 +124,9 @@ export default function TransactionLimitsPage() {
             </Card>
         </TabsContent>
         <TabsContent value="config" className="mt-4">
+             {/* @ts-expect-error Server Component */}
              <LimitsPage />
         </TabsContent>
     </Tabs>
   );
 }
-

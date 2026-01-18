@@ -58,27 +58,28 @@ export interface ChargeRule {
     value: number;
 }
 
-const customerCategories = ["Retail", "Premium", "Corporate"];
-const transactionTypes = ["Fund Transfer", "Bill Payment", "Airtime/Data", "Bulk Payment"];
+export interface DropdownItem {
+    id: string;
+    name: string;
+}
 
 interface ChargeManagementClientProps {
     initialChargeRules: ChargeRule[];
+    customerCategories: DropdownItem[];
+    transactionTypes: DropdownItem[];
 }
 
-export function ChargeManagementClient({ initialChargeRules }: ChargeManagementClientProps) {
+export function ChargeManagementClient({ initialChargeRules, customerCategories, transactionTypes }: ChargeManagementClientProps) {
   const [chargeRules, setChargeRules] = useState<ChargeRule[]>(initialChargeRules);
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingRule, setEditingRule] = useState<ChargeRule | null>(null);
   const [ruleToDelete, setRuleToDelete] = useState<ChargeRule | null>(null);
 
-  const [ruleData, setRuleData] = useState<{
-    category: string;
-    transactionType: string;
-    value: string;
-  }>({
-    category: "",
-    transactionType: "",
+  const [ruleData, setRuleData] = useState({
+    categoryId: "",
+    transactionTypeId: "",
+    chargeType: "Percentage",
     value: ""
   });
   const { toast } = useToast();
@@ -92,22 +93,25 @@ export function ChargeManagementClient({ initialChargeRules }: ChargeManagementC
 
   const openAddDialog = () => {
     setEditingRule(null);
-    setRuleData({ category: "", transactionType: "", value: "" });
+    setRuleData({ categoryId: "", transactionTypeId: "", chargeType: "Percentage", value: "" });
     setDialogOpen(true);
   };
   
   const openEditDialog = (rule: ChargeRule) => {
     setEditingRule(rule);
+    const categoryId = customerCategories.find(c => c.name === rule.category)?.id || "";
+    const transactionTypeId = transactionTypes.find(t => t.name === rule.transactionType)?.id || "";
     setRuleData({
-        category: rule.category,
-        transactionType: rule.transactionType,
+        categoryId,
+        transactionTypeId,
+        chargeType: rule.chargeType,
         value: String(rule.value)
     });
     setDialogOpen(true);
   };
 
   const handleSaveRule = async () => {
-    if (!ruleData.category || !ruleData.transactionType || !ruleData.value) {
+    if (!ruleData.categoryId || !ruleData.transactionTypeId || !ruleData.value) {
       toast({
         variant: "destructive",
         title: "Missing Fields",
@@ -158,7 +162,7 @@ export function ChargeManagementClient({ initialChargeRules }: ChargeManagementC
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ id: ruleToDelete.id })
           });
-          if (res.status !== 204) throw new Error((await res.json()).message);
+          if (res.status !== 204) throw new Error((await res.json()).message || 'Failed to delete');
 
           setChargeRules(prev => prev.filter(r => r.id !== ruleToDelete.id));
           toast({ title: "Rule Deleted", description: "The charge rule has been deleted."});
@@ -176,7 +180,7 @@ export function ChargeManagementClient({ initialChargeRules }: ChargeManagementC
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Transaction Charges</CardTitle>
-            <CardDescription>Manage percentage-based charges for different transactions.</CardDescription>
+            <CardDescription>Manage percentage-based or fixed charges for different transactions.</CardDescription>
           </div>
           <Button onClick={openAddDialog}>
               <PlusCircle className="mr-2 h-4 w-4" />
@@ -231,35 +235,41 @@ export function ChargeManagementClient({ initialChargeRules }: ChargeManagementC
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="category" className="text-right">Category</Label>
-              <Select value={ruleData.category} onValueChange={(value) => setRuleData(prev => ({...prev, category: value}))}>
+              <Select value={ruleData.categoryId} onValueChange={(value) => setRuleData(prev => ({...prev, categoryId: value}))}>
                 <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                    {customerCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                    {customerCategories.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="transaction-type" className="text-right">Txn Type</Label>
-               <Select value={ruleData.transactionType} onValueChange={(value) => setRuleData(prev => ({...prev, transactionType: value}))}>
+               <Select value={ruleData.transactionTypeId} onValueChange={(value) => setRuleData(prev => ({...prev, transactionTypeId: value}))}>
                 <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
                 <SelectContent>
-                    {transactionTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                    {transactionTypes.map(type => <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right col-span-1">Charge Type</Label>
-                <div className="col-span-3">
-                    <Badge variant="outline">Percentage</Badge>
-                </div>
+                <Select value={ruleData.chargeType} onValueChange={(value) => setRuleData(prev => ({...prev, chargeType: value as 'Percentage' | 'Fixed'}))}>
+                  <SelectTrigger className="col-span-3">
+                      <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="Percentage">Percentage</SelectItem>
+                      <SelectItem value="Fixed">Fixed Amount</SelectItem>
+                  </SelectContent>
+                </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="value" className="text-right">
-                Value (%)
+                Value {ruleData.chargeType === 'Percentage' ? '(%)' : '(ETB)'}
               </Label>
               <Input
                 id="value"
@@ -267,7 +277,7 @@ export function ChargeManagementClient({ initialChargeRules }: ChargeManagementC
                 value={ruleData.value}
                 onChange={(e) => setRuleData(prev => ({...prev, value: e.target.value}))}
                 className="col-span-3"
-                placeholder="e.g. 0.5"
+                placeholder={ruleData.chargeType === 'Percentage' ? "e.g. 0.5" : "e.g. 10.00"}
               />
             </div>
           </div>
@@ -287,7 +297,7 @@ export function ChargeManagementClient({ initialChargeRules }: ChargeManagementC
             <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                    This action will permanently delete the charge rule for {ruleToDelete?.category} - {ruleToDelete?.transactionType}.
+                    This will permanently delete the charge rule for {ruleToDelete?.category} - {ruleToDelete?.transactionType}.
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

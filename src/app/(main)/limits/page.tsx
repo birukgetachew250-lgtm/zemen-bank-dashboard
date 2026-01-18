@@ -1,6 +1,7 @@
 
 import { LimitManagementClient } from "@/components/limits/LimitManagementClient";
 import type { LimitRule } from "@/components/limits/LimitManagementClient";
+import type { DropdownItem } from "@/components/charges/ChargeManagementClient";
 import { executeQuery } from "@/lib/oracle-db";
 
 async function getLimitRules(): Promise<LimitRule[]> {
@@ -27,9 +28,9 @@ async function getLimitRules(): Promise<LimitRule[]> {
         id: row.id,
         category: row.category,
         transactionType: row.transactionType,
-        dailyLimit: row.dailyLimit,
-        weeklyLimit: row.weeklyLimit,
-        monthlyLimit: row.monthlyLimit,
+        dailyLimit: row.dailyLimit || 0,
+        weeklyLimit: row.weeklyLimit || 0,
+        monthlyLimit: row.monthlyLimit || 0,
     }));
   } catch (error) {
     console.error("Failed to fetch limit rules:", error);
@@ -37,7 +38,7 @@ async function getLimitRules(): Promise<LimitRule[]> {
   }
 }
 
-async function getDropdownData() {
+async function getDropdownData(): Promise<{ categories: DropdownItem[], transactionTypes: DropdownItem[] }> {
     try {
         const categoriesResult: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, `SELECT "Id", "Name" FROM "LIMIT_CHARGE_MODULE"."CustomerCategories" ORDER BY "Name"`);
         const typesResult: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, `SELECT "Id", "Name" FROM "LIMIT_CHARGE_MODULE"."TransactionTypes" ORDER BY "Name"`);

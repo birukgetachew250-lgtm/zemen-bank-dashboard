@@ -21,12 +21,17 @@ export async function GET() {
           ORDER BY cc."Name", tt."Name"
         `;
         const result: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, query);
+        
+        if (!result.rows) {
+            return NextResponse.json([]);
+        }
+        
         return NextResponse.json(result.rows.map((row: any) => ({
             id: row.id,
             category: row.category,
             transactionType: row.transactionType,
-            chargeType: row.fixedAmount > 0 ? 'Fixed' : 'Percentage',
-            value: row.fixedAmount > 0 ? row.fixedAmount : row.percentage,
+            chargeType: row.FixedAmount > 0 ? 'Fixed' : 'Percentage',
+            value: row.FixedAmount > 0 ? row.FixedAmount : row.Percentage,
         })));
     } catch (error) {
         console.error('Failed to fetch charge rules:', error);
@@ -39,8 +44,8 @@ export async function POST(req: Request) {
         const { categoryId, transactionTypeId, chargeType, value } = await req.json();
         const id = crypto.randomUUID();
         const query = `
-            INSERT INTO ${TABLE} ("Id", "CustomerCategoryId", "TransactionTypeId", "Percentage", "FixedAmount", "IsActive") 
-            VALUES (:Id, :CustomerCategoryId, :TransactionTypeId, :Percentage, :FixedAmount, 1)
+            INSERT INTO ${TABLE} ("Id", "CustomerCategoryId", "TransactionTypeId", "Percentage", "FixedAmount", "IsActive", "Version") 
+            VALUES (:Id, :CustomerCategoryId, :TransactionTypeId, :Percentage, :FixedAmount, 1, SYS_GUID())
         `;
         const binds = {
             Id: id,
@@ -75,7 +80,8 @@ export async function PUT(req: Request) {
                 "CustomerCategoryId" = :CustomerCategoryId, 
                 "TransactionTypeId" = :TransactionTypeId, 
                 "Percentage" = :Percentage,
-                "FixedAmount" = :FixedAmount
+                "FixedAmount" = :FixedAmount,
+                "UpdateDate" = SYSTIMESTAMP
             WHERE "Id" = :Id
         `;
         const binds = {
