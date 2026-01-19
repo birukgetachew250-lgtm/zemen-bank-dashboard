@@ -38,7 +38,6 @@ async function main() {
     await prisma.branch.deleteMany();
     await prisma.role.deleteMany();
     await prisma.user.deleteMany();
-    await prisma.integration.deleteMany();
     await prisma.securityPolicy.deleteMany();
     await prisma.ipWhitelist.deleteMany();
     console.log('Cleared existing data.');
@@ -138,16 +137,6 @@ async function main() {
     });
     console.log('Seeded 4 corporates.');
     
-    // Seed Integrations
-    await prisma.integration.createMany({
-        data: [
-        { name: 'Main WSO2 Gateway', service: 'WSO2', endpointUrl: 'https://wso2.zemenbank.com:8243/services', username: 'admin', password: encrypt('wso2-password'), status: 'Connected', isProduction: false },
-        { name: 'Flexcube Core Service', service: 'Flexcube', endpointUrl: '192.168.1.10:9090', status: 'Connected', isProduction: false },
-        { name: 'Primary SMS Provider', service: 'SMS', endpointUrl: 'https://sms.provider.com/api', username: 'smsuser', password: encrypt('sms-password'), status: 'Disconnected', isProduction: false },
-        ]
-    });
-    console.log('Seeded 3 integration configs.');
-
     await prisma.securityPolicy.create({
         data: {
             id: 1,

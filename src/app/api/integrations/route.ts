@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { encrypt, decrypt } from '@/lib/crypto';
-import crypto from 'crypto';
 import oracledb from 'oracledb';
 
 const TABLE = '"APP_CONTROL_MODULE"."Integration"';
@@ -59,7 +58,6 @@ export async function POST(req: Request) {
         const result: any = await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, query, binds);
         const newId = result.outBinds.Id[0];
 
-        // Fetch the created record to return it
         const newIntegrationQuery = `SELECT "Id", "Name", "Service", "EndpointUrl", "Username", "Status", "IsProduction" FROM ${TABLE} WHERE "Id" = :id`;
         const newIntegrationResult: any = await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, newIntegrationQuery, { id: newId });
         const newIntegration = newIntegrationResult.rows[0];
@@ -77,10 +75,10 @@ export async function POST(req: Request) {
         }, { status: 201 });
     } catch (error: any) {
         console.error("Failed to create integration:", error);
-        // A more specific error could be checked here, like for unique constraints
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }
+
 
 export async function PUT(req: Request) {
     try {
@@ -90,7 +88,6 @@ export async function PUT(req: Request) {
             return NextResponse.json({ message: 'ID is required' }, { status: 400 });
         }
         
-        // Build the update query dynamically
         const fieldsToUpdate = [];
         const binds: any = { Id: id };
 
@@ -112,7 +109,6 @@ export async function PUT(req: Request) {
 
         await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, query, binds);
         
-        // Fetch and return the updated record
         const updatedRecordQuery = `SELECT "Id", "Name", "Service", "EndpointUrl", "Username", "Status", "IsProduction" FROM ${TABLE} WHERE "Id" = :id`;
         const result: any = await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, updatedRecordQuery, { id });
         const updatedRecord = result.rows[0];

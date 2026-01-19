@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DASH_MODULE_PROD_DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -26,8 +26,6 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   mfaEnabled  Boolean  @default(false)
-  mfaSecret   String?
-  auditLogs   SystemActivityLog[]
 }
 
 model Role {
@@ -70,7 +68,7 @@ model PendingApproval {
   requestedAt   DateTime @default(now())
   customerName  String
   customerPhone String
-  details       String?  @db.Text
+  details       String?
   status        String   @default("pending") // pending, approved, rejected
 }
 
@@ -99,43 +97,32 @@ model Corporate {
   logo_url                String
 }
 
-// Model for managing external API integrations
-model Integration {
-  id           Int      @id @default(autoincrement())
-  name         String   @unique
-  service      String
-  endpointUrl  String
-  username     String?
-  password     String? // Encrypted
-  isProduction Boolean  @default(false)
-  status       String   @default("Disconnected")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-// Model for system-level audit trails
 model SystemActivityLog {
   id          Int      @id @default(autoincrement())
   timestamp   DateTime @default(now())
-  user        User     @relation(fields: [userEmail], references: [email])
   userEmail   String
   action      String
-  status      String // Success, Failure
-  details     String?  @db.Text
+  status      String
+  details     String?
   ipAddress   String?
 }
 
 model SecurityPolicy {
-  id                  Int      @id @default(1)
-  mfaRequired         Boolean  @default(true)
-  allowedMfaMethods   String[] @default(["email"])
-  sessionTimeout      Int      @default(30) // in minutes
-  concurrentSessions  Int      @default(1) // 0 for unlimited
+    id Int @id @default(1)
+    mfaRequired Boolean @default(true)
+    allowedMfaMethods String[] @default(["email"])
+    sessionTimeout Int @default(30) // in minutes
+    concurrentSessions Int @default(1) // 0 for unlimited
 }
 
 model IpWhitelist {
-  id        Int      @id @default(autoincrement())
-  cidr      String   @unique
-  label     String
-  createdAt DateTime @default(now())
+    id Int @id @default(autoincrement())
+    cidr String @unique
+    label String
+    createdAt DateTime @default(now())
 }
+
+// The models below are managed in separate Oracle databases
+// and are removed from this schema to avoid conflicts.
+// AppUser, Account, SecurityQuestion, UserSecurity
+// IPSBank, MiniApp, Integration

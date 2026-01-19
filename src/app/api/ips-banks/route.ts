@@ -12,7 +12,6 @@ export async function GET() {
         
         if (!result.rows) return NextResponse.json([]);
         
-        // Map Oracle's ALL_CAPS columns to the camelCase expected by the client
         return NextResponse.json(result.rows.map((b: any) => ({
             id: b.Id,
             bankName: b.BankName,
