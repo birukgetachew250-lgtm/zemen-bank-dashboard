@@ -1,6 +1,6 @@
 
 import { CustomerTable } from "@/components/customers/CustomerTable";
-import { db } from "@/lib/db";
+import { executeQuery } from "@/lib/oracle-db";
 import { format } from "date-fns";
 import { decrypt } from "@/lib/crypto";
 
@@ -11,20 +11,17 @@ const mockInactiveCustomers = [
 
 
 async function getCustomers() {
+  if (!process.env.USER_MODULE_DB_CONNECTION_STRING) {
+    console.warn("USER_MODULE_DB_CONNECTION_STRING not set, returning mock data for inactive customers.");
+    return mockInactiveCustomers;
+  }
   try {
-    const data = await db.appUser.findMany({
-      where: { 
-        OR: [
-          { Status: 'Inactive' },
-          { Status: 'Dormant' }
-        ]
-      },
-      orderBy: { InsertDate: 'desc' }
-    });
+    const query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "Status" IN ('Inactive', 'Dormant') ORDER BY "InsertDate" DESC`;
+    const result: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, query);
 
-    if (!data) return mockInactiveCustomers;
+    if (!result.rows) return mockInactiveCustomers;
 
-    return data.map((customer: any) => {
+    return result.rows.map((customer: any) => {
       const firstName = decrypt(customer.FirstName);
       const secondName = decrypt(customer.SecondName);
       const lastName = decrypt(customer.LastName);
@@ -32,7 +29,7 @@ async function getCustomers() {
       return {
         id: customer.Id,
         name: [firstName, secondName, lastName].filter(Boolean).join(' '),
-        phone: decrypt(customer.PhoneNumber),
+        phone: decrypt(customer.PhoneNumber) || '',
         status: customer.Status,
         registeredAt: format(new Date(customer.InsertDate), 'dd MMM yyyy, h:mm a'),
       };

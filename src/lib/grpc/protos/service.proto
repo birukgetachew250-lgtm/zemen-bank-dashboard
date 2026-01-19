@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package common;
+
+import "google/protobuf/any.proto";
+
+option java_multiple_files = true;
+option java_package = "com.zemen.service.common";
+option java_outer_classname = "ServiceProto";
+
+// The request message containing the user's name.
+message ServiceRequest {
+    string request_id = 1;
+    string source_system = 2;
+    string channel = 3;
+    string user_id = 4;
+    google.protobuf.Any data = 5;
+}
+
+// The response message containing the greetings
+message ServiceResponse {
+    string code = 1;
+    string message = 2;
+    google.protobuf.Any data = 5;
+}

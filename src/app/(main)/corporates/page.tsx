@@ -12,6 +12,10 @@ interface Corporate {
 }
 
 async function getCorporates(): Promise<Corporate[]> {
+  if (!process.env.DATABASE_URL) {
+    console.warn("DATABASE_URL not set, returning fallback corporates.");
+    return fallbackCorporates;
+  }
   try {
     const data = await db.corporate.findMany({
         orderBy: { name: 'asc' }

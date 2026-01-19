@@ -23,6 +23,10 @@ import type { OtpCode as OtpCodeType } from "@prisma/client";
 
 
 async function getOtpCodes() {
+  if (!process.env.DATABASE_URL) {
+    console.warn("DATABASE_URL not set, returning empty OTP code list.");
+    return [];
+  }
   try {
     const data = await db.otpCode.findMany({
       orderBy: { UpdateDate: 'desc' },

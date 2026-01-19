@@ -156,8 +156,10 @@ function LoginPageContent() {
   );
 }
 
+// This is the default export which is a Server Component.
 export default function LoginPage() {
     return (
+        // The Suspense boundary is necessary because LoginPageContent uses useSearchParams.
         <Suspense fallback={
             <div className="flex h-screen w-full items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
