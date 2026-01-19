@@ -17,7 +17,14 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { menu, type MenuItem } from "@/lib/menu";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { ScrollArea } from "../ui/scroll-area";
 import { Menu as MenuIcon } from "lucide-react";
 import Link from "next/link";
@@ -42,7 +49,7 @@ const findCurrentPage = (menuItems: MenuItem[], pathname: string): MenuItem | un
     }
   };
   
-function MobileSidebarNavItem({ item, pathname }: { item: MenuItem; pathname: string }) {
+function MobileSidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; pathname: string, userPermissions: string[] }) {
   const Icon = item.icon;
 
   if (item.children) {
@@ -74,7 +81,7 @@ function MobileSidebarNavItem({ item, pathname }: { item: MenuItem; pathname: st
           <AccordionContent className="pl-4 pt-1 pb-0">
             <div className="flex flex-col space-y-1">
               {item.children.map((child) => (
-                <MobileSidebarNavItem key={child.label} item={child} pathname={pathname} />
+                <MobileSidebarNavItem key={child.label} item={child} pathname={pathname} userPermissions={userPermissions} />
               ))}
             </div>
           </AccordionContent>
@@ -102,6 +109,7 @@ export function Header({ user }: { user: any }) {
   const pathname = usePathname();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const userPermissions = user?.role ? getPermissions(user.role) : [];
 
   const currentPage = findCurrentPage(menu, pathname);
 
@@ -121,16 +129,17 @@ export function Header({ user }: { user: any }) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col p-0">
-               <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
+               <SheetHeader className="flex flex-row h-16 items-center gap-2 border-b border-sidebar-border px-4">
                 <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
                   <Image src="/images/logo.png" alt="Zemen Bank" width={32} height={32} />
-                  <span className="">Zemen Admin</span>
+                  <SheetTitle>Zemen Admin</SheetTitle>
                 </Link>
-              </div>
+                 <SheetDescription className="sr-only">Main Navigation</SheetDescription>
+              </SheetHeader>
                <ScrollArea className="flex-1">
                 <nav className="grid items-start gap-1 p-2 text-sm font-medium">
                   {menu.map((item) => (
-                    <MobileSidebarNavItem key={item.label} item={item} pathname={pathname} />
+                    <MobileSidebarNavItem key={item.label} item={item} pathname={pathname} userPermissions={userPermissions} />
                   ))}
                 </nav>
               </ScrollArea>
