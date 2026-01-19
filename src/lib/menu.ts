@@ -203,8 +203,6 @@ export const menu: MenuItem[] = [
         children: [
             { icon: ShieldCheck, label: "Manage Roles", href: "/roles" },
             { icon: Users, label: "Manage Users", href: "/users" },
-            { icon: Ban, label: "Suspend User", href: "/users/suspend" },
-            { icon: LockOpen, label: "Unlock User", href: "/users/unlock" },
             { icon: KeyRound, label: "Reset User Password", href: "/users/reset-password" },
         ]
       },

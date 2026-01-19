@@ -4,8 +4,6 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { db } from '@/lib/db';
 import { logActivity } from '@/lib/activity-log';
 
-const MAX_LOGIN_ATTEMPTS = 5;
-
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -31,52 +29,12 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
           
-          if (user.status === 'Suspended') {
-            await logActivity({ userEmail: user.email, action: 'LOGIN_FAILURE', status: 'Failure', details: 'Attempted login to suspended account.', ipAddress: typeof ip === 'string' ? ip : undefined });
-            throw new Error('Your account is suspended. Please contact an administrator.');
-          }
-          
-          if (user.isLocked || user.status === 'Locked') {
-            await logActivity({ userEmail: user.email, action: 'LOGIN_FAILURE', status: 'Failure', details: 'Attempted login to locked account.', ipAddress: typeof ip === 'string' ? ip : undefined });
-            throw new Error('Your account is locked due to too many failed login attempts.');
-          }
-
           if (user.password !== credentials.password) {
-             const newAttempts = user.failedLoginAttempts + 1;
-             let newStatus = user.status;
-             let isLocked = user.isLocked;
-
-             if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
-                newStatus = 'Locked';
-                isLocked = true;
-                await logActivity({ userEmail: user.email, action: 'USER_LOCKED', status: 'Success', details: `Account locked after ${newAttempts} failed attempts.`, ipAddress: typeof ip === 'string' ? ip : undefined });
-             }
-
-             await db.user.update({
-                 where: { id: user.id },
-                 data: {
-                     failedLoginAttempts: newAttempts,
-                     lastLoginAttempt: new Date(),
-                     status: newStatus,
-                     isLocked: isLocked,
-                 }
-             });
-
-            await logActivity({ userEmail: user.email, action: 'LOGIN_FAILURE', status: 'Failure', details: `Invalid password. Attempt ${newAttempts} of ${MAX_LOGIN_ATTEMPTS}.`, ipAddress: typeof ip === 'string' ? ip : undefined });
+            await logActivity({ userEmail: user.email, action: 'LOGIN_FAILURE', status: 'Failure', details: `Invalid password.`, ipAddress: typeof ip === 'string' ? ip : undefined });
             throw new Error('Invalid email or password.');
           }
           
           // Successful login
-          await db.user.update({
-              where: { id: user.id },
-              data: {
-                  failedLoginAttempts: 0,
-                  lastLoginAttempt: new Date(),
-                  isLocked: false,
-                  status: 'Active' // Ensure status is Active on successful login
-              }
-          });
-
           await logActivity({ userEmail: user.email, action: 'LOGIN_SUCCESS', status: 'Success', details: 'User successfully logged in.', ipAddress: typeof ip === 'string' ? ip : undefined });
 
           const { password, ...userWithoutPassword } = user;

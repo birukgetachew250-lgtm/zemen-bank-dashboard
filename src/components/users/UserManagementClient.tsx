@@ -43,16 +43,6 @@ interface UserManagementClientProps {
   roles: Role[];
 }
 
-const getStatusVariant = (status: string) => {
-    switch (status?.toLowerCase()) {
-        case 'active': return 'secondary';
-        case 'locked':
-        case 'suspended':
-             return 'destructive';
-        default: return 'default';
-    }
-}
-
 export function UserManagementClient({
   initialUsers,
   roles,
@@ -103,7 +93,6 @@ export function UserManagementClient({
                     <TableHead>Name</TableHead>
                     <TableHead>Employee ID</TableHead>
                     <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
                     <TableHead>Department</TableHead>
                     <TableHead>Branch</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -126,14 +115,6 @@ export function UserManagementClient({
                         </TableCell>
                         <TableCell>{user.employeeId}</TableCell>
                         <TableCell><Badge variant="outline">{user.role}</Badge></TableCell>
-                        <TableCell>
-                          <Badge variant={getStatusVariant(user.status)}
-                              className={cn({
-                                'bg-green-100 text-green-800 border-green-200': user.status === 'Active',
-                                'bg-red-100 text-red-800 border-red-200': user.status === 'Suspended' || user.status === 'Locked',
-                              })}
-                          >{user.status}</Badge>
-                        </TableCell>
                         <TableCell>{user.department}</TableCell>
                         <TableCell>{user.branch || "N/A"}</TableCell>
                         <TableCell className="text-right">

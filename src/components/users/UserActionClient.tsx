@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, KeyRound, Ban, LockOpen, AlertTriangle } from "lucide-react";
+import { Search, Loader2, KeyRound, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import type { CustomerDetails } from "@/components/customers/CustomerDetailsCard";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
@@ -31,31 +32,19 @@ interface UserDetails {
     email: string;
     employeeId: string;
     role: string;
-    status: string;
-    isLocked: boolean;
 }
 
 interface UserActionClientProps {
-    action: 'Suspend' | 'Unlock' | 'ResetPassword';
+    action: 'ResetPassword';
 }
 
-function InfoItem({ label, value }: { label: string, value: React.ReactNode }) {
+function InfoItem({ label, value, className }: { label: string, value: React.ReactNode, className?: string }) {
     return (
-        <div className="space-y-1">
+        <div className={cn("space-y-1", className)}>
             <p className="text-sm font-medium text-muted-foreground">{label}</p>
             <div>{value}</div>
         </div>
     )
-}
-
-const getStatusVariant = (status: string) => {
-    switch (status?.toLowerCase()) {
-        case 'active': return 'secondary';
-        case 'locked':
-        case 'suspended':
-             return 'destructive';
-        default: return 'default';
-    }
 }
 
 export function UserActionClient({ action }: UserActionClientProps) {
@@ -67,8 +56,6 @@ export function UserActionClient({ action }: UserActionClientProps) {
   const { toast } = useToast();
 
   const pageConfig = {
-      'Suspend': { title: 'Suspend System User', description: 'Temporarily disable a user\'s access to the system.', buttonLabel: 'Suspend User', icon: <Ban className="mr-2 h-4 w-4" />, actionName: 'suspend' },
-      'Unlock': { title: 'Unlock System User', description: 'Unlock a user account that was locked due to failed login attempts.', buttonLabel: 'Unlock Account', icon: <LockOpen className="mr-2 h-4 w-4" />, actionName: 'unlock' },
       'ResetPassword': { title: 'Reset User Password', description: 'Generate a new temporary password for a user.', buttonLabel: 'Reset Password', icon: <KeyRound className="mr-2 h-4 w-4" />, actionName: 'reset-password' },
   }[action];
 
@@ -145,27 +132,7 @@ export function UserActionClient({ action }: UserActionClientProps) {
     }
   };
 
-  const getActionDisabledState = () => {
-    if (!user || isActionLoading) return true;
-    switch(action) {
-        case 'Suspend': return user.status === 'Suspended';
-        case 'Unlock': return !user.isLocked && user.status !== 'Locked';
-        case 'ResetPassword': return false;
-        default: return true;
-    }
-  }
-
-   const getAlertMessage = () => {
-    if (!user) return null;
-    switch(action) {
-        case 'Suspend': return user.status === 'Suspended' ? 'This user is already suspended.' : null;
-        case 'Unlock': return !user.isLocked && user.status !== 'Locked' ? 'This user account is not locked.' : null;
-        default: return null;
-    }
-  }
-
-  const isActionDisabled = getActionDisabledState();
-  const alertMessage = getAlertMessage();
+  const isActionDisabled = !user || isActionLoading;
 
   return (
     <>
@@ -208,27 +175,10 @@ export function UserActionClient({ action }: UserActionClientProps) {
                         <InfoItem label="Employee ID" value={user.employeeId} />
                         <InfoItem label="Email" value={user.email} />
                         <InfoItem label="Role" value={<Badge variant="outline">{user.role}</Badge>} />
-                        <InfoItem label="Status" value={
-                            <Badge variant={getStatusVariant(user.status)}
-                                className={cn({
-                                    'bg-green-100 text-green-800 border-green-200': user.status === 'Active',
-                                    'bg-red-100 text-red-800 border-red-200': user.status === 'Suspended' || user.status === 'Locked',
-                                })}
-                            >
-                                {user.status}
-                            </Badge>
-                        } />
                     </div>
-                     {alertMessage && (
-                        <Alert variant="destructive">
-                            <AlertTriangle className="h-4 w-4" />
-                            <AlertTitle>Action Not Available</AlertTitle>
-                            <AlertDescription>{alertMessage}</AlertDescription>
-                        </Alert>
-                    )}
                 </CardContent>
                 <CardFooter className="flex justify-end">
-                    <Button onClick={handleAction} disabled={isActionDisabled} variant={action === 'Suspend' ? 'destructive' : 'default'}>
+                    <Button onClick={handleAction} disabled={isActionDisabled}>
                         {isActionLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : pageConfig.icon}
                         {pageConfig.buttonLabel}
                     </Button>

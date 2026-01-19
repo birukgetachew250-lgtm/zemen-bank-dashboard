@@ -80,9 +80,6 @@ async function main() {
                 department: 'IT Department',
                 branch: 'Head Office',
                 mfaEnabled: false,
-                status: 'Active',
-                isLocked: false,
-                failedLoginAttempts: 0
             },
         });
         await prisma.user.create({
@@ -95,9 +92,6 @@ async function main() {
                 department: 'Branch Operations',
                 branch: 'Bole Branch',
                 mfaEnabled: false,
-                status: 'Active',
-                isLocked: false,
-                failedLoginAttempts: 0
             },
         });
 

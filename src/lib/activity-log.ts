@@ -32,10 +32,6 @@ export type ActivityLogAction =
     | 'CUSTOMER_CREATE_APPROVED'
     | 'SECURITY_RESET_APPROVED'
     // System User Security
-    | 'USER_SUSPENDED'
-    | 'USER_UNSUSPENDED'
-    | 'USER_LOCKED'
-    | 'USER_UNLOCKED'
     | 'USER_PASSWORD_RESET';
 
 export type LogEntry = {
