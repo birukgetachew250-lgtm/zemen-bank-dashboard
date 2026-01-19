@@ -50,6 +50,7 @@ export async function executeQuery(connectionString: string | undefined, query: 
         return {
           rows: result.rows,
           rowsAffected: result.rowsAffected,
+          outBinds: result.outBinds,
         };
     } catch (err) {
         console.error("Oracle DB query failed:", err);

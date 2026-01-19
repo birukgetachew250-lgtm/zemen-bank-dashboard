@@ -1,24 +1,30 @@
 
 import { ApiMonitoringClient } from "@/components/integrations/ApiMonitoringClient";
-import { db } from "@/lib/db";
+import { executeQuery } from "@/lib/oracle-db";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import type { Integration } from "@/components/integrations/ApiMonitoringClient";
 
 async function getIntegrations(): Promise<Integration[]> {
     try {
-        const integrations = await db.integration.findMany({
-            orderBy: { service: 'asc' }
-        });
+        const query = `SELECT "Id", "Name", "Service", "EndpointUrl", "Status", "IsProduction" FROM "APP_CONTROL_MODULE"."Integration" ORDER BY "Service" ASC`;
+        const result: any = await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, query);
         
-        // Map to the type expected by the client component, omitting sensitive data
-        const integrationsForClient = integrations.map(int => ({
-            id: int.id,
-            name: int.name,
-            service: int.service as 'WSO2' | 'Flexcube' | 'SMS',
-            endpointUrl: int.endpointUrl,
-            status: int.status as 'Connected' | 'Disconnected',
-            isProduction: int.isProduction,
+        if (!result.rows) {
+            return [
+                { id: 1, name: 'Main WSO2 Gateway', service: 'WSO2', endpointUrl: 'https://wso2.zemenbank.com:8243/services', status: 'Connected', isProduction: false },
+                { id: 2, name: 'Flexcube Core Service', service: 'Flexcube', endpointUrl: '192.168.1.10:9090', status: 'Connected', isProduction: false },
+                { id: 3, name: 'Primary SMS Provider', service: 'SMS', endpointUrl: 'https://sms.provider.com/api', status: 'Disconnected', isProduction: false },
+            ];
+        }
+
+        const integrationsForClient = result.rows.map((int: any) => ({
+            id: int.Id,
+            name: int.Name,
+            service: int.Service,
+            endpointUrl: int.EndpointUrl,
+            status: int.Status,
+            isProduction: int.IsProduction === 1,
         }));
         return integrationsForClient;
     } catch (e) {

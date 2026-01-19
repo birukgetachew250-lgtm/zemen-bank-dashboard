@@ -23,9 +23,11 @@ model User {
   role        String
   branch      String?
   department  String
-  mfaEnabled  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  mfaEnabled  Boolean  @default(false)
+  mfaSecret   String?
+  auditLogs   SystemActivityLog[]
 }
 
 model Role {
@@ -68,7 +70,7 @@ model PendingApproval {
   requestedAt   DateTime @default(now())
   customerName  String
   customerPhone String
-  details       String?
+  details       String?  @db.Text
   status        String   @default("pending") // pending, approved, rejected
 }
 
@@ -97,24 +99,38 @@ model Corporate {
   logo_url                String
 }
 
-model MiniApp {
-  id             String @id @default(cuid())
-  name           String
-  url            String
-  logo_url       String
-  username       String
-  password       String
-  encryption_key String
+// Model for managing external API integrations
+model Integration {
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  service      String
+  endpointUrl  String
+  username     String?
+  password     String? // Encrypted
+  isProduction Boolean  @default(false)
+  status       String   @default("Disconnected")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
+// Model for system-level audit trails
 model SystemActivityLog {
   id          Int      @id @default(autoincrement())
   timestamp   DateTime @default(now())
+  user        User     @relation(fields: [userEmail], references: [email])
   userEmail   String
   action      String
-  status      String
-  details     String?
+  status      String // Success, Failure
+  details     String?  @db.Text
   ipAddress   String?
+}
+
+model SecurityPolicy {
+  id                  Int      @id @default(1)
+  mfaRequired         Boolean  @default(true)
+  allowedMfaMethods   String[] @default(["email"])
+  sessionTimeout      Int      @default(30) // in minutes
+  concurrentSessions  Int      @default(1) // 0 for unlimited
 }
 
 model IpWhitelist {
@@ -123,38 +139,3 @@ model IpWhitelist {
   label     String
   createdAt DateTime @default(now())
 }
-
-model SecurityPolicy {
-  id                   Int      @id @default(1)
-  mfaRequired          Boolean  @default(true)
-  allowedMfaMethods    String[]
-  sessionTimeout       Int      @default(30) // in minutes
-  concurrentSessions   Int      @default(1) // 0 for unlimited
-}
-
-model Integration {
-  id           Int     @id @default(autoincrement())
-  name         String  @unique
-  service      String
-  endpointUrl  String
-  username     String?
-  password     String?
-  status       String
-  isProduction Boolean @default(false)
-}
-
-model IPSBank {
-  id                    String   @id @default(cuid())
-  bankName              String   @unique
-  bankCode              String   @unique
-  reconciliationAccount String
-  bankLogo              String?
-  status                String
-  rank                  Int
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-// The models below are managed in separate Oracle databases
-// and are removed from this schema to avoid conflicts.
-// AppUser, Account, SecurityQuestion, UserSecurity, OtpCode
