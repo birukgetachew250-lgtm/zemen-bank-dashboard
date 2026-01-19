@@ -2,15 +2,9 @@
 const { PrismaClient } = require('@prisma/client');
 
 // This seed script is ONLY for the production dashboard database (users, roles, etc.).
-// It uses Prisma and connects via the DASH_MODULE_PROD_DATABASE_URL when NODE_ENV is 'production'.
+// It uses Prisma and connects via the DATABASE_URL when NODE_ENV is 'production'.
 
-const prisma = new PrismaClient({
-    datasources: {
-        db: {
-            url: process.env.DASH_MODULE_PROD_DATABASE_URL,
-        },
-    },
-});
+const prisma = new PrismaClient();
 
 async function main() {
     console.log('Start seeding PRODUCTION dashboard data...');
@@ -21,9 +15,9 @@ async function main() {
         );
     }
     
-    if (!process.env.DASH_MODULE_PROD_DATABASE_URL) {
+    if (!process.env.DATABASE_URL) {
         throw new Error(
-            'DASH_MODULE_PROD_DATABASE_URL is not set. This is required for production seeding.'
+            'DATABASE_URL is not set. This is required for production seeding.'
         );
     }
 
