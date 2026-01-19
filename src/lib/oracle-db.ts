@@ -5,11 +5,14 @@ import oracledb from 'oracledb';
 
 async function getOracleConnection(connectionString: string | undefined) {
     if (!connectionString) {
-        console.warn("[Oracle DB] Connection string is not defined. This is expected during build time, but will be an error at runtime.");
-        return null;
+        // During build, env var may not be available. Return null to avoid crashing build.
+        if (process.env.NODE_ENV === 'production') {
+            console.warn("[Oracle DB] Connection string is not defined. Skipping connection during build.");
+            return null;
+        }
+        throw new Error("Oracle connection string is not defined in the environment variables.");
     }
     
-    // This parsing logic might need to be adjusted based on your exact connection string format.
     const userMatch = connectionString.match(/^(.*?)\//);
     const passwordMatch = connectionString.match(/\/(.*?)@/);
     const serverMatch = connectionString.match(/@(.*?)$/);
@@ -35,11 +38,10 @@ export async function executeQuery(connectionString: string | undefined, query: 
         connection = await getOracleConnection(connectionString);
         
         if (!connection) {
+            // Gracefully return empty during build if connection is not available
             return { rows: [], rowsAffected: 0, outBinds: undefined };
         }
 
-        // Determine if autoCommit should be used.
-        // It's crucial for DML statements (INSERT, UPDATE, DELETE) to persist changes.
         const isDML = /^\s*(insert|update|delete)/i.test(query);
 
         const options: oracledb.ExecuteOptions = {

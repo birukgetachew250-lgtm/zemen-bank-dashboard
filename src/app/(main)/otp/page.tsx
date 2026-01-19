@@ -29,7 +29,7 @@ async function getOtpCodes() {
   }
   try {
     const data = await db.otpCode.findMany({
-      orderBy: { UpdateDate: 'desc' },
+      orderBy: { InsertDate: 'desc' },
       take: 20
     });
     return data;

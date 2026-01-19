@@ -2,7 +2,6 @@
 'use server';
 
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
@@ -28,13 +27,18 @@ const mockCustomer = {
 const GRPC_SERVER_ADDRESS = process.env.FLEX_GRPC_URL || 'localhost:8081';
 const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/accountdetail.proto');
 
+
 // Module-level variables
 let client: any = null;
 let accountDetailResponseType: protobuf.Type | null = null;
 
 (async () => {
   try {
-    const packageDef = protoLoader.loadSync(PROTO_PATH, {
+    const protoPaths = [
+        path.join(process.cwd(), 'src/lib/grpc/protos/service.proto'),
+        PROTO_PATH
+    ];
+    const packageDef = protoLoader.loadSync(protoPaths, {
       keepCase: true,
       longs: String,
       enums: String,
@@ -82,6 +86,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'Branch code and customer ID are required' }, { status: 400 });
   }
 
+  // Check if user already exists in Oracle DB
+  try {
+    const checkUserQuery = `SELECT COUNT(*) as "count" FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :cif`;
+    const checkUserResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, checkUserQuery, [customer_id]);
+    
+    if (checkUserResult.rows && checkUserResult.rows[0].count > 0) {
+        return NextResponse.json({ message: 'Customer with this CIF is already registered for mobile banking.' }, { status: 409 });
+    }
+  } catch (dbError) {
+      console.error("Database check failed:", dbError);
+      // Fail open during build, but might want to fail closed in production if DB is critical
+      if (process.env.NODE_ENV !== 'development') {
+           return NextResponse.json({ message: 'Could not verify customer registration status.' }, { status: 500 });
+      }
+  }
+
+
   if (!client) {
     console.error('gRPC client for AccountDetailService is not available.');
     // Fallback for demo purposes
@@ -92,14 +113,6 @@ export async function POST(req: Request) {
   }
 
   try {
-    // Check if user already exists in Oracle DB
-    const checkUserQuery = `SELECT COUNT(*) as count FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :cif`;
-    const checkUserResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, checkUserQuery, [customer_id]);
-    
-    if (checkUserResult.rows && checkUserResult.rows[0].COUNT > 0) {
-        return NextResponse.json({ message: 'Customer with this CIF is already registered for mobile banking.' }, { status: 409 });
-    }
-
     const requestPayload = {
       customer_id: customer_id,
       branch_code: branch_code,

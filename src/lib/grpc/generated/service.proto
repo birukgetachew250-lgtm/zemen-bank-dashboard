@@ -4,11 +4,11 @@ package common;
 
 import "google/protobuf/any.proto";
 
-option go_package = "github.com/name-of-you/awesome-project/backend/gen/go/common";
 option java_multiple_files = true;
-option java_outer_classname = "CommonProto";
-option java_package = "com.name.awesome_project.common";
+option java_package = "com.zemen.service.common.proto";
+option java_outer_classname = "ServiceProto";
 
+// The request message containing the user's name.
 message ServiceRequest {
     string request_id = 1;
     string source_system = 2;
@@ -17,6 +17,7 @@ message ServiceRequest {
     google.protobuf.Any data = 5;
 }
 
+// The response message containing the greetings
 message ServiceResponse {
     string code = 1;
     string message = 2;
