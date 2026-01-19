@@ -1,3 +1,4 @@
+
 const { PrismaClient } = require('@prisma/client');
 
 // This seed script is ONLY for the production dashboard database (users, roles, etc.).
@@ -84,6 +85,10 @@ async function main() {
                 role: 'Super Admin',
                 department: 'IT Department',
                 branch: 'Head Office',
+                mfaEnabled: false,
+                status: 'Active',
+                isLocked: false,
+                failedLoginAttempts: 0
             },
         });
         await prisma.user.create({
@@ -95,6 +100,10 @@ async function main() {
                 role: 'Operations Lead',
                 department: 'Branch Operations',
                 branch: 'Bole Branch',
+                mfaEnabled: false,
+                status: 'Active',
+                isLocked: false,
+                failedLoginAttempts: 0
             },
         });
 

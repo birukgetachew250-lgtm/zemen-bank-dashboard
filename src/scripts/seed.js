@@ -33,7 +33,6 @@ async function main() {
     await prisma.pendingApproval.deleteMany();
     await prisma.transaction.deleteMany();
     await prisma.customer.deleteMany();
-    await prisma.corporate.deleteMany();
     await prisma.department.deleteMany();
     await prisma.branch.deleteMany();
     await prisma.role.deleteMany();
@@ -71,8 +70,8 @@ async function main() {
     console.log('Seeded 4 roles.');
 
     // Seed Admin Users
-    await prisma.user.create({ data: { employeeId: 'admin001', name: 'Admin User', email: 'admin@zemenbank.com', password: 'password', role: 'Super Admin', department: 'IT Department', branch: 'Head Office', mfaEnabled: false, status: 'Active' } });
-    await prisma.user.create({ data: { employeeId: 'ops001', name: 'Operations Lead User', email: 'ops@zemen.com', password: 'password', role: 'Operations Lead', department: 'Branch Operations', branch: 'Bole Branch', mfaEnabled: false, status: 'Active' } });
+    await prisma.user.create({ data: { employeeId: 'admin001', name: 'Admin User', email: 'admin@zemen.com', password: 'password', role: 'Super Admin', department: 'IT Department', branch: 'Head Office', mfaEnabled: false, status: 'Active', isLocked: false, failedLoginAttempts: 0 } });
+    await prisma.user.create({ data: { employeeId: 'ops001', name: 'Operations Lead User', email: 'ops@zemen.com', password: 'password', role: 'Operations Lead', department: 'Branch Operations', branch: 'Bole Branch', mfaEnabled: false, status: 'Active', isLocked: false, failedLoginAttempts: 0 } });
     console.log('Seeded 2 admin users.');
 
     const customerList = [
@@ -125,17 +124,6 @@ async function main() {
         });
     }
     console.log('Seeded 250 transactions.');
-    
-    // Seed Corporates
-    await prisma.corporate.createMany({
-        data: [
-            { id: "corp_1", name: "Dangote Cement", industry: "Manufacturing", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/dangote/40/40" },
-            { id: "corp_2", name: "MTN Nigeria", industry: "Telecommunications", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/mtn/40/40" },
-            { id: "corp_3", name: "Zenith Bank", industry: "Finance", status: "Inactive", internet_banking_status: "Disabled", logo_url: "https://picsum.photos/seed/zenith/40/40" },
-            { id: "corp_4_new", name: "Jumia Group", industry: "E-commerce", status: "Active", internet_banking_status: "Pending", logo_url: "https://picsum.photos/seed/jumia/40/40" },
-        ]
-    });
-    console.log('Seeded 4 corporates.');
     
     await prisma.securityPolicy.create({
         data: {

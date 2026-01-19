@@ -1,6 +1,7 @@
+
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DASH_MODULE_PROD_DATABASE_URL")
 }
 
 generator client {
@@ -26,7 +27,7 @@ model User {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
   mfaEnabled          Boolean   @default(false)
-  status              String    @default("Active") // Active, Suspended, Locked
+  status              String    @default("Active") // e.g., Active, Suspended, Locked
   failedLoginAttempts Int       @default(0)
   isLocked            Boolean   @default(false)
   lastLoginAttempt    DateTime?
@@ -92,31 +93,22 @@ model Transaction {
   anomaly_reason String?
 }
 
-model Corporate {
-  id                      String @id @unique
-  name                    String
-  industry                String
-  status                  String
-  internet_banking_status String
-  logo_url                String
-}
-
 model SystemActivityLog {
-  id         Int      @id @default(autoincrement())
-  timestamp  DateTime @default(now())
-  userEmail  String
-  action     String
-  status     String
-  details    String?  @db.Text
-  ipAddress  String?
+  id          Int      @id @default(autoincrement())
+  timestamp   DateTime @default(now())
+  userEmail   String
+  action      String
+  status      String
+  details     String?
+  ipAddress   String?
 }
 
 model SecurityPolicy {
   id                 Int      @id @default(1)
   mfaRequired        Boolean  @default(true)
   allowedMfaMethods  String[]
-  sessionTimeout     Int      @default(30) // in minutes
-  concurrentSessions Int      @default(1) // 0 for unlimited
+  sessionTimeout     Int      @default(30)
+  concurrentSessions Int      @default(1)
 }
 
 model IpWhitelist {
