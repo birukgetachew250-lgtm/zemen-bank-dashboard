@@ -31,6 +31,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { cn } from "@/lib/utils";
+import { getPermissions } from "@/lib/permissions";
 
 
 const findCurrentPage = (menuItems: MenuItem[], pathname: string): MenuItem | undefined => {

@@ -8,16 +8,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
-
-// Mock permissions for now as we can't easily fetch them on the client
-// In a real-world app, this would likely be part of the session token
-const getPermissions = (role: string): string[] => {
-    if (role === 'Super Admin') {
-        return ['all'];
-    }
-    // Add other role-based permission logic here if needed
-    return ['Dashboard']; 
-}
+import { getPermissions } from "@/lib/permissions";
 
 export default function MainLayout({
   children,
