@@ -1,16 +1,17 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2, Edit } from "lucide-react";
+import { PlusCircle, Trash2, Edit, Users, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -34,11 +35,22 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import type { User, Role } from "@prisma/client";
+import { cn } from "@/lib/utils";
 
 
 interface UserManagementClientProps {
   initialUsers: User[];
   roles: Role[];
+}
+
+const getStatusVariant = (status: string) => {
+    switch (status?.toLowerCase()) {
+        case 'active': return 'secondary';
+        case 'locked':
+        case 'suspended':
+             return 'destructive';
+        default: return 'default';
+    }
 }
 
 export function UserManagementClient({
@@ -91,6 +103,7 @@ export function UserManagementClient({
                     <TableHead>Name</TableHead>
                     <TableHead>Employee ID</TableHead>
                     <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Department</TableHead>
                     <TableHead>Branch</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -113,6 +126,14 @@ export function UserManagementClient({
                         </TableCell>
                         <TableCell>{user.employeeId}</TableCell>
                         <TableCell><Badge variant="outline">{user.role}</Badge></TableCell>
+                        <TableCell>
+                          <Badge variant={getStatusVariant(user.status)}
+                              className={cn({
+                                'bg-green-100 text-green-800 border-green-200': user.status === 'Active',
+                                'bg-red-100 text-red-800 border-red-200': user.status === 'Suspended' || user.status === 'Locked',
+                              })}
+                          >{user.status}</Badge>
+                        </TableCell>
                         <TableCell>{user.department}</TableCell>
                         <TableCell>{user.branch || "N/A"}</TableCell>
                         <TableCell className="text-right">

@@ -4,77 +4,95 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { db } from '@/lib/db';
 import { logActivity } from '@/lib/activity-log';
 
+const MAX_LOGIN_ATTEMPTS = 5;
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: 'Email', type: 'email', placeholder: 'admin@zemen.com' },
+        email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
-          console.log('Authorize: Missing email or password.');
           return null;
         }
 
         const ip = req.headers?.['x-forwarded-for'] || req.headers?.['x-real-ip'] || req.socket?.remoteAddress;
-        console.log(`Authorize: Attempting login for ${credentials.email}`);
-
+        
         try {
           const user = await db.user.findUnique({
             where: { email: credentials.email },
           });
 
-          console.log('Authorize: User found in DB:', user ? { id: user.id, email: user.email, role: user.role } : null);
-
           if (!user) {
-            console.log('Authorize: User not found.');
-          } else {
-            console.log('Authorize: Comparing passwords.');
-            console.log(`Authorize: Provided password: "${credentials.password}"`);
-            console.log(`Authorize: Stored password:   "${user.password}"`);
-          }
-
-          if (!user || user.password !== credentials.password) {
-            console.log('Authorize: Password mismatch or user not found. Returning null.');
-            await logActivity({
-                userEmail: credentials.email,
-                action: 'LOGIN_FAILURE',
-                status: 'Failure',
-                details: 'Invalid credentials provided.',
-                ipAddress: typeof ip === 'string' ? ip : undefined,
-            });
+            await logActivity({ userEmail: credentials.email, action: 'LOGIN_FAILURE', status: 'Failure', details: 'User not found.', ipAddress: typeof ip === 'string' ? ip : undefined });
             return null;
           }
           
-          console.log('Authorize: Login successful.');
-          await logActivity({
-            userEmail: credentials.email,
-            action: 'LOGIN_SUCCESS',
-            status: 'Success',
-            details: 'User successfully logged in.',
-            ipAddress: typeof ip === 'string' ? ip : undefined,
+          if (user.status === 'Suspended') {
+            await logActivity({ userEmail: user.email, action: 'LOGIN_FAILURE', status: 'Failure', details: 'Attempted login to suspended account.', ipAddress: typeof ip === 'string' ? ip : undefined });
+            throw new Error('Your account is suspended. Please contact an administrator.');
+          }
+          
+          if (user.isLocked || user.status === 'Locked') {
+            await logActivity({ userEmail: user.email, action: 'LOGIN_FAILURE', status: 'Failure', details: 'Attempted login to locked account.', ipAddress: typeof ip === 'string' ? ip : undefined });
+            throw new Error('Your account is locked due to too many failed login attempts.');
+          }
+
+          if (user.password !== credentials.password) {
+             const newAttempts = user.failedLoginAttempts + 1;
+             let newStatus = user.status;
+             let isLocked = user.isLocked;
+
+             if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+                newStatus = 'Locked';
+                isLocked = true;
+                await logActivity({ userEmail: user.email, action: 'USER_LOCKED', status: 'Success', details: `Account locked after ${newAttempts} failed attempts.`, ipAddress: typeof ip === 'string' ? ip : undefined });
+             }
+
+             await db.user.update({
+                 where: { id: user.id },
+                 data: {
+                     failedLoginAttempts: newAttempts,
+                     lastLoginAttempt: new Date(),
+                     status: newStatus,
+                     isLocked: isLocked,
+                 }
+             });
+
+            await logActivity({ userEmail: user.email, action: 'LOGIN_FAILURE', status: 'Failure', details: `Invalid password. Attempt ${newAttempts} of ${MAX_LOGIN_ATTEMPTS}.`, ipAddress: typeof ip === 'string' ? ip : undefined });
+            throw new Error('Invalid email or password.');
+          }
+          
+          // Successful login
+          await db.user.update({
+              where: { id: user.id },
+              data: {
+                  failedLoginAttempts: 0,
+                  lastLoginAttempt: new Date(),
+                  isLocked: false,
+                  status: 'Active' // Ensure status is Active on successful login
+              }
           });
+
+          await logActivity({ userEmail: user.email, action: 'LOGIN_SUCCESS', status: 'Success', details: 'User successfully logged in.', ipAddress: typeof ip === 'string' ? ip : undefined });
 
           const { password, ...userWithoutPassword } = user;
           return userWithoutPassword;
 
-        } catch (error) {
-          console.error("Database connection failed during auth:", error);
-          if (credentials.email === 'admin@zemen.com' && credentials.password === 'password') {
-            await logActivity({ userEmail: credentials.email, action: 'LOGIN_SUCCESS', status: 'Success', details: 'Fallback login successful.' });
-            return { id: "1", name: 'Demo Admin', email: 'admin@zemen.com', role: 'Super Admin' };
-          }
-          await logActivity({ userEmail: credentials.email, action: 'LOGIN_FAILURE', status: 'Failure', details: 'Database error during login.' });
-          return null;
+        } catch (error: any) {
+            console.error("Authorization error:", error);
+            // Re-throw the error to be displayed on the login page
+            throw new Error(error.message || 'An unexpected error occurred during login.');
         }
       },
     }),
   ],
   pages: {
     signIn: '/login',
-    error: '/login',
+    error: '/login', // Redirect users to login page on error
   },
   callbacks: {
     async jwt({ token, user }) {

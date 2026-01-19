@@ -71,8 +71,8 @@ async function main() {
     console.log('Seeded 4 roles.');
 
     // Seed Admin Users
-    await prisma.user.create({ data: { employeeId: 'admin001', name: 'Admin User', email: 'admin@zemenbank.com', password: 'password', role: 'Super Admin', department: 'IT Department', branch: 'Head Office', mfaEnabled: false } });
-    await prisma.user.create({ data: { employeeId: 'ops001', name: 'Operations Lead User', email: 'ops@zemen.com', password: 'password', role: 'Operations Lead', department: 'Branch Operations', branch: 'Bole Branch', mfaEnabled: false } });
+    await prisma.user.create({ data: { employeeId: 'admin001', name: 'Admin User', email: 'admin@zemenbank.com', password: 'password', role: 'Super Admin', department: 'IT Department', branch: 'Head Office', mfaEnabled: false, status: 'Active' } });
+    await prisma.user.create({ data: { employeeId: 'ops001', name: 'Operations Lead User', email: 'ops@zemen.com', password: 'password', role: 'Operations Lead', department: 'Branch Operations', branch: 'Bole Branch', mfaEnabled: false, status: 'Active' } });
     console.log('Seeded 2 admin users.');
 
     const customerList = [

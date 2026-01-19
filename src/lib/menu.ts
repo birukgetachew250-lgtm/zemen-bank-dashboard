@@ -51,6 +51,7 @@ import {
   Lock,
   Link,
   Unlink,
+  LockOpen
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -88,7 +89,6 @@ export const menu: MenuItem[] = [
         children: [
           { icon: Building2, label: "Create Corporate", href: "/corporates/create" },
           { icon: Building2, label: "Existing Corporates", href: "/corporates" },
-          { icon: SlidersHorizontal, label: "Exceptional Limits", href: "/corporates/exceptional-limits" },
         ],
       },
     ]
@@ -153,6 +153,7 @@ export const menu: MenuItem[] = [
         icon: History,
         href: "/users/audit",
         children: [
+          { icon: Users, label: "Customers", href: "/customers/audit" },
           { icon: UserCog, label: "System Users", href: "/users/audit" },
           { icon: Mail, label: "Authentications", href: "/otp" },
         ],
@@ -202,6 +203,9 @@ export const menu: MenuItem[] = [
         children: [
             { icon: ShieldCheck, label: "Manage Roles", href: "/roles" },
             { icon: Users, label: "Manage Users", href: "/users" },
+            { icon: Ban, label: "Suspend User", href: "/users/suspend" },
+            { icon: LockOpen, label: "Unlock User", href: "/users/unlock" },
+            { icon: KeyRound, label: "Reset User Password", href: "/users/reset-password" },
         ]
       },
       { icon: Table, label: "Permissions Matrix", href: "/security/permission-matrix" },
@@ -231,7 +235,6 @@ export const menu: MenuItem[] = [
           { icon: List, label: "Transaction Types", href: "/limits/types" },
           { icon: Users, label: "Customer Categories", href: "/limits/categories" },
           { icon: History, label: "Intervals", href: "/limits/intervals" },
-          { icon: ShieldAlert, label: "Exceptional Limits", href: "/limits/exceptional-limits" },
         ]
       },
     ]

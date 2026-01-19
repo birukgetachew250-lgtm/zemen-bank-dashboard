@@ -30,7 +30,13 @@ export type ActivityLogAction =
     | 'ACCOUNT_LINK_APPROVED'
     | 'ACCOUNT_UNLINK_APPROVED'
     | 'CUSTOMER_CREATE_APPROVED'
-    | 'SECURITY_RESET_APPROVED';
+    | 'SECURITY_RESET_APPROVED'
+    // System User Security
+    | 'USER_SUSPENDED'
+    | 'USER_UNSUSPENDED'
+    | 'USER_LOCKED'
+    | 'USER_UNLOCKED'
+    | 'USER_PASSWORD_RESET';
 
 export type LogEntry = {
     userEmail: string;
