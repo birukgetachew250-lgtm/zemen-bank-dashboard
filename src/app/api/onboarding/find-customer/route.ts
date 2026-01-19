@@ -3,11 +3,8 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import * as grpc from '@grpc/grpc-js';
-import * as protoLoader from '@grpc/proto-loader';
-import path from 'path';
-import * as protobuf from 'protobufjs';
 import { executeQuery } from '@/lib/oracle-db';
+import { GrpcClient } from '@/lib/grpc-client';
 
 const mockCustomer = {
   full_name: "TSEDALE ADAMU MEDHANE",
@@ -25,56 +22,6 @@ const mockCustomer = {
   branch: "Bole"
 };
 
-const GRPC_SERVER_ADDRESS = process.env.FLEX_GRPC_URL || 'localhost:8081';
-const PROTO_PATH = path.join(process.cwd(), 'src/lib/grpc/protos/accountdetail.proto');
-
-// Module-level variables
-let client: any = null;
-let accountDetailResponseType: protobuf.Type | null = null;
-
-(async () => {
-  try {
-    const packageDef = protoLoader.loadSync(PROTO_PATH, {
-      keepCase: true,
-      longs: String,
-      enums: String,
-      defaults: true,
-      oneofs: true,
-      includeDirs: [path.join(process.cwd(), 'src/lib/grpc/protos')]
-    });
-
-    const grpcObj = grpc.loadPackageDefinition(packageDef) as any;
-    
-    client = new grpcObj.accountdetail.AccountDetailService(
-      GRPC_SERVER_ADDRESS,
-      grpc.credentials.createInsecure()
-    );
-
-    const root = await protobuf.load(PROTO_PATH);
-    accountDetailResponseType = root.lookupType('accountdetail.AccountDetailResponse');
-
-    if (!accountDetailResponseType) {
-      throw new Error('accountdetail.AccountDetailResponse type not found in protobufjs');
-    }
-
-  } catch (error) {
-    console.error('[INIT FAILED]', error);
-  }
-})();
-
-function promisifyCall<TRequest, TResponse>(methodName: string, request: TRequest): Promise<TResponse> {
-  return new Promise((resolve, reject) => {
-    if (!client) return reject(new Error("gRPC client not initialized"));
-    const deadline = new Date();
-    deadline.setSeconds(deadline.getSeconds() + 60);
-
-    client[methodName](request, { deadline }, (err: any, res: TResponse) => {
-      if (err) return reject(err);
-      resolve(res);
-    });
-  });
-}
-
 export async function POST(req: Request) {
   const { branch_code, customer_id } = await req.json();
 
@@ -91,42 +38,43 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: 'Customer with this CIF is already registered for mobile banking.' }, { status: 409 });
     }
 
-    const request = {
-      data: {
-        "@type": "type.googleapis.com/accountdetail.AccountDetailRequest",
+    const client = GrpcClient.getAccountDetailServiceClient();
+
+    const requestPayload = {
         branch_code,
         customer_id
-      },
-      request_id: `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-      source_system: 'MOBILE',
-      channel: 'mobile',
-      user_id: 'DASH_USER'
     };
 
-    const grpcResponse = await promisifyCall<any, any>('QueryCustomerDetails', request);
+    const serviceRequest = {
+        data: {
+            type_url: "type.googleapis.com/accountdetail.AccountDetailRequest",
+            value: requestPayload,
+        },
+        request_id: `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        source_system: 'MOBILE',
+        channel: 'mobile',
+        user_id: 'DASH_USER'
+    };
 
-    if (!grpcResponse || !grpcResponse.success) {
-      console.info("gRPC Transport Error", grpcResponse);
-      return NextResponse.json({ message: grpcResponse.message || 'Upstream service error' }, { status: 502 });
-    } 
-      if (grpcResponse.code !== '0' && grpcResponse.code !== '00') {
-      return NextResponse.json(
-        { message: grpcResponse.message || "Operation not Working." },
-        { status: 598 }
-      );
+    const grpcResponse = await GrpcClient.promisifyCall<any, any>(client, 'QueryCustomerDetails', serviceRequest);
+
+    if (!grpcResponse || (grpcResponse.code !== '0' && grpcResponse.code !== '00' )) {
+        console.info("gRPC Transport Error", grpcResponse);
+        // Fallback for demo on specific CIF if gRPC fails
+        if (process.env.NODE_ENV === 'development' && customer_id === '0000238') {
+          return NextResponse.json(mockCustomer);
+        }
+        return NextResponse.json({ message: grpcResponse.message || 'Upstream service error' }, { status: 502 });
     }
-
+    
     const dataValue = grpcResponse.data?.value;
     if (!dataValue) {
       throw new Error("Response success but data.value is missing");
     }
     
+    const accountDetailResponseType = await GrpcClient.loadProtobufType('accountdetail.proto', 'accountdetail.AccountDetailResponse');
+    
     const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue);
-
-    if (!accountDetailResponseType) {
-      throw new Error("AccountDetailResponse type not loaded - check init");
-    }
-
     const decoded = accountDetailResponseType.decode(buffer);
     const object = accountDetailResponseType.toObject(decoded, {
       longs: String,
