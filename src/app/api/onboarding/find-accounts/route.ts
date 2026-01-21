@@ -26,6 +26,7 @@ let accountListResponseType: protobuf.Type | null = null;
 
 (async () => {
   try {
+    console.log('[find-accounts] Initializing gRPC client...');
     const packageDef = protoLoader.loadSync(PROTO_PATH, {
       keepCase: true,
       longs: String,
@@ -48,7 +49,7 @@ let accountListResponseType: protobuf.Type | null = null;
     if (!accountListResponseType) {
         throw new Error('accountlist.AccountListResponse type not found in protobufjs');
     }
-
+    console.log('[find-accounts] gRPC client initialized successfully.');
   } catch (error) {
     console.error('[gRPC Client Init Failed for find-accounts]', error);
   }
@@ -57,32 +58,44 @@ let accountListResponseType: protobuf.Type | null = null;
 function promisifyCall<TRequest, TResponse>(methodName: string, request: TRequest): Promise<TResponse> {
   return new Promise((resolve, reject) => {
     if (!client) return reject(new Error("gRPC client not initialized"));
+    console.log(`[find-accounts] Making gRPC call to method: ${methodName}`);
     const deadline = new Date();
     deadline.setSeconds(deadline.getSeconds() + 60);
 
     client[methodName](request, { deadline }, (err: any, res: TResponse) => {
-      if (err) return reject(err);
+      if (err) {
+        console.error(`[find-accounts] gRPC call to ${methodName} failed.`, err);
+        return reject(err);
+      }
+      console.log(`[find-accounts] gRPC call to ${methodName} successful.`);
       resolve(res);
     });
   });
 }
 
 export async function POST(req: Request) {
-    const { cif, branch_code } = await req.json();
+    console.log(`\n--- [find-accounts] Received POST request to ${req.url} ---`);
+    const body = await req.json();
+    const { cif, branch_code } = body;
+
+    console.log('[find-accounts] Request Body:', JSON.stringify(body, null, 2));
 
     if (!cif || !branch_code) {
+        console.error('[find-accounts] Validation Error: CIF and branch code are required.');
         return NextResponse.json({ message: 'CIF and branch code are required' }, { status: 400 });
     }
 
     if (!client) {
-        console.error('gRPC client for AccountListService is not available.');
+        console.error('[find-accounts] gRPC client for AccountListService is not available.');
         return NextResponse.json({ message: 'Internal server error: Could not connect to banking service.' }, { status: 500 });
     }
 
     try {
+        console.log(`[find-accounts] Fetching already linked accounts for CIF: ${cif}`);
         const linkedAccountsQuery = `SELECT "HashedAccountNumber" FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :cif AND "Status" = 'Active'`;
         const linkedResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, linkedAccountsQuery, [cif]);
         const linkedAccountHashes = new Set((linkedResult.rows || []).map((row: any) => row.HashedAccountNumber));
+        console.log(`[find-accounts] Found ${linkedAccountHashes.size} linked accounts.`);
 
         const requestPayload = {
             customer_id: cif,
@@ -99,15 +112,18 @@ export async function POST(req: Request) {
             channel: 'mobile',
             user_id: 'DASH_USER'
         };
+        
+        console.log('[find-accounts] Constructed gRPC ServiceRequest:', JSON.stringify(serviceRequest, null, 2));
 
         const grpcResponse = await promisifyCall<any, any>('QueryCustomerAccountList', serviceRequest);
         
        if (!grpcResponse || (grpcResponse.code !== '0' && grpcResponse.code !== '00' )) {
             const errorMessage = grpcResponse?.message || 'Upstream service returned a failure status.';
-            console.error('[gRPC Call Failed] QueryCustomerAccountList:', errorMessage);
+            console.error('[gRPC Call Failed] QueryCustomerAccountList:', errorMessage, 'Full Response:', JSON.stringify(grpcResponse));
             throw new Error(errorMessage);
        }
         
+        console.log('[find-accounts] gRPC response successful. Decoding data...');
         const dataValue = grpcResponse.data?.value;
         if (!dataValue) {
           throw new Error("Response from service was successful, but contained no data.");
@@ -122,6 +138,7 @@ export async function POST(req: Request) {
         const responseObject = accountListResponseType.toObject(decodedResponse, { arrays: true });
 
         const accounts = responseObject.accounts || [];
+        console.log(`[find-accounts] Decoded ${accounts.length} accounts from gRPC response.`);
         
         const transformedAccounts = accounts.map((acc: any) => {
             const hashed = crypto.createHash('sha256').update(acc.custacno).digest('hex');
@@ -136,13 +153,15 @@ export async function POST(req: Request) {
             };
         });
         
+        console.log('[find-accounts] Successfully processed request. Sending transformed accounts to client.');
         return NextResponse.json(transformedAccounts);
 
     } catch (error: any) {
-        console.error('[gRPC/DB Error] find-accounts:', error);
+        console.error('[gRPC/DB Error] A critical error occurred in find-accounts API:', error);
         
         // Demo fallback
         if (cif === '0048533') {
+            console.warn('[find-accounts] Using mock data due to error for CIF 0048533.');
             return NextResponse.json(mockAccounts.map(acc => ({...acc, isAlreadyLinked: acc.custacno === '1031110048533015'})));
         }
 
