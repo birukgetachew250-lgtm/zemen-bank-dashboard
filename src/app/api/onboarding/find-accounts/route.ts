@@ -98,10 +98,9 @@ export async function POST(req: Request) {
         console.log(`[find-accounts] Found ${linkedAccountHashes.size} linked accounts.`);
 
         const requestPayload = {
-            customer_id: cif,
-            branch_code: branch_code,
+          branch_code: branch_code,
+          customer_id: cif 
         };
-
         const serviceRequest = {
             data: {
                 "@type": "type.googleapis.com/accountlist.AccountListRequest",
