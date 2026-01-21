@@ -34,11 +34,7 @@ let accountDetailResponseType: protobuf.Type | null = null;
 
 (async () => {
   try {
-    const protoPaths = [
-        path.join(process.cwd(), 'src/lib/grpc/protos/service.proto'),
-        PROTO_PATH
-    ];
-    const packageDef = protoLoader.loadSync(protoPaths, {
+    const packageDef = protoLoader.loadSync(PROTO_PATH, {
       keepCase: true,
       longs: String,
       enums: String,
