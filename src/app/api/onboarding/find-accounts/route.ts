@@ -104,7 +104,8 @@ export async function POST(req: Request) {
         const serviceRequest = {
             data: {
                 "@type": "type.googleapis.com/accountlist.AccountListRequest",
-                ...requestPayload
+                branch_code: branch_code,
+                customer_id: cif 
             },
             request_id: `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
             source_system: 'MOBILE',
