@@ -15,24 +15,46 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { db } from "@/lib/db";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import type { OtpCode as OtpCodeType } from "@prisma/client";
+import { executeQuery } from "@/lib/oracle-db";
 
+// Define the type locally based on what the component needs and what the DB provides
+interface OtpCodeType {
+  Id: string;
+  UserId: string;
+  Purpose: string;
+  OtpType: string;
+  IsUsed: boolean;
+  Attempts: number;
+  ExpiresAt: Date;
+}
 
-async function getOtpCodes() {
-  if (!process.env.DATABASE_URL) {
-    console.warn("DATABASE_URL not set, returning empty OTP code list.");
+async function getOtpCodes(): Promise<OtpCodeType[]> {
+  if (!process.env.OTP_MODULE_DB_CONNECTION_STRING) {
+    console.warn("OTP_MODULE_DB_CONNECTION_STRING not set, returning empty OTP code list.");
     return [];
   }
   try {
-    const data = await db.otpCode.findMany({
-      orderBy: { InsertDate: 'desc' },
-      take: 20
-    });
-    return data;
+    // Note: Oracle uses FETCH FIRST ... ROWS ONLY instead of LIMIT
+    const query = `SELECT "Id", "UserId", "Purpose", "OtpType", "IsUsed", "Attempts", "ExpiresAt" FROM "OTP_MODULE"."OtpCodes" ORDER BY "InsertDate" DESC FETCH FIRST 20 ROWS ONLY`;
+    const result: any = await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, query);
+    
+    if (!result.rows) {
+        return [];
+    }
+
+    // Map Oracle DB results to our expected type
+    return result.rows.map((row: any) => ({
+      Id: row.Id,
+      UserId: row.UserId,
+      Purpose: row.Purpose,
+      OtpType: row.OtpType,
+      IsUsed: row.IsUsed === 1,
+      Attempts: row.Attempts,
+      ExpiresAt: new Date(row.ExpiresAt),
+    }));
   } catch (error) {
     console.error("Failed to fetch OTP codes:", error);
     if (error instanceof Error) {
@@ -41,6 +63,7 @@ async function getOtpCodes() {
     throw new Error("An unknown error occurred while fetching OTP codes.");
   }
 }
+
 
 export default async function OtpSmsPage() {
     let otpCodes: OtpCodeType[] = [];
@@ -74,6 +97,7 @@ export default async function OtpSmsPage() {
                   <TableHead>User ID (CIF)</TableHead>
                   <TableHead>Purpose</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Code</TableHead>
                   <TableHead>Used</TableHead>
                   <TableHead>Attempts</TableHead>
                   <TableHead>Expires At</TableHead>
@@ -88,6 +112,7 @@ export default async function OtpSmsPage() {
                         <Badge variant="outline">{code.Purpose}</Badge>
                     </TableCell>
                     <TableCell>{code.OtpType}</TableCell>
+                    <TableCell className="font-mono tracking-widest">******</TableCell>
                     <TableCell>
                       <Badge variant={code.IsUsed ? "secondary" : "destructive"} className={code.IsUsed ? 'bg-green-100 text-green-800' : ''}>
                         {code.IsUsed ? "Yes" : "No"}
@@ -98,7 +123,7 @@ export default async function OtpSmsPage() {
                   </TableRow>
                 ))) : (
                     <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center">
+                        <TableCell colSpan={7} className="h-24 text-center">
                             No OTP codes found.
                         </TableCell>
                     </TableRow>
