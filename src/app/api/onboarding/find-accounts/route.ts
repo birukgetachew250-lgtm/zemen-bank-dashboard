@@ -188,8 +188,42 @@ export async function POST(req: Request) {
     console.log('===== DEBUG B6 - Final sent base64 preview =====', Buffer.from(sentBuffer).toString('base64').substring(0, 100) + '...');
 
     const grpcResponse = await promisifyCall<any, any>('QueryCustomerAccountList', serviceRequestPayload);
+    if (!grpcResponse || (grpcResponse.code !== '0' && grpcResponse.code !== '00')) {
+      const errorMessage = grpcResponse?.message || 'Upstream service failure.';
+      console.error('[gRPC Failed]:', errorMessage, 'Response:', JSON.stringify(grpcResponse));
+      throw new Error(errorMessage);
+    }
 
-    // ... rest of your code (response handling, transform, return) remains the same ...
+    console.log('[find-accounts] gRPC success. Decoding response...');
+
+    const dataValue = grpcResponse.data?.value;
+    if (!dataValue) {
+      throw new Error("Response successful but no data returned.");
+    }
+
+    const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue);
+    const decodedResponse = AccountListResponseType.decode(buffer);
+    const responseObject = AccountListResponseType.toObject(decodedResponse, { arrays: true });
+
+    const accounts = responseObject.accounts || [];
+    console.log(`[find-accounts] Decoded ${accounts.length} accounts.`);
+
+    const transformedAccounts = accounts.map((acc: any) => {
+      const hashed = crypto.createHash('sha256').update(acc.custacno).digest('hex');
+      return {
+        custacno: acc.custacno || "",
+        branch_code: acc.branchCode || "",
+        ccy: acc.ccy || "",
+        account_type: acc.accountType || "",
+        acclassdesc: acc.acclassdesc || "",
+        status: "Active",
+        isAlreadyLinked: linkedAccountHashes.has(hashed)
+      };
+    });
+
+    console.log('[find-accounts] Sending transformed accounts.');
+    return NextResponse.json(transformedAccounts);
+    
   } catch (error: any) {
     console.error('[find-accounts] Critical error:', error);
 
