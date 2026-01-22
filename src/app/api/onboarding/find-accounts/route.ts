@@ -26,53 +26,64 @@ let AnyType: protobuf.Type | null = null;
 let ServiceRequestType: protobuf.Type | null = null;
 let AccountListResponseType: protobuf.Type | null = null;
 
-(async () => {
-  try {
-    console.log('[find-accounts] Loading protos and initializing gRPC client...');
+// Single promise to ensure init only once
+let initPromise: Promise<void> | null = null;
 
-    // Load for @grpc/grpc-js client
-    const packageDef = protoLoader.loadSync(
-      [
+async function initializeGrpc() {
+  if (initPromise) return initPromise;
+
+  initPromise = (async () => {
+    try {
+      console.log('[INIT] Loading protos and initializing gRPC client...');
+
+      // Load for @grpc/grpc-js
+      const packageDef = protoLoader.loadSync(
+        [
+          path.join(PROTO_DIR, 'common.proto'),
+          path.join(PROTO_DIR, 'accountlist.proto')
+        ],
+        {
+          keepCase: true,
+          longs: String,
+          enums: String,
+          defaults: true,
+          oneofs: true,
+          includeDirs: [PROTO_DIR]
+        }
+      );
+
+      const grpcObj = grpc.loadPackageDefinition(packageDef) as any;
+      
+      client = new grpcObj.accountlist.AccountListService(
+        GRPC_SERVER_ADDRESS,
+        grpc.credentials.createInsecure()
+      );
+
+      // Load for protobufjs message creation
+      root = await protobuf.load([
         path.join(PROTO_DIR, 'common.proto'),
         path.join(PROTO_DIR, 'accountlist.proto')
-      ],
-      {
-        keepCase: true,
-        longs: String,
-        enums: String,
-        defaults: true,
-        oneofs: true,
-        includeDirs: [PROTO_DIR]
+      ]);
+
+      AccountListRequestType = root.lookupType('accountlist.AccountListRequest');
+      AnyType = root.lookupType('google.protobuf.Any');
+      ServiceRequestType = root.lookupType('common.ServiceRequest');
+      AccountListResponseType = root.lookupType('accountlist.AccountListResponse');
+
+      if (!AccountListRequestType || !AnyType || !ServiceRequestType || !AccountListResponseType) {
+        throw new Error('One or more protobuf types not found in proto files');
       }
-    );
 
-    const grpcObj = grpc.loadPackageDefinition(packageDef) as any;
-    
-    client = new grpcObj.accountlist.AccountListService(
-      GRPC_SERVER_ADDRESS,
-      grpc.credentials.createInsecure()
-    );
-
-    // Load for protobufjs message creation
-    root = await protobuf.load([
-      path.join(PROTO_DIR, 'common.proto'),
-      path.join(PROTO_DIR, 'accountlist.proto')
-    ]);
-
-    AccountListRequestType = root.lookupType('accountlist.AccountListRequest');
-    AnyType = root.lookupType('google.protobuf.Any');
-    ServiceRequestType = root.lookupType('common.ServiceRequest');
-    AccountListResponseType = root.lookupType('accountlist.AccountListResponse');
-
-    if (!AccountListRequestType || !AnyType || !ServiceRequestType || !AccountListResponseType) {
-      throw new Error('One or more protobuf types not found in proto files');
+      console.log('[INIT] gRPC client & protobuf types initialized successfully.');
+      console.log('[INIT] AccountListRequestType fullName:', AccountListRequestType.fullName);
+    } catch (error) {
+      console.error('[INIT] Initialization failed:', error);
+      throw error; // re-throw so handler can catch it
     }
+  })();
 
-    console.log('[find-accounts] gRPC client & protobuf types initialized successfully.');
-  } catch (error) {
-    console.error('[find-accounts] Initialization failed:', error);
-  }
-})();
+  return initPromise;
+}
 
 function promisifyCall<TRequest, TResponse>(methodName: string, request: TRequest): Promise<TResponse> {
   return new Promise((resolve, reject) => {
@@ -108,9 +119,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'CIF and branch code are required' }, { status: 400 });
   }
 
-  if (!client || !root || !ServiceRequestType || !AnyType || !AccountListRequestType || !AccountListResponseType) {
-    console.error('[find-accounts] gRPC client or protobuf types not ready.');
-    return NextResponse.json({ message: 'Internal server error: gRPC service unavailable.' }, { status: 500 });
+  try {
+    // Wait for initialization (this is the key fix for "types not ready")
+    console.log('[find-accounts] Waiting for gRPC init...');
+    await initializeGrpc();
+    console.log('[find-accounts] Init complete - types ready');
+  } catch (initErr) {
+    console.error('[find-accounts] Init failed during request:', initErr);
+    return NextResponse.json({ message: 'gRPC initialization failed' }, { status: 500 });
+  }
+
+  if (!client || !ServiceRequestType || !AnyType || !AccountListRequestType || !AccountListResponseType) {
+    console.error('[find-accounts] Types still not ready after await');
+    return NextResponse.json({ message: 'gRPC types not ready' }, { status: 500 });
   }
 
   try {
@@ -127,30 +148,48 @@ export async function POST(req: Request) {
     console.log('===== DEBUG B1 - Types check =====');
     console.log('AccountListRequestType name:', AccountListRequestType.name);
     console.log('AccountListRequestType fullName:', AccountListRequestType.fullName);
-    console.log('AccountListRequestType exists?', !!AccountListRequestType);
 
+    console.log('===== DEBUG INPUT VALUES =====', {
+      branch_code,
+      cif,
+      typeof_branch_code: typeof branch_code,
+      typeof_cif: typeof cif
+    });
+
+    // Use camelCase field names (protobufjs often normalizes to camelCase)
     const innerPayload = AccountListRequestType.create({
-            branchCode: branch_code || "",
-            customerId: cif || ""
-          });
-    console.log('===== DEBUG B2 - innerPayload created =====', JSON.stringify(innerPayload, null, 2));
+      branchCode: branch_code || "",
+      customerId: cif || ""
+    });
+    console.log('===== DEBUG B2 - innerPayload created (camelCase) =====', JSON.stringify(innerPayload, null, 2));
 
     const innerBuffer = AccountListRequestType.encode(innerPayload).finish();
     console.log('===== DEBUG B3 - innerBuffer length =====', innerBuffer.length);
+
     if (innerBuffer.length === 0) {
-      console.log('===== CRITICAL: innerBuffer is empty =====');
-      throw new Error('innerBuffer is empty - encoding failed');
+      console.log('camelCase failed - trying snake_case');
+      const innerPayloadSnake = AccountListRequestType.create({
+        branch_code: branch_code || "",
+        customer_id: cif || ""
+      });
+      console.log('snake_case payload:', JSON.stringify(innerPayloadSnake, null, 2));
+      const snakeBuffer = AccountListRequestType.encode(innerPayloadSnake).finish();
+      console.log('snake_case length:', snakeBuffer.length);
+      if (snakeBuffer.length > 0) {
+        innerBuffer = snakeBuffer; // use this if it works
+      } else {
+        throw new Error('innerBuffer is empty after both attempts');
+      }
     }
-    console.log('===== DEBUG B3 - innerBuffer base64 preview =====', Buffer.from(innerBuffer).toString('base64').substring(0, 60) + '...');
 
     const anyPayload = AnyType.create() as any;
     anyPayload.type_url = 'type.googleapis.com/accountlist.AccountListRequest';
     anyPayload.value = innerBuffer;
 
     console.log('===== DEBUG B4 - anyPayload.value length =====', anyPayload.value?.length ?? 0);
+
     if (!anyPayload.value || anyPayload.value.length === 0) {
-      console.log('===== CRITICAL: anyPayload.value is empty after set =====');
-      throw new Error('Failed to set Any.value');
+      throw new Error('Any.value is empty after set');
     }
 
     const serviceRequestPayload = ServiceRequestType.create({
