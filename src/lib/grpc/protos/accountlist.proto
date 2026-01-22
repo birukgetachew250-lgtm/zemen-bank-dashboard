@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "Flexcube_module_grpc";
 package accountlist;
-import "service.proto"; 
+import "common.proto"; 
 
 message AccountDetail {
     string custacno        = 1; // 3021110000238018
