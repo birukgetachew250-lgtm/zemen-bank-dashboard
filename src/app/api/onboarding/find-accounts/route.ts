@@ -1,3 +1,4 @@
+
 'use server';
 
 import { NextResponse } from 'next/server';
@@ -34,14 +35,11 @@ async function initializeGrpc() {
 
   initPromise = (async () => {
     try {
-      console.log('[INIT] Loading protos and initializing gRPC client...');
+      console.log('[find-accounts] Initializing gRPC client...');
 
       // Load for @grpc/grpc-js
       const packageDef = protoLoader.loadSync(
-        [
-          path.join(PROTO_DIR, 'common.proto'),
-          path.join(PROTO_DIR, 'accountlist.proto')
-        ],
+        path.join(PROTO_DIR, 'accountlist.proto'),
         {
           keepCase: true,
           longs: String,
@@ -60,10 +58,7 @@ async function initializeGrpc() {
       );
 
       // Load for protobufjs message creation
-      root = await protobuf.load([
-        path.join(PROTO_DIR, 'common.proto'),
-        path.join(PROTO_DIR, 'accountlist.proto')
-      ]);
+      root = await protobuf.load(path.join(PROTO_DIR, 'accountlist.proto'));
 
       AccountListRequestType = root.lookupType('accountlist.AccountListRequest');
       AnyType = root.lookupType('google.protobuf.Any');
@@ -74,10 +69,9 @@ async function initializeGrpc() {
         throw new Error('One or more protobuf types not found in proto files');
       }
 
-      console.log('[INIT] gRPC client & protobuf types initialized successfully.');
-      console.log('[INIT] AccountListRequestType fullName:', AccountListRequestType.fullName);
+      console.log('[find-accounts] gRPC client initialized successfully.');
     } catch (error) {
-      console.error('[INIT] Initialization failed:', error);
+      console.error('[find-accounts] Initialization failed:', error);
       throw error; // re-throw so handler can catch it
     }
   })();
@@ -88,6 +82,7 @@ async function initializeGrpc() {
 function promisifyCall<TRequest, TResponse>(methodName: string, request: TRequest): Promise<TResponse> {
   return new Promise((resolve, reject) => {
     if (!client) return reject(new Error("gRPC client not initialized"));
+    
     console.log(`[find-accounts] Making gRPC call to method: ${methodName}`);
 
     const deadline = new Date();
@@ -95,19 +90,16 @@ function promisifyCall<TRequest, TResponse>(methodName: string, request: TReques
 
     client[methodName](request, { deadline }, (err: any, res: TResponse) => {
       if (err) {
-        console.error(`[find-accounts] gRPC call failed:`, err);
+        console.error(`[find-accounts] gRPC call to ${methodName} failed.`, err);
         return reject(err);
       }
-      console.log(`[find-accounts] gRPC call successful.`);
+      console.log(`[find-accounts] gRPC call to ${methodName} successful.`);
       resolve(res);
     });
   });
 }
 
 export async function POST(req: Request) {
-  console.log('===== DEBUG 2025-01-22 A - NEW CODE VERSION STARTED =====');
-  console.log('If you see this line, the updated file is active');
-
   console.log(`\n--- [find-accounts] Received POST request to ${req.url} ---`);
   const body = await req.json();
   const { cif, branch_code } = body;
@@ -120,77 +112,36 @@ export async function POST(req: Request) {
   }
 
   try {
-    // Wait for initialization (this is the key fix for "types not ready")
-    console.log('[find-accounts] Waiting for gRPC init...');
+    // Wait for initialization
     await initializeGrpc();
-    console.log('[find-accounts] Init complete - types ready');
   } catch (initErr) {
     console.error('[find-accounts] Init failed during request:', initErr);
     return NextResponse.json({ message: 'gRPC initialization failed' }, { status: 500 });
   }
 
   if (!client || !ServiceRequestType || !AnyType || !AccountListRequestType || !AccountListResponseType) {
-    console.error('[find-accounts] Types still not ready after await');
+    console.error('[find-accounts] Types not ready after initialization.');
     return NextResponse.json({ message: 'gRPC types not ready' }, { status: 500 });
   }
 
   try {
-    console.log(`[find-accounts] Fetching linked accounts for CIF: ${cif}`);
+    console.log(`[find-accounts] Fetching already linked accounts for CIF: ${cif}`);
     const linkedAccountsQuery = `SELECT "HashedAccountNumber" FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :cif AND "Status" = 'Active'`;
     const linkedResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, linkedAccountsQuery, [cif]);
     const linkedAccountHashes = new Set((linkedResult.rows || []).map((row: any) => row.HashedAccountNumber));
     console.log(`[find-accounts] Found ${linkedAccountHashes.size} linked accounts.`);
 
-    // ─────────────────────────────────────────────────────────────
-    // FIXED: Proper protobuf construction with debug
-    // ─────────────────────────────────────────────────────────────
-
-    console.log('===== DEBUG B1 - Types check =====');
-    console.log('AccountListRequestType name:', AccountListRequestType.name);
-    console.log('AccountListRequestType fullName:', AccountListRequestType.fullName);
-
-    console.log('===== DEBUG INPUT VALUES =====', {
-      branch_code,
-      cif,
-      typeof_branch_code: typeof branch_code,
-      typeof_cif: typeof cif
-    });
-
-    // Use camelCase field names (protobufjs often normalizes to camelCase)
     const innerPayload = AccountListRequestType.create({
       branchCode: branch_code || "",
       customerId: cif || ""
     });
-    console.log('===== DEBUG B2 - innerPayload created (camelCase) =====', JSON.stringify(innerPayload, null, 2));
 
-    let innerBuffer = AccountListRequestType.encode(innerPayload).finish();
-    console.log('===== DEBUG B3 - innerBuffer length =====', innerBuffer.length);
-
-    if (innerBuffer.length === 0) {
-      console.log('camelCase failed - trying snake_case');
-      const innerPayloadSnake = AccountListRequestType.create({
-        branch_code: branch_code || "",
-        customer_id: cif || ""
-      });
-      console.log('snake_case payload:', JSON.stringify(innerPayloadSnake, null, 2));
-      const snakeBuffer = AccountListRequestType.encode(innerPayloadSnake).finish();
-      console.log('snake_case length:', snakeBuffer.length);
-      if (snakeBuffer.length > 0) {
-        innerBuffer = snakeBuffer; // use this if it works
-      } else {
-        throw new Error('innerBuffer is empty after both attempts');
-      }
-    }
-
-    const anyPayload = AnyType.create() as any;
-    anyPayload.type_url = 'type.googleapis.com/accountlist.AccountListRequest';
-    anyPayload.value = innerBuffer;
-
-    console.log('===== DEBUG B4 - anyPayload.value length =====', anyPayload.value?.length ?? 0);
-
-    if (!anyPayload.value || anyPayload.value.length === 0) {
-      throw new Error('Any.value is empty after set');
-    }
+    const innerBuffer = AccountListRequestType.encode(innerPayload).finish();
+    
+    const anyPayload = AnyType.create({
+      type_url: 'type.googleapis.com/accountlist.AccountListRequest',
+      value: innerBuffer,
+    });
 
     const serviceRequestPayload = ServiceRequestType.create({
       data: anyPayload,
@@ -199,10 +150,8 @@ export async function POST(req: Request) {
       channel: 'mobile',
       user_id: 'DASH_USER'
     }) as any;
-
-    const sentBuffer = ServiceRequestType.encode(serviceRequestPayload).finish();
-    console.log('===== DEBUG B5 - Final sent length =====', sentBuffer.length);
-    console.log('===== DEBUG B6 - Final sent base64 preview =====', Buffer.from(sentBuffer).toString('base64').substring(0, 100) + '...');
+    
+    console.log('[find-accounts] Constructed gRPC ServiceRequest:', JSON.stringify(serviceRequestPayload, null, 2));
 
     const grpcResponse = await promisifyCall<any, any>('QueryCustomerAccountList', serviceRequestPayload);
 
@@ -243,7 +192,7 @@ export async function POST(req: Request) {
     return NextResponse.json(transformedAccounts);
 
   } catch (error: any) {
-    console.error('[find-accounts] Critical error:', error);
+    console.error(`[gRPC/DB Error] A critical error occurred in find-accounts API:`, error);
 
     if (cif === '0048533') {
       console.warn('[find-accounts] Using mock data for CIF 0048533.');
