@@ -208,7 +208,7 @@ export async function POST(req: Request) {
                  await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
                 break;
             case 'pin-reset':
-                const newPin = Math.floor(1000 + Math.random() * 9000).toString(); // 4 digit PIN
+                const newPin = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit PIN
                 const newPinHash = crypto.createHash('sha256').update(newPin).digest('hex');
                 
                 const updateSecurityQuery = `
@@ -227,7 +227,9 @@ export async function POST(req: Request) {
                     cif: cif,
                 });
                 
-                const smsResult = await sendSms(approval.customerPhone, newPin);
+                const smsMessage = `Your new temporary PIN for Zemen Mobile is: ${newPin}. Please change it after your next login.`;
+                const smsResult = await sendSms(approval.customerPhone, smsMessage);
+
                 if (smsResult.success) {
                     successMessage = `PIN for customer ${approval.customerName} has been reset and sent via SMS.`;
                 } else {

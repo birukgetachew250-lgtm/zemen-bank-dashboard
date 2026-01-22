@@ -11,10 +11,10 @@ interface SmsResult {
 /**
  * Sends an SMS using the configured gateway.
  * @param recipientPhoneNumber The phone number to send the SMS to.
- * @param code The activation or OTP code.
+ * @param message The content of the SMS to be sent.
  * @returns A promise that resolves to an object indicating success or failure.
  */
-export async function sendSms(recipientPhoneNumber: string, code: string): Promise<SmsResult> {
+export async function sendSms(recipientPhoneNumber: string, message: string): Promise<SmsResult> {
   const apiUrl = process.env.SMS_API_URL;
   const username = process.env.SMS_USERNAME;
   const password = process.env.SMS_PASSWORD;
@@ -26,8 +26,6 @@ export async function sendSms(recipientPhoneNumber: string, code: string): Promi
     console.error("SMS service is not configured. Please check environment variables.");
     return { success: false, message: "SMS service is not configured on the server." };
   }
-
-  const content = `Thank You for using ZemenMobileApp. Please keep verification code private. Your activation code is ${code}.`;
   
   const body = new URLSearchParams({
     username,
@@ -36,7 +34,7 @@ export async function sendSms(recipientPhoneNumber: string, code: string): Promi
     from: sourceAddress,
     coding: coding || '8',
     priority: priority || '3',
-    content,
+    content: message,
   });
 
   try {
