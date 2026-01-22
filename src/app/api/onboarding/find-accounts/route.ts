@@ -163,7 +163,7 @@ export async function POST(req: Request) {
     });
     console.log('===== DEBUG B2 - innerPayload created (camelCase) =====', JSON.stringify(innerPayload, null, 2));
 
-    const innerBuffer = AccountListRequestType.encode(innerPayload).finish();
+    let innerBuffer = AccountListRequestType.encode(innerPayload).finish();
     console.log('===== DEBUG B3 - innerBuffer length =====', innerBuffer.length);
 
     if (innerBuffer.length === 0) {
