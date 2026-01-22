@@ -8,6 +8,7 @@ import { Prisma } from "@prisma/client";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
+import { sendSms } from '@/services/sms-service';
 
 const approvalTypeToActionMap: Record<string, ActivityLogAction> = {
     'new-customer': 'CUSTOMER_CREATE_APPROVED',
@@ -135,7 +136,7 @@ export async function POST(req: Request) {
                 for (const acc of linkedAccounts) {
                     const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id","CIFNumber","AccountNumber","HashedAccountNumber","FirstName","SecondName","LastName","BranchCode","BranchName","AccountType","Currency","Status","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (SYS_GUID(),:CIFNumber,:AccountNumber,:HashedAccountNumber,:FirstName,:SecondName,:LastName,:BranchCode,:BranchName,:AccountType,:Currency,:Status,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`;
                     
-                    const accountBinds = {
+                    const accBinds = {
                         CIFNumber: customerData.customer_number,
                         AccountNumber: encrypt(acc.CUSTACNO)!,
                         HashedAccountNumber: crypto.createHash('sha256').update(acc.CUSTACNO).digest('hex'),
@@ -148,7 +149,7 @@ export async function POST(req: Request) {
                         Currency: encrypt(acc.CCY)!,
                         Status: 'Active',
                     };
-                    await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accountQuery, accountBinds);
+                    await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accountQuery, accBinds);
                 }
 
                 const tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
@@ -226,8 +227,15 @@ export async function POST(req: Request) {
                     cif: cif,
                 });
                 
-                responseData.newPin = newPin; // Add pin to response
-                successMessage = `PIN for customer ${approval.customerName} has been reset.`
+                const smsResult = await sendSms(approval.customerPhone, newPin);
+                if (smsResult.success) {
+                    successMessage = `PIN for customer ${approval.customerName} has been reset and sent via SMS.`;
+                } else {
+                    console.warn(`SMS sending failed for PIN reset to ${approval.customerPhone}, but PIN was reset in DB.`);
+                    successMessage = `PIN reset was successful, but the SMS notification failed. Please provide the new PIN to the customer manually.`;
+                }
+
+                responseData.newPin = newPin; // Always return the PIN to the admin for manual fallback
                 break;
             case 'customer-account':
                 const linkDetails = JSON.parse(approval.details || '{}');
@@ -236,8 +244,7 @@ export async function POST(req: Request) {
                 const customerNameParts = linkDetails.customerName.split(' ');
 
                 for (const acc of accountsToLink) {
-                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" 
-                        ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "Currency", "Status", "BranchCode", "BranchName") 
+                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "Currency", "Status", "BranchCode", "BranchName") 
                         VALUES (SYS_GUID(), :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :Currency, :Status, :BranchCode, :BranchName)`;
                     
                     const accBinds = {

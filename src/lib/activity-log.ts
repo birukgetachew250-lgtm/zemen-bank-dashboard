@@ -32,7 +32,9 @@ export type ActivityLogAction =
     | 'CUSTOMER_CREATE_APPROVED'
     | 'SECURITY_RESET_APPROVED'
     // System User Security
-    | 'USER_PASSWORD_RESET';
+    | 'USER_PASSWORD_RESET'
+    // External Services
+    | 'SMS_SENT';
 
 export type LogEntry = {
     userEmail: string;
