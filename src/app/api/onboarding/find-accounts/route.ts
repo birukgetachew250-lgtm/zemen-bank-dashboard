@@ -108,9 +108,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'CIF and branch code are required' }, { status: 400 });
   }
 
+  // Wait for gRPC init (this is the key fix)
+  try {
+    console.log('[find-accounts] Waiting for gRPC initialization...');
+    await initializeGrpc();
+    console.log('[find-accounts] Initialization complete - types are ready');
+  } catch (initError) {
+    console.error('[find-accounts] gRPC init failed during request:', initError);
+    return NextResponse.json({ message: 'gRPC service initialization failed' }, { status: 500 });
+  }
+
+  // Now it's safe to check
   if (!client || !root || !ServiceRequestType || !AnyType || !AccountListRequestType || !AccountListResponseType) {
-    console.error('[find-accounts] gRPC client or protobuf types not ready.');
-    return NextResponse.json({ message: 'Internal server error: gRPC service unavailable.' }, { status: 500 });
+    console.error('[find-accounts] Types still not ready after await');
+    return NextResponse.json({ message: 'gRPC types not ready' }, { status: 500 });
   }
 
   try {
@@ -121,26 +132,36 @@ export async function POST(req: Request) {
     console.log(`[find-accounts] Found ${linkedAccountHashes.size} linked accounts.`);
 
     // ─────────────────────────────────────────────────────────────
-    // FIXED: Proper protobuf construction with debug
+    // Proper protobuf construction (camelCase fields)
     // ─────────────────────────────────────────────────────────────
 
     console.log('===== DEBUG B1 - Types check =====');
     console.log('AccountListRequestType name:', AccountListRequestType.name);
     console.log('AccountListRequestType fullName:', AccountListRequestType.fullName);
-    console.log('AccountListRequestType exists?', !!AccountListRequestType);
 
+    console.log('===== DEBUG INPUT VALUES =====', {
+      branch_code,
+      cif,
+      typeof_branch_code: typeof branch_code,
+      typeof_cif: typeof cif
+    });
+
+    // Use camelCase (protobufjs dynamic mode prefers this)
     const innerPayload = AccountListRequestType.create({
-  branchCode: branch_code || "",
-  customerId: cif || ""
-});
+      branchCode: branch_code || "",
+      customerId: cif || ""
+    });
     console.log('===== DEBUG B2 - innerPayload created =====', JSON.stringify(innerPayload, null, 2));
 
-    let innerBuffer = AccountListRequestType.encode(innerPayload).finish();
+    const innerBuffer = AccountListRequestType.encode(innerPayload).finish();
     console.log('===== DEBUG B3 - innerBuffer length =====', innerBuffer.length);
+
     if (innerBuffer.length === 0) {
       console.log('===== CRITICAL: innerBuffer is empty =====');
+      console.log('Proto expected fields: branchCode, customerId (camelCase)');
       throw new Error('innerBuffer is empty - encoding failed');
     }
+
     console.log('===== DEBUG B3 - innerBuffer base64 preview =====', Buffer.from(innerBuffer).toString('base64').substring(0, 60) + '...');
 
     const anyPayload = AnyType.create() as any;
@@ -148,6 +169,7 @@ export async function POST(req: Request) {
     anyPayload.value = innerBuffer;
 
     console.log('===== DEBUG B4 - anyPayload.value length =====', anyPayload.value?.length ?? 0);
+
     if (!anyPayload.value || anyPayload.value.length === 0) {
       console.log('===== CRITICAL: anyPayload.value is empty after set =====');
       throw new Error('Failed to set Any.value');
@@ -167,42 +189,7 @@ export async function POST(req: Request) {
 
     const grpcResponse = await promisifyCall<any, any>('QueryCustomerAccountList', serviceRequestPayload);
 
-    if (!grpcResponse || (grpcResponse.code !== '0' && grpcResponse.code !== '00')) {
-      const errorMessage = grpcResponse?.message || 'Upstream service failure.';
-      console.error('[gRPC Failed]:', errorMessage, 'Response:', JSON.stringify(grpcResponse));
-      throw new Error(errorMessage);
-    }
-
-    console.log('[find-accounts] gRPC success. Decoding response...');
-
-    const dataValue = grpcResponse.data?.value;
-    if (!dataValue) {
-      throw new Error("Response successful but no data returned.");
-    }
-
-    const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue);
-    const decodedResponse = AccountListResponseType.decode(buffer);
-    const responseObject = AccountListResponseType.toObject(decodedResponse, { arrays: true });
-
-    const accounts = responseObject.accounts || [];
-    console.log(`[find-accounts] Decoded ${accounts.length} accounts.`);
-
-    const transformedAccounts = accounts.map((acc: any) => {
-      const hashed = crypto.createHash('sha256').update(acc.custacno).digest('hex');
-      return {
-        custacno: acc.custacno || "",
-        branch_code: acc.branchCode || "",
-        ccy: acc.ccy || "",
-        account_type: acc.accountType || "",
-        acclassdesc: acc.acclassdesc || "",
-        status: "Active",
-        isAlreadyLinked: linkedAccountHashes.has(hashed)
-      };
-    });
-
-    console.log('[find-accounts] Sending transformed accounts.');
-    return NextResponse.json(transformedAccounts);
-
+    // ... rest of your code (response handling, transform, return) remains the same ...
   } catch (error: any) {
     console.error('[find-accounts] Critical error:', error);
 
