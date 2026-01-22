@@ -162,12 +162,19 @@ export async function POST(req: Request) {
                 
                 await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES ('${otpId}','${customerData.customer_number}','${codeHash}',NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`, {});
                 await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpUsers" ("UserId","Status","LockedUntil","InsertDate","UpdateDate","OtpCodeId") VALUES ('${customerData.customer_number}',0,NULL,SYSTIMESTAMP,SYSTIMESTAMP,'${otpId}')`, {});
-
                 
                 await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
                 
-                responseData.tempPassword = tempPassword;
-                successMessage = 'New customer has been successfully onboarded and activated.';
+                const smsMessage = `Welcome to Zemen Mobile Banking. Your temporary password is ${tempPassword}. Please use it to log in and change it immediately.`;
+                const smsResult = await sendSms(approval.customerPhone, smsMessage);
+
+                if (smsResult.success) {
+                    successMessage = 'New customer onboarded and welcome SMS with temporary password has been sent.';
+                } else {
+                    console.warn(`SMS sending failed for new customer ${approval.customerPhone}, but customer was created in DB.`);
+                    successMessage = `New customer onboarded, but the welcome SMS failed to send. Please follow up with the customer manually.`;
+                }
+                
                 break;
             case 'updated-customer':
                 const updateDetails = JSON.parse(approval.details || '{}');
@@ -227,17 +234,15 @@ export async function POST(req: Request) {
                     cif: cif,
                 });
                 
-                const smsMessage = `Your new temporary PIN for Zemen Mobile is: ${newPin}. Please change it after your next login.`;
-                const smsResult = await sendSms(approval.customerPhone, smsMessage);
+                const smsPinResetMessage = `Your new temporary PIN for Zemen Mobile is: ${newPin}. Please change it after your next login.`;
+                const pinResetSmsResult = await sendSms(approval.customerPhone, smsPinResetMessage);
 
-                if (smsResult.success) {
+                if (pinResetSmsResult.success) {
                     successMessage = `PIN for customer ${approval.customerName} has been reset and sent via SMS.`;
                 } else {
                     console.warn(`SMS sending failed for PIN reset to ${approval.customerPhone}, but PIN was reset in DB.`);
                     successMessage = `PIN reset was successful, but the SMS notification failed. Please provide the new PIN to the customer manually.`;
                 }
-
-                // responseData.newPin = newPin; // This line is removed for security
                 break;
             case 'customer-account':
                 const linkDetails = JSON.parse(approval.details || '{}');
