@@ -1,4 +1,6 @@
 
+import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 import type { Branch } from "@/app/(main)/branches/page";
 import type { Department } from "@/app/(main)/departments/page";
 import { CreateUserForm } from "@/components/users/CreateUserForm";
@@ -23,7 +25,7 @@ async function getFormData(id?: string) {
         });
 
         if (!user) return { branches, departments, roles, user: null };
-
+        
         const { password, ...userWithoutPassword } = user;
         
         return { branches, departments, roles, user: userWithoutPassword as any };
@@ -34,14 +36,19 @@ async function getFormData(id?: string) {
     }
 }
 
-
-export default async function CreateOrEditUserPage({ searchParams }: { searchParams: { id?: string }}) {
-    const { id } = searchParams;
+async function CreateUserPageLoader({ id }: { id?: string }) {
     const { branches, departments, roles, user } = await getFormData(id);
-
     return (
-        <div className="w-full h-full">
-           <CreateUserForm branches={branches} departments={departments} roles={roles} initialData={user} />
-        </div>
+        <CreateUserForm branches={branches} departments={departments} roles={roles} initialData={user} />
+    )
+}
+
+export default function CreateOrEditUserPage({ searchParams }: { searchParams: { id?: string }}) {
+    return (
+        <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
+            <div className="w-full h-full">
+                <CreateUserPageLoader id={searchParams.id} />
+            </div>
+        </Suspense>
     );
 }

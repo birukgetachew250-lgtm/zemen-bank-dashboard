@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import crypto from 'crypto';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
-import { logActivity } from '@/lib/activity-log';
+import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
 import { sendEmail } from '@/services/email-service';
 
 function generateWelcomeEmail(name: string, tempPassword: string, loginUrl: string): string {
@@ -28,10 +28,12 @@ function generateWelcomeEmail(name: string, tempPassword: string, loginUrl: stri
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
+    let body: any;
 
     try {
-        const { employeeId, name, email, role, branch, department } = await req.json();
-        let { password } = await req.json();
+        body = await req.json();
+        const { employeeId, name, email, role, branch, department } = body;
+        let { password } = body;
 
         if (!employeeId || !name || !email || !role || !department) {
             return NextResponse.json({ message: 'All fields except branch are required' }, { status: 400 });
@@ -81,7 +83,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true, message: 'User created successfully and welcome email sent.', user: userWithoutPassword }, { status: 201 });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Failed to create user:', error);
          await logActivity({
             userEmail: session?.user?.email || 'system',
