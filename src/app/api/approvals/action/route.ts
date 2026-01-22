@@ -1,4 +1,6 @@
 
+'use server';
+
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { executeQuery } from '@/lib/oracle-db';
@@ -165,7 +167,7 @@ export async function POST(req: Request) {
                 
                 await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
                 
-                const smsMessage = `Welcome to Zemen Mobile Banking. Your temporary password is ${tempPassword}. Please use it to log in and change it immediately.`;
+                const smsMessage = `Welcome to Zemen Mobile Banking. Your temporary password is ${tempPassword}. Get the app to start: App Store: https://apple.co/2ABCDEF, Play Store: https://bit.ly/2ABCDEF`;
                 const smsResult = await sendSms(approval.customerPhone, smsMessage);
 
                 if (smsResult.success) {
