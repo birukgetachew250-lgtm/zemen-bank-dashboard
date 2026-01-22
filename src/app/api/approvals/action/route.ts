@@ -143,11 +143,11 @@ export async function POST(req: Request) {
                         FirstName: encrypt(nameParts[0])!,
                         SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : (nameParts[1] || ''))!,
                         LastName: encrypt(nameParts[nameParts.length - 1])!,
-                        BranchCode: acc.BRANCH_CODE,
-                        BranchName: acc.BRANCH_CODE, 
                         AccountType: encrypt(acc.ACCLASSDESC)!,
                         Currency: encrypt(acc.CCY)!,
                         Status: 'Active',
+                        BranchCode: acc.BRANCH_CODE,
+                        BranchName: acc.BRANCH_CODE
                     };
                     await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accountQuery, accBinds);
                 }
