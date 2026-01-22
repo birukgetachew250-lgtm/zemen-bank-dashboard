@@ -36,8 +36,6 @@ async function initializeGrpc() {
   initPromise = (async () => {
     try {
       console.log('[find-accounts] Initializing gRPC client...');
-
-      // Load for @grpc/grpc-js
       const packageDef = protoLoader.loadSync(
         path.join(PROTO_DIR, 'accountlist.proto'),
         {
@@ -68,7 +66,6 @@ async function initializeGrpc() {
       if (!AccountListRequestType || !AnyType || !ServiceRequestType || !AccountListResponseType) {
         throw new Error('One or more protobuf types not found in proto files');
       }
-
       console.log('[find-accounts] gRPC client initialized successfully.');
     } catch (error) {
       console.error('[find-accounts] Initialization failed:', error);

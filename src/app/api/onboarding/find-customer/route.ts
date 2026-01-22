@@ -27,7 +27,6 @@ const mockCustomer = {
 const GRPC_SERVER_ADDRESS = process.env.FLEX_GRPC_URL || 'localhost:8081';
 const PROTO_DIR = path.join(process.cwd(), 'src/lib/grpc/protos');
 
-
 // Module-level variables
 let client: any = null;
 let root: protobuf.Root | null = null;
