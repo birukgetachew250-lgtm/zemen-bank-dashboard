@@ -202,3 +202,55 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: `Failed to fetch accounts. ${errorMessage}` }, { status: 502 });
   }
 }
+// Single promise to ensure init only once
+let initPromise: Promise<void> | null = null;
+
+async function initializeGrpc() {
+  if (initPromise) return initPromise;
+
+  initPromise = (async () => {
+    try {
+      console.log('[INIT] Loading protos and initializing gRPC client...');
+
+      // Load ONLY accountlist.proto (it imports common.proto)
+      const packageDef = protoLoader.loadSync(
+        path.join(PROTO_DIR, 'accountlist.proto'),
+        {
+          keepCase: true,
+          longs: String,
+          enums: String,
+          defaults: true,
+          oneofs: true,
+          includeDirs: [PROTO_DIR]
+        }
+      );
+
+      const grpcObj = grpc.loadPackageDefinition(packageDef) as any;
+      
+      client = new grpcObj.accountlist.AccountListService(
+        GRPC_SERVER_ADDRESS,
+        grpc.credentials.createInsecure()
+      );
+
+      // protobufjs load (only accountlist.proto)
+      root = await protobuf.load(path.join(PROTO_DIR, 'accountlist.proto'));
+
+      AccountListRequestType = root.lookupType('accountlist.AccountListRequest');
+      AnyType = root.lookupType('google.protobuf.Any');
+      ServiceRequestType = root.lookupType('common.ServiceRequest');
+      AccountListResponseType = root.lookupType('accountlist.AccountListResponse');
+
+      if (!AccountListRequestType || !AnyType || !ServiceRequestType || !AccountListResponseType) {
+        throw new Error('One or more protobuf types not found');
+      }
+
+      console.log('[INIT] gRPC client & protobuf types initialized successfully.');
+      console.log('[INIT] AccountListRequestType fullName:', AccountListRequestType.fullName);
+    } catch (error) {
+      console.error('[INIT] Initialization failed:', error);
+      throw error;
+    }
+  })();
+
+  return initPromise;
+}
