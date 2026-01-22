@@ -87,28 +87,11 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
       });
       const result = await response.json();
       if (response.ok) {
-        if (action === 'approve' && (result.newPin || result.tempPassword)) {
-          toast({
-            duration: 20000, 
-            title: `Action Successful`,
-            description: (
-              <div className="flex flex-col gap-2 mt-2">
-                <span>{result.message}</span>
-                <Alert variant="destructive">
-                  <Info className="h-4 w-4" />
-                  <AlertTitle>Temporary Password or PIN</AlertTitle>
-                  <AlertDescription className="font-mono text-lg font-bold tracking-widest">{result.newPin || result.tempPassword}</AlertDescription>
-                </Alert>
-                <span className="text-xs text-muted-foreground">Please securely communicate this to the customer. It is valid for a short period.</span>
-              </div>
-            ),
-          });
-        } else {
-           toast({
-            title: `Request ${action === 'approve' ? 'Approved' : 'Rejected'}`,
-            description: result.message || `The request has been successfully ${action === 'approve' ? 'approved' : 'rejected'}.`,
-          });
-        }
+        toast({
+          title: `Request ${action === 'approve' ? 'Approved' : 'Rejected'}`,
+          description: result.message || `The request has been successfully ${action === 'approve' ? 'approved' : 'rejected'}.`,
+        });
+        
         setSelectedApproval(null);
         fetchApprovals(); // Refresh the list
       } else {

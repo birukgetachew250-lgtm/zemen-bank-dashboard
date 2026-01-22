@@ -237,7 +237,7 @@ export async function POST(req: Request) {
                     successMessage = `PIN reset was successful, but the SMS notification failed. Please provide the new PIN to the customer manually.`;
                 }
 
-                responseData.newPin = newPin; // Always return the PIN to the admin for manual fallback
+                // responseData.newPin = newPin; // This line is removed for security
                 break;
             case 'customer-account':
                 const linkDetails = JSON.parse(approval.details || '{}');
