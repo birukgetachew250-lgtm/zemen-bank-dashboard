@@ -80,7 +80,7 @@ export const authOptions: NextAuthOptions = {
               }
             });
             
-            const emailBody = `
+             const emailBody = `
               <html>
                 <body>
                   <h2>One-Time Password (OTP)</h2>
@@ -92,20 +92,31 @@ export const authOptions: NextAuthOptions = {
                 </body>
               </html>`;
 
-            await sendEmail(
+
+            const emailResult = await sendEmail(
               user.email,
               'Your Zemen Admin Center Login Code',
               emailBody
             );
-          
-            await logActivity({
-                userEmail: user.email,
-                action: 'OTP_EMAIL_SENT',
-                status: 'Success',
-                details: 'MFA required. OTP sent to email.',
-                ipAddress: typeof ip === 'string' ? ip : undefined,
-            });
 
+            if (emailResult.success) {
+                await logActivity({
+                    userEmail: user.email,
+                    action: 'OTP_EMAIL_SENT',
+                    status: 'Success',
+                    details: 'MFA required. OTP sent to email.',
+                    ipAddress: typeof ip === 'string' ? ip : undefined,
+                });
+            } else {
+                 await logActivity({
+                    userEmail: user.email,
+                    action: 'OTP_EMAIL_SENT',
+                    status: 'Failure',
+                    details: `MFA email failed to send for user ${user.email}.`,
+                    ipAddress: typeof ip === 'string' ? ip : undefined,
+                });
+            }
+          
             return { ...user, permissions, mfaRequired: true };
           }
           
@@ -127,6 +138,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
+      // This block runs only on initial sign-in
       if (user) {
         token.id = user.id;
         token.email = user.email;
@@ -136,6 +148,13 @@ export const authOptions: NextAuthOptions = {
         token.permissions = (user as any).permissions;
       }
       
+      // This block ensures permissions are present on existing sessions
+      // It populates the token if a user has a role but no permissions array yet (e.g. from an old session)
+      if (token.role && !token.permissions) {
+        const permissions = await getUserPermissions(token.role as string);
+        token.permissions = permissions;
+      }
+
       if (trigger === "update" && (session as any)?.mfaValidated) {
         token.mfaRequired = false;
       }
@@ -147,8 +166,8 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
       }
-      (session as any).mfaRequired = token.mfaRequired;
-      (session as any).permissions = token.permissions;
+      session.permissions = token.permissions;
+      session.mfaRequired = token.mfaRequired;
       return session;
     },
   },
