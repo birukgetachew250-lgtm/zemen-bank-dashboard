@@ -76,12 +76,21 @@ export async function POST(req: Request) {
         // Send welcome email with temporary password
         const loginUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
         const emailBody = generateWelcomeEmail(name, password, loginUrl);
-        await sendEmail(email, 'Your Zemen Admin Center Account', emailBody);
+        const emailResult = await sendEmail(email, 'Your Zemen Admin Center Account', emailBody);
 
+        let finalMessage = 'User created successfully.';
+        if (emailResult.success) {
+            finalMessage += ' Welcome email sent.';
+            await logActivity({ userEmail: 'system', action: 'SMS_SENT', status: 'Success', details: `Welcome email sent to ${email}.` });
+        } else {
+            finalMessage += ' However, the welcome email could not be sent. Please provide credentials manually.';
+            console.warn(`[User Creation] Failed to send welcome email to ${email}: ${emailResult.message}`);
+             await logActivity({ userEmail: 'system', action: 'SMS_SENT', status: 'Failure', details: `Failed to send welcome email to ${email}: ${emailResult.message}` });
+        }
 
         const { password: _, ...userWithoutPassword } = newUser;
 
-        return NextResponse.json({ success: true, message: 'User created successfully and welcome email sent.', user: userWithoutPassword }, { status: 201 });
+        return NextResponse.json({ success: true, message: finalMessage, user: userWithoutPassword }, { status: 201 });
 
     } catch (error: any) {
         console.error('Failed to create user:', error);

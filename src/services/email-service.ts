@@ -40,28 +40,17 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
   };
 
   try {
-    console.log(`Attempting to send email to ${to}`);
+    console.log(`[Email Service] Attempting to send email to ${to}`);
     
     const info = await transporter.sendMail(mailOptions);
 
-    console.log(`Email sent successfully to ${to}. Message ID: ${info.messageId}`);
-    // You might want a specific log action for emails, but for now, we'll reuse SMS_SENT logic.
-    // await logActivity({
-    //     userEmail: 'system',
-    //     action: 'EMAIL_SENT',
-    //     status: 'Success',
-    //     details: `Email with subject "${subject}" sent to ${to}.`,
-    // });
+    console.log(`[Email Service] Email sent successfully to ${to}. Message ID: ${info.messageId}`);
+
     return { success: true, message: "Email sent successfully." };
 
   } catch (error: any) {
-    console.error(`Unexpected error during email sending to ${to}`, error);
-    // await logActivity({
-    //     userEmail: 'system',
-    //     action: 'EMAIL_SENT',
-    //     status: 'Failure',
-    //     details: `Failed to send email to ${to}. Error: ${error.message}`,
-    // });
+    console.error(`[Email Service] Error sending email to ${to}:`, error);
+
     return { success: false, message: `An unexpected error occurred while sending the email.` };
   }
 }
