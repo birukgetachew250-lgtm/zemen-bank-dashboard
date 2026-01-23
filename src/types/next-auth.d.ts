@@ -11,6 +11,7 @@ declare module "next-auth" {
       role: string;
     } & DefaultSession["user"];
     mfaRequired?: boolean;
+    permissions?: string[];
   }
 }
 
@@ -19,5 +20,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     mfaRequired?: boolean;
     role?: string;
+    permissions?: string[];
   }
 }

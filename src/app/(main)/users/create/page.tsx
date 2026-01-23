@@ -15,7 +15,7 @@ async function getFormData(id?: string) {
     if (!id) {
         return { branches, departments, roles, user: null };
     }
-
+    
     try {
         const userId = parseInt(id, 10);
         if (isNaN(userId)) return { branches, departments, roles, user: null };
@@ -43,11 +43,12 @@ async function CreateUserPageLoader({ id }: { id?: string }) {
     )
 }
 
-export default function CreateOrEditUserPage({ searchParams }: { searchParams: { id?: string }}) {
+export default async function CreateOrEditUserPage({ searchParams }: { searchParams: { id?: string }}) {
+    const { id } = searchParams;
     return (
         <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
             <div className="w-full h-full">
-                <CreateUserPageLoader id={searchParams.id} />
+                <CreateUserPageLoader id={id} />
             </div>
         </Suspense>
     );

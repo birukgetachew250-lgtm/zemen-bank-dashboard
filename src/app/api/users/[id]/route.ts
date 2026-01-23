@@ -5,7 +5,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
 import { logActivity } from '@/lib/activity-log';
 
-
 // GET a single user
 export async function GET(
   req: Request,
@@ -50,6 +49,10 @@ export async function PUT(
         }
         const { employeeId, name, email, password, role, branch, department } = await req.json();
 
+        if (!name) {
+            return NextResponse.json({ message: 'Role name is required' }, { status: 400 });
+        }
+        
         const dataToUpdate: any = { employeeId, name, email, role, branch, department };
 
         if (password) {
@@ -60,8 +63,8 @@ export async function PUT(
             where: { id },
             data: dataToUpdate,
         });
-
-         await logActivity({
+        
+        await logActivity({
             userEmail: session?.user?.email || 'system',
             action: 'USER_UPDATED',
             status: 'Success',

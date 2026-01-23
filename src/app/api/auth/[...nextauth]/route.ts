@@ -6,6 +6,33 @@ import { logActivity } from '@/lib/activity-log';
 import crypto from 'crypto';
 import { sendEmail } from '@/services/email-service';
 
+async function getUserPermissions(roleName: string): Promise<string[]> {
+    if (roleName === 'Super Admin') {
+        return ['all'];
+    }
+    try {
+        const role = await db.role.findUnique({
+            where: { name: roleName },
+        });
+
+        if (role?.description) {
+            try {
+                // The permissions are stored in a JSON string within the description field
+                const descObj = JSON.parse(role.description);
+                return descObj.permissions || [];
+            } catch (e) {
+                // If parsing fails, it's a plain description with no permissions.
+                return [];
+            }
+        }
+        return [];
+    } catch (e) {
+        console.error("Failed to get user permissions:", e);
+        return []; // Return no permissions on error
+    }
+}
+
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -36,6 +63,8 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid email or password.');
           }
 
+          const permissions = await getUserPermissions(user.role);
+
           if (user.mfaEnabled) {
             const otp = crypto.randomInt(100000, 999999).toString();
             const expires = new Date();
@@ -65,25 +94,25 @@ export const authOptions: NextAuthOptions = {
 
             await sendEmail(
               user.email,
-              'ZemenMobileBanking OTP',
+              'Your Zemen Admin Center Login Code',
               emailBody
             );
           
             await logActivity({
                 userEmail: user.email,
-                action: 'LOGIN_SUCCESS',
+                action: 'OTP_EMAIL_SENT',
                 status: 'Success',
                 details: 'MFA required. OTP sent to email.',
                 ipAddress: typeof ip === 'string' ? ip : undefined,
             });
 
-            return { ...user, mfaRequired: true };
+            return { ...user, permissions, mfaRequired: true };
           }
           
           await logActivity({ userEmail: user.email, action: 'LOGIN_SUCCESS', status: 'Success', details: 'User successfully logged in (MFA not enabled).', ipAddress: typeof ip === 'string' ? ip : undefined });
 
           const { password, ...userWithoutPassword } = user;
-          return { ...userWithoutPassword, mfaRequired: false };
+          return { ...userWithoutPassword, permissions, mfaRequired: false };
 
         } catch (error: any) {
             console.error("Authorization error:", error);
@@ -104,6 +133,7 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.role = (user as any).role;
         token.mfaRequired = (user as any).mfaRequired;
+        token.permissions = (user as any).permissions;
       }
       
       if (trigger === "update" && (session as any)?.mfaValidated) {
@@ -118,6 +148,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string;
       }
       (session as any).mfaRequired = token.mfaRequired;
+      (session as any).permissions = token.permissions;
       return session;
     },
   },

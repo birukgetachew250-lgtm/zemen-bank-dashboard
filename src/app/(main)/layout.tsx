@@ -8,7 +8,6 @@ import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
-import { getPermissions } from "@/lib/permissions";
 
 export default function MainLayout({
   children,
@@ -45,7 +44,7 @@ export default function MainLayout({
   }
   
   const user = session?.user;
-  const userPermissions = user?.role ? getPermissions(user.role) : [];
+  const userPermissions = (session as any)?.permissions || [];
 
 
   return (

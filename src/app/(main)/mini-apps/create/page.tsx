@@ -42,11 +42,12 @@ async function MiniAppFormLoader({ id }: { id?: string }) {
 }
 
 
-export default function CreateMiniAppPage({ searchParams }: { searchParams: { id?: string }}) {
+export default async function CreateMiniAppPage({ searchParams }: { searchParams: { id?: string }}) {
+  const { id } = searchParams;
   return (
     <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
       <div className="w-full h-full">
-        <MiniAppFormLoader id={searchParams.id} />
+        <MiniAppFormLoader id={id} />
       </div>
     </Suspense>
   )
