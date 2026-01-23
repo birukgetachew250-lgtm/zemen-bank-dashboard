@@ -14,61 +14,31 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { executeQuery } from "@/lib/oracle-db";
 
-// Define the type locally based on what the component needs and what the DB provides
-interface OtpCodeType {
-  Id: string;
-  UserId: string;
-  Purpose: string;
-  OtpType: string;
-  IsUsed: boolean;
-  Attempts: number;
-  ExpiresAt: Date;
-}
-
-async function getOtpCodes(): Promise<OtpCodeType[]> {
-  if (!process.env.OTP_MODULE_DB_CONNECTION_STRING) {
-    console.warn("OTP_MODULE_DB_CONNECTION_STRING not set, returning empty OTP code list.");
-    return [];
-  }
+async function getOtpCodes() {
   try {
-    // Note: Oracle uses FETCH FIRST ... ROWS ONLY instead of LIMIT
-    const query = `SELECT "Id", "UserId", "Purpose", "OtpType", "IsUsed", "Attempts", "ExpiresAt" FROM "OTP_MODULE"."OtpCodes" ORDER BY "InsertDate" DESC FETCH FIRST 20 ROWS ONLY`;
-    const result: any = await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, query);
-    
-    if (!result.rows) {
-        return [];
-    }
-
-    // Map Oracle DB results to our expected type
-    return result.rows.map((row: any) => ({
-      Id: row.Id,
-      UserId: row.UserId,
-      Purpose: row.Purpose,
-      OtpType: row.OtpType,
-      IsUsed: row.IsUsed === 1,
-      Attempts: row.Attempts,
-      ExpiresAt: new Date(row.ExpiresAt),
-    }));
+    const data = await db.otpCode.findMany({
+      orderBy: { InsertDate: 'desc' },
+      take: 20
+    });
+    return data;
   } catch (error) {
-    console.error("Failed to fetch OTP codes:", error);
-    if (error instanceof Error) {
-        throw new Error(error.message);
-    }
-    throw new Error("An unknown error occurred while fetching OTP codes.");
+    console.error("Failed to fetch OTP codes from PostgreSQL:", error);
+    // This will happen if the migration hasn't been run.
+    // We throw an error that the page component can catch and display.
+    throw new Error("Could not connect to the OTP code table. Please ensure you have run database migrations: `npm run migrate:dev`");
   }
 }
-
 
 export default async function OtpSmsPage() {
-    let otpCodes: OtpCodeType[] = [];
+    let otpCodes = [];
     let error: string | null = null;
-
+    
     try {
         otpCodes = await getOtpCodes();
     } catch (e: any) {
@@ -79,8 +49,8 @@ export default async function OtpSmsPage() {
     <div className="w-full h-full">
       <Card>
         <CardHeader>
-          <CardTitle>Recent OTP Codes</CardTitle>
-          <CardDescription>Displaying the last 20 generated OTP codes from the system.</CardDescription>
+          <CardTitle>Recent OTP Codes (System Users)</CardTitle>
+          <CardDescription>Displaying the last 20 generated MFA codes from the system.</CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
@@ -94,7 +64,7 @@ export default async function OtpSmsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User ID (CIF)</TableHead>
+                  <TableHead>User ID</TableHead>
                   <TableHead>Purpose</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Code</TableHead>
@@ -124,7 +94,7 @@ export default async function OtpSmsPage() {
                 ))) : (
                     <TableRow>
                         <TableCell colSpan={7} className="h-24 text-center">
-                            No OTP codes found.
+                           {!error && "No OTP codes found."}
                         </TableCell>
                     </TableRow>
                 )}

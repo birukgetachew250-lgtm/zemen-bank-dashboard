@@ -1,34 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Firebase Studio
 
 This is a NextJS starter in Firebase Studio.
@@ -43,7 +12,7 @@ To get the application running on your local machine, follow these steps:
     npm install
     ```
 
-2. **Run Database Migrations**: This project uses a database for the main dashboard. You must run the migration command to create the necessary tables.
+2. **Run Database Migrations**: This project uses a database for the main dashboard. You must run the migration command to create the necessary tables. **This step is crucial, especially after adding new models to `prisma/schema.prisma`, to create tables like `OtpCode` in your database.**
 
     ```bash
     # Migrate the main dashboard database (users, roles, etc.)
