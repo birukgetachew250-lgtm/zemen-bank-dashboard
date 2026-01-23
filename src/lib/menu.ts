@@ -222,7 +222,7 @@ export const menu: MenuItem[] = [
         ],
       },
        { 
-        label: "Limits &amp; Charges",
+        label: "Limits & Charges",
         icon: SlidersHorizontal, 
         href: "/limits",
         children: [
@@ -231,6 +231,7 @@ export const menu: MenuItem[] = [
           { icon: List, label: "Transaction Types", href: "/limits/types" },
           { icon: Users, label: "Customer Categories", href: "/limits/categories" },
           { icon: History, label: "Intervals", href: "/limits/intervals" },
+          { icon: ShieldAlert, label: "Exceptional Limits", href: "/limits/exceptional-limits" },
         ]
       },
     ]
