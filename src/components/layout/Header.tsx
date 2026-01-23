@@ -31,7 +31,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { cn } from "@/lib/utils";
-import { getPermissions } from "@/lib/permissions";
 
 
 const findCurrentPage = (menuItems: MenuItem[], pathname: string): MenuItem | undefined => {
@@ -50,11 +49,42 @@ const findCurrentPage = (menuItems: MenuItem[], pathname: string): MenuItem | un
     }
   };
   
+function hasPermission(userPermissions: string[], item: MenuItem): boolean {
+    if (userPermissions.includes('all')) {
+        return true;
+    }
+    const permissionId = item.href || item.label;
+    return userPermissions.includes(permissionId);
+}
+
+function hasAccessToAnyChild(item: MenuItem, userPermissions: string[]): boolean {
+    if (!item.children) {
+        return false;
+    }
+    return item.children.some(child => {
+        return hasPermission(userPermissions, child) || hasAccessToAnyChild(child, userPermissions);
+    });
+}
+  
 function MobileSidebarNavItem({ item, pathname, userPermissions }: { item: MenuItem; pathname: string, userPermissions: string[] }) {
   const Icon = item.icon;
 
+  const canAccess = item.label === "Dashboard" || hasPermission(userPermissions, item) || hasAccessToAnyChild(item, userPermissions);
+
+  if (!canAccess) {
+      return null;
+  }
+
   if (item.children) {
-    const isChildActive = item.children.some(child => 
+    const accessibleChildren = item.children.filter(child => 
+       hasPermission(userPermissions, child) || hasAccessToAnyChild(child, userPermissions)
+    );
+        
+    if (accessibleChildren.length === 0 && !item.href) {
+        return null;
+    }
+        
+    const isChildActive = accessibleChildren.some(child => 
       child.href && pathname.startsWith(child.href) || 
       (child.children && child.children.some(subChild => subChild.href && pathname.startsWith(subChild.href)))
     );
@@ -81,8 +111,8 @@ function MobileSidebarNavItem({ item, pathname, userPermissions }: { item: MenuI
           </AccordionTrigger>
           <AccordionContent className="pl-4 pt-1 pb-0">
             <div className="flex flex-col space-y-1">
-              {item.children.map((child) => (
-                <MobileSidebarNavItem key={child.label} item={child} pathname={pathname} userPermissions={userPermissions} />
+              {accessibleChildren.map((child) => (
+                <MobileSidebarNavItem key={child.href || child.label} item={child} pathname={pathname} userPermissions={userPermissions} />
               ))}
             </div>
           </AccordionContent>
@@ -105,12 +135,11 @@ function MobileSidebarNavItem({ item, pathname, userPermissions }: { item: MenuI
   );
 }
 
-export function Header({ user }: { user: any }) {
+export function Header({ user, userPermissions }: { user: any, userPermissions: string[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const userPermissions = user?.role ? getPermissions(user.role) : [];
 
   const currentPage = findCurrentPage(menu, pathname);
 

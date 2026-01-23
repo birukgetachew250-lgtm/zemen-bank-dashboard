@@ -51,7 +51,7 @@ export default function MainLayout({
       <div className="flex h-screen bg-background">
         <Sidebar userPermissions={userPermissions} />
         <div className="flex-1 flex flex-col h-screen">
-          <Header user={user} />
+          <Header user={user} userPermissions={userPermissions} />
           <main className="flex-1 p-4 md:p-6 lg:p-8 relative overflow-y-auto">
             <Watermark />
             {children}

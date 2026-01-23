@@ -1,8 +1,4 @@
 
-export const getPermissions = (role: string): string[] => {
-    if (role === 'Super Admin') {
-        return ['all'];
-    }
-    // Add other role-based permission logic here if needed
-    return ['Dashboard']; 
-}
+// This file is no longer used and can be safely deleted.
+// Permissions are now sourced from the user session, which is populated
+// from the database during the authentication process.
