@@ -117,3 +117,16 @@ model IpWhitelist {
   label     String
   createdAt DateTime @default(now())
 }
+
+model OtpCode {
+  Id         Int      @id @default(autoincrement())
+  Purpose    String
+  UserId     String
+  OtpType    String
+  Code       String?
+  IsUsed     Boolean  @default(false)
+  ExpiresAt  DateTime
+  Attempts   Int      @default(0)
+  InsertDate DateTime @default(now())
+  UpdateDate DateTime @updatedAt
+}

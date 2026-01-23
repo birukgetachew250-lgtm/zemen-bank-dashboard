@@ -1,3 +1,4 @@
+
 const { PrismaClient } = require('@prisma/client');
 const { faker } = require('@faker-js/faker');
 const crypto = require('crypto');
@@ -28,19 +29,17 @@ async function main() {
     console.log('Start seeding...');
 
     // Clean up existing data
+    await prisma.systemActivityLog.deleteMany();
     await prisma.pendingApproval.deleteMany();
     await prisma.transaction.deleteMany();
     await prisma.customer.deleteMany();
-    await prisma.userSecurity.deleteMany();
-    await prisma.account.deleteMany();
-    await prisma.appUser.deleteMany();
-    await prisma.securityQuestion.deleteMany();
-    await prisma.corporate.deleteMany();
     await prisma.department.deleteMany();
     await prisma.branch.deleteMany();
-    await prisma.miniApp.deleteMany();
     await prisma.role.deleteMany();
     await prisma.user.deleteMany();
+    await prisma.securityPolicy.deleteMany();
+    await prisma.ipWhitelist.deleteMany();
+    await prisma.otpCode.deleteMany();
     console.log('Cleared existing data.');
 
     // Seed Branches
@@ -65,78 +64,28 @@ async function main() {
         data: [
             { name: 'Super Admin', description: 'Full system access.' },
             { name: 'Operations Lead', description: 'Manages approvals.' },
-            { name: 'Support Staff', description: 'Customer support.' },
+            { name: 'Support Staff', description: 'Handles customer inquiries.' },
             { name: 'Compliance Officer', description: 'Handles risk and compliance.' },
         ],
     });
     console.log('Seeded 4 roles.');
 
     // Seed Admin Users
-    await prisma.user.create({ data: { employeeId: 'admin001', name: 'Admin User', email: 'admin@zemen.com', password: 'password', role: 'Super Admin', department: 'IT Department', branch: 'Head Office' } });
-    await prisma.user.create({ data: { employeeId: 'ops001', name: 'Operations Lead User', email: 'ops@zemen.com', password: 'password', role: 'Operations Lead', department: 'Branch Operations', branch: 'Bole Branch' } });
+    await prisma.user.create({ data: { employeeId: 'admin001', name: 'Admin User', email: 'admin@zemen.com', password: 'password', role: 'Super Admin', department: 'IT Department', branch: 'Head Office', mfaEnabled: false } });
+    await prisma.user.create({ data: { employeeId: 'ops001', name: 'Operations Lead User', email: 'ops@zemen.com', password: 'password', role: 'Operations Lead', department: 'Branch Operations', branch: 'Bole Branch', mfaEnabled: false } });
     console.log('Seeded 2 admin users.');
 
-    // Seed Security Questions
-    const sq1 = await prisma.securityQuestion.create({ data: { question: 'Your primary school name ?' } });
-    const sq2 = await prisma.securityQuestion.create({ data: { question: 'Your nick name ?' } });
-    const sq3 = await prisma.securityQuestion.create({ data: { question: 'Your faviourite subject at primary school?' } });
-    const securityQuestions = [sq1, sq2, sq3];
-    console.log(`Seeded ${securityQuestions.length} security questions.`);
-
-    // Seed AppUsers, Accounts, UserSecurities, and legacy Customers
-    const userList = [
-        { cif: '0005995', name: 'John Adebayo Doe', email: 'john.doe@example.com', phone: '+2348012345678', branch: 'Head Office', status: 'Active' },
-        { cif: '0052347', name: 'Jane Smith', email: 'jane.smith@example.com', phone: '+2348012345679', branch: 'Bole Branch', status: 'Active' },
-        { cif: '0058322', name: 'Samson Tsegaye', email: 'samson.t@example.com', phone: '+251911223344', branch: 'Arada', status: 'Registered' },
-        { cif: '0048533', name: 'AKALEWORK TAMENE KEBEDE', email: 'akalework.t@example.com', phone: '+251911223345', branch: 'Arada', status: 'Active' },
-        { cif: '0061234', name: 'Sara Connor', email: 'sara.c@example.com', phone: '+251911123456', branch: 'Bole Branch', status: 'Inactive' },
-        { cif: '0078901', name: 'Kyle Reese', email: 'kyle.r@example.com', phone: '+251911654321', branch: 'Head Office', status: 'Dormant' },
+    const customerList = [
+        { name: 'John Adebayo Doe', phone: '+2348012345678', status: 'Active' },
+        { name: 'Jane Smith', phone: '+2348012345679', status: 'Active' },
+        { name: 'Samson Tsegaye', phone: '+251911223344', status: 'Registered' },
+        { name: 'AKALEWORK TAMENE KEBEDE', phone: '+251911223345', status: 'Active' },
+        { name: 'Sara Connor', phone: '+251911123456', status: 'Inactive' },
+        { name: 'Kyle Reese', phone: '+251911654321', status: 'Dormant' },
     ];
     
-    let createdCustomers = [];
-
-    for (const u of userList) {
-        const nameParts = u.name.split(' ');
-        const appUserId = `user_${u.cif}`;
-        await prisma.appUser.create({
-            data: {
-                Id: appUserId,
-                CIFNumber: u.cif,
-                FirstName: encrypt(nameParts[0]),
-                SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : nameParts[1]),
-                LastName: encrypt(nameParts[nameParts.length - 1]),
-                Email: encrypt(u.email),
-                PhoneNumber: encrypt(u.phone),
-                Status: u.status,
-                SignUpMainAuth: 'PIN',
-                SignUp2FA: 'SMSOTP',
-                BranchName: u.branch,
-                AddressLine1: faker.location.streetAddress(),
-                Nationality: 'Ethiopian'
-            }
-        });
-        
-        await prisma.userSecurity.create({
-            data: {
-                UserId: appUserId,
-                CIFNumber: u.cif,
-                Status: u.status,
-                PinHash: crypto.createHash('sha256').update(faker.string.numeric(4)).digest('hex'),
-                SecurityQuestionId: faker.helpers.arrayElement(securityQuestions).id,
-                SecurityAnswer: encrypt(faker.lorem.word()),
-            }
-        });
-        
-        const customer = await prisma.customer.create({
-            data: {
-                name: u.name,
-                phone: u.phone,
-                status: u.status,
-            }
-        });
-        createdCustomers.push(customer);
-    }
-    console.log(`Seeded ${userList.length} app users, securities, and legacy customers.`);
+    const createdCustomers = await Promise.all(customerList.map(c => prisma.customer.create({ data: c })));
+    console.log(`Seeded ${createdCustomers.length} customers.`);
 
     // Seed Pending Approvals
     const approvalTypes = ['unblock', 'pin-reset', 'new-customer', 'updated-customer', 'customer-account', 'reset-security-questions'];
@@ -177,25 +126,16 @@ async function main() {
     }
     console.log('Seeded 250 transactions.');
     
-    // Seed Corporates
-    await prisma.corporate.createMany({
-        data: [
-            { id: "corp_1", name: "Dangote Cement", industry: "Manufacturing", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/dangote/40/40" },
-            { id: "corp_2", name: "MTN Nigeria", industry: "Telecommunications", status: "Active", internet_banking_status: "Active", logo_url: "https://picsum.photos/seed/mtn/40/40" },
-            { id: "corp_3", name: "Zenith Bank", industry: "Finance", status: "Inactive", internet_banking_status: "Disabled", logo_url: "https://picsum.photos/seed/zenith/40/40" },
-            { id: "corp_4_new", name: "Jumia Group", industry: "E-commerce", status: "Active", internet_banking_status: "Pending", logo_url: "https://picsum.photos/seed/jumia/40/40" },
-        ]
+    await prisma.securityPolicy.create({
+        data: {
+            id: 1,
+            mfaRequired: true,
+            allowedMfaMethods: ['email'],
+            sessionTimeout: 30,
+            concurrentSessions: 1,
+        }
     });
-    console.log('Seeded 4 corporates.');
-
-    // Seed Mini Apps
-    await prisma.miniApp.createMany({
-        data: [
-            { name: "Cinema Ticket", url: "https://cinema.example.com", logo_url: "https://picsum.photos/seed/cinema/100/100", username: "cinema_api", password: "secure_password_1", encryption_key: crypto.randomBytes(32).toString('hex') },
-            { name: "Event Booking", url: "https://events.example.com", logo_url: "https://picsum.photos/seed/events/100/100", username: "event_api_user", password: "secure_password_2", encryption_key: crypto.randomBytes(32).toString('hex') }
-        ]
-    });
-    console.log('Seeded 2 mini-apps.');
+    console.log('Seeded default security policy.');
 
 
     console.log('Seeding finished.');
