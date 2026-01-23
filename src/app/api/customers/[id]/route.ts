@@ -1,4 +1,6 @@
 
+'use server';
+
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { decrypt, encrypt } from '@/lib/crypto';
@@ -54,7 +56,8 @@ const getCustomerByCifOrId = async (identifier: string) => {
             status: user.Status,
             insertDate: user.InsertDate.toISOString(),
             signUpMainAuth: user.SignUpMainAuth,
-            signUp2FA: user.SignUp2FA
+            signUp2FA: user.SignUp2FA,
+            channel: user.Channel,
         };
     } catch(e) {
         console.error(`[Oracle Error] in getCustomerByCifOrId for identifier ${identifier}:`, e);
@@ -75,7 +78,8 @@ const getCustomerByCifOrId = async (identifier: string) => {
                 status: 'Active',
                 insertDate: new Date().toISOString(),
                 signUpMainAuth: "SMSOTP",
-                signUp2FA: "GAUTH"
+                signUp2FA: "GAUTH",
+                channel: "Both"
             };
         }
         return null;

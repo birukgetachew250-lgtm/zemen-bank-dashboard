@@ -189,6 +189,7 @@ export async function POST(req: Request) {
                         "PhoneNumber" = :phoneNumber,
                         "SignUpMainAuth" = :signUpMainAuth,
                         "SignUp2FA" = :signUp2FA,
+                        "Channel" = :channel,
                         "UpdateDate" = SYSTIMESTAMP,
                         "UpdateUser" = 'admin'
                     WHERE "CIFNumber" = :cif
@@ -199,6 +200,7 @@ export async function POST(req: Request) {
                     phoneNumber: encrypt(changes.phoneNumber.new),
                     signUpMainAuth: changes.signUpMainAuth.new,
                     signUp2FA: changes.signUp2FA.new,
+                    channel: changes.channel.new,
                     cif: cif,
                 };
                 

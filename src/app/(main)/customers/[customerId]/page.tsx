@@ -35,7 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { User, Landmark, Activity, Smartphone, Shield, Edit, History, Unlink } from "lucide-react";
+import { User, Landmark, Activity, Smartphone, Shield, Edit, History, Unlink, ArrowRight } from "lucide-react";
 import { notFound, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState, Suspense, use } from "react";
@@ -78,11 +78,18 @@ const twoFactorMethods = [
     { value: 'None', label: 'None'},
 ];
 
+const channelOptions = [
+    { value: 'Mobile App', label: 'Mobile App' },
+    { value: 'USSD', label: 'USSD' },
+    { value: 'Both', label: 'Both' },
+];
+
 const editProfileSchema = z.object({
   email: z.string().email(),
   phoneNumber: z.string().min(1, 'Phone number is required.'),
   signUpMainAuth: z.string().min(1, 'Primary authentication method is required.'),
   signUp2FA: z.string(),
+  channel: z.string().min(1, 'Channel is required.'),
 }).refine(data => data.signUp2FA === 'None' || data.signUpMainAuth !== data.signUp2FA, {
     message: "Main auth and 2FA method cannot be the same.",
     path: ["signUp2FA"],
@@ -116,6 +123,7 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
                     phoneNumber: customerData.phoneNumber,
                     signUpMainAuth: customerData.signUpMainAuth,
                     signUp2FA: customerData.signUp2FA,
+                    channel: customerData.channel,
                 });
 
                 const accountsRes = await fetch(`/api/customers/${customerId}/accounts`);
@@ -168,6 +176,7 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
           phoneNumber: { old: customer.phoneNumber, new: values.phoneNumber },
           signUpMainAuth: { old: customer.signUpMainAuth, new: values.signUpMainAuth },
           signUp2FA: { old: customer.signUp2FA, new: values.signUp2FA },
+          channel: { old: customer.channel, new: values.channel },
         };
         
         try {
@@ -343,6 +352,7 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <InfoItem label="Primary Authentication" value={<Badge variant="secondary">{customer.signUpMainAuth}</Badge>} />
                     <InfoItem label="Two-Factor Authentication (2FA)" value={<Badge variant="secondary">{customer.signUp2FA}</Badge>} />
+                    <InfoItem label="App Channel" value={<Badge variant="secondary">{customer.channel}</Badge>} />
                 </div>
                 <Separator />
                 <div className="flex justify-start gap-2 flex-wrap">
@@ -388,6 +398,32 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
                             </FormItem>
                         )}
                     />
+                    <FormField
+                        control={form.control}
+                        name="channel"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Channel Access</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a channel" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {channelOptions.map(option => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                        {option.label}
+                                        </SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <Separator />
+                    <h3 className="text-sm font-medium">Security Settings</h3>
                     <FormField
                         control={form.control}
                         name="signUpMainAuth"
@@ -457,20 +493,6 @@ function InfoItem({ label, value, className }: { label: string, value: React.Rea
     )
 }
 
-function ChangeItem({ label, oldValue, newValue }: { label: string, oldValue: string, newValue: string}) {
-    if (oldValue === newValue) return null;
-    return (
-        <div>
-            <p className="text-sm font-medium text-muted-foreground">{label}</p>
-            <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-muted-foreground line-through">{oldValue}</span>
-                <ArrowRight className="h-4 w-4 text-muted-foreground"/>
-                <span className="text-sm font-medium text-foreground">{newValue}</span>
-            </div>
-        </div>
-    )
-}
-
 export default function CustomerDetailsPage({ params }: { params: { customerId: string } }) {
   // Directly use `params` in the Server Component part
   const customerId = params.customerId;
@@ -481,5 +503,3 @@ export default function CustomerDetailsPage({ params }: { params: { customerId: 
     </Suspense>
   )
 }
-
-    

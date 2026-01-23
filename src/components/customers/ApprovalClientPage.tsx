@@ -45,6 +45,29 @@ interface ApprovalClientPageProps {
   pageTitle: string;
 }
 
+const labelMap: Record<string, string> = {
+    email: "Email Address",
+    phoneNumber: "Phone Number",
+    signUpMainAuth: "Main Auth Method",
+    signUp2FA: "Two-Factor Method",
+    channel: "Channel",
+};
+
+const ChangeItem = ({ label: key, oldValue, newValue }: { label: string, oldValue: string, newValue: string}) => {
+    if (oldValue === newValue) return null;
+    const label = labelMap[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    return (
+        <div>
+            <p className="text-sm font-medium text-muted-foreground">{label}</p>
+            <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground line-through">{oldValue}</span>
+                <ArrowRight className="h-4 w-4 text-muted-foreground"/>
+                <span className="text-sm font-medium text-foreground">{newValue}</span>
+            </div>
+        </div>
+    )
+}
+
 export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPageProps) {
   const [approvals, setApprovals] = useState<Approval[]>([]);
   const [loading, setLoading] = useState(true);
@@ -210,7 +233,7 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
                             <h3 className="font-semibold text-lg mb-2">Requested Changes</h3>
                              <div className="grid grid-cols-1 gap-y-4 p-4 border rounded-lg bg-muted/50">
                                 {Object.entries(parsedDetails.changes).map(([key, value]: [string, any]) => (
-                                    <ChangeItem key={key} label={key.replace(/([A-Z])/g, ' $1')} oldValue={value.old} newValue={value.new} />
+                                    <ChangeItem key={key} label={key} oldValue={value.old} newValue={value.new} />
                                 ))}
                             </div>
                         </div>
@@ -304,20 +327,6 @@ function InfoItem({ icon, label, value, className }: { icon: React.ReactNode, la
             <div>
                 <p className="text-sm text-muted-foreground">{label}</p>
                 <p className="font-medium text-sm">{value}</p>
-            </div>
-        </div>
-    )
-}
-
-function ChangeItem({ label, oldValue, newValue }: { label: string, oldValue: string, newValue: string}) {
-    if (oldValue === newValue) return null;
-    return (
-        <div>
-            <p className="text-sm font-medium text-muted-foreground">{label}</p>
-            <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-muted-foreground line-through">{oldValue}</span>
-                <ArrowRight className="h-4 w-4 text-muted-foreground"/>
-                <span className="text-sm font-medium text-foreground">{newValue}</span>
             </div>
         </div>
     )
