@@ -102,7 +102,6 @@ export const menu: MenuItem[] = [
         { icon: Users2, label: "P2P & Wallet", href: "/transactions/p2p-wallet" },
         { icon: Network, label: "Interoperability", href: "/transactions/interoperability" },
         { icon: Receipt, label: "Bill Payments", href: "/transactions/bills-utilities" },
-        { icon: Globe, label: "Remittances", href: "/transactions/remittances" },
         { icon: SlidersHorizontal, label: "Limits & Overrides", href: "/transactions/limits-overrides" },
         { icon: BookCheck, label: "Settlements", href: "/transactions/settlements" },
     ]
