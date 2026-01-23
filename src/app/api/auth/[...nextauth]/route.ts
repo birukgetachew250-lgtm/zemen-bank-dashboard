@@ -50,11 +50,23 @@ export const authOptions: NextAuthOptions = {
                 ExpiresAt: expires,
               }
             });
+            
+            const emailBody = `
+              <html>
+                <body>
+                  <h2>One-Time Password (OTP)</h2>
+                  <p>Dear customer,</p>
+                  <p>Your OTP for verification is: <strong style='font-size: 18px;'>${otp}</strong></p>
+                  <p>This code is valid for <strong>5 minutes</strong>. Do not share it with anyone.</p>
+                  <br/>
+                  <p>Best regards,<br/><strong>Zemen Mobile Banking Team</strong></p>
+                </body>
+              </html>`;
 
             await sendEmail(
               user.email,
-              'Your Zemen Admin Center Login Code',
-              `<p>Your login verification code is: <strong>${otp}</strong></p><p>This code will expire in 5 minutes.</p>`
+              'ZemenMobileBanking OTP',
+              emailBody
             );
           
             await logActivity({

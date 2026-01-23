@@ -36,7 +36,8 @@ export type ActivityLogAction =
     // External Services
     | 'SMS_SENT'
     | 'WELCOME_EMAIL_SENT'
-    | 'OTP_EMAIL_SENT';
+    | 'OTP_EMAIL_SENT'
+    | 'EMAIL_SEND_FAILURE';
 
 export type LogEntry = {
     userEmail: string;

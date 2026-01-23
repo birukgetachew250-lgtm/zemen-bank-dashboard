@@ -2,31 +2,26 @@
 'use server';
 
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
+import nodemailer from 'nodemailer';
 
 interface EmailResult {
   success: boolean;
   message: string;
 }
 
-// NOTE: Nodemailer setup has been commented out to allow development without
-// real SMTP credentials. The email content will be logged to the console instead.
-/*
-import nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_SERVER,
     port: parseInt(process.env.SMTP_PORT || '587', 10),
-    secure: false, // Use `true` for port 465, `false` for all other ports
+    secure: false, // For port 587, secure should be false and STARTTLS is used by default.
     auth: {
         user: process.env.SMTP_USERNAME,
         pass: process.env.SMTP_PASSWORD,
     },
     tls: {
-        // In a production environment with valid certificates, this should be `true`.
-        // For internal servers with self-signed certs, `false` is often needed.
+        // This is important for internal servers with self-signed certificates
         rejectUnauthorized: false
     }
 });
-*/
 
 /**
  * Sends an email using the configured SMTP gateway.
@@ -36,14 +31,19 @@ const transporter = nodemailer.createTransport({
  * @returns A promise that resolves to an object indicating success or failure.
  */
 export async function sendEmail(to: string, subject: string, html: string): Promise<EmailResult> {
-  try {
-    console.log('--- DEV EMAIL ---');
-    console.log(`To: ${to}`);
-    console.log(`Subject: ${subject}`);
-    console.log(`Body: \n${html}`);
-    console.log('-----------------');
+  const mailOptions = {
+    from: `"${process.env.SMTP_SENDER_NAME}" <${process.env.SMTP_SENDER_EMAIL}>`,
+    to: to,
+    subject: subject,
+    html: html,
+  };
 
-    const action: ActivityLogAction = subject.includes('Login Code') ? 'OTP_EMAIL_SENT' : 'WELCOME_EMAIL_SENT';
+  try {
+    const info = await transporter.sendMail(mailOptions);
+
+    console.log(`[Email Service] Email sent successfully to ${to}. Message ID: ${info.messageId}`);
+    
+    const action: ActivityLogAction = subject.includes('Login Code') || subject.includes('OTP') ? 'OTP_EMAIL_SENT' : 'WELCOME_EMAIL_SENT';
 
     await logActivity({
         userEmail: 'system',
@@ -51,9 +51,16 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
         status: 'Success',
         details: `Email with subject "${subject}" sent to ${to}.`,
     });
-    return { success: true, message: "Email logged to console for development." };
+    return { success: true, message: "Email sent successfully." };
   } catch (error: any) {
     console.error(`[Email Service] Error sending email to ${to}:`, error);
-    return { success: false, message: `An unexpected error occurred while sending the email.` };
+    
+    await logActivity({
+        userEmail: 'system',
+        action: 'EMAIL_SEND_FAILURE',
+        status: 'Failure',
+        details: `Failed to send email to ${to}. Error: ${error.message}`,
+    });
+    return { success: false, message: `Failed to send email: ${error.message}` };
   }
 }
