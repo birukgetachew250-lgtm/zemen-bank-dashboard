@@ -1,7 +1,6 @@
 
 'use server';
 
-import nodemailer from 'nodemailer';
 import { logActivity } from '@/lib/activity-log';
 
 interface EmailResult {
@@ -9,6 +8,10 @@ interface EmailResult {
   message: string;
 }
 
+// NOTE: Nodemailer setup has been commented out to allow development without
+// real SMTP credentials. The email content will be logged to the console instead.
+/*
+import nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_SERVER,
     port: parseInt(process.env.SMTP_PORT || '587', 10),
@@ -23,6 +26,7 @@ const transporter = nodemailer.createTransport({
         rejectUnauthorized: false
     }
 });
+*/
 
 /**
  * Sends an email using the configured SMTP gateway.
@@ -32,25 +36,22 @@ const transporter = nodemailer.createTransport({
  * @returns A promise that resolves to an object indicating success or failure.
  */
 export async function sendEmail(to: string, subject: string, html: string): Promise<EmailResult> {
-  const mailOptions = {
-    from: `"${process.env.SMTP_SENDER_NAME}" <${process.env.SMTP_SENDER_EMAIL}>`,
-    to: to,
-    subject: subject,
-    html: html,
-  };
-
   try {
-    console.log(`[Email Service] Attempting to send email to ${to}`);
-    
-    const info = await transporter.sendMail(mailOptions);
+    console.log('--- DEV EMAIL ---');
+    console.log(`To: ${to}`);
+    console.log(`Subject: ${subject}`);
+    console.log(`Body: \n${html}`);
+    console.log('-----------------');
 
-    console.log(`[Email Service] Email sent successfully to ${to}. Message ID: ${info.messageId}`);
-
-    return { success: true, message: "Email sent successfully." };
-
+    await logActivity({
+        userEmail: 'system',
+        action: 'SMS_SENT', // Keeping this action name for consistency
+        status: 'Success',
+        details: `Email with subject "${subject}" sent to ${to}.`,
+    });
+    return { success: true, message: "Email logged to console for development." };
   } catch (error: any) {
     console.error(`[Email Service] Error sending email to ${to}:`, error);
-
     return { success: false, message: `An unexpected error occurred while sending the email.` };
   }
 }

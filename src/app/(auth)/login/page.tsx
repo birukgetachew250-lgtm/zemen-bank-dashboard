@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
@@ -65,7 +65,12 @@ function LoginPageContent() {
       });
       setIsLoading(false);
     } else if (result?.ok) {
-      router.push('/dashboard');
+      const session = await getSession();
+      if ((session as any)?.mfaRequired) {
+        router.push(`/login/verify-otp?email=${encodeURIComponent(values.email)}`);
+      } else {
+        router.push('/dashboard');
+      }
     }
   };
 
