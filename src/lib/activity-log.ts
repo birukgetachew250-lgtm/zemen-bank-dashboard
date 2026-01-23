@@ -34,7 +34,9 @@ export type ActivityLogAction =
     // System User Security
     | 'USER_PASSWORD_RESET'
     // External Services
-    | 'SMS_SENT';
+    | 'SMS_SENT'
+    | 'WELCOME_EMAIL_SENT'
+    | 'OTP_EMAIL_SENT';
 
 export type LogEntry = {
     userEmail: string;

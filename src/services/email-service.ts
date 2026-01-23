@@ -1,7 +1,7 @@
 
 'use server';
 
-import { logActivity } from '@/lib/activity-log';
+import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
 
 interface EmailResult {
   success: boolean;
@@ -43,9 +43,11 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
     console.log(`Body: \n${html}`);
     console.log('-----------------');
 
+    const action: ActivityLogAction = subject.includes('Login Code') ? 'OTP_EMAIL_SENT' : 'WELCOME_EMAIL_SENT';
+
     await logActivity({
         userEmail: 'system',
-        action: 'SMS_SENT', // Keeping this action name for consistency
+        action: action,
         status: 'Success',
         details: `Email with subject "${subject}" sent to ${to}.`,
     });

@@ -81,11 +81,9 @@ export async function POST(req: Request) {
         let finalMessage = 'User created successfully.';
         if (emailResult.success) {
             finalMessage += ' Welcome email sent.';
-            await logActivity({ userEmail: 'system', action: 'SMS_SENT', status: 'Success', details: `Welcome email sent to ${email}.` });
         } else {
             finalMessage += ' However, the welcome email could not be sent. Please provide credentials manually.';
             console.warn(`[User Creation] Failed to send welcome email to ${email}: ${emailResult.message}`);
-             await logActivity({ userEmail: 'system', action: 'SMS_SENT', status: 'Failure', details: `Failed to send welcome email to ${email}: ${emailResult.message}` });
         }
 
         const { password: _, ...userWithoutPassword } = newUser;
