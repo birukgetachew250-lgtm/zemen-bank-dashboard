@@ -96,17 +96,54 @@ export async function POST(req: Request) {
 
         switch (approval.type) {
              case 'new-customer':
-                const approvalDetails = JSON.parse(approval.details || '{}');
+                console.log('[APPROVAL_ACTION] Processing new-customer approval for ID:', approval.id);
+                if (!approval.details) {
+                    throw new Error(`Approval request ${approval.id} is missing details.`);
+                }
+                const approvalDetails = JSON.parse(approval.details);
+                console.log('[APPROVAL_ACTION] Parsed approvalDetails:', JSON.stringify(approvalDetails, null, 2));
+
                 const { customerData, linkedAccounts, onboardingData } = approvalDetails;
-                
+
                 if (!customerData || !linkedAccounts || !onboardingData) {
+                    console.error('[APPROVAL_ACTION] Incomplete data for approval:', { customerData: !!customerData, linkedAccounts: !!linkedAccounts, onboardingData: !!onboardingData });
                     throw new Error('Incomplete customer, account, or onboarding data in approval request.');
                 }
                 
                 const appUserId = crypto.randomUUID();
-                const nameParts = customerData.full_name.split(' ');
                 
-                const normalizedPhone = customerData.mobile_number.replace(/\D/g, '');
+                const fullName = customerData.full_name || '';
+                console.log('[APPROVAL_ACTION] Customer full name from details:', `"${fullName}"`);
+
+                const nameParts = fullName.trim().split(' ').filter(Boolean);
+                console.log('[APPROVAL_ACTIONS] Parsed name parts:', nameParts);
+ 
+                if (nameParts.length === 0) {
+                    console.error('[APPROVAL_ACTION] Error: nameParts array is empty. fullName was:', `"${fullName}"`);
+                    throw new Error(`Invalid or empty customer name provided: "${fullName}"`);
+                }
+
+                let firstName, secondName = '', lastName;
+                if (nameParts.length === 1) {
+                    firstName = nameParts[0];
+                    lastName = nameParts[0]; 
+                } else if (nameParts.length === 2) {
+                    firstName = nameParts[0];
+                    lastName = nameParts[1];
+                } else {
+                    firstName = nameParts[0];
+                    secondName = nameParts.slice(1, -1).join(' ');
+                    lastName = nameParts[nameParts.length - 1];
+                }
+
+                if (!lastName) {
+                    console.warn(`[APPROVAL_ACTION] lastName was falsy for fullName: "${fullName}". Using firstName as fallback.`);
+                    lastName = firstName;
+                }
+
+                console.log('[APPROVAL_ACTION] Derived names:', { firstName, secondName, lastName });
+                
+                const normalizedPhone = (customerData.mobile_number || '').replace(/\D/g, '');
                 const phoneHash = crypto.createHash('sha256').update(normalizedPhone).digest('hex');
 
                 const appUserQuery = `
@@ -114,9 +151,9 @@ export async function POST(req: Request) {
                 
                 const appUserBinds = {
                     CIFNumber: customerData.customer_number,
-                    FirstName: encrypt(nameParts[0])!,
-                    SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : (nameParts[1] || ''))!,
-                    LastName: encrypt(nameParts[nameParts.length - 1])!,
+                    FirstName: encrypt(firstName)!,
+                    SecondName: encrypt(secondName)!,
+                    LastName: encrypt(lastName)!,
                     Email: encrypt(customerData.email_id)!,
                     PhoneNumber: encrypt(normalizedPhone)!,
                     PhoneNumberHashed: phoneHash,
@@ -132,19 +169,20 @@ export async function POST(req: Request) {
                     SignUpMainAuth: onboardingData.mainAuthMethod,
                     Channel: onboardingData.channel,
                 };
-
+                
+                console.log('[APPROVAL_ACTION] AppUsers Binds:', { ...appUserBinds, PhoneNumber: '***', FirstName: '***', SecondName: '***', LastName: '***', Email: '***' });
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, appUserQuery, appUserBinds);
 
                 for (const acc of linkedAccounts) {
-                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id","CIFNumber","AccountNumber","HashedAccountNumber","FirstName","SecondName","LastName","BranchCode","BranchName","AccountType","Currency","Status","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (SYS_GUID(),:CIFNumber,:AccountNumber,:HashedAccountNumber,:FirstName,:SecondName,:LastName,:BranchCode,:BranchName,:AccountType,:Currency,:Status,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`;
+                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id","CIFNumber","AccountNumber","HashedAccountNumber","FirstName","SecondName","LastName","AccountType","Currency","Status","BranchCode","BranchName") VALUES (SYS_GUID(),:CIFNumber,:AccountNumber,:HashedAccountNumber,:FirstName,:SecondName,:LastName,:AccountType,:Currency,:Status,:BranchCode,:BranchName)`;
                     
                     const accBinds = {
                         CIFNumber: customerData.customer_number,
                         AccountNumber: encrypt(acc.CUSTACNO)!,
                         HashedAccountNumber: crypto.createHash('sha256').update(acc.CUSTACNO).digest('hex'),
-                        FirstName: encrypt(nameParts[0])!,
-                        SecondName: encrypt(nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : (nameParts[1] || ''))!,
-                        LastName: encrypt(nameParts[nameParts.length - 1])!,
+                        FirstName: encrypt(firstName)!,
+                        SecondName: encrypt(secondName)!,
+                        LastName: encrypt(lastName)!,
                         AccountType: encrypt(acc.ACCLASSDESC)!,
                         Currency: encrypt(acc.CCY)!,
                         Status: 'Active',
@@ -252,7 +290,26 @@ export async function POST(req: Request) {
                 const linkDetails = JSON.parse(approval.details || '{}');
                 const accountsToLink = linkDetails.linkedAccounts || [];
                 
-                const customerNameParts = linkDetails.customerName.split(' ');
+                const linkNameParts = (linkDetails.customerName || '').trim().split(' ').filter(Boolean);
+                if (linkNameParts.length === 0) throw new Error('Invalid customer name for account linking.');
+                
+                let linkFirstName, linkSecondName = '', linkLastName;
+                 if (linkNameParts.length === 1) {
+                    linkFirstName = linkNameParts[0];
+                    linkLastName = linkNameParts[0];
+                } else if (linkNameParts.length === 2) {
+                    linkFirstName = linkNameParts[0];
+                    linkLastName = linkNameParts[1];
+                } else {
+                    linkFirstName = linkNameParts[0];
+                    linkSecondName = linkNameParts.slice(1, -1).join(' ');
+                    linkLastName = linkNameParts[linkNameParts.length - 1];
+                }
+                
+                if (!linkLastName) {
+                    console.warn(`[APPROVAL_ACTION] linkLastName was falsy for customerName: "${linkDetails.customerName}". Using linkFirstName as fallback.`);
+                    linkLastName = linkFirstName;
+                }
 
                 for (const acc of accountsToLink) {
                     const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "Currency", "Status", "BranchCode", "BranchName") 
@@ -262,9 +319,9 @@ export async function POST(req: Request) {
                         CIFNumber: linkDetails.cif,
                         AccountNumber: encrypt(acc.CUSTACNO)!,
                         HashedAccountNumber: crypto.createHash('sha256').update(acc.CUSTACNO).digest('hex'),
-                        FirstName: encrypt(customerNameParts[0])!,
-                        SecondName: encrypt(customerNameParts.length > 2 ? customerNameParts.slice(1, -1).join(' ') : (customerNameParts[1] || ''))!,
-                        LastName: encrypt(customerNameParts[nameParts.length - 1])!,
+                        FirstName: encrypt(linkFirstName)!,
+                        SecondName: encrypt(linkSecondName)!,
+                        LastName: encrypt(linkLastName)!,
                         AccountType: encrypt(acc.ACCLASSDESC)!,
                         Currency: encrypt(acc.CCY)!,
                         Status: 'Active',
