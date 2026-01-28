@@ -49,15 +49,20 @@ export type PendingApproval = $Result.DefaultSelection<Prisma.$PendingApprovalPa
  */
 export type Transaction = $Result.DefaultSelection<Prisma.$TransactionPayload>
 /**
- * Model Corporate
+ * Model SystemActivityLog
  * 
  */
-export type Corporate = $Result.DefaultSelection<Prisma.$CorporatePayload>
+export type SystemActivityLog = $Result.DefaultSelection<Prisma.$SystemActivityLogPayload>
 /**
- * Model MiniApp
+ * Model SecurityPolicy
  * 
  */
-export type MiniApp = $Result.DefaultSelection<Prisma.$MiniAppPayload>
+export type SecurityPolicy = $Result.DefaultSelection<Prisma.$SecurityPolicyPayload>
+/**
+ * Model IpWhitelist
+ * 
+ */
+export type IpWhitelist = $Result.DefaultSelection<Prisma.$IpWhitelistPayload>
 /**
  * Model OtpCode
  * 
@@ -258,24 +263,34 @@ export class PrismaClient<
   get transaction(): Prisma.TransactionDelegate<ExtArgs>;
 
   /**
-   * `prisma.corporate`: Exposes CRUD operations for the **Corporate** model.
+   * `prisma.systemActivityLog`: Exposes CRUD operations for the **SystemActivityLog** model.
     * Example usage:
     * ```ts
-    * // Fetch zero or more Corporates
-    * const corporates = await prisma.corporate.findMany()
+    * // Fetch zero or more SystemActivityLogs
+    * const systemActivityLogs = await prisma.systemActivityLog.findMany()
     * ```
     */
-  get corporate(): Prisma.CorporateDelegate<ExtArgs>;
+  get systemActivityLog(): Prisma.SystemActivityLogDelegate<ExtArgs>;
 
   /**
-   * `prisma.miniApp`: Exposes CRUD operations for the **MiniApp** model.
+   * `prisma.securityPolicy`: Exposes CRUD operations for the **SecurityPolicy** model.
     * Example usage:
     * ```ts
-    * // Fetch zero or more MiniApps
-    * const miniApps = await prisma.miniApp.findMany()
+    * // Fetch zero or more SecurityPolicies
+    * const securityPolicies = await prisma.securityPolicy.findMany()
     * ```
     */
-  get miniApp(): Prisma.MiniAppDelegate<ExtArgs>;
+  get securityPolicy(): Prisma.SecurityPolicyDelegate<ExtArgs>;
+
+  /**
+   * `prisma.ipWhitelist`: Exposes CRUD operations for the **IpWhitelist** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more IpWhitelists
+    * const ipWhitelists = await prisma.ipWhitelist.findMany()
+    * ```
+    */
+  get ipWhitelist(): Prisma.IpWhitelistDelegate<ExtArgs>;
 
   /**
    * `prisma.otpCode`: Exposes CRUD operations for the **OtpCode** model.
@@ -734,8 +749,9 @@ export namespace Prisma {
     Customer: 'Customer',
     PendingApproval: 'PendingApproval',
     Transaction: 'Transaction',
-    Corporate: 'Corporate',
-    MiniApp: 'MiniApp',
+    SystemActivityLog: 'SystemActivityLog',
+    SecurityPolicy: 'SecurityPolicy',
+    IpWhitelist: 'IpWhitelist',
     OtpCode: 'OtpCode'
   };
 
@@ -752,7 +768,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "role" | "branch" | "department" | "customer" | "pendingApproval" | "transaction" | "corporate" | "miniApp" | "otpCode"
+      modelProps: "user" | "role" | "branch" | "department" | "customer" | "pendingApproval" | "transaction" | "systemActivityLog" | "securityPolicy" | "ipWhitelist" | "otpCode"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1246,143 +1262,213 @@ export namespace Prisma {
           }
         }
       }
-      Corporate: {
-        payload: Prisma.$CorporatePayload<ExtArgs>
-        fields: Prisma.CorporateFieldRefs
+      SystemActivityLog: {
+        payload: Prisma.$SystemActivityLogPayload<ExtArgs>
+        fields: Prisma.SystemActivityLogFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.CorporateFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CorporatePayload> | null
+            args: Prisma.SystemActivityLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemActivityLogPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.CorporateFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CorporatePayload>
+            args: Prisma.SystemActivityLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemActivityLogPayload>
           }
           findFirst: {
-            args: Prisma.CorporateFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CorporatePayload> | null
+            args: Prisma.SystemActivityLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemActivityLogPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.CorporateFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CorporatePayload>
+            args: Prisma.SystemActivityLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemActivityLogPayload>
           }
           findMany: {
-            args: Prisma.CorporateFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CorporatePayload>[]
+            args: Prisma.SystemActivityLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemActivityLogPayload>[]
           }
           create: {
-            args: Prisma.CorporateCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CorporatePayload>
+            args: Prisma.SystemActivityLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemActivityLogPayload>
           }
           createMany: {
-            args: Prisma.CorporateCreateManyArgs<ExtArgs>
+            args: Prisma.SystemActivityLogCreateManyArgs<ExtArgs>
             result: BatchPayload
           }
           createManyAndReturn: {
-            args: Prisma.CorporateCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CorporatePayload>[]
+            args: Prisma.SystemActivityLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemActivityLogPayload>[]
           }
           delete: {
-            args: Prisma.CorporateDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CorporatePayload>
+            args: Prisma.SystemActivityLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemActivityLogPayload>
           }
           update: {
-            args: Prisma.CorporateUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CorporatePayload>
+            args: Prisma.SystemActivityLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemActivityLogPayload>
           }
           deleteMany: {
-            args: Prisma.CorporateDeleteManyArgs<ExtArgs>
+            args: Prisma.SystemActivityLogDeleteManyArgs<ExtArgs>
             result: BatchPayload
           }
           updateMany: {
-            args: Prisma.CorporateUpdateManyArgs<ExtArgs>
+            args: Prisma.SystemActivityLogUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
           upsert: {
-            args: Prisma.CorporateUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$CorporatePayload>
+            args: Prisma.SystemActivityLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemActivityLogPayload>
           }
           aggregate: {
-            args: Prisma.CorporateAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregateCorporate>
+            args: Prisma.SystemActivityLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSystemActivityLog>
           }
           groupBy: {
-            args: Prisma.CorporateGroupByArgs<ExtArgs>
-            result: $Utils.Optional<CorporateGroupByOutputType>[]
+            args: Prisma.SystemActivityLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SystemActivityLogGroupByOutputType>[]
           }
           count: {
-            args: Prisma.CorporateCountArgs<ExtArgs>
-            result: $Utils.Optional<CorporateCountAggregateOutputType> | number
+            args: Prisma.SystemActivityLogCountArgs<ExtArgs>
+            result: $Utils.Optional<SystemActivityLogCountAggregateOutputType> | number
           }
         }
       }
-      MiniApp: {
-        payload: Prisma.$MiniAppPayload<ExtArgs>
-        fields: Prisma.MiniAppFieldRefs
+      SecurityPolicy: {
+        payload: Prisma.$SecurityPolicyPayload<ExtArgs>
+        fields: Prisma.SecurityPolicyFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.MiniAppFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$MiniAppPayload> | null
+            args: Prisma.SecurityPolicyFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecurityPolicyPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.MiniAppFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$MiniAppPayload>
+            args: Prisma.SecurityPolicyFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecurityPolicyPayload>
           }
           findFirst: {
-            args: Prisma.MiniAppFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$MiniAppPayload> | null
+            args: Prisma.SecurityPolicyFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecurityPolicyPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.MiniAppFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$MiniAppPayload>
+            args: Prisma.SecurityPolicyFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecurityPolicyPayload>
           }
           findMany: {
-            args: Prisma.MiniAppFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$MiniAppPayload>[]
+            args: Prisma.SecurityPolicyFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecurityPolicyPayload>[]
           }
           create: {
-            args: Prisma.MiniAppCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$MiniAppPayload>
+            args: Prisma.SecurityPolicyCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecurityPolicyPayload>
           }
           createMany: {
-            args: Prisma.MiniAppCreateManyArgs<ExtArgs>
+            args: Prisma.SecurityPolicyCreateManyArgs<ExtArgs>
             result: BatchPayload
           }
           createManyAndReturn: {
-            args: Prisma.MiniAppCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$MiniAppPayload>[]
+            args: Prisma.SecurityPolicyCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecurityPolicyPayload>[]
           }
           delete: {
-            args: Prisma.MiniAppDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$MiniAppPayload>
+            args: Prisma.SecurityPolicyDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecurityPolicyPayload>
           }
           update: {
-            args: Prisma.MiniAppUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$MiniAppPayload>
+            args: Prisma.SecurityPolicyUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecurityPolicyPayload>
           }
           deleteMany: {
-            args: Prisma.MiniAppDeleteManyArgs<ExtArgs>
+            args: Prisma.SecurityPolicyDeleteManyArgs<ExtArgs>
             result: BatchPayload
           }
           updateMany: {
-            args: Prisma.MiniAppUpdateManyArgs<ExtArgs>
+            args: Prisma.SecurityPolicyUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
           upsert: {
-            args: Prisma.MiniAppUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$MiniAppPayload>
+            args: Prisma.SecurityPolicyUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecurityPolicyPayload>
           }
           aggregate: {
-            args: Prisma.MiniAppAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregateMiniApp>
+            args: Prisma.SecurityPolicyAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSecurityPolicy>
           }
           groupBy: {
-            args: Prisma.MiniAppGroupByArgs<ExtArgs>
-            result: $Utils.Optional<MiniAppGroupByOutputType>[]
+            args: Prisma.SecurityPolicyGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SecurityPolicyGroupByOutputType>[]
           }
           count: {
-            args: Prisma.MiniAppCountArgs<ExtArgs>
-            result: $Utils.Optional<MiniAppCountAggregateOutputType> | number
+            args: Prisma.SecurityPolicyCountArgs<ExtArgs>
+            result: $Utils.Optional<SecurityPolicyCountAggregateOutputType> | number
+          }
+        }
+      }
+      IpWhitelist: {
+        payload: Prisma.$IpWhitelistPayload<ExtArgs>
+        fields: Prisma.IpWhitelistFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.IpWhitelistFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IpWhitelistPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.IpWhitelistFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IpWhitelistPayload>
+          }
+          findFirst: {
+            args: Prisma.IpWhitelistFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IpWhitelistPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.IpWhitelistFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IpWhitelistPayload>
+          }
+          findMany: {
+            args: Prisma.IpWhitelistFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IpWhitelistPayload>[]
+          }
+          create: {
+            args: Prisma.IpWhitelistCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IpWhitelistPayload>
+          }
+          createMany: {
+            args: Prisma.IpWhitelistCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.IpWhitelistCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IpWhitelistPayload>[]
+          }
+          delete: {
+            args: Prisma.IpWhitelistDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IpWhitelistPayload>
+          }
+          update: {
+            args: Prisma.IpWhitelistUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IpWhitelistPayload>
+          }
+          deleteMany: {
+            args: Prisma.IpWhitelistDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.IpWhitelistUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.IpWhitelistUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IpWhitelistPayload>
+          }
+          aggregate: {
+            args: Prisma.IpWhitelistAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateIpWhitelist>
+          }
+          groupBy: {
+            args: Prisma.IpWhitelistGroupByArgs<ExtArgs>
+            result: $Utils.Optional<IpWhitelistGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.IpWhitelistCountArgs<ExtArgs>
+            result: $Utils.Optional<IpWhitelistCountAggregateOutputType> | number
           }
         }
       }
@@ -1701,10 +1787,12 @@ export namespace Prisma {
 
   export type UserAvgAggregateOutputType = {
     id: number | null
+    failedLoginAttempts: number | null
   }
 
   export type UserSumAggregateOutputType = {
     id: number | null
+    failedLoginAttempts: number | null
   }
 
   export type UserMinAggregateOutputType = {
@@ -1718,6 +1806,11 @@ export namespace Prisma {
     department: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    mfaEnabled: boolean | null
+    status: string | null
+    failedLoginAttempts: number | null
+    isLocked: boolean | null
+    lastLoginAttempt: Date | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -1731,6 +1824,11 @@ export namespace Prisma {
     department: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    mfaEnabled: boolean | null
+    status: string | null
+    failedLoginAttempts: number | null
+    isLocked: boolean | null
+    lastLoginAttempt: Date | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -1744,16 +1842,23 @@ export namespace Prisma {
     department: number
     createdAt: number
     updatedAt: number
+    mfaEnabled: number
+    status: number
+    failedLoginAttempts: number
+    isLocked: number
+    lastLoginAttempt: number
     _all: number
   }
 
 
   export type UserAvgAggregateInputType = {
     id?: true
+    failedLoginAttempts?: true
   }
 
   export type UserSumAggregateInputType = {
     id?: true
+    failedLoginAttempts?: true
   }
 
   export type UserMinAggregateInputType = {
@@ -1767,6 +1872,11 @@ export namespace Prisma {
     department?: true
     createdAt?: true
     updatedAt?: true
+    mfaEnabled?: true
+    status?: true
+    failedLoginAttempts?: true
+    isLocked?: true
+    lastLoginAttempt?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -1780,6 +1890,11 @@ export namespace Prisma {
     department?: true
     createdAt?: true
     updatedAt?: true
+    mfaEnabled?: true
+    status?: true
+    failedLoginAttempts?: true
+    isLocked?: true
+    lastLoginAttempt?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -1793,6 +1908,11 @@ export namespace Prisma {
     department?: true
     createdAt?: true
     updatedAt?: true
+    mfaEnabled?: true
+    status?: true
+    failedLoginAttempts?: true
+    isLocked?: true
+    lastLoginAttempt?: true
     _all?: true
   }
 
@@ -1893,6 +2013,11 @@ export namespace Prisma {
     department: string
     createdAt: Date
     updatedAt: Date
+    mfaEnabled: boolean
+    status: string
+    failedLoginAttempts: number
+    isLocked: boolean
+    lastLoginAttempt: Date | null
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -1925,6 +2050,11 @@ export namespace Prisma {
     department?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    mfaEnabled?: boolean
+    status?: boolean
+    failedLoginAttempts?: boolean
+    isLocked?: boolean
+    lastLoginAttempt?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -1938,6 +2068,11 @@ export namespace Prisma {
     department?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    mfaEnabled?: boolean
+    status?: boolean
+    failedLoginAttempts?: boolean
+    isLocked?: boolean
+    lastLoginAttempt?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
@@ -1951,6 +2086,11 @@ export namespace Prisma {
     department?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    mfaEnabled?: boolean
+    status?: boolean
+    failedLoginAttempts?: boolean
+    isLocked?: boolean
+    lastLoginAttempt?: boolean
   }
 
 
@@ -1968,6 +2108,11 @@ export namespace Prisma {
       department: string
       createdAt: Date
       updatedAt: Date
+      mfaEnabled: boolean
+      status: string
+      failedLoginAttempts: number
+      isLocked: boolean
+      lastLoginAttempt: Date | null
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -2371,6 +2516,11 @@ export namespace Prisma {
     readonly department: FieldRef<"User", 'String'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
+    readonly mfaEnabled: FieldRef<"User", 'Boolean'>
+    readonly status: FieldRef<"User", 'String'>
+    readonly failedLoginAttempts: FieldRef<"User", 'Int'>
+    readonly isLocked: FieldRef<"User", 'Boolean'>
+    readonly lastLoginAttempt: FieldRef<"User", 'DateTime'>
   }
     
 
@@ -8477,1239 +8627,383 @@ export namespace Prisma {
 
 
   /**
-   * Model Corporate
+   * Model SystemActivityLog
    */
 
-  export type AggregateCorporate = {
-    _count: CorporateCountAggregateOutputType | null
-    _min: CorporateMinAggregateOutputType | null
-    _max: CorporateMaxAggregateOutputType | null
+  export type AggregateSystemActivityLog = {
+    _count: SystemActivityLogCountAggregateOutputType | null
+    _avg: SystemActivityLogAvgAggregateOutputType | null
+    _sum: SystemActivityLogSumAggregateOutputType | null
+    _min: SystemActivityLogMinAggregateOutputType | null
+    _max: SystemActivityLogMaxAggregateOutputType | null
   }
 
-  export type CorporateMinAggregateOutputType = {
-    id: string | null
-    name: string | null
-    industry: string | null
+  export type SystemActivityLogAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type SystemActivityLogSumAggregateOutputType = {
+    id: number | null
+  }
+
+  export type SystemActivityLogMinAggregateOutputType = {
+    id: number | null
+    timestamp: Date | null
+    userEmail: string | null
+    action: string | null
     status: string | null
-    internet_banking_status: string | null
-    logo_url: string | null
+    details: string | null
+    ipAddress: string | null
   }
 
-  export type CorporateMaxAggregateOutputType = {
-    id: string | null
-    name: string | null
-    industry: string | null
+  export type SystemActivityLogMaxAggregateOutputType = {
+    id: number | null
+    timestamp: Date | null
+    userEmail: string | null
+    action: string | null
     status: string | null
-    internet_banking_status: string | null
-    logo_url: string | null
+    details: string | null
+    ipAddress: string | null
   }
 
-  export type CorporateCountAggregateOutputType = {
+  export type SystemActivityLogCountAggregateOutputType = {
     id: number
-    name: number
-    industry: number
+    timestamp: number
+    userEmail: number
+    action: number
     status: number
-    internet_banking_status: number
-    logo_url: number
+    details: number
+    ipAddress: number
     _all: number
   }
 
 
-  export type CorporateMinAggregateInputType = {
+  export type SystemActivityLogAvgAggregateInputType = {
     id?: true
-    name?: true
-    industry?: true
-    status?: true
-    internet_banking_status?: true
-    logo_url?: true
   }
 
-  export type CorporateMaxAggregateInputType = {
+  export type SystemActivityLogSumAggregateInputType = {
     id?: true
-    name?: true
-    industry?: true
-    status?: true
-    internet_banking_status?: true
-    logo_url?: true
   }
 
-  export type CorporateCountAggregateInputType = {
+  export type SystemActivityLogMinAggregateInputType = {
     id?: true
-    name?: true
-    industry?: true
+    timestamp?: true
+    userEmail?: true
+    action?: true
     status?: true
-    internet_banking_status?: true
-    logo_url?: true
+    details?: true
+    ipAddress?: true
+  }
+
+  export type SystemActivityLogMaxAggregateInputType = {
+    id?: true
+    timestamp?: true
+    userEmail?: true
+    action?: true
+    status?: true
+    details?: true
+    ipAddress?: true
+  }
+
+  export type SystemActivityLogCountAggregateInputType = {
+    id?: true
+    timestamp?: true
+    userEmail?: true
+    action?: true
+    status?: true
+    details?: true
+    ipAddress?: true
     _all?: true
   }
 
-  export type CorporateAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Filter which Corporate to aggregate.
+     * Filter which SystemActivityLog to aggregate.
      */
-    where?: CorporateWhereInput
+    where?: SystemActivityLogWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of Corporates to fetch.
+     * Determine the order of SystemActivityLogs to fetch.
      */
-    orderBy?: CorporateOrderByWithRelationInput | CorporateOrderByWithRelationInput[]
+    orderBy?: SystemActivityLogOrderByWithRelationInput | SystemActivityLogOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
      */
-    cursor?: CorporateWhereUniqueInput
+    cursor?: SystemActivityLogWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` Corporates from the position of the cursor.
+     * Take `±n` SystemActivityLogs from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` Corporates.
+     * Skip the first `n` SystemActivityLogs.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Count returned Corporates
+     * Count returned SystemActivityLogs
     **/
-    _count?: true | CorporateCountAggregateInputType
+    _count?: true | SystemActivityLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SystemActivityLogAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SystemActivityLogSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    _min?: CorporateMinAggregateInputType
+    _min?: SystemActivityLogMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    _max?: CorporateMaxAggregateInputType
+    _max?: SystemActivityLogMaxAggregateInputType
   }
 
-  export type GetCorporateAggregateType<T extends CorporateAggregateArgs> = {
-        [P in keyof T & keyof AggregateCorporate]: P extends '_count' | 'count'
+  export type GetSystemActivityLogAggregateType<T extends SystemActivityLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateSystemActivityLog]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateCorporate[P]>
-      : GetScalarType<T[P], AggregateCorporate[P]>
+        : GetScalarType<T[P], AggregateSystemActivityLog[P]>
+      : GetScalarType<T[P], AggregateSystemActivityLog[P]>
   }
 
 
 
 
-  export type CorporateGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: CorporateWhereInput
-    orderBy?: CorporateOrderByWithAggregationInput | CorporateOrderByWithAggregationInput[]
-    by: CorporateScalarFieldEnum[] | CorporateScalarFieldEnum
-    having?: CorporateScalarWhereWithAggregatesInput
+  export type SystemActivityLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SystemActivityLogWhereInput
+    orderBy?: SystemActivityLogOrderByWithAggregationInput | SystemActivityLogOrderByWithAggregationInput[]
+    by: SystemActivityLogScalarFieldEnum[] | SystemActivityLogScalarFieldEnum
+    having?: SystemActivityLogScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    _count?: CorporateCountAggregateInputType | true
-    _min?: CorporateMinAggregateInputType
-    _max?: CorporateMaxAggregateInputType
+    _count?: SystemActivityLogCountAggregateInputType | true
+    _avg?: SystemActivityLogAvgAggregateInputType
+    _sum?: SystemActivityLogSumAggregateInputType
+    _min?: SystemActivityLogMinAggregateInputType
+    _max?: SystemActivityLogMaxAggregateInputType
   }
 
-  export type CorporateGroupByOutputType = {
-    id: string
-    name: string
-    industry: string
-    status: string
-    internet_banking_status: string
-    logo_url: string
-    _count: CorporateCountAggregateOutputType | null
-    _min: CorporateMinAggregateOutputType | null
-    _max: CorporateMaxAggregateOutputType | null
-  }
-
-  type GetCorporateGroupByPayload<T extends CorporateGroupByArgs> = Prisma.PrismaPromise<
-    Array<
-      PickEnumerable<CorporateGroupByOutputType, T['by']> &
-        {
-          [P in ((keyof T) & (keyof CorporateGroupByOutputType))]: P extends '_count'
-            ? T[P] extends boolean
-              ? number
-              : GetScalarType<T[P], CorporateGroupByOutputType[P]>
-            : GetScalarType<T[P], CorporateGroupByOutputType[P]>
-        }
-      >
-    >
-
-
-  export type CorporateSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    name?: boolean
-    industry?: boolean
-    status?: boolean
-    internet_banking_status?: boolean
-    logo_url?: boolean
-  }, ExtArgs["result"]["corporate"]>
-
-  export type CorporateSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    name?: boolean
-    industry?: boolean
-    status?: boolean
-    internet_banking_status?: boolean
-    logo_url?: boolean
-  }, ExtArgs["result"]["corporate"]>
-
-  export type CorporateSelectScalar = {
-    id?: boolean
-    name?: boolean
-    industry?: boolean
-    status?: boolean
-    internet_banking_status?: boolean
-    logo_url?: boolean
-  }
-
-
-  export type $CorporatePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "Corporate"
-    objects: {}
-    scalars: $Extensions.GetPayloadResult<{
-      id: string
-      name: string
-      industry: string
-      status: string
-      internet_banking_status: string
-      logo_url: string
-    }, ExtArgs["result"]["corporate"]>
-    composites: {}
-  }
-
-  type CorporateGetPayload<S extends boolean | null | undefined | CorporateDefaultArgs> = $Result.GetResult<Prisma.$CorporatePayload, S>
-
-  type CorporateCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<CorporateFindManyArgs, 'select' | 'include' | 'distinct'> & {
-      select?: CorporateCountAggregateInputType | true
-    }
-
-  export interface CorporateDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Corporate'], meta: { name: 'Corporate' } }
-    /**
-     * Find zero or one Corporate that matches the filter.
-     * @param {CorporateFindUniqueArgs} args - Arguments to find a Corporate
-     * @example
-     * // Get one Corporate
-     * const corporate = await prisma.corporate.findUnique({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUnique<T extends CorporateFindUniqueArgs>(args: SelectSubset<T, CorporateFindUniqueArgs<ExtArgs>>): Prisma__CorporateClient<$Result.GetResult<Prisma.$CorporatePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
-
-    /**
-     * Find one Corporate that matches the filter or throw an error with `error.code='P2025'` 
-     * if no matches were found.
-     * @param {CorporateFindUniqueOrThrowArgs} args - Arguments to find a Corporate
-     * @example
-     * // Get one Corporate
-     * const corporate = await prisma.corporate.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUniqueOrThrow<T extends CorporateFindUniqueOrThrowArgs>(args: SelectSubset<T, CorporateFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CorporateClient<$Result.GetResult<Prisma.$CorporatePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
-
-    /**
-     * Find the first Corporate that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {CorporateFindFirstArgs} args - Arguments to find a Corporate
-     * @example
-     * // Get one Corporate
-     * const corporate = await prisma.corporate.findFirst({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirst<T extends CorporateFindFirstArgs>(args?: SelectSubset<T, CorporateFindFirstArgs<ExtArgs>>): Prisma__CorporateClient<$Result.GetResult<Prisma.$CorporatePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
-
-    /**
-     * Find the first Corporate that matches the filter or
-     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {CorporateFindFirstOrThrowArgs} args - Arguments to find a Corporate
-     * @example
-     * // Get one Corporate
-     * const corporate = await prisma.corporate.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirstOrThrow<T extends CorporateFindFirstOrThrowArgs>(args?: SelectSubset<T, CorporateFindFirstOrThrowArgs<ExtArgs>>): Prisma__CorporateClient<$Result.GetResult<Prisma.$CorporatePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
-
-    /**
-     * Find zero or more Corporates that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {CorporateFindManyArgs} args - Arguments to filter and select certain fields only.
-     * @example
-     * // Get all Corporates
-     * const corporates = await prisma.corporate.findMany()
-     * 
-     * // Get first 10 Corporates
-     * const corporates = await prisma.corporate.findMany({ take: 10 })
-     * 
-     * // Only select the `id`
-     * const corporateWithIdOnly = await prisma.corporate.findMany({ select: { id: true } })
-     * 
-     */
-    findMany<T extends CorporateFindManyArgs>(args?: SelectSubset<T, CorporateFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CorporatePayload<ExtArgs>, T, "findMany">>
-
-    /**
-     * Create a Corporate.
-     * @param {CorporateCreateArgs} args - Arguments to create a Corporate.
-     * @example
-     * // Create one Corporate
-     * const Corporate = await prisma.corporate.create({
-     *   data: {
-     *     // ... data to create a Corporate
-     *   }
-     * })
-     * 
-     */
-    create<T extends CorporateCreateArgs>(args: SelectSubset<T, CorporateCreateArgs<ExtArgs>>): Prisma__CorporateClient<$Result.GetResult<Prisma.$CorporatePayload<ExtArgs>, T, "create">, never, ExtArgs>
-
-    /**
-     * Create many Corporates.
-     * @param {CorporateCreateManyArgs} args - Arguments to create many Corporates.
-     * @example
-     * // Create many Corporates
-     * const corporate = await prisma.corporate.createMany({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     *     
-     */
-    createMany<T extends CorporateCreateManyArgs>(args?: SelectSubset<T, CorporateCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create many Corporates and returns the data saved in the database.
-     * @param {CorporateCreateManyAndReturnArgs} args - Arguments to create many Corporates.
-     * @example
-     * // Create many Corporates
-     * const corporate = await prisma.corporate.createManyAndReturn({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Create many Corporates and only return the `id`
-     * const corporateWithIdOnly = await prisma.corporate.createManyAndReturn({ 
-     *   select: { id: true },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    createManyAndReturn<T extends CorporateCreateManyAndReturnArgs>(args?: SelectSubset<T, CorporateCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CorporatePayload<ExtArgs>, T, "createManyAndReturn">>
-
-    /**
-     * Delete a Corporate.
-     * @param {CorporateDeleteArgs} args - Arguments to delete one Corporate.
-     * @example
-     * // Delete one Corporate
-     * const Corporate = await prisma.corporate.delete({
-     *   where: {
-     *     // ... filter to delete one Corporate
-     *   }
-     * })
-     * 
-     */
-    delete<T extends CorporateDeleteArgs>(args: SelectSubset<T, CorporateDeleteArgs<ExtArgs>>): Prisma__CorporateClient<$Result.GetResult<Prisma.$CorporatePayload<ExtArgs>, T, "delete">, never, ExtArgs>
-
-    /**
-     * Update one Corporate.
-     * @param {CorporateUpdateArgs} args - Arguments to update one Corporate.
-     * @example
-     * // Update one Corporate
-     * const corporate = await prisma.corporate.update({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    update<T extends CorporateUpdateArgs>(args: SelectSubset<T, CorporateUpdateArgs<ExtArgs>>): Prisma__CorporateClient<$Result.GetResult<Prisma.$CorporatePayload<ExtArgs>, T, "update">, never, ExtArgs>
-
-    /**
-     * Delete zero or more Corporates.
-     * @param {CorporateDeleteManyArgs} args - Arguments to filter Corporates to delete.
-     * @example
-     * // Delete a few Corporates
-     * const { count } = await prisma.corporate.deleteMany({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     * 
-     */
-    deleteMany<T extends CorporateDeleteManyArgs>(args?: SelectSubset<T, CorporateDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more Corporates.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {CorporateUpdateManyArgs} args - Arguments to update one or more rows.
-     * @example
-     * // Update many Corporates
-     * const corporate = await prisma.corporate.updateMany({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    updateMany<T extends CorporateUpdateManyArgs>(args: SelectSubset<T, CorporateUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create or update one Corporate.
-     * @param {CorporateUpsertArgs} args - Arguments to update or create a Corporate.
-     * @example
-     * // Update or create a Corporate
-     * const corporate = await prisma.corporate.upsert({
-     *   create: {
-     *     // ... data to create a Corporate
-     *   },
-     *   update: {
-     *     // ... in case it already exists, update
-     *   },
-     *   where: {
-     *     // ... the filter for the Corporate we want to update
-     *   }
-     * })
-     */
-    upsert<T extends CorporateUpsertArgs>(args: SelectSubset<T, CorporateUpsertArgs<ExtArgs>>): Prisma__CorporateClient<$Result.GetResult<Prisma.$CorporatePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
-
-
-    /**
-     * Count the number of Corporates.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {CorporateCountArgs} args - Arguments to filter Corporates to count.
-     * @example
-     * // Count the number of Corporates
-     * const count = await prisma.corporate.count({
-     *   where: {
-     *     // ... the filter for the Corporates we want to count
-     *   }
-     * })
-    **/
-    count<T extends CorporateCountArgs>(
-      args?: Subset<T, CorporateCountArgs>,
-    ): Prisma.PrismaPromise<
-      T extends $Utils.Record<'select', any>
-        ? T['select'] extends true
-          ? number
-          : GetScalarType<T['select'], CorporateCountAggregateOutputType>
-        : number
-    >
-
-    /**
-     * Allows you to perform aggregations operations on a Corporate.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {CorporateAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
-     * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
-     * const aggregations = await prisma.user.aggregate({
-     *   _avg: {
-     *     age: true,
-     *   },
-     *   where: {
-     *     email: {
-     *       contains: "prisma.io",
-     *     },
-     *   },
-     *   orderBy: {
-     *     age: "asc",
-     *   },
-     *   take: 10,
-     * })
-    **/
-    aggregate<T extends CorporateAggregateArgs>(args: Subset<T, CorporateAggregateArgs>): Prisma.PrismaPromise<GetCorporateAggregateType<T>>
-
-    /**
-     * Group by Corporate.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {CorporateGroupByArgs} args - Group by arguments.
-     * @example
-     * // Group by city, order by createdAt, get count
-     * const result = await prisma.user.groupBy({
-     *   by: ['city', 'createdAt'],
-     *   orderBy: {
-     *     createdAt: true
-     *   },
-     *   _count: {
-     *     _all: true
-     *   },
-     * })
-     * 
-    **/
-    groupBy<
-      T extends CorporateGroupByArgs,
-      HasSelectOrTake extends Or<
-        Extends<'skip', Keys<T>>,
-        Extends<'take', Keys<T>>
-      >,
-      OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: CorporateGroupByArgs['orderBy'] }
-        : { orderBy?: CorporateGroupByArgs['orderBy'] },
-      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends MaybeTupleToUnion<T['by']>,
-      ByValid extends Has<ByFields, OrderFields>,
-      HavingFields extends GetHavingFields<T['having']>,
-      HavingValid extends Has<ByFields, HavingFields>,
-      ByEmpty extends T['by'] extends never[] ? True : False,
-      InputErrors extends ByEmpty extends True
-      ? `Error: "by" must not be empty.`
-      : HavingValid extends False
-      ? {
-          [P in HavingFields]: P extends ByFields
-            ? never
-            : P extends string
-            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
-            : [
-                Error,
-                'Field ',
-                P,
-                ` in "having" needs to be provided in "by"`,
-              ]
-        }[HavingFields]
-      : 'take' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "take", you also need to provide "orderBy"'
-      : 'skip' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "skip", you also need to provide "orderBy"'
-      : ByValid extends True
-      ? {}
-      : {
-          [P in OrderFields]: P extends ByFields
-            ? never
-            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-        }[OrderFields]
-    >(args: SubsetIntersection<T, CorporateGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCorporateGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-  /**
-   * Fields of the Corporate model
-   */
-  readonly fields: CorporateFieldRefs;
-  }
-
-  /**
-   * The delegate class that acts as a "Promise-like" for Corporate.
-   * Why is this prefixed with `Prisma__`?
-   * Because we want to prevent naming conflicts as mentioned in
-   * https://github.com/prisma/prisma-client-js/issues/707
-   */
-  export interface Prisma__CorporateClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: "PrismaPromise"
-    /**
-     * Attaches callbacks for the resolution and/or rejection of the Promise.
-     * @param onfulfilled The callback to execute when the Promise is resolved.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of which ever callback is executed.
-     */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
-    /**
-     * Attaches a callback for only the rejection of the Promise.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of the callback.
-     */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
-    /**
-     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
-     * resolved value cannot be modified from the callback.
-     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
-     * @returns A Promise for the completion of the callback.
-     */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
-  }
-
-
-
-
-  /**
-   * Fields of the Corporate model
-   */ 
-  interface CorporateFieldRefs {
-    readonly id: FieldRef<"Corporate", 'String'>
-    readonly name: FieldRef<"Corporate", 'String'>
-    readonly industry: FieldRef<"Corporate", 'String'>
-    readonly status: FieldRef<"Corporate", 'String'>
-    readonly internet_banking_status: FieldRef<"Corporate", 'String'>
-    readonly logo_url: FieldRef<"Corporate", 'String'>
-  }
-    
-
-  // Custom InputTypes
-  /**
-   * Corporate findUnique
-   */
-  export type CorporateFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Corporate
-     */
-    select?: CorporateSelect<ExtArgs> | null
-    /**
-     * Filter, which Corporate to fetch.
-     */
-    where: CorporateWhereUniqueInput
-  }
-
-  /**
-   * Corporate findUniqueOrThrow
-   */
-  export type CorporateFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Corporate
-     */
-    select?: CorporateSelect<ExtArgs> | null
-    /**
-     * Filter, which Corporate to fetch.
-     */
-    where: CorporateWhereUniqueInput
-  }
-
-  /**
-   * Corporate findFirst
-   */
-  export type CorporateFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Corporate
-     */
-    select?: CorporateSelect<ExtArgs> | null
-    /**
-     * Filter, which Corporate to fetch.
-     */
-    where?: CorporateWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Corporates to fetch.
-     */
-    orderBy?: CorporateOrderByWithRelationInput | CorporateOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for Corporates.
-     */
-    cursor?: CorporateWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Corporates from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Corporates.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of Corporates.
-     */
-    distinct?: CorporateScalarFieldEnum | CorporateScalarFieldEnum[]
-  }
-
-  /**
-   * Corporate findFirstOrThrow
-   */
-  export type CorporateFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Corporate
-     */
-    select?: CorporateSelect<ExtArgs> | null
-    /**
-     * Filter, which Corporate to fetch.
-     */
-    where?: CorporateWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Corporates to fetch.
-     */
-    orderBy?: CorporateOrderByWithRelationInput | CorporateOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for Corporates.
-     */
-    cursor?: CorporateWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Corporates from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Corporates.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of Corporates.
-     */
-    distinct?: CorporateScalarFieldEnum | CorporateScalarFieldEnum[]
-  }
-
-  /**
-   * Corporate findMany
-   */
-  export type CorporateFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Corporate
-     */
-    select?: CorporateSelect<ExtArgs> | null
-    /**
-     * Filter, which Corporates to fetch.
-     */
-    where?: CorporateWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Corporates to fetch.
-     */
-    orderBy?: CorporateOrderByWithRelationInput | CorporateOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for listing Corporates.
-     */
-    cursor?: CorporateWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Corporates from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Corporates.
-     */
-    skip?: number
-    distinct?: CorporateScalarFieldEnum | CorporateScalarFieldEnum[]
-  }
-
-  /**
-   * Corporate create
-   */
-  export type CorporateCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Corporate
-     */
-    select?: CorporateSelect<ExtArgs> | null
-    /**
-     * The data needed to create a Corporate.
-     */
-    data: XOR<CorporateCreateInput, CorporateUncheckedCreateInput>
-  }
-
-  /**
-   * Corporate createMany
-   */
-  export type CorporateCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to create many Corporates.
-     */
-    data: CorporateCreateManyInput | CorporateCreateManyInput[]
-    skipDuplicates?: boolean
-  }
-
-  /**
-   * Corporate createManyAndReturn
-   */
-  export type CorporateCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Corporate
-     */
-    select?: CorporateSelectCreateManyAndReturn<ExtArgs> | null
-    /**
-     * The data used to create many Corporates.
-     */
-    data: CorporateCreateManyInput | CorporateCreateManyInput[]
-    skipDuplicates?: boolean
-  }
-
-  /**
-   * Corporate update
-   */
-  export type CorporateUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Corporate
-     */
-    select?: CorporateSelect<ExtArgs> | null
-    /**
-     * The data needed to update a Corporate.
-     */
-    data: XOR<CorporateUpdateInput, CorporateUncheckedUpdateInput>
-    /**
-     * Choose, which Corporate to update.
-     */
-    where: CorporateWhereUniqueInput
-  }
-
-  /**
-   * Corporate updateMany
-   */
-  export type CorporateUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to update Corporates.
-     */
-    data: XOR<CorporateUpdateManyMutationInput, CorporateUncheckedUpdateManyInput>
-    /**
-     * Filter which Corporates to update
-     */
-    where?: CorporateWhereInput
-  }
-
-  /**
-   * Corporate upsert
-   */
-  export type CorporateUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Corporate
-     */
-    select?: CorporateSelect<ExtArgs> | null
-    /**
-     * The filter to search for the Corporate to update in case it exists.
-     */
-    where: CorporateWhereUniqueInput
-    /**
-     * In case the Corporate found by the `where` argument doesn't exist, create a new Corporate with this data.
-     */
-    create: XOR<CorporateCreateInput, CorporateUncheckedCreateInput>
-    /**
-     * In case the Corporate was found with the provided `where` argument, update it with this data.
-     */
-    update: XOR<CorporateUpdateInput, CorporateUncheckedUpdateInput>
-  }
-
-  /**
-   * Corporate delete
-   */
-  export type CorporateDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Corporate
-     */
-    select?: CorporateSelect<ExtArgs> | null
-    /**
-     * Filter which Corporate to delete.
-     */
-    where: CorporateWhereUniqueInput
-  }
-
-  /**
-   * Corporate deleteMany
-   */
-  export type CorporateDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which Corporates to delete
-     */
-    where?: CorporateWhereInput
-  }
-
-  /**
-   * Corporate without action
-   */
-  export type CorporateDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Corporate
-     */
-    select?: CorporateSelect<ExtArgs> | null
-  }
-
-
-  /**
-   * Model MiniApp
-   */
-
-  export type AggregateMiniApp = {
-    _count: MiniAppCountAggregateOutputType | null
-    _min: MiniAppMinAggregateOutputType | null
-    _max: MiniAppMaxAggregateOutputType | null
-  }
-
-  export type MiniAppMinAggregateOutputType = {
-    id: string | null
-    name: string | null
-    url: string | null
-    logo_url: string | null
-    username: string | null
-    password: string | null
-    encryption_key: string | null
-  }
-
-  export type MiniAppMaxAggregateOutputType = {
-    id: string | null
-    name: string | null
-    url: string | null
-    logo_url: string | null
-    username: string | null
-    password: string | null
-    encryption_key: string | null
-  }
-
-  export type MiniAppCountAggregateOutputType = {
+  export type SystemActivityLogGroupByOutputType = {
     id: number
-    name: number
-    url: number
-    logo_url: number
-    username: number
-    password: number
-    encryption_key: number
-    _all: number
+    timestamp: Date
+    userEmail: string
+    action: string
+    status: string
+    details: string | null
+    ipAddress: string | null
+    _count: SystemActivityLogCountAggregateOutputType | null
+    _avg: SystemActivityLogAvgAggregateOutputType | null
+    _sum: SystemActivityLogSumAggregateOutputType | null
+    _min: SystemActivityLogMinAggregateOutputType | null
+    _max: SystemActivityLogMaxAggregateOutputType | null
   }
 
-
-  export type MiniAppMinAggregateInputType = {
-    id?: true
-    name?: true
-    url?: true
-    logo_url?: true
-    username?: true
-    password?: true
-    encryption_key?: true
-  }
-
-  export type MiniAppMaxAggregateInputType = {
-    id?: true
-    name?: true
-    url?: true
-    logo_url?: true
-    username?: true
-    password?: true
-    encryption_key?: true
-  }
-
-  export type MiniAppCountAggregateInputType = {
-    id?: true
-    name?: true
-    url?: true
-    logo_url?: true
-    username?: true
-    password?: true
-    encryption_key?: true
-    _all?: true
-  }
-
-  export type MiniAppAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which MiniApp to aggregate.
-     */
-    where?: MiniAppWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of MiniApps to fetch.
-     */
-    orderBy?: MiniAppOrderByWithRelationInput | MiniAppOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the start position
-     */
-    cursor?: MiniAppWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` MiniApps from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` MiniApps.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Count returned MiniApps
-    **/
-    _count?: true | MiniAppCountAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the minimum value
-    **/
-    _min?: MiniAppMinAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the maximum value
-    **/
-    _max?: MiniAppMaxAggregateInputType
-  }
-
-  export type GetMiniAppAggregateType<T extends MiniAppAggregateArgs> = {
-        [P in keyof T & keyof AggregateMiniApp]: P extends '_count' | 'count'
-      ? T[P] extends true
-        ? number
-        : GetScalarType<T[P], AggregateMiniApp[P]>
-      : GetScalarType<T[P], AggregateMiniApp[P]>
-  }
-
-
-
-
-  export type MiniAppGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: MiniAppWhereInput
-    orderBy?: MiniAppOrderByWithAggregationInput | MiniAppOrderByWithAggregationInput[]
-    by: MiniAppScalarFieldEnum[] | MiniAppScalarFieldEnum
-    having?: MiniAppScalarWhereWithAggregatesInput
-    take?: number
-    skip?: number
-    _count?: MiniAppCountAggregateInputType | true
-    _min?: MiniAppMinAggregateInputType
-    _max?: MiniAppMaxAggregateInputType
-  }
-
-  export type MiniAppGroupByOutputType = {
-    id: string
-    name: string
-    url: string
-    logo_url: string
-    username: string
-    password: string
-    encryption_key: string
-    _count: MiniAppCountAggregateOutputType | null
-    _min: MiniAppMinAggregateOutputType | null
-    _max: MiniAppMaxAggregateOutputType | null
-  }
-
-  type GetMiniAppGroupByPayload<T extends MiniAppGroupByArgs> = Prisma.PrismaPromise<
+  type GetSystemActivityLogGroupByPayload<T extends SystemActivityLogGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickEnumerable<MiniAppGroupByOutputType, T['by']> &
+      PickEnumerable<SystemActivityLogGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof MiniAppGroupByOutputType))]: P extends '_count'
+          [P in ((keyof T) & (keyof SystemActivityLogGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
               ? number
-              : GetScalarType<T[P], MiniAppGroupByOutputType[P]>
-            : GetScalarType<T[P], MiniAppGroupByOutputType[P]>
+              : GetScalarType<T[P], SystemActivityLogGroupByOutputType[P]>
+            : GetScalarType<T[P], SystemActivityLogGroupByOutputType[P]>
         }
       >
     >
 
 
-  export type MiniAppSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type SystemActivityLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    name?: boolean
-    url?: boolean
-    logo_url?: boolean
-    username?: boolean
-    password?: boolean
-    encryption_key?: boolean
-  }, ExtArgs["result"]["miniApp"]>
+    timestamp?: boolean
+    userEmail?: boolean
+    action?: boolean
+    status?: boolean
+    details?: boolean
+    ipAddress?: boolean
+  }, ExtArgs["result"]["systemActivityLog"]>
 
-  export type MiniAppSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type SystemActivityLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    name?: boolean
-    url?: boolean
-    logo_url?: boolean
-    username?: boolean
-    password?: boolean
-    encryption_key?: boolean
-  }, ExtArgs["result"]["miniApp"]>
+    timestamp?: boolean
+    userEmail?: boolean
+    action?: boolean
+    status?: boolean
+    details?: boolean
+    ipAddress?: boolean
+  }, ExtArgs["result"]["systemActivityLog"]>
 
-  export type MiniAppSelectScalar = {
+  export type SystemActivityLogSelectScalar = {
     id?: boolean
-    name?: boolean
-    url?: boolean
-    logo_url?: boolean
-    username?: boolean
-    password?: boolean
-    encryption_key?: boolean
+    timestamp?: boolean
+    userEmail?: boolean
+    action?: boolean
+    status?: boolean
+    details?: boolean
+    ipAddress?: boolean
   }
 
 
-  export type $MiniAppPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "MiniApp"
+  export type $SystemActivityLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SystemActivityLog"
     objects: {}
     scalars: $Extensions.GetPayloadResult<{
-      id: string
-      name: string
-      url: string
-      logo_url: string
-      username: string
-      password: string
-      encryption_key: string
-    }, ExtArgs["result"]["miniApp"]>
+      id: number
+      timestamp: Date
+      userEmail: string
+      action: string
+      status: string
+      details: string | null
+      ipAddress: string | null
+    }, ExtArgs["result"]["systemActivityLog"]>
     composites: {}
   }
 
-  type MiniAppGetPayload<S extends boolean | null | undefined | MiniAppDefaultArgs> = $Result.GetResult<Prisma.$MiniAppPayload, S>
+  type SystemActivityLogGetPayload<S extends boolean | null | undefined | SystemActivityLogDefaultArgs> = $Result.GetResult<Prisma.$SystemActivityLogPayload, S>
 
-  type MiniAppCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<MiniAppFindManyArgs, 'select' | 'include' | 'distinct'> & {
-      select?: MiniAppCountAggregateInputType | true
+  type SystemActivityLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SystemActivityLogFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SystemActivityLogCountAggregateInputType | true
     }
 
-  export interface MiniAppDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MiniApp'], meta: { name: 'MiniApp' } }
+  export interface SystemActivityLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SystemActivityLog'], meta: { name: 'SystemActivityLog' } }
     /**
-     * Find zero or one MiniApp that matches the filter.
-     * @param {MiniAppFindUniqueArgs} args - Arguments to find a MiniApp
+     * Find zero or one SystemActivityLog that matches the filter.
+     * @param {SystemActivityLogFindUniqueArgs} args - Arguments to find a SystemActivityLog
      * @example
-     * // Get one MiniApp
-     * const miniApp = await prisma.miniApp.findUnique({
+     * // Get one SystemActivityLog
+     * const systemActivityLog = await prisma.systemActivityLog.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findUnique<T extends MiniAppFindUniqueArgs>(args: SelectSubset<T, MiniAppFindUniqueArgs<ExtArgs>>): Prisma__MiniAppClient<$Result.GetResult<Prisma.$MiniAppPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+    findUnique<T extends SystemActivityLogFindUniqueArgs>(args: SelectSubset<T, SystemActivityLogFindUniqueArgs<ExtArgs>>): Prisma__SystemActivityLogClient<$Result.GetResult<Prisma.$SystemActivityLogPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one MiniApp that matches the filter or throw an error with `error.code='P2025'` 
+     * Find one SystemActivityLog that matches the filter or throw an error with `error.code='P2025'` 
      * if no matches were found.
-     * @param {MiniAppFindUniqueOrThrowArgs} args - Arguments to find a MiniApp
+     * @param {SystemActivityLogFindUniqueOrThrowArgs} args - Arguments to find a SystemActivityLog
      * @example
-     * // Get one MiniApp
-     * const miniApp = await prisma.miniApp.findUniqueOrThrow({
+     * // Get one SystemActivityLog
+     * const systemActivityLog = await prisma.systemActivityLog.findUniqueOrThrow({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findUniqueOrThrow<T extends MiniAppFindUniqueOrThrowArgs>(args: SelectSubset<T, MiniAppFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MiniAppClient<$Result.GetResult<Prisma.$MiniAppPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends SystemActivityLogFindUniqueOrThrowArgs>(args: SelectSubset<T, SystemActivityLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SystemActivityLogClient<$Result.GetResult<Prisma.$SystemActivityLogPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
-     * Find the first MiniApp that matches the filter.
+     * Find the first SystemActivityLog that matches the filter.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {MiniAppFindFirstArgs} args - Arguments to find a MiniApp
+     * @param {SystemActivityLogFindFirstArgs} args - Arguments to find a SystemActivityLog
      * @example
-     * // Get one MiniApp
-     * const miniApp = await prisma.miniApp.findFirst({
+     * // Get one SystemActivityLog
+     * const systemActivityLog = await prisma.systemActivityLog.findFirst({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findFirst<T extends MiniAppFindFirstArgs>(args?: SelectSubset<T, MiniAppFindFirstArgs<ExtArgs>>): Prisma__MiniAppClient<$Result.GetResult<Prisma.$MiniAppPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+    findFirst<T extends SystemActivityLogFindFirstArgs>(args?: SelectSubset<T, SystemActivityLogFindFirstArgs<ExtArgs>>): Prisma__SystemActivityLogClient<$Result.GetResult<Prisma.$SystemActivityLogPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
 
     /**
-     * Find the first MiniApp that matches the filter or
+     * Find the first SystemActivityLog that matches the filter or
      * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {MiniAppFindFirstOrThrowArgs} args - Arguments to find a MiniApp
+     * @param {SystemActivityLogFindFirstOrThrowArgs} args - Arguments to find a SystemActivityLog
      * @example
-     * // Get one MiniApp
-     * const miniApp = await prisma.miniApp.findFirstOrThrow({
+     * // Get one SystemActivityLog
+     * const systemActivityLog = await prisma.systemActivityLog.findFirstOrThrow({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findFirstOrThrow<T extends MiniAppFindFirstOrThrowArgs>(args?: SelectSubset<T, MiniAppFindFirstOrThrowArgs<ExtArgs>>): Prisma__MiniAppClient<$Result.GetResult<Prisma.$MiniAppPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+    findFirstOrThrow<T extends SystemActivityLogFindFirstOrThrowArgs>(args?: SelectSubset<T, SystemActivityLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__SystemActivityLogClient<$Result.GetResult<Prisma.$SystemActivityLogPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
 
     /**
-     * Find zero or more MiniApps that matches the filter.
+     * Find zero or more SystemActivityLogs that matches the filter.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {MiniAppFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @param {SystemActivityLogFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all MiniApps
-     * const miniApps = await prisma.miniApp.findMany()
+     * // Get all SystemActivityLogs
+     * const systemActivityLogs = await prisma.systemActivityLog.findMany()
      * 
-     * // Get first 10 MiniApps
-     * const miniApps = await prisma.miniApp.findMany({ take: 10 })
+     * // Get first 10 SystemActivityLogs
+     * const systemActivityLogs = await prisma.systemActivityLog.findMany({ take: 10 })
      * 
      * // Only select the `id`
-     * const miniAppWithIdOnly = await prisma.miniApp.findMany({ select: { id: true } })
+     * const systemActivityLogWithIdOnly = await prisma.systemActivityLog.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends MiniAppFindManyArgs>(args?: SelectSubset<T, MiniAppFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MiniAppPayload<ExtArgs>, T, "findMany">>
+    findMany<T extends SystemActivityLogFindManyArgs>(args?: SelectSubset<T, SystemActivityLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SystemActivityLogPayload<ExtArgs>, T, "findMany">>
 
     /**
-     * Create a MiniApp.
-     * @param {MiniAppCreateArgs} args - Arguments to create a MiniApp.
+     * Create a SystemActivityLog.
+     * @param {SystemActivityLogCreateArgs} args - Arguments to create a SystemActivityLog.
      * @example
-     * // Create one MiniApp
-     * const MiniApp = await prisma.miniApp.create({
+     * // Create one SystemActivityLog
+     * const SystemActivityLog = await prisma.systemActivityLog.create({
      *   data: {
-     *     // ... data to create a MiniApp
+     *     // ... data to create a SystemActivityLog
      *   }
      * })
      * 
      */
-    create<T extends MiniAppCreateArgs>(args: SelectSubset<T, MiniAppCreateArgs<ExtArgs>>): Prisma__MiniAppClient<$Result.GetResult<Prisma.$MiniAppPayload<ExtArgs>, T, "create">, never, ExtArgs>
+    create<T extends SystemActivityLogCreateArgs>(args: SelectSubset<T, SystemActivityLogCreateArgs<ExtArgs>>): Prisma__SystemActivityLogClient<$Result.GetResult<Prisma.$SystemActivityLogPayload<ExtArgs>, T, "create">, never, ExtArgs>
 
     /**
-     * Create many MiniApps.
-     * @param {MiniAppCreateManyArgs} args - Arguments to create many MiniApps.
+     * Create many SystemActivityLogs.
+     * @param {SystemActivityLogCreateManyArgs} args - Arguments to create many SystemActivityLogs.
      * @example
-     * // Create many MiniApps
-     * const miniApp = await prisma.miniApp.createMany({
+     * // Create many SystemActivityLogs
+     * const systemActivityLog = await prisma.systemActivityLog.createMany({
      *   data: [
      *     // ... provide data here
      *   ]
      * })
      *     
      */
-    createMany<T extends MiniAppCreateManyArgs>(args?: SelectSubset<T, MiniAppCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    createMany<T extends SystemActivityLogCreateManyArgs>(args?: SelectSubset<T, SystemActivityLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Create many MiniApps and returns the data saved in the database.
-     * @param {MiniAppCreateManyAndReturnArgs} args - Arguments to create many MiniApps.
+     * Create many SystemActivityLogs and returns the data saved in the database.
+     * @param {SystemActivityLogCreateManyAndReturnArgs} args - Arguments to create many SystemActivityLogs.
      * @example
-     * // Create many MiniApps
-     * const miniApp = await prisma.miniApp.createManyAndReturn({
+     * // Create many SystemActivityLogs
+     * const systemActivityLog = await prisma.systemActivityLog.createManyAndReturn({
      *   data: [
      *     // ... provide data here
      *   ]
      * })
      * 
-     * // Create many MiniApps and only return the `id`
-     * const miniAppWithIdOnly = await prisma.miniApp.createManyAndReturn({ 
+     * // Create many SystemActivityLogs and only return the `id`
+     * const systemActivityLogWithIdOnly = await prisma.systemActivityLog.createManyAndReturn({ 
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -9719,28 +9013,28 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends MiniAppCreateManyAndReturnArgs>(args?: SelectSubset<T, MiniAppCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MiniAppPayload<ExtArgs>, T, "createManyAndReturn">>
+    createManyAndReturn<T extends SystemActivityLogCreateManyAndReturnArgs>(args?: SelectSubset<T, SystemActivityLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SystemActivityLogPayload<ExtArgs>, T, "createManyAndReturn">>
 
     /**
-     * Delete a MiniApp.
-     * @param {MiniAppDeleteArgs} args - Arguments to delete one MiniApp.
+     * Delete a SystemActivityLog.
+     * @param {SystemActivityLogDeleteArgs} args - Arguments to delete one SystemActivityLog.
      * @example
-     * // Delete one MiniApp
-     * const MiniApp = await prisma.miniApp.delete({
+     * // Delete one SystemActivityLog
+     * const SystemActivityLog = await prisma.systemActivityLog.delete({
      *   where: {
-     *     // ... filter to delete one MiniApp
+     *     // ... filter to delete one SystemActivityLog
      *   }
      * })
      * 
      */
-    delete<T extends MiniAppDeleteArgs>(args: SelectSubset<T, MiniAppDeleteArgs<ExtArgs>>): Prisma__MiniAppClient<$Result.GetResult<Prisma.$MiniAppPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+    delete<T extends SystemActivityLogDeleteArgs>(args: SelectSubset<T, SystemActivityLogDeleteArgs<ExtArgs>>): Prisma__SystemActivityLogClient<$Result.GetResult<Prisma.$SystemActivityLogPayload<ExtArgs>, T, "delete">, never, ExtArgs>
 
     /**
-     * Update one MiniApp.
-     * @param {MiniAppUpdateArgs} args - Arguments to update one MiniApp.
+     * Update one SystemActivityLog.
+     * @param {SystemActivityLogUpdateArgs} args - Arguments to update one SystemActivityLog.
      * @example
-     * // Update one MiniApp
-     * const miniApp = await prisma.miniApp.update({
+     * // Update one SystemActivityLog
+     * const systemActivityLog = await prisma.systemActivityLog.update({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -9750,30 +9044,30 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends MiniAppUpdateArgs>(args: SelectSubset<T, MiniAppUpdateArgs<ExtArgs>>): Prisma__MiniAppClient<$Result.GetResult<Prisma.$MiniAppPayload<ExtArgs>, T, "update">, never, ExtArgs>
+    update<T extends SystemActivityLogUpdateArgs>(args: SelectSubset<T, SystemActivityLogUpdateArgs<ExtArgs>>): Prisma__SystemActivityLogClient<$Result.GetResult<Prisma.$SystemActivityLogPayload<ExtArgs>, T, "update">, never, ExtArgs>
 
     /**
-     * Delete zero or more MiniApps.
-     * @param {MiniAppDeleteManyArgs} args - Arguments to filter MiniApps to delete.
+     * Delete zero or more SystemActivityLogs.
+     * @param {SystemActivityLogDeleteManyArgs} args - Arguments to filter SystemActivityLogs to delete.
      * @example
-     * // Delete a few MiniApps
-     * const { count } = await prisma.miniApp.deleteMany({
+     * // Delete a few SystemActivityLogs
+     * const { count } = await prisma.systemActivityLog.deleteMany({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      * 
      */
-    deleteMany<T extends MiniAppDeleteManyArgs>(args?: SelectSubset<T, MiniAppDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    deleteMany<T extends SystemActivityLogDeleteManyArgs>(args?: SelectSubset<T, SystemActivityLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Update zero or more MiniApps.
+     * Update zero or more SystemActivityLogs.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {MiniAppUpdateManyArgs} args - Arguments to update one or more rows.
+     * @param {SystemActivityLogUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many MiniApps
-     * const miniApp = await prisma.miniApp.updateMany({
+     * // Update many SystemActivityLogs
+     * const systemActivityLog = await prisma.systemActivityLog.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -9783,56 +9077,56 @@ export namespace Prisma {
      * })
      * 
      */
-    updateMany<T extends MiniAppUpdateManyArgs>(args: SelectSubset<T, MiniAppUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    updateMany<T extends SystemActivityLogUpdateManyArgs>(args: SelectSubset<T, SystemActivityLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Create or update one MiniApp.
-     * @param {MiniAppUpsertArgs} args - Arguments to update or create a MiniApp.
+     * Create or update one SystemActivityLog.
+     * @param {SystemActivityLogUpsertArgs} args - Arguments to update or create a SystemActivityLog.
      * @example
-     * // Update or create a MiniApp
-     * const miniApp = await prisma.miniApp.upsert({
+     * // Update or create a SystemActivityLog
+     * const systemActivityLog = await prisma.systemActivityLog.upsert({
      *   create: {
-     *     // ... data to create a MiniApp
+     *     // ... data to create a SystemActivityLog
      *   },
      *   update: {
      *     // ... in case it already exists, update
      *   },
      *   where: {
-     *     // ... the filter for the MiniApp we want to update
+     *     // ... the filter for the SystemActivityLog we want to update
      *   }
      * })
      */
-    upsert<T extends MiniAppUpsertArgs>(args: SelectSubset<T, MiniAppUpsertArgs<ExtArgs>>): Prisma__MiniAppClient<$Result.GetResult<Prisma.$MiniAppPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+    upsert<T extends SystemActivityLogUpsertArgs>(args: SelectSubset<T, SystemActivityLogUpsertArgs<ExtArgs>>): Prisma__SystemActivityLogClient<$Result.GetResult<Prisma.$SystemActivityLogPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
 
 
     /**
-     * Count the number of MiniApps.
+     * Count the number of SystemActivityLogs.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {MiniAppCountArgs} args - Arguments to filter MiniApps to count.
+     * @param {SystemActivityLogCountArgs} args - Arguments to filter SystemActivityLogs to count.
      * @example
-     * // Count the number of MiniApps
-     * const count = await prisma.miniApp.count({
+     * // Count the number of SystemActivityLogs
+     * const count = await prisma.systemActivityLog.count({
      *   where: {
-     *     // ... the filter for the MiniApps we want to count
+     *     // ... the filter for the SystemActivityLogs we want to count
      *   }
      * })
     **/
-    count<T extends MiniAppCountArgs>(
-      args?: Subset<T, MiniAppCountArgs>,
+    count<T extends SystemActivityLogCountArgs>(
+      args?: Subset<T, SystemActivityLogCountArgs>,
     ): Prisma.PrismaPromise<
       T extends $Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
-          : GetScalarType<T['select'], MiniAppCountAggregateOutputType>
+          : GetScalarType<T['select'], SystemActivityLogCountAggregateOutputType>
         : number
     >
 
     /**
-     * Allows you to perform aggregations operations on a MiniApp.
+     * Allows you to perform aggregations operations on a SystemActivityLog.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {MiniAppAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @param {SystemActivityLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
      * // Where email contains prisma.io
@@ -9852,13 +9146,13 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends MiniAppAggregateArgs>(args: Subset<T, MiniAppAggregateArgs>): Prisma.PrismaPromise<GetMiniAppAggregateType<T>>
+    aggregate<T extends SystemActivityLogAggregateArgs>(args: Subset<T, SystemActivityLogAggregateArgs>): Prisma.PrismaPromise<GetSystemActivityLogAggregateType<T>>
 
     /**
-     * Group by MiniApp.
+     * Group by SystemActivityLog.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {MiniAppGroupByArgs} args - Group by arguments.
+     * @param {SystemActivityLogGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
      * const result = await prisma.user.groupBy({
@@ -9873,14 +9167,14 @@ export namespace Prisma {
      * 
     **/
     groupBy<
-      T extends MiniAppGroupByArgs,
+      T extends SystemActivityLogGroupByArgs,
       HasSelectOrTake extends Or<
         Extends<'skip', Keys<T>>,
         Extends<'take', Keys<T>>
       >,
       OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: MiniAppGroupByArgs['orderBy'] }
-        : { orderBy?: MiniAppGroupByArgs['orderBy'] },
+        ? { orderBy: SystemActivityLogGroupByArgs['orderBy'] }
+        : { orderBy?: SystemActivityLogGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
@@ -9929,20 +9223,20 @@ export namespace Prisma {
             ? never
             : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
         }[OrderFields]
-    >(args: SubsetIntersection<T, MiniAppGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMiniAppGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+    >(args: SubsetIntersection<T, SystemActivityLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSystemActivityLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
   /**
-   * Fields of the MiniApp model
+   * Fields of the SystemActivityLog model
    */
-  readonly fields: MiniAppFieldRefs;
+  readonly fields: SystemActivityLogFieldRefs;
   }
 
   /**
-   * The delegate class that acts as a "Promise-like" for MiniApp.
+   * The delegate class that acts as a "Promise-like" for SystemActivityLog.
    * Why is this prefixed with `Prisma__`?
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__MiniAppClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__SystemActivityLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -9970,301 +9264,2117 @@ export namespace Prisma {
 
 
   /**
-   * Fields of the MiniApp model
+   * Fields of the SystemActivityLog model
    */ 
-  interface MiniAppFieldRefs {
-    readonly id: FieldRef<"MiniApp", 'String'>
-    readonly name: FieldRef<"MiniApp", 'String'>
-    readonly url: FieldRef<"MiniApp", 'String'>
-    readonly logo_url: FieldRef<"MiniApp", 'String'>
-    readonly username: FieldRef<"MiniApp", 'String'>
-    readonly password: FieldRef<"MiniApp", 'String'>
-    readonly encryption_key: FieldRef<"MiniApp", 'String'>
+  interface SystemActivityLogFieldRefs {
+    readonly id: FieldRef<"SystemActivityLog", 'Int'>
+    readonly timestamp: FieldRef<"SystemActivityLog", 'DateTime'>
+    readonly userEmail: FieldRef<"SystemActivityLog", 'String'>
+    readonly action: FieldRef<"SystemActivityLog", 'String'>
+    readonly status: FieldRef<"SystemActivityLog", 'String'>
+    readonly details: FieldRef<"SystemActivityLog", 'String'>
+    readonly ipAddress: FieldRef<"SystemActivityLog", 'String'>
   }
     
 
   // Custom InputTypes
   /**
-   * MiniApp findUnique
+   * SystemActivityLog findUnique
    */
-  export type MiniAppFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the MiniApp
+     * Select specific fields to fetch from the SystemActivityLog
      */
-    select?: MiniAppSelect<ExtArgs> | null
+    select?: SystemActivityLogSelect<ExtArgs> | null
     /**
-     * Filter, which MiniApp to fetch.
+     * Filter, which SystemActivityLog to fetch.
      */
-    where: MiniAppWhereUniqueInput
+    where: SystemActivityLogWhereUniqueInput
   }
 
   /**
-   * MiniApp findUniqueOrThrow
+   * SystemActivityLog findUniqueOrThrow
    */
-  export type MiniAppFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the MiniApp
+     * Select specific fields to fetch from the SystemActivityLog
      */
-    select?: MiniAppSelect<ExtArgs> | null
+    select?: SystemActivityLogSelect<ExtArgs> | null
     /**
-     * Filter, which MiniApp to fetch.
+     * Filter, which SystemActivityLog to fetch.
      */
-    where: MiniAppWhereUniqueInput
+    where: SystemActivityLogWhereUniqueInput
   }
 
   /**
-   * MiniApp findFirst
+   * SystemActivityLog findFirst
    */
-  export type MiniAppFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the MiniApp
+     * Select specific fields to fetch from the SystemActivityLog
      */
-    select?: MiniAppSelect<ExtArgs> | null
+    select?: SystemActivityLogSelect<ExtArgs> | null
     /**
-     * Filter, which MiniApp to fetch.
+     * Filter, which SystemActivityLog to fetch.
      */
-    where?: MiniAppWhereInput
+    where?: SystemActivityLogWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of MiniApps to fetch.
+     * Determine the order of SystemActivityLogs to fetch.
      */
-    orderBy?: MiniAppOrderByWithRelationInput | MiniAppOrderByWithRelationInput[]
+    orderBy?: SystemActivityLogOrderByWithRelationInput | SystemActivityLogOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for MiniApps.
+     * Sets the position for searching for SystemActivityLogs.
      */
-    cursor?: MiniAppWhereUniqueInput
+    cursor?: SystemActivityLogWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` MiniApps from the position of the cursor.
+     * Take `±n` SystemActivityLogs from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` MiniApps.
+     * Skip the first `n` SystemActivityLogs.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
-     * Filter by unique combinations of MiniApps.
+     * Filter by unique combinations of SystemActivityLogs.
      */
-    distinct?: MiniAppScalarFieldEnum | MiniAppScalarFieldEnum[]
+    distinct?: SystemActivityLogScalarFieldEnum | SystemActivityLogScalarFieldEnum[]
   }
 
   /**
-   * MiniApp findFirstOrThrow
+   * SystemActivityLog findFirstOrThrow
    */
-  export type MiniAppFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the MiniApp
+     * Select specific fields to fetch from the SystemActivityLog
      */
-    select?: MiniAppSelect<ExtArgs> | null
+    select?: SystemActivityLogSelect<ExtArgs> | null
     /**
-     * Filter, which MiniApp to fetch.
+     * Filter, which SystemActivityLog to fetch.
      */
-    where?: MiniAppWhereInput
+    where?: SystemActivityLogWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of MiniApps to fetch.
+     * Determine the order of SystemActivityLogs to fetch.
      */
-    orderBy?: MiniAppOrderByWithRelationInput | MiniAppOrderByWithRelationInput[]
+    orderBy?: SystemActivityLogOrderByWithRelationInput | SystemActivityLogOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for MiniApps.
+     * Sets the position for searching for SystemActivityLogs.
      */
-    cursor?: MiniAppWhereUniqueInput
+    cursor?: SystemActivityLogWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` MiniApps from the position of the cursor.
+     * Take `±n` SystemActivityLogs from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` MiniApps.
+     * Skip the first `n` SystemActivityLogs.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
-     * Filter by unique combinations of MiniApps.
+     * Filter by unique combinations of SystemActivityLogs.
      */
-    distinct?: MiniAppScalarFieldEnum | MiniAppScalarFieldEnum[]
+    distinct?: SystemActivityLogScalarFieldEnum | SystemActivityLogScalarFieldEnum[]
   }
 
   /**
-   * MiniApp findMany
+   * SystemActivityLog findMany
    */
-  export type MiniAppFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the MiniApp
+     * Select specific fields to fetch from the SystemActivityLog
      */
-    select?: MiniAppSelect<ExtArgs> | null
+    select?: SystemActivityLogSelect<ExtArgs> | null
     /**
-     * Filter, which MiniApps to fetch.
+     * Filter, which SystemActivityLogs to fetch.
      */
-    where?: MiniAppWhereInput
+    where?: SystemActivityLogWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of MiniApps to fetch.
+     * Determine the order of SystemActivityLogs to fetch.
      */
-    orderBy?: MiniAppOrderByWithRelationInput | MiniAppOrderByWithRelationInput[]
+    orderBy?: SystemActivityLogOrderByWithRelationInput | SystemActivityLogOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for listing MiniApps.
+     * Sets the position for listing SystemActivityLogs.
      */
-    cursor?: MiniAppWhereUniqueInput
+    cursor?: SystemActivityLogWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` MiniApps from the position of the cursor.
+     * Take `±n` SystemActivityLogs from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` MiniApps.
+     * Skip the first `n` SystemActivityLogs.
      */
     skip?: number
-    distinct?: MiniAppScalarFieldEnum | MiniAppScalarFieldEnum[]
+    distinct?: SystemActivityLogScalarFieldEnum | SystemActivityLogScalarFieldEnum[]
   }
 
   /**
-   * MiniApp create
+   * SystemActivityLog create
    */
-  export type MiniAppCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the MiniApp
+     * Select specific fields to fetch from the SystemActivityLog
      */
-    select?: MiniAppSelect<ExtArgs> | null
+    select?: SystemActivityLogSelect<ExtArgs> | null
     /**
-     * The data needed to create a MiniApp.
+     * The data needed to create a SystemActivityLog.
      */
-    data: XOR<MiniAppCreateInput, MiniAppUncheckedCreateInput>
+    data: XOR<SystemActivityLogCreateInput, SystemActivityLogUncheckedCreateInput>
   }
 
   /**
-   * MiniApp createMany
+   * SystemActivityLog createMany
    */
-  export type MiniAppCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * The data used to create many MiniApps.
+     * The data used to create many SystemActivityLogs.
      */
-    data: MiniAppCreateManyInput | MiniAppCreateManyInput[]
+    data: SystemActivityLogCreateManyInput | SystemActivityLogCreateManyInput[]
     skipDuplicates?: boolean
   }
 
   /**
-   * MiniApp createManyAndReturn
+   * SystemActivityLog createManyAndReturn
    */
-  export type MiniAppCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the MiniApp
+     * Select specific fields to fetch from the SystemActivityLog
      */
-    select?: MiniAppSelectCreateManyAndReturn<ExtArgs> | null
+    select?: SystemActivityLogSelectCreateManyAndReturn<ExtArgs> | null
     /**
-     * The data used to create many MiniApps.
+     * The data used to create many SystemActivityLogs.
      */
-    data: MiniAppCreateManyInput | MiniAppCreateManyInput[]
+    data: SystemActivityLogCreateManyInput | SystemActivityLogCreateManyInput[]
     skipDuplicates?: boolean
   }
 
   /**
-   * MiniApp update
+   * SystemActivityLog update
    */
-  export type MiniAppUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the MiniApp
+     * Select specific fields to fetch from the SystemActivityLog
      */
-    select?: MiniAppSelect<ExtArgs> | null
+    select?: SystemActivityLogSelect<ExtArgs> | null
     /**
-     * The data needed to update a MiniApp.
+     * The data needed to update a SystemActivityLog.
      */
-    data: XOR<MiniAppUpdateInput, MiniAppUncheckedUpdateInput>
+    data: XOR<SystemActivityLogUpdateInput, SystemActivityLogUncheckedUpdateInput>
     /**
-     * Choose, which MiniApp to update.
+     * Choose, which SystemActivityLog to update.
      */
-    where: MiniAppWhereUniqueInput
+    where: SystemActivityLogWhereUniqueInput
   }
 
   /**
-   * MiniApp updateMany
+   * SystemActivityLog updateMany
    */
-  export type MiniAppUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * The data used to update MiniApps.
+     * The data used to update SystemActivityLogs.
      */
-    data: XOR<MiniAppUpdateManyMutationInput, MiniAppUncheckedUpdateManyInput>
+    data: XOR<SystemActivityLogUpdateManyMutationInput, SystemActivityLogUncheckedUpdateManyInput>
     /**
-     * Filter which MiniApps to update
+     * Filter which SystemActivityLogs to update
      */
-    where?: MiniAppWhereInput
+    where?: SystemActivityLogWhereInput
   }
 
   /**
-   * MiniApp upsert
+   * SystemActivityLog upsert
    */
-  export type MiniAppUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the MiniApp
+     * Select specific fields to fetch from the SystemActivityLog
      */
-    select?: MiniAppSelect<ExtArgs> | null
+    select?: SystemActivityLogSelect<ExtArgs> | null
     /**
-     * The filter to search for the MiniApp to update in case it exists.
+     * The filter to search for the SystemActivityLog to update in case it exists.
      */
-    where: MiniAppWhereUniqueInput
+    where: SystemActivityLogWhereUniqueInput
     /**
-     * In case the MiniApp found by the `where` argument doesn't exist, create a new MiniApp with this data.
+     * In case the SystemActivityLog found by the `where` argument doesn't exist, create a new SystemActivityLog with this data.
      */
-    create: XOR<MiniAppCreateInput, MiniAppUncheckedCreateInput>
+    create: XOR<SystemActivityLogCreateInput, SystemActivityLogUncheckedCreateInput>
     /**
-     * In case the MiniApp was found with the provided `where` argument, update it with this data.
+     * In case the SystemActivityLog was found with the provided `where` argument, update it with this data.
      */
-    update: XOR<MiniAppUpdateInput, MiniAppUncheckedUpdateInput>
+    update: XOR<SystemActivityLogUpdateInput, SystemActivityLogUncheckedUpdateInput>
   }
 
   /**
-   * MiniApp delete
+   * SystemActivityLog delete
    */
-  export type MiniAppDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the MiniApp
+     * Select specific fields to fetch from the SystemActivityLog
      */
-    select?: MiniAppSelect<ExtArgs> | null
+    select?: SystemActivityLogSelect<ExtArgs> | null
     /**
-     * Filter which MiniApp to delete.
+     * Filter which SystemActivityLog to delete.
      */
-    where: MiniAppWhereUniqueInput
+    where: SystemActivityLogWhereUniqueInput
   }
 
   /**
-   * MiniApp deleteMany
+   * SystemActivityLog deleteMany
    */
-  export type MiniAppDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Filter which MiniApps to delete
+     * Filter which SystemActivityLogs to delete
      */
-    where?: MiniAppWhereInput
+    where?: SystemActivityLogWhereInput
   }
 
   /**
-   * MiniApp without action
+   * SystemActivityLog without action
    */
-  export type MiniAppDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type SystemActivityLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the MiniApp
+     * Select specific fields to fetch from the SystemActivityLog
      */
-    select?: MiniAppSelect<ExtArgs> | null
+    select?: SystemActivityLogSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model SecurityPolicy
+   */
+
+  export type AggregateSecurityPolicy = {
+    _count: SecurityPolicyCountAggregateOutputType | null
+    _avg: SecurityPolicyAvgAggregateOutputType | null
+    _sum: SecurityPolicySumAggregateOutputType | null
+    _min: SecurityPolicyMinAggregateOutputType | null
+    _max: SecurityPolicyMaxAggregateOutputType | null
+  }
+
+  export type SecurityPolicyAvgAggregateOutputType = {
+    id: number | null
+    sessionTimeout: number | null
+    concurrentSessions: number | null
+  }
+
+  export type SecurityPolicySumAggregateOutputType = {
+    id: number | null
+    sessionTimeout: number | null
+    concurrentSessions: number | null
+  }
+
+  export type SecurityPolicyMinAggregateOutputType = {
+    id: number | null
+    mfaRequired: boolean | null
+    sessionTimeout: number | null
+    concurrentSessions: number | null
+  }
+
+  export type SecurityPolicyMaxAggregateOutputType = {
+    id: number | null
+    mfaRequired: boolean | null
+    sessionTimeout: number | null
+    concurrentSessions: number | null
+  }
+
+  export type SecurityPolicyCountAggregateOutputType = {
+    id: number
+    mfaRequired: number
+    allowedMfaMethods: number
+    sessionTimeout: number
+    concurrentSessions: number
+    _all: number
+  }
+
+
+  export type SecurityPolicyAvgAggregateInputType = {
+    id?: true
+    sessionTimeout?: true
+    concurrentSessions?: true
+  }
+
+  export type SecurityPolicySumAggregateInputType = {
+    id?: true
+    sessionTimeout?: true
+    concurrentSessions?: true
+  }
+
+  export type SecurityPolicyMinAggregateInputType = {
+    id?: true
+    mfaRequired?: true
+    sessionTimeout?: true
+    concurrentSessions?: true
+  }
+
+  export type SecurityPolicyMaxAggregateInputType = {
+    id?: true
+    mfaRequired?: true
+    sessionTimeout?: true
+    concurrentSessions?: true
+  }
+
+  export type SecurityPolicyCountAggregateInputType = {
+    id?: true
+    mfaRequired?: true
+    allowedMfaMethods?: true
+    sessionTimeout?: true
+    concurrentSessions?: true
+    _all?: true
+  }
+
+  export type SecurityPolicyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SecurityPolicy to aggregate.
+     */
+    where?: SecurityPolicyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SecurityPolicies to fetch.
+     */
+    orderBy?: SecurityPolicyOrderByWithRelationInput | SecurityPolicyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SecurityPolicyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SecurityPolicies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SecurityPolicies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SecurityPolicies
+    **/
+    _count?: true | SecurityPolicyCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SecurityPolicyAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SecurityPolicySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SecurityPolicyMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SecurityPolicyMaxAggregateInputType
+  }
+
+  export type GetSecurityPolicyAggregateType<T extends SecurityPolicyAggregateArgs> = {
+        [P in keyof T & keyof AggregateSecurityPolicy]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSecurityPolicy[P]>
+      : GetScalarType<T[P], AggregateSecurityPolicy[P]>
+  }
+
+
+
+
+  export type SecurityPolicyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SecurityPolicyWhereInput
+    orderBy?: SecurityPolicyOrderByWithAggregationInput | SecurityPolicyOrderByWithAggregationInput[]
+    by: SecurityPolicyScalarFieldEnum[] | SecurityPolicyScalarFieldEnum
+    having?: SecurityPolicyScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SecurityPolicyCountAggregateInputType | true
+    _avg?: SecurityPolicyAvgAggregateInputType
+    _sum?: SecurityPolicySumAggregateInputType
+    _min?: SecurityPolicyMinAggregateInputType
+    _max?: SecurityPolicyMaxAggregateInputType
+  }
+
+  export type SecurityPolicyGroupByOutputType = {
+    id: number
+    mfaRequired: boolean
+    allowedMfaMethods: string[]
+    sessionTimeout: number
+    concurrentSessions: number
+    _count: SecurityPolicyCountAggregateOutputType | null
+    _avg: SecurityPolicyAvgAggregateOutputType | null
+    _sum: SecurityPolicySumAggregateOutputType | null
+    _min: SecurityPolicyMinAggregateOutputType | null
+    _max: SecurityPolicyMaxAggregateOutputType | null
+  }
+
+  type GetSecurityPolicyGroupByPayload<T extends SecurityPolicyGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SecurityPolicyGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SecurityPolicyGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SecurityPolicyGroupByOutputType[P]>
+            : GetScalarType<T[P], SecurityPolicyGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SecurityPolicySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    mfaRequired?: boolean
+    allowedMfaMethods?: boolean
+    sessionTimeout?: boolean
+    concurrentSessions?: boolean
+  }, ExtArgs["result"]["securityPolicy"]>
+
+  export type SecurityPolicySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    mfaRequired?: boolean
+    allowedMfaMethods?: boolean
+    sessionTimeout?: boolean
+    concurrentSessions?: boolean
+  }, ExtArgs["result"]["securityPolicy"]>
+
+  export type SecurityPolicySelectScalar = {
+    id?: boolean
+    mfaRequired?: boolean
+    allowedMfaMethods?: boolean
+    sessionTimeout?: boolean
+    concurrentSessions?: boolean
+  }
+
+
+  export type $SecurityPolicyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SecurityPolicy"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      mfaRequired: boolean
+      allowedMfaMethods: string[]
+      sessionTimeout: number
+      concurrentSessions: number
+    }, ExtArgs["result"]["securityPolicy"]>
+    composites: {}
+  }
+
+  type SecurityPolicyGetPayload<S extends boolean | null | undefined | SecurityPolicyDefaultArgs> = $Result.GetResult<Prisma.$SecurityPolicyPayload, S>
+
+  type SecurityPolicyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SecurityPolicyFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SecurityPolicyCountAggregateInputType | true
+    }
+
+  export interface SecurityPolicyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SecurityPolicy'], meta: { name: 'SecurityPolicy' } }
+    /**
+     * Find zero or one SecurityPolicy that matches the filter.
+     * @param {SecurityPolicyFindUniqueArgs} args - Arguments to find a SecurityPolicy
+     * @example
+     * // Get one SecurityPolicy
+     * const securityPolicy = await prisma.securityPolicy.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SecurityPolicyFindUniqueArgs>(args: SelectSubset<T, SecurityPolicyFindUniqueArgs<ExtArgs>>): Prisma__SecurityPolicyClient<$Result.GetResult<Prisma.$SecurityPolicyPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one SecurityPolicy that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {SecurityPolicyFindUniqueOrThrowArgs} args - Arguments to find a SecurityPolicy
+     * @example
+     * // Get one SecurityPolicy
+     * const securityPolicy = await prisma.securityPolicy.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SecurityPolicyFindUniqueOrThrowArgs>(args: SelectSubset<T, SecurityPolicyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SecurityPolicyClient<$Result.GetResult<Prisma.$SecurityPolicyPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first SecurityPolicy that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecurityPolicyFindFirstArgs} args - Arguments to find a SecurityPolicy
+     * @example
+     * // Get one SecurityPolicy
+     * const securityPolicy = await prisma.securityPolicy.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SecurityPolicyFindFirstArgs>(args?: SelectSubset<T, SecurityPolicyFindFirstArgs<ExtArgs>>): Prisma__SecurityPolicyClient<$Result.GetResult<Prisma.$SecurityPolicyPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first SecurityPolicy that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecurityPolicyFindFirstOrThrowArgs} args - Arguments to find a SecurityPolicy
+     * @example
+     * // Get one SecurityPolicy
+     * const securityPolicy = await prisma.securityPolicy.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SecurityPolicyFindFirstOrThrowArgs>(args?: SelectSubset<T, SecurityPolicyFindFirstOrThrowArgs<ExtArgs>>): Prisma__SecurityPolicyClient<$Result.GetResult<Prisma.$SecurityPolicyPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more SecurityPolicies that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecurityPolicyFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SecurityPolicies
+     * const securityPolicies = await prisma.securityPolicy.findMany()
+     * 
+     * // Get first 10 SecurityPolicies
+     * const securityPolicies = await prisma.securityPolicy.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const securityPolicyWithIdOnly = await prisma.securityPolicy.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SecurityPolicyFindManyArgs>(args?: SelectSubset<T, SecurityPolicyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SecurityPolicyPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a SecurityPolicy.
+     * @param {SecurityPolicyCreateArgs} args - Arguments to create a SecurityPolicy.
+     * @example
+     * // Create one SecurityPolicy
+     * const SecurityPolicy = await prisma.securityPolicy.create({
+     *   data: {
+     *     // ... data to create a SecurityPolicy
+     *   }
+     * })
+     * 
+     */
+    create<T extends SecurityPolicyCreateArgs>(args: SelectSubset<T, SecurityPolicyCreateArgs<ExtArgs>>): Prisma__SecurityPolicyClient<$Result.GetResult<Prisma.$SecurityPolicyPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many SecurityPolicies.
+     * @param {SecurityPolicyCreateManyArgs} args - Arguments to create many SecurityPolicies.
+     * @example
+     * // Create many SecurityPolicies
+     * const securityPolicy = await prisma.securityPolicy.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SecurityPolicyCreateManyArgs>(args?: SelectSubset<T, SecurityPolicyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SecurityPolicies and returns the data saved in the database.
+     * @param {SecurityPolicyCreateManyAndReturnArgs} args - Arguments to create many SecurityPolicies.
+     * @example
+     * // Create many SecurityPolicies
+     * const securityPolicy = await prisma.securityPolicy.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SecurityPolicies and only return the `id`
+     * const securityPolicyWithIdOnly = await prisma.securityPolicy.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SecurityPolicyCreateManyAndReturnArgs>(args?: SelectSubset<T, SecurityPolicyCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SecurityPolicyPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a SecurityPolicy.
+     * @param {SecurityPolicyDeleteArgs} args - Arguments to delete one SecurityPolicy.
+     * @example
+     * // Delete one SecurityPolicy
+     * const SecurityPolicy = await prisma.securityPolicy.delete({
+     *   where: {
+     *     // ... filter to delete one SecurityPolicy
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SecurityPolicyDeleteArgs>(args: SelectSubset<T, SecurityPolicyDeleteArgs<ExtArgs>>): Prisma__SecurityPolicyClient<$Result.GetResult<Prisma.$SecurityPolicyPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one SecurityPolicy.
+     * @param {SecurityPolicyUpdateArgs} args - Arguments to update one SecurityPolicy.
+     * @example
+     * // Update one SecurityPolicy
+     * const securityPolicy = await prisma.securityPolicy.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SecurityPolicyUpdateArgs>(args: SelectSubset<T, SecurityPolicyUpdateArgs<ExtArgs>>): Prisma__SecurityPolicyClient<$Result.GetResult<Prisma.$SecurityPolicyPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more SecurityPolicies.
+     * @param {SecurityPolicyDeleteManyArgs} args - Arguments to filter SecurityPolicies to delete.
+     * @example
+     * // Delete a few SecurityPolicies
+     * const { count } = await prisma.securityPolicy.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SecurityPolicyDeleteManyArgs>(args?: SelectSubset<T, SecurityPolicyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SecurityPolicies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecurityPolicyUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SecurityPolicies
+     * const securityPolicy = await prisma.securityPolicy.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SecurityPolicyUpdateManyArgs>(args: SelectSubset<T, SecurityPolicyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one SecurityPolicy.
+     * @param {SecurityPolicyUpsertArgs} args - Arguments to update or create a SecurityPolicy.
+     * @example
+     * // Update or create a SecurityPolicy
+     * const securityPolicy = await prisma.securityPolicy.upsert({
+     *   create: {
+     *     // ... data to create a SecurityPolicy
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SecurityPolicy we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SecurityPolicyUpsertArgs>(args: SelectSubset<T, SecurityPolicyUpsertArgs<ExtArgs>>): Prisma__SecurityPolicyClient<$Result.GetResult<Prisma.$SecurityPolicyPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of SecurityPolicies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecurityPolicyCountArgs} args - Arguments to filter SecurityPolicies to count.
+     * @example
+     * // Count the number of SecurityPolicies
+     * const count = await prisma.securityPolicy.count({
+     *   where: {
+     *     // ... the filter for the SecurityPolicies we want to count
+     *   }
+     * })
+    **/
+    count<T extends SecurityPolicyCountArgs>(
+      args?: Subset<T, SecurityPolicyCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SecurityPolicyCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SecurityPolicy.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecurityPolicyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SecurityPolicyAggregateArgs>(args: Subset<T, SecurityPolicyAggregateArgs>): Prisma.PrismaPromise<GetSecurityPolicyAggregateType<T>>
+
+    /**
+     * Group by SecurityPolicy.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecurityPolicyGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SecurityPolicyGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SecurityPolicyGroupByArgs['orderBy'] }
+        : { orderBy?: SecurityPolicyGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SecurityPolicyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSecurityPolicyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SecurityPolicy model
+   */
+  readonly fields: SecurityPolicyFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SecurityPolicy.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SecurityPolicyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SecurityPolicy model
+   */ 
+  interface SecurityPolicyFieldRefs {
+    readonly id: FieldRef<"SecurityPolicy", 'Int'>
+    readonly mfaRequired: FieldRef<"SecurityPolicy", 'Boolean'>
+    readonly allowedMfaMethods: FieldRef<"SecurityPolicy", 'String[]'>
+    readonly sessionTimeout: FieldRef<"SecurityPolicy", 'Int'>
+    readonly concurrentSessions: FieldRef<"SecurityPolicy", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SecurityPolicy findUnique
+   */
+  export type SecurityPolicyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SecurityPolicy
+     */
+    select?: SecurityPolicySelect<ExtArgs> | null
+    /**
+     * Filter, which SecurityPolicy to fetch.
+     */
+    where: SecurityPolicyWhereUniqueInput
+  }
+
+  /**
+   * SecurityPolicy findUniqueOrThrow
+   */
+  export type SecurityPolicyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SecurityPolicy
+     */
+    select?: SecurityPolicySelect<ExtArgs> | null
+    /**
+     * Filter, which SecurityPolicy to fetch.
+     */
+    where: SecurityPolicyWhereUniqueInput
+  }
+
+  /**
+   * SecurityPolicy findFirst
+   */
+  export type SecurityPolicyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SecurityPolicy
+     */
+    select?: SecurityPolicySelect<ExtArgs> | null
+    /**
+     * Filter, which SecurityPolicy to fetch.
+     */
+    where?: SecurityPolicyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SecurityPolicies to fetch.
+     */
+    orderBy?: SecurityPolicyOrderByWithRelationInput | SecurityPolicyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SecurityPolicies.
+     */
+    cursor?: SecurityPolicyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SecurityPolicies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SecurityPolicies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SecurityPolicies.
+     */
+    distinct?: SecurityPolicyScalarFieldEnum | SecurityPolicyScalarFieldEnum[]
+  }
+
+  /**
+   * SecurityPolicy findFirstOrThrow
+   */
+  export type SecurityPolicyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SecurityPolicy
+     */
+    select?: SecurityPolicySelect<ExtArgs> | null
+    /**
+     * Filter, which SecurityPolicy to fetch.
+     */
+    where?: SecurityPolicyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SecurityPolicies to fetch.
+     */
+    orderBy?: SecurityPolicyOrderByWithRelationInput | SecurityPolicyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SecurityPolicies.
+     */
+    cursor?: SecurityPolicyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SecurityPolicies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SecurityPolicies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SecurityPolicies.
+     */
+    distinct?: SecurityPolicyScalarFieldEnum | SecurityPolicyScalarFieldEnum[]
+  }
+
+  /**
+   * SecurityPolicy findMany
+   */
+  export type SecurityPolicyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SecurityPolicy
+     */
+    select?: SecurityPolicySelect<ExtArgs> | null
+    /**
+     * Filter, which SecurityPolicies to fetch.
+     */
+    where?: SecurityPolicyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SecurityPolicies to fetch.
+     */
+    orderBy?: SecurityPolicyOrderByWithRelationInput | SecurityPolicyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SecurityPolicies.
+     */
+    cursor?: SecurityPolicyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SecurityPolicies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SecurityPolicies.
+     */
+    skip?: number
+    distinct?: SecurityPolicyScalarFieldEnum | SecurityPolicyScalarFieldEnum[]
+  }
+
+  /**
+   * SecurityPolicy create
+   */
+  export type SecurityPolicyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SecurityPolicy
+     */
+    select?: SecurityPolicySelect<ExtArgs> | null
+    /**
+     * The data needed to create a SecurityPolicy.
+     */
+    data?: XOR<SecurityPolicyCreateInput, SecurityPolicyUncheckedCreateInput>
+  }
+
+  /**
+   * SecurityPolicy createMany
+   */
+  export type SecurityPolicyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SecurityPolicies.
+     */
+    data: SecurityPolicyCreateManyInput | SecurityPolicyCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SecurityPolicy createManyAndReturn
+   */
+  export type SecurityPolicyCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SecurityPolicy
+     */
+    select?: SecurityPolicySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many SecurityPolicies.
+     */
+    data: SecurityPolicyCreateManyInput | SecurityPolicyCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SecurityPolicy update
+   */
+  export type SecurityPolicyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SecurityPolicy
+     */
+    select?: SecurityPolicySelect<ExtArgs> | null
+    /**
+     * The data needed to update a SecurityPolicy.
+     */
+    data: XOR<SecurityPolicyUpdateInput, SecurityPolicyUncheckedUpdateInput>
+    /**
+     * Choose, which SecurityPolicy to update.
+     */
+    where: SecurityPolicyWhereUniqueInput
+  }
+
+  /**
+   * SecurityPolicy updateMany
+   */
+  export type SecurityPolicyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SecurityPolicies.
+     */
+    data: XOR<SecurityPolicyUpdateManyMutationInput, SecurityPolicyUncheckedUpdateManyInput>
+    /**
+     * Filter which SecurityPolicies to update
+     */
+    where?: SecurityPolicyWhereInput
+  }
+
+  /**
+   * SecurityPolicy upsert
+   */
+  export type SecurityPolicyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SecurityPolicy
+     */
+    select?: SecurityPolicySelect<ExtArgs> | null
+    /**
+     * The filter to search for the SecurityPolicy to update in case it exists.
+     */
+    where: SecurityPolicyWhereUniqueInput
+    /**
+     * In case the SecurityPolicy found by the `where` argument doesn't exist, create a new SecurityPolicy with this data.
+     */
+    create: XOR<SecurityPolicyCreateInput, SecurityPolicyUncheckedCreateInput>
+    /**
+     * In case the SecurityPolicy was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SecurityPolicyUpdateInput, SecurityPolicyUncheckedUpdateInput>
+  }
+
+  /**
+   * SecurityPolicy delete
+   */
+  export type SecurityPolicyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SecurityPolicy
+     */
+    select?: SecurityPolicySelect<ExtArgs> | null
+    /**
+     * Filter which SecurityPolicy to delete.
+     */
+    where: SecurityPolicyWhereUniqueInput
+  }
+
+  /**
+   * SecurityPolicy deleteMany
+   */
+  export type SecurityPolicyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SecurityPolicies to delete
+     */
+    where?: SecurityPolicyWhereInput
+  }
+
+  /**
+   * SecurityPolicy without action
+   */
+  export type SecurityPolicyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SecurityPolicy
+     */
+    select?: SecurityPolicySelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model IpWhitelist
+   */
+
+  export type AggregateIpWhitelist = {
+    _count: IpWhitelistCountAggregateOutputType | null
+    _avg: IpWhitelistAvgAggregateOutputType | null
+    _sum: IpWhitelistSumAggregateOutputType | null
+    _min: IpWhitelistMinAggregateOutputType | null
+    _max: IpWhitelistMaxAggregateOutputType | null
+  }
+
+  export type IpWhitelistAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type IpWhitelistSumAggregateOutputType = {
+    id: number | null
+  }
+
+  export type IpWhitelistMinAggregateOutputType = {
+    id: number | null
+    cidr: string | null
+    label: string | null
+    createdAt: Date | null
+  }
+
+  export type IpWhitelistMaxAggregateOutputType = {
+    id: number | null
+    cidr: string | null
+    label: string | null
+    createdAt: Date | null
+  }
+
+  export type IpWhitelistCountAggregateOutputType = {
+    id: number
+    cidr: number
+    label: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type IpWhitelistAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type IpWhitelistSumAggregateInputType = {
+    id?: true
+  }
+
+  export type IpWhitelistMinAggregateInputType = {
+    id?: true
+    cidr?: true
+    label?: true
+    createdAt?: true
+  }
+
+  export type IpWhitelistMaxAggregateInputType = {
+    id?: true
+    cidr?: true
+    label?: true
+    createdAt?: true
+  }
+
+  export type IpWhitelistCountAggregateInputType = {
+    id?: true
+    cidr?: true
+    label?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type IpWhitelistAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which IpWhitelist to aggregate.
+     */
+    where?: IpWhitelistWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of IpWhitelists to fetch.
+     */
+    orderBy?: IpWhitelistOrderByWithRelationInput | IpWhitelistOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: IpWhitelistWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` IpWhitelists from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` IpWhitelists.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned IpWhitelists
+    **/
+    _count?: true | IpWhitelistCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: IpWhitelistAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: IpWhitelistSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: IpWhitelistMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: IpWhitelistMaxAggregateInputType
+  }
+
+  export type GetIpWhitelistAggregateType<T extends IpWhitelistAggregateArgs> = {
+        [P in keyof T & keyof AggregateIpWhitelist]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateIpWhitelist[P]>
+      : GetScalarType<T[P], AggregateIpWhitelist[P]>
+  }
+
+
+
+
+  export type IpWhitelistGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: IpWhitelistWhereInput
+    orderBy?: IpWhitelistOrderByWithAggregationInput | IpWhitelistOrderByWithAggregationInput[]
+    by: IpWhitelistScalarFieldEnum[] | IpWhitelistScalarFieldEnum
+    having?: IpWhitelistScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: IpWhitelistCountAggregateInputType | true
+    _avg?: IpWhitelistAvgAggregateInputType
+    _sum?: IpWhitelistSumAggregateInputType
+    _min?: IpWhitelistMinAggregateInputType
+    _max?: IpWhitelistMaxAggregateInputType
+  }
+
+  export type IpWhitelistGroupByOutputType = {
+    id: number
+    cidr: string
+    label: string
+    createdAt: Date
+    _count: IpWhitelistCountAggregateOutputType | null
+    _avg: IpWhitelistAvgAggregateOutputType | null
+    _sum: IpWhitelistSumAggregateOutputType | null
+    _min: IpWhitelistMinAggregateOutputType | null
+    _max: IpWhitelistMaxAggregateOutputType | null
+  }
+
+  type GetIpWhitelistGroupByPayload<T extends IpWhitelistGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<IpWhitelistGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof IpWhitelistGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], IpWhitelistGroupByOutputType[P]>
+            : GetScalarType<T[P], IpWhitelistGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type IpWhitelistSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    cidr?: boolean
+    label?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["ipWhitelist"]>
+
+  export type IpWhitelistSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    cidr?: boolean
+    label?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["ipWhitelist"]>
+
+  export type IpWhitelistSelectScalar = {
+    id?: boolean
+    cidr?: boolean
+    label?: boolean
+    createdAt?: boolean
+  }
+
+
+  export type $IpWhitelistPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "IpWhitelist"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      cidr: string
+      label: string
+      createdAt: Date
+    }, ExtArgs["result"]["ipWhitelist"]>
+    composites: {}
+  }
+
+  type IpWhitelistGetPayload<S extends boolean | null | undefined | IpWhitelistDefaultArgs> = $Result.GetResult<Prisma.$IpWhitelistPayload, S>
+
+  type IpWhitelistCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<IpWhitelistFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: IpWhitelistCountAggregateInputType | true
+    }
+
+  export interface IpWhitelistDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['IpWhitelist'], meta: { name: 'IpWhitelist' } }
+    /**
+     * Find zero or one IpWhitelist that matches the filter.
+     * @param {IpWhitelistFindUniqueArgs} args - Arguments to find a IpWhitelist
+     * @example
+     * // Get one IpWhitelist
+     * const ipWhitelist = await prisma.ipWhitelist.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends IpWhitelistFindUniqueArgs>(args: SelectSubset<T, IpWhitelistFindUniqueArgs<ExtArgs>>): Prisma__IpWhitelistClient<$Result.GetResult<Prisma.$IpWhitelistPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one IpWhitelist that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {IpWhitelistFindUniqueOrThrowArgs} args - Arguments to find a IpWhitelist
+     * @example
+     * // Get one IpWhitelist
+     * const ipWhitelist = await prisma.ipWhitelist.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends IpWhitelistFindUniqueOrThrowArgs>(args: SelectSubset<T, IpWhitelistFindUniqueOrThrowArgs<ExtArgs>>): Prisma__IpWhitelistClient<$Result.GetResult<Prisma.$IpWhitelistPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first IpWhitelist that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IpWhitelistFindFirstArgs} args - Arguments to find a IpWhitelist
+     * @example
+     * // Get one IpWhitelist
+     * const ipWhitelist = await prisma.ipWhitelist.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends IpWhitelistFindFirstArgs>(args?: SelectSubset<T, IpWhitelistFindFirstArgs<ExtArgs>>): Prisma__IpWhitelistClient<$Result.GetResult<Prisma.$IpWhitelistPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first IpWhitelist that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IpWhitelistFindFirstOrThrowArgs} args - Arguments to find a IpWhitelist
+     * @example
+     * // Get one IpWhitelist
+     * const ipWhitelist = await prisma.ipWhitelist.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends IpWhitelistFindFirstOrThrowArgs>(args?: SelectSubset<T, IpWhitelistFindFirstOrThrowArgs<ExtArgs>>): Prisma__IpWhitelistClient<$Result.GetResult<Prisma.$IpWhitelistPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more IpWhitelists that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IpWhitelistFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all IpWhitelists
+     * const ipWhitelists = await prisma.ipWhitelist.findMany()
+     * 
+     * // Get first 10 IpWhitelists
+     * const ipWhitelists = await prisma.ipWhitelist.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const ipWhitelistWithIdOnly = await prisma.ipWhitelist.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends IpWhitelistFindManyArgs>(args?: SelectSubset<T, IpWhitelistFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$IpWhitelistPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a IpWhitelist.
+     * @param {IpWhitelistCreateArgs} args - Arguments to create a IpWhitelist.
+     * @example
+     * // Create one IpWhitelist
+     * const IpWhitelist = await prisma.ipWhitelist.create({
+     *   data: {
+     *     // ... data to create a IpWhitelist
+     *   }
+     * })
+     * 
+     */
+    create<T extends IpWhitelistCreateArgs>(args: SelectSubset<T, IpWhitelistCreateArgs<ExtArgs>>): Prisma__IpWhitelistClient<$Result.GetResult<Prisma.$IpWhitelistPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many IpWhitelists.
+     * @param {IpWhitelistCreateManyArgs} args - Arguments to create many IpWhitelists.
+     * @example
+     * // Create many IpWhitelists
+     * const ipWhitelist = await prisma.ipWhitelist.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends IpWhitelistCreateManyArgs>(args?: SelectSubset<T, IpWhitelistCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many IpWhitelists and returns the data saved in the database.
+     * @param {IpWhitelistCreateManyAndReturnArgs} args - Arguments to create many IpWhitelists.
+     * @example
+     * // Create many IpWhitelists
+     * const ipWhitelist = await prisma.ipWhitelist.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many IpWhitelists and only return the `id`
+     * const ipWhitelistWithIdOnly = await prisma.ipWhitelist.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends IpWhitelistCreateManyAndReturnArgs>(args?: SelectSubset<T, IpWhitelistCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$IpWhitelistPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a IpWhitelist.
+     * @param {IpWhitelistDeleteArgs} args - Arguments to delete one IpWhitelist.
+     * @example
+     * // Delete one IpWhitelist
+     * const IpWhitelist = await prisma.ipWhitelist.delete({
+     *   where: {
+     *     // ... filter to delete one IpWhitelist
+     *   }
+     * })
+     * 
+     */
+    delete<T extends IpWhitelistDeleteArgs>(args: SelectSubset<T, IpWhitelistDeleteArgs<ExtArgs>>): Prisma__IpWhitelistClient<$Result.GetResult<Prisma.$IpWhitelistPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one IpWhitelist.
+     * @param {IpWhitelistUpdateArgs} args - Arguments to update one IpWhitelist.
+     * @example
+     * // Update one IpWhitelist
+     * const ipWhitelist = await prisma.ipWhitelist.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends IpWhitelistUpdateArgs>(args: SelectSubset<T, IpWhitelistUpdateArgs<ExtArgs>>): Prisma__IpWhitelistClient<$Result.GetResult<Prisma.$IpWhitelistPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more IpWhitelists.
+     * @param {IpWhitelistDeleteManyArgs} args - Arguments to filter IpWhitelists to delete.
+     * @example
+     * // Delete a few IpWhitelists
+     * const { count } = await prisma.ipWhitelist.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends IpWhitelistDeleteManyArgs>(args?: SelectSubset<T, IpWhitelistDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more IpWhitelists.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IpWhitelistUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many IpWhitelists
+     * const ipWhitelist = await prisma.ipWhitelist.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends IpWhitelistUpdateManyArgs>(args: SelectSubset<T, IpWhitelistUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one IpWhitelist.
+     * @param {IpWhitelistUpsertArgs} args - Arguments to update or create a IpWhitelist.
+     * @example
+     * // Update or create a IpWhitelist
+     * const ipWhitelist = await prisma.ipWhitelist.upsert({
+     *   create: {
+     *     // ... data to create a IpWhitelist
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the IpWhitelist we want to update
+     *   }
+     * })
+     */
+    upsert<T extends IpWhitelistUpsertArgs>(args: SelectSubset<T, IpWhitelistUpsertArgs<ExtArgs>>): Prisma__IpWhitelistClient<$Result.GetResult<Prisma.$IpWhitelistPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of IpWhitelists.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IpWhitelistCountArgs} args - Arguments to filter IpWhitelists to count.
+     * @example
+     * // Count the number of IpWhitelists
+     * const count = await prisma.ipWhitelist.count({
+     *   where: {
+     *     // ... the filter for the IpWhitelists we want to count
+     *   }
+     * })
+    **/
+    count<T extends IpWhitelistCountArgs>(
+      args?: Subset<T, IpWhitelistCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], IpWhitelistCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a IpWhitelist.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IpWhitelistAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends IpWhitelistAggregateArgs>(args: Subset<T, IpWhitelistAggregateArgs>): Prisma.PrismaPromise<GetIpWhitelistAggregateType<T>>
+
+    /**
+     * Group by IpWhitelist.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IpWhitelistGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends IpWhitelistGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: IpWhitelistGroupByArgs['orderBy'] }
+        : { orderBy?: IpWhitelistGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, IpWhitelistGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetIpWhitelistGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the IpWhitelist model
+   */
+  readonly fields: IpWhitelistFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for IpWhitelist.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__IpWhitelistClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the IpWhitelist model
+   */ 
+  interface IpWhitelistFieldRefs {
+    readonly id: FieldRef<"IpWhitelist", 'Int'>
+    readonly cidr: FieldRef<"IpWhitelist", 'String'>
+    readonly label: FieldRef<"IpWhitelist", 'String'>
+    readonly createdAt: FieldRef<"IpWhitelist", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * IpWhitelist findUnique
+   */
+  export type IpWhitelistFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IpWhitelist
+     */
+    select?: IpWhitelistSelect<ExtArgs> | null
+    /**
+     * Filter, which IpWhitelist to fetch.
+     */
+    where: IpWhitelistWhereUniqueInput
+  }
+
+  /**
+   * IpWhitelist findUniqueOrThrow
+   */
+  export type IpWhitelistFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IpWhitelist
+     */
+    select?: IpWhitelistSelect<ExtArgs> | null
+    /**
+     * Filter, which IpWhitelist to fetch.
+     */
+    where: IpWhitelistWhereUniqueInput
+  }
+
+  /**
+   * IpWhitelist findFirst
+   */
+  export type IpWhitelistFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IpWhitelist
+     */
+    select?: IpWhitelistSelect<ExtArgs> | null
+    /**
+     * Filter, which IpWhitelist to fetch.
+     */
+    where?: IpWhitelistWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of IpWhitelists to fetch.
+     */
+    orderBy?: IpWhitelistOrderByWithRelationInput | IpWhitelistOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for IpWhitelists.
+     */
+    cursor?: IpWhitelistWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` IpWhitelists from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` IpWhitelists.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of IpWhitelists.
+     */
+    distinct?: IpWhitelistScalarFieldEnum | IpWhitelistScalarFieldEnum[]
+  }
+
+  /**
+   * IpWhitelist findFirstOrThrow
+   */
+  export type IpWhitelistFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IpWhitelist
+     */
+    select?: IpWhitelistSelect<ExtArgs> | null
+    /**
+     * Filter, which IpWhitelist to fetch.
+     */
+    where?: IpWhitelistWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of IpWhitelists to fetch.
+     */
+    orderBy?: IpWhitelistOrderByWithRelationInput | IpWhitelistOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for IpWhitelists.
+     */
+    cursor?: IpWhitelistWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` IpWhitelists from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` IpWhitelists.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of IpWhitelists.
+     */
+    distinct?: IpWhitelistScalarFieldEnum | IpWhitelistScalarFieldEnum[]
+  }
+
+  /**
+   * IpWhitelist findMany
+   */
+  export type IpWhitelistFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IpWhitelist
+     */
+    select?: IpWhitelistSelect<ExtArgs> | null
+    /**
+     * Filter, which IpWhitelists to fetch.
+     */
+    where?: IpWhitelistWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of IpWhitelists to fetch.
+     */
+    orderBy?: IpWhitelistOrderByWithRelationInput | IpWhitelistOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing IpWhitelists.
+     */
+    cursor?: IpWhitelistWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` IpWhitelists from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` IpWhitelists.
+     */
+    skip?: number
+    distinct?: IpWhitelistScalarFieldEnum | IpWhitelistScalarFieldEnum[]
+  }
+
+  /**
+   * IpWhitelist create
+   */
+  export type IpWhitelistCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IpWhitelist
+     */
+    select?: IpWhitelistSelect<ExtArgs> | null
+    /**
+     * The data needed to create a IpWhitelist.
+     */
+    data: XOR<IpWhitelistCreateInput, IpWhitelistUncheckedCreateInput>
+  }
+
+  /**
+   * IpWhitelist createMany
+   */
+  export type IpWhitelistCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many IpWhitelists.
+     */
+    data: IpWhitelistCreateManyInput | IpWhitelistCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * IpWhitelist createManyAndReturn
+   */
+  export type IpWhitelistCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IpWhitelist
+     */
+    select?: IpWhitelistSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many IpWhitelists.
+     */
+    data: IpWhitelistCreateManyInput | IpWhitelistCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * IpWhitelist update
+   */
+  export type IpWhitelistUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IpWhitelist
+     */
+    select?: IpWhitelistSelect<ExtArgs> | null
+    /**
+     * The data needed to update a IpWhitelist.
+     */
+    data: XOR<IpWhitelistUpdateInput, IpWhitelistUncheckedUpdateInput>
+    /**
+     * Choose, which IpWhitelist to update.
+     */
+    where: IpWhitelistWhereUniqueInput
+  }
+
+  /**
+   * IpWhitelist updateMany
+   */
+  export type IpWhitelistUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update IpWhitelists.
+     */
+    data: XOR<IpWhitelistUpdateManyMutationInput, IpWhitelistUncheckedUpdateManyInput>
+    /**
+     * Filter which IpWhitelists to update
+     */
+    where?: IpWhitelistWhereInput
+  }
+
+  /**
+   * IpWhitelist upsert
+   */
+  export type IpWhitelistUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IpWhitelist
+     */
+    select?: IpWhitelistSelect<ExtArgs> | null
+    /**
+     * The filter to search for the IpWhitelist to update in case it exists.
+     */
+    where: IpWhitelistWhereUniqueInput
+    /**
+     * In case the IpWhitelist found by the `where` argument doesn't exist, create a new IpWhitelist with this data.
+     */
+    create: XOR<IpWhitelistCreateInput, IpWhitelistUncheckedCreateInput>
+    /**
+     * In case the IpWhitelist was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<IpWhitelistUpdateInput, IpWhitelistUncheckedUpdateInput>
+  }
+
+  /**
+   * IpWhitelist delete
+   */
+  export type IpWhitelistDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IpWhitelist
+     */
+    select?: IpWhitelistSelect<ExtArgs> | null
+    /**
+     * Filter which IpWhitelist to delete.
+     */
+    where: IpWhitelistWhereUniqueInput
+  }
+
+  /**
+   * IpWhitelist deleteMany
+   */
+  export type IpWhitelistDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which IpWhitelists to delete
+     */
+    where?: IpWhitelistWhereInput
+  }
+
+  /**
+   * IpWhitelist without action
+   */
+  export type IpWhitelistDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IpWhitelist
+     */
+    select?: IpWhitelistSelect<ExtArgs> | null
   }
 
 
@@ -11268,7 +12378,12 @@ export namespace Prisma {
     branch: 'branch',
     department: 'department',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    mfaEnabled: 'mfaEnabled',
+    status: 'status',
+    failedLoginAttempts: 'failedLoginAttempts',
+    isLocked: 'isLocked',
+    lastLoginAttempt: 'lastLoginAttempt'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -11346,29 +12461,38 @@ export namespace Prisma {
   export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
-  export const CorporateScalarFieldEnum: {
+  export const SystemActivityLogScalarFieldEnum: {
     id: 'id',
-    name: 'name',
-    industry: 'industry',
+    timestamp: 'timestamp',
+    userEmail: 'userEmail',
+    action: 'action',
     status: 'status',
-    internet_banking_status: 'internet_banking_status',
-    logo_url: 'logo_url'
+    details: 'details',
+    ipAddress: 'ipAddress'
   };
 
-  export type CorporateScalarFieldEnum = (typeof CorporateScalarFieldEnum)[keyof typeof CorporateScalarFieldEnum]
+  export type SystemActivityLogScalarFieldEnum = (typeof SystemActivityLogScalarFieldEnum)[keyof typeof SystemActivityLogScalarFieldEnum]
 
 
-  export const MiniAppScalarFieldEnum: {
+  export const SecurityPolicyScalarFieldEnum: {
     id: 'id',
-    name: 'name',
-    url: 'url',
-    logo_url: 'logo_url',
-    username: 'username',
-    password: 'password',
-    encryption_key: 'encryption_key'
+    mfaRequired: 'mfaRequired',
+    allowedMfaMethods: 'allowedMfaMethods',
+    sessionTimeout: 'sessionTimeout',
+    concurrentSessions: 'concurrentSessions'
   };
 
-  export type MiniAppScalarFieldEnum = (typeof MiniAppScalarFieldEnum)[keyof typeof MiniAppScalarFieldEnum]
+  export type SecurityPolicyScalarFieldEnum = (typeof SecurityPolicyScalarFieldEnum)[keyof typeof SecurityPolicyScalarFieldEnum]
+
+
+  export const IpWhitelistScalarFieldEnum: {
+    id: 'id',
+    cidr: 'cidr',
+    label: 'label',
+    createdAt: 'createdAt'
+  };
+
+  export type IpWhitelistScalarFieldEnum = (typeof IpWhitelistScalarFieldEnum)[keyof typeof IpWhitelistScalarFieldEnum]
 
 
   export const OtpCodeScalarFieldEnum: {
@@ -11459,6 +12583,13 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Boolean'
+   */
+  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+  /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -11469,13 +12600,6 @@ export namespace Prisma {
    * Reference to a field of type 'Float[]'
    */
   export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'Boolean'
-   */
-  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
   /**
    * Deep Input Types
@@ -11496,6 +12620,11 @@ export namespace Prisma {
     department?: StringFilter<"User"> | string
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
+    mfaEnabled?: BoolFilter<"User"> | boolean
+    status?: StringFilter<"User"> | string
+    failedLoginAttempts?: IntFilter<"User"> | number
+    isLocked?: BoolFilter<"User"> | boolean
+    lastLoginAttempt?: DateTimeNullableFilter<"User"> | Date | string | null
   }
 
   export type UserOrderByWithRelationInput = {
@@ -11509,6 +12638,11 @@ export namespace Prisma {
     department?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    mfaEnabled?: SortOrder
+    status?: SortOrder
+    failedLoginAttempts?: SortOrder
+    isLocked?: SortOrder
+    lastLoginAttempt?: SortOrderInput | SortOrder
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -11525,6 +12659,11 @@ export namespace Prisma {
     department?: StringFilter<"User"> | string
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
+    mfaEnabled?: BoolFilter<"User"> | boolean
+    status?: StringFilter<"User"> | string
+    failedLoginAttempts?: IntFilter<"User"> | number
+    isLocked?: BoolFilter<"User"> | boolean
+    lastLoginAttempt?: DateTimeNullableFilter<"User"> | Date | string | null
   }, "id" | "employeeId" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -11538,6 +12677,11 @@ export namespace Prisma {
     department?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    mfaEnabled?: SortOrder
+    status?: SortOrder
+    failedLoginAttempts?: SortOrder
+    isLocked?: SortOrder
+    lastLoginAttempt?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -11559,6 +12703,11 @@ export namespace Prisma {
     department?: StringWithAggregatesFilter<"User"> | string
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+    mfaEnabled?: BoolWithAggregatesFilter<"User"> | boolean
+    status?: StringWithAggregatesFilter<"User"> | string
+    failedLoginAttempts?: IntWithAggregatesFilter<"User"> | number
+    isLocked?: BoolWithAggregatesFilter<"User"> | boolean
+    lastLoginAttempt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   }
 
   export type RoleWhereInput = {
@@ -11929,123 +13078,171 @@ export namespace Prisma {
     anomaly_reason?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
   }
 
-  export type CorporateWhereInput = {
-    AND?: CorporateWhereInput | CorporateWhereInput[]
-    OR?: CorporateWhereInput[]
-    NOT?: CorporateWhereInput | CorporateWhereInput[]
-    id?: StringFilter<"Corporate"> | string
-    name?: StringFilter<"Corporate"> | string
-    industry?: StringFilter<"Corporate"> | string
-    status?: StringFilter<"Corporate"> | string
-    internet_banking_status?: StringFilter<"Corporate"> | string
-    logo_url?: StringFilter<"Corporate"> | string
+  export type SystemActivityLogWhereInput = {
+    AND?: SystemActivityLogWhereInput | SystemActivityLogWhereInput[]
+    OR?: SystemActivityLogWhereInput[]
+    NOT?: SystemActivityLogWhereInput | SystemActivityLogWhereInput[]
+    id?: IntFilter<"SystemActivityLog"> | number
+    timestamp?: DateTimeFilter<"SystemActivityLog"> | Date | string
+    userEmail?: StringFilter<"SystemActivityLog"> | string
+    action?: StringFilter<"SystemActivityLog"> | string
+    status?: StringFilter<"SystemActivityLog"> | string
+    details?: StringNullableFilter<"SystemActivityLog"> | string | null
+    ipAddress?: StringNullableFilter<"SystemActivityLog"> | string | null
   }
 
-  export type CorporateOrderByWithRelationInput = {
+  export type SystemActivityLogOrderByWithRelationInput = {
     id?: SortOrder
-    name?: SortOrder
-    industry?: SortOrder
+    timestamp?: SortOrder
+    userEmail?: SortOrder
+    action?: SortOrder
     status?: SortOrder
-    internet_banking_status?: SortOrder
-    logo_url?: SortOrder
+    details?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
   }
 
-  export type CorporateWhereUniqueInput = Prisma.AtLeast<{
-    id?: string
-    AND?: CorporateWhereInput | CorporateWhereInput[]
-    OR?: CorporateWhereInput[]
-    NOT?: CorporateWhereInput | CorporateWhereInput[]
-    name?: StringFilter<"Corporate"> | string
-    industry?: StringFilter<"Corporate"> | string
-    status?: StringFilter<"Corporate"> | string
-    internet_banking_status?: StringFilter<"Corporate"> | string
-    logo_url?: StringFilter<"Corporate"> | string
-  }, "id" | "id">
-
-  export type CorporateOrderByWithAggregationInput = {
-    id?: SortOrder
-    name?: SortOrder
-    industry?: SortOrder
-    status?: SortOrder
-    internet_banking_status?: SortOrder
-    logo_url?: SortOrder
-    _count?: CorporateCountOrderByAggregateInput
-    _max?: CorporateMaxOrderByAggregateInput
-    _min?: CorporateMinOrderByAggregateInput
-  }
-
-  export type CorporateScalarWhereWithAggregatesInput = {
-    AND?: CorporateScalarWhereWithAggregatesInput | CorporateScalarWhereWithAggregatesInput[]
-    OR?: CorporateScalarWhereWithAggregatesInput[]
-    NOT?: CorporateScalarWhereWithAggregatesInput | CorporateScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter<"Corporate"> | string
-    name?: StringWithAggregatesFilter<"Corporate"> | string
-    industry?: StringWithAggregatesFilter<"Corporate"> | string
-    status?: StringWithAggregatesFilter<"Corporate"> | string
-    internet_banking_status?: StringWithAggregatesFilter<"Corporate"> | string
-    logo_url?: StringWithAggregatesFilter<"Corporate"> | string
-  }
-
-  export type MiniAppWhereInput = {
-    AND?: MiniAppWhereInput | MiniAppWhereInput[]
-    OR?: MiniAppWhereInput[]
-    NOT?: MiniAppWhereInput | MiniAppWhereInput[]
-    id?: StringFilter<"MiniApp"> | string
-    name?: StringFilter<"MiniApp"> | string
-    url?: StringFilter<"MiniApp"> | string
-    logo_url?: StringFilter<"MiniApp"> | string
-    username?: StringFilter<"MiniApp"> | string
-    password?: StringFilter<"MiniApp"> | string
-    encryption_key?: StringFilter<"MiniApp"> | string
-  }
-
-  export type MiniAppOrderByWithRelationInput = {
-    id?: SortOrder
-    name?: SortOrder
-    url?: SortOrder
-    logo_url?: SortOrder
-    username?: SortOrder
-    password?: SortOrder
-    encryption_key?: SortOrder
-  }
-
-  export type MiniAppWhereUniqueInput = Prisma.AtLeast<{
-    id?: string
-    AND?: MiniAppWhereInput | MiniAppWhereInput[]
-    OR?: MiniAppWhereInput[]
-    NOT?: MiniAppWhereInput | MiniAppWhereInput[]
-    name?: StringFilter<"MiniApp"> | string
-    url?: StringFilter<"MiniApp"> | string
-    logo_url?: StringFilter<"MiniApp"> | string
-    username?: StringFilter<"MiniApp"> | string
-    password?: StringFilter<"MiniApp"> | string
-    encryption_key?: StringFilter<"MiniApp"> | string
+  export type SystemActivityLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: SystemActivityLogWhereInput | SystemActivityLogWhereInput[]
+    OR?: SystemActivityLogWhereInput[]
+    NOT?: SystemActivityLogWhereInput | SystemActivityLogWhereInput[]
+    timestamp?: DateTimeFilter<"SystemActivityLog"> | Date | string
+    userEmail?: StringFilter<"SystemActivityLog"> | string
+    action?: StringFilter<"SystemActivityLog"> | string
+    status?: StringFilter<"SystemActivityLog"> | string
+    details?: StringNullableFilter<"SystemActivityLog"> | string | null
+    ipAddress?: StringNullableFilter<"SystemActivityLog"> | string | null
   }, "id">
 
-  export type MiniAppOrderByWithAggregationInput = {
+  export type SystemActivityLogOrderByWithAggregationInput = {
     id?: SortOrder
-    name?: SortOrder
-    url?: SortOrder
-    logo_url?: SortOrder
-    username?: SortOrder
-    password?: SortOrder
-    encryption_key?: SortOrder
-    _count?: MiniAppCountOrderByAggregateInput
-    _max?: MiniAppMaxOrderByAggregateInput
-    _min?: MiniAppMinOrderByAggregateInput
+    timestamp?: SortOrder
+    userEmail?: SortOrder
+    action?: SortOrder
+    status?: SortOrder
+    details?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    _count?: SystemActivityLogCountOrderByAggregateInput
+    _avg?: SystemActivityLogAvgOrderByAggregateInput
+    _max?: SystemActivityLogMaxOrderByAggregateInput
+    _min?: SystemActivityLogMinOrderByAggregateInput
+    _sum?: SystemActivityLogSumOrderByAggregateInput
   }
 
-  export type MiniAppScalarWhereWithAggregatesInput = {
-    AND?: MiniAppScalarWhereWithAggregatesInput | MiniAppScalarWhereWithAggregatesInput[]
-    OR?: MiniAppScalarWhereWithAggregatesInput[]
-    NOT?: MiniAppScalarWhereWithAggregatesInput | MiniAppScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter<"MiniApp"> | string
-    name?: StringWithAggregatesFilter<"MiniApp"> | string
-    url?: StringWithAggregatesFilter<"MiniApp"> | string
-    logo_url?: StringWithAggregatesFilter<"MiniApp"> | string
-    username?: StringWithAggregatesFilter<"MiniApp"> | string
-    password?: StringWithAggregatesFilter<"MiniApp"> | string
-    encryption_key?: StringWithAggregatesFilter<"MiniApp"> | string
+  export type SystemActivityLogScalarWhereWithAggregatesInput = {
+    AND?: SystemActivityLogScalarWhereWithAggregatesInput | SystemActivityLogScalarWhereWithAggregatesInput[]
+    OR?: SystemActivityLogScalarWhereWithAggregatesInput[]
+    NOT?: SystemActivityLogScalarWhereWithAggregatesInput | SystemActivityLogScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"SystemActivityLog"> | number
+    timestamp?: DateTimeWithAggregatesFilter<"SystemActivityLog"> | Date | string
+    userEmail?: StringWithAggregatesFilter<"SystemActivityLog"> | string
+    action?: StringWithAggregatesFilter<"SystemActivityLog"> | string
+    status?: StringWithAggregatesFilter<"SystemActivityLog"> | string
+    details?: StringNullableWithAggregatesFilter<"SystemActivityLog"> | string | null
+    ipAddress?: StringNullableWithAggregatesFilter<"SystemActivityLog"> | string | null
+  }
+
+  export type SecurityPolicyWhereInput = {
+    AND?: SecurityPolicyWhereInput | SecurityPolicyWhereInput[]
+    OR?: SecurityPolicyWhereInput[]
+    NOT?: SecurityPolicyWhereInput | SecurityPolicyWhereInput[]
+    id?: IntFilter<"SecurityPolicy"> | number
+    mfaRequired?: BoolFilter<"SecurityPolicy"> | boolean
+    allowedMfaMethods?: StringNullableListFilter<"SecurityPolicy">
+    sessionTimeout?: IntFilter<"SecurityPolicy"> | number
+    concurrentSessions?: IntFilter<"SecurityPolicy"> | number
+  }
+
+  export type SecurityPolicyOrderByWithRelationInput = {
+    id?: SortOrder
+    mfaRequired?: SortOrder
+    allowedMfaMethods?: SortOrder
+    sessionTimeout?: SortOrder
+    concurrentSessions?: SortOrder
+  }
+
+  export type SecurityPolicyWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: SecurityPolicyWhereInput | SecurityPolicyWhereInput[]
+    OR?: SecurityPolicyWhereInput[]
+    NOT?: SecurityPolicyWhereInput | SecurityPolicyWhereInput[]
+    mfaRequired?: BoolFilter<"SecurityPolicy"> | boolean
+    allowedMfaMethods?: StringNullableListFilter<"SecurityPolicy">
+    sessionTimeout?: IntFilter<"SecurityPolicy"> | number
+    concurrentSessions?: IntFilter<"SecurityPolicy"> | number
+  }, "id">
+
+  export type SecurityPolicyOrderByWithAggregationInput = {
+    id?: SortOrder
+    mfaRequired?: SortOrder
+    allowedMfaMethods?: SortOrder
+    sessionTimeout?: SortOrder
+    concurrentSessions?: SortOrder
+    _count?: SecurityPolicyCountOrderByAggregateInput
+    _avg?: SecurityPolicyAvgOrderByAggregateInput
+    _max?: SecurityPolicyMaxOrderByAggregateInput
+    _min?: SecurityPolicyMinOrderByAggregateInput
+    _sum?: SecurityPolicySumOrderByAggregateInput
+  }
+
+  export type SecurityPolicyScalarWhereWithAggregatesInput = {
+    AND?: SecurityPolicyScalarWhereWithAggregatesInput | SecurityPolicyScalarWhereWithAggregatesInput[]
+    OR?: SecurityPolicyScalarWhereWithAggregatesInput[]
+    NOT?: SecurityPolicyScalarWhereWithAggregatesInput | SecurityPolicyScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"SecurityPolicy"> | number
+    mfaRequired?: BoolWithAggregatesFilter<"SecurityPolicy"> | boolean
+    allowedMfaMethods?: StringNullableListFilter<"SecurityPolicy">
+    sessionTimeout?: IntWithAggregatesFilter<"SecurityPolicy"> | number
+    concurrentSessions?: IntWithAggregatesFilter<"SecurityPolicy"> | number
+  }
+
+  export type IpWhitelistWhereInput = {
+    AND?: IpWhitelistWhereInput | IpWhitelistWhereInput[]
+    OR?: IpWhitelistWhereInput[]
+    NOT?: IpWhitelistWhereInput | IpWhitelistWhereInput[]
+    id?: IntFilter<"IpWhitelist"> | number
+    cidr?: StringFilter<"IpWhitelist"> | string
+    label?: StringFilter<"IpWhitelist"> | string
+    createdAt?: DateTimeFilter<"IpWhitelist"> | Date | string
+  }
+
+  export type IpWhitelistOrderByWithRelationInput = {
+    id?: SortOrder
+    cidr?: SortOrder
+    label?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type IpWhitelistWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    cidr?: string
+    AND?: IpWhitelistWhereInput | IpWhitelistWhereInput[]
+    OR?: IpWhitelistWhereInput[]
+    NOT?: IpWhitelistWhereInput | IpWhitelistWhereInput[]
+    label?: StringFilter<"IpWhitelist"> | string
+    createdAt?: DateTimeFilter<"IpWhitelist"> | Date | string
+  }, "id" | "cidr">
+
+  export type IpWhitelistOrderByWithAggregationInput = {
+    id?: SortOrder
+    cidr?: SortOrder
+    label?: SortOrder
+    createdAt?: SortOrder
+    _count?: IpWhitelistCountOrderByAggregateInput
+    _avg?: IpWhitelistAvgOrderByAggregateInput
+    _max?: IpWhitelistMaxOrderByAggregateInput
+    _min?: IpWhitelistMinOrderByAggregateInput
+    _sum?: IpWhitelistSumOrderByAggregateInput
+  }
+
+  export type IpWhitelistScalarWhereWithAggregatesInput = {
+    AND?: IpWhitelistScalarWhereWithAggregatesInput | IpWhitelistScalarWhereWithAggregatesInput[]
+    OR?: IpWhitelistScalarWhereWithAggregatesInput[]
+    NOT?: IpWhitelistScalarWhereWithAggregatesInput | IpWhitelistScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"IpWhitelist"> | number
+    cidr?: StringWithAggregatesFilter<"IpWhitelist"> | string
+    label?: StringWithAggregatesFilter<"IpWhitelist"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"IpWhitelist"> | Date | string
   }
 
   export type OtpCodeWhereInput = {
@@ -12137,6 +13334,11 @@ export namespace Prisma {
     department: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    mfaEnabled?: boolean
+    status?: string
+    failedLoginAttempts?: number
+    isLocked?: boolean
+    lastLoginAttempt?: Date | string | null
   }
 
   export type UserUncheckedCreateInput = {
@@ -12150,6 +13352,11 @@ export namespace Prisma {
     department: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    mfaEnabled?: boolean
+    status?: string
+    failedLoginAttempts?: number
+    isLocked?: boolean
+    lastLoginAttempt?: Date | string | null
   }
 
   export type UserUpdateInput = {
@@ -12162,6 +13369,11 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaEnabled?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    isLocked?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserUncheckedUpdateInput = {
@@ -12175,6 +13387,11 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaEnabled?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    isLocked?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserCreateManyInput = {
@@ -12188,6 +13405,11 @@ export namespace Prisma {
     department: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    mfaEnabled?: boolean
+    status?: string
+    failedLoginAttempts?: number
+    isLocked?: boolean
+    lastLoginAttempt?: Date | string | null
   }
 
   export type UserUpdateManyMutationInput = {
@@ -12200,6 +13422,11 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaEnabled?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    isLocked?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -12213,6 +13440,11 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaEnabled?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    isLocked?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type RoleCreateInput = {
@@ -12593,137 +13825,173 @@ export namespace Prisma {
     anomaly_reason?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type CorporateCreateInput = {
-    id: string
-    name: string
-    industry: string
+  export type SystemActivityLogCreateInput = {
+    timestamp?: Date | string
+    userEmail: string
+    action: string
     status: string
-    internet_banking_status: string
-    logo_url: string
+    details?: string | null
+    ipAddress?: string | null
   }
 
-  export type CorporateUncheckedCreateInput = {
-    id: string
-    name: string
-    industry: string
+  export type SystemActivityLogUncheckedCreateInput = {
+    id?: number
+    timestamp?: Date | string
+    userEmail: string
+    action: string
     status: string
-    internet_banking_status: string
-    logo_url: string
+    details?: string | null
+    ipAddress?: string | null
   }
 
-  export type CorporateUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    industry?: StringFieldUpdateOperationsInput | string
+  export type SystemActivityLogUpdateInput = {
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    userEmail?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    internet_banking_status?: StringFieldUpdateOperationsInput | string
-    logo_url?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type CorporateUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    industry?: StringFieldUpdateOperationsInput | string
+  export type SystemActivityLogUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    userEmail?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    internet_banking_status?: StringFieldUpdateOperationsInput | string
-    logo_url?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type CorporateCreateManyInput = {
-    id: string
-    name: string
-    industry: string
+  export type SystemActivityLogCreateManyInput = {
+    id?: number
+    timestamp?: Date | string
+    userEmail: string
+    action: string
     status: string
-    internet_banking_status: string
-    logo_url: string
+    details?: string | null
+    ipAddress?: string | null
   }
 
-  export type CorporateUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    industry?: StringFieldUpdateOperationsInput | string
+  export type SystemActivityLogUpdateManyMutationInput = {
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    userEmail?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    internet_banking_status?: StringFieldUpdateOperationsInput | string
-    logo_url?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type CorporateUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    industry?: StringFieldUpdateOperationsInput | string
+  export type SystemActivityLogUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    userEmail?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    internet_banking_status?: StringFieldUpdateOperationsInput | string
-    logo_url?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type MiniAppCreateInput = {
-    id?: string
-    name: string
-    url: string
-    logo_url: string
-    username: string
-    password: string
-    encryption_key: string
+  export type SecurityPolicyCreateInput = {
+    id?: number
+    mfaRequired?: boolean
+    allowedMfaMethods?: SecurityPolicyCreateallowedMfaMethodsInput | string[]
+    sessionTimeout?: number
+    concurrentSessions?: number
   }
 
-  export type MiniAppUncheckedCreateInput = {
-    id?: string
-    name: string
-    url: string
-    logo_url: string
-    username: string
-    password: string
-    encryption_key: string
+  export type SecurityPolicyUncheckedCreateInput = {
+    id?: number
+    mfaRequired?: boolean
+    allowedMfaMethods?: SecurityPolicyCreateallowedMfaMethodsInput | string[]
+    sessionTimeout?: number
+    concurrentSessions?: number
   }
 
-  export type MiniAppUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    url?: StringFieldUpdateOperationsInput | string
-    logo_url?: StringFieldUpdateOperationsInput | string
-    username?: StringFieldUpdateOperationsInput | string
-    password?: StringFieldUpdateOperationsInput | string
-    encryption_key?: StringFieldUpdateOperationsInput | string
+  export type SecurityPolicyUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    mfaRequired?: BoolFieldUpdateOperationsInput | boolean
+    allowedMfaMethods?: SecurityPolicyUpdateallowedMfaMethodsInput | string[]
+    sessionTimeout?: IntFieldUpdateOperationsInput | number
+    concurrentSessions?: IntFieldUpdateOperationsInput | number
   }
 
-  export type MiniAppUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    url?: StringFieldUpdateOperationsInput | string
-    logo_url?: StringFieldUpdateOperationsInput | string
-    username?: StringFieldUpdateOperationsInput | string
-    password?: StringFieldUpdateOperationsInput | string
-    encryption_key?: StringFieldUpdateOperationsInput | string
+  export type SecurityPolicyUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    mfaRequired?: BoolFieldUpdateOperationsInput | boolean
+    allowedMfaMethods?: SecurityPolicyUpdateallowedMfaMethodsInput | string[]
+    sessionTimeout?: IntFieldUpdateOperationsInput | number
+    concurrentSessions?: IntFieldUpdateOperationsInput | number
   }
 
-  export type MiniAppCreateManyInput = {
-    id?: string
-    name: string
-    url: string
-    logo_url: string
-    username: string
-    password: string
-    encryption_key: string
+  export type SecurityPolicyCreateManyInput = {
+    id?: number
+    mfaRequired?: boolean
+    allowedMfaMethods?: SecurityPolicyCreateallowedMfaMethodsInput | string[]
+    sessionTimeout?: number
+    concurrentSessions?: number
   }
 
-  export type MiniAppUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    url?: StringFieldUpdateOperationsInput | string
-    logo_url?: StringFieldUpdateOperationsInput | string
-    username?: StringFieldUpdateOperationsInput | string
-    password?: StringFieldUpdateOperationsInput | string
-    encryption_key?: StringFieldUpdateOperationsInput | string
+  export type SecurityPolicyUpdateManyMutationInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    mfaRequired?: BoolFieldUpdateOperationsInput | boolean
+    allowedMfaMethods?: SecurityPolicyUpdateallowedMfaMethodsInput | string[]
+    sessionTimeout?: IntFieldUpdateOperationsInput | number
+    concurrentSessions?: IntFieldUpdateOperationsInput | number
   }
 
-  export type MiniAppUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    url?: StringFieldUpdateOperationsInput | string
-    logo_url?: StringFieldUpdateOperationsInput | string
-    username?: StringFieldUpdateOperationsInput | string
-    password?: StringFieldUpdateOperationsInput | string
-    encryption_key?: StringFieldUpdateOperationsInput | string
+  export type SecurityPolicyUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    mfaRequired?: BoolFieldUpdateOperationsInput | boolean
+    allowedMfaMethods?: SecurityPolicyUpdateallowedMfaMethodsInput | string[]
+    sessionTimeout?: IntFieldUpdateOperationsInput | number
+    concurrentSessions?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type IpWhitelistCreateInput = {
+    cidr: string
+    label: string
+    createdAt?: Date | string
+  }
+
+  export type IpWhitelistUncheckedCreateInput = {
+    id?: number
+    cidr: string
+    label: string
+    createdAt?: Date | string
+  }
+
+  export type IpWhitelistUpdateInput = {
+    cidr?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type IpWhitelistUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    cidr?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type IpWhitelistCreateManyInput = {
+    id?: number
+    cidr: string
+    label: string
+    createdAt?: Date | string
+  }
+
+  export type IpWhitelistUpdateManyMutationInput = {
+    cidr?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type IpWhitelistUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    cidr?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OtpCodeCreateInput = {
@@ -12866,6 +14134,22 @@ export namespace Prisma {
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -12882,10 +14166,16 @@ export namespace Prisma {
     department?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    mfaEnabled?: SortOrder
+    status?: SortOrder
+    failedLoginAttempts?: SortOrder
+    isLocked?: SortOrder
+    lastLoginAttempt?: SortOrder
   }
 
   export type UserAvgOrderByAggregateInput = {
     id?: SortOrder
+    failedLoginAttempts?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
@@ -12899,6 +14189,11 @@ export namespace Prisma {
     department?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    mfaEnabled?: SortOrder
+    status?: SortOrder
+    failedLoginAttempts?: SortOrder
+    isLocked?: SortOrder
+    lastLoginAttempt?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -12912,10 +14207,16 @@ export namespace Prisma {
     department?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    mfaEnabled?: SortOrder
+    status?: SortOrder
+    failedLoginAttempts?: SortOrder
+    isLocked?: SortOrder
+    lastLoginAttempt?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
     id?: SortOrder
+    failedLoginAttempts?: SortOrder
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -12982,6 +14283,28 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
+  }
+
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type RoleCountOrderByAggregateInput = {
@@ -13178,11 +14501,6 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
-  export type BoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
-  }
-
   export type TransactionCountOrderByAggregateInput = {
     id?: SortOrder
     customerId?: SortOrder
@@ -13256,69 +14574,113 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
-  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
-  }
-
-  export type CorporateCountOrderByAggregateInput = {
+  export type SystemActivityLogCountOrderByAggregateInput = {
     id?: SortOrder
-    name?: SortOrder
-    industry?: SortOrder
+    timestamp?: SortOrder
+    userEmail?: SortOrder
+    action?: SortOrder
     status?: SortOrder
-    internet_banking_status?: SortOrder
-    logo_url?: SortOrder
+    details?: SortOrder
+    ipAddress?: SortOrder
   }
 
-  export type CorporateMaxOrderByAggregateInput = {
+  export type SystemActivityLogAvgOrderByAggregateInput = {
     id?: SortOrder
-    name?: SortOrder
-    industry?: SortOrder
+  }
+
+  export type SystemActivityLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    timestamp?: SortOrder
+    userEmail?: SortOrder
+    action?: SortOrder
     status?: SortOrder
-    internet_banking_status?: SortOrder
-    logo_url?: SortOrder
+    details?: SortOrder
+    ipAddress?: SortOrder
   }
 
-  export type CorporateMinOrderByAggregateInput = {
+  export type SystemActivityLogMinOrderByAggregateInput = {
     id?: SortOrder
-    name?: SortOrder
-    industry?: SortOrder
+    timestamp?: SortOrder
+    userEmail?: SortOrder
+    action?: SortOrder
     status?: SortOrder
-    internet_banking_status?: SortOrder
-    logo_url?: SortOrder
+    details?: SortOrder
+    ipAddress?: SortOrder
   }
 
-  export type MiniAppCountOrderByAggregateInput = {
+  export type SystemActivityLogSumOrderByAggregateInput = {
     id?: SortOrder
-    name?: SortOrder
-    url?: SortOrder
-    logo_url?: SortOrder
-    username?: SortOrder
-    password?: SortOrder
-    encryption_key?: SortOrder
   }
 
-  export type MiniAppMaxOrderByAggregateInput = {
-    id?: SortOrder
-    name?: SortOrder
-    url?: SortOrder
-    logo_url?: SortOrder
-    username?: SortOrder
-    password?: SortOrder
-    encryption_key?: SortOrder
+  export type StringNullableListFilter<$PrismaModel = never> = {
+    equals?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    has?: string | StringFieldRefInput<$PrismaModel> | null
+    hasEvery?: string[] | ListStringFieldRefInput<$PrismaModel>
+    hasSome?: string[] | ListStringFieldRefInput<$PrismaModel>
+    isEmpty?: boolean
   }
 
-  export type MiniAppMinOrderByAggregateInput = {
+  export type SecurityPolicyCountOrderByAggregateInput = {
     id?: SortOrder
-    name?: SortOrder
-    url?: SortOrder
-    logo_url?: SortOrder
-    username?: SortOrder
-    password?: SortOrder
-    encryption_key?: SortOrder
+    mfaRequired?: SortOrder
+    allowedMfaMethods?: SortOrder
+    sessionTimeout?: SortOrder
+    concurrentSessions?: SortOrder
+  }
+
+  export type SecurityPolicyAvgOrderByAggregateInput = {
+    id?: SortOrder
+    sessionTimeout?: SortOrder
+    concurrentSessions?: SortOrder
+  }
+
+  export type SecurityPolicyMaxOrderByAggregateInput = {
+    id?: SortOrder
+    mfaRequired?: SortOrder
+    sessionTimeout?: SortOrder
+    concurrentSessions?: SortOrder
+  }
+
+  export type SecurityPolicyMinOrderByAggregateInput = {
+    id?: SortOrder
+    mfaRequired?: SortOrder
+    sessionTimeout?: SortOrder
+    concurrentSessions?: SortOrder
+  }
+
+  export type SecurityPolicySumOrderByAggregateInput = {
+    id?: SortOrder
+    sessionTimeout?: SortOrder
+    concurrentSessions?: SortOrder
+  }
+
+  export type IpWhitelistCountOrderByAggregateInput = {
+    id?: SortOrder
+    cidr?: SortOrder
+    label?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type IpWhitelistAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type IpWhitelistMaxOrderByAggregateInput = {
+    id?: SortOrder
+    cidr?: SortOrder
+    label?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type IpWhitelistMinOrderByAggregateInput = {
+    id?: SortOrder
+    cidr?: SortOrder
+    label?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type IpWhitelistSumOrderByAggregateInput = {
+    id?: SortOrder
   }
 
   export type OtpCodeCountOrderByAggregateInput = {
@@ -13382,12 +14744,20 @@ export namespace Prisma {
     set?: Date | string
   }
 
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
+  }
+
   export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
   }
 
   export type DepartmentCreateNestedManyWithoutBranchInput = {
@@ -13558,16 +14928,21 @@ export namespace Prisma {
     divide?: number
   }
 
-  export type BoolFieldUpdateOperationsInput = {
-    set?: boolean
-  }
-
   export type CustomerUpdateOneRequiredWithoutTransactionsNestedInput = {
     create?: XOR<CustomerCreateWithoutTransactionsInput, CustomerUncheckedCreateWithoutTransactionsInput>
     connectOrCreate?: CustomerCreateOrConnectWithoutTransactionsInput
     upsert?: CustomerUpsertWithoutTransactionsInput
     connect?: CustomerWhereUniqueInput
     update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutTransactionsInput, CustomerUpdateWithoutTransactionsInput>, CustomerUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type SecurityPolicyCreateallowedMfaMethodsInput = {
+    set: string[]
+  }
+
+  export type SecurityPolicyUpdateallowedMfaMethodsInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
@@ -13618,6 +14993,22 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
+  }
+
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -13706,9 +15097,26 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
-  export type NestedBoolFilter<$PrismaModel = never> = {
+  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
+  }
+
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
@@ -13725,14 +15133,6 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
-  }
-
-  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type DepartmentCreateWithoutBranchInput = {
@@ -14219,13 +15619,17 @@ export namespace Prisma {
      */
     export type TransactionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = TransactionDefaultArgs<ExtArgs>
     /**
-     * @deprecated Use CorporateDefaultArgs instead
+     * @deprecated Use SystemActivityLogDefaultArgs instead
      */
-    export type CorporateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CorporateDefaultArgs<ExtArgs>
+    export type SystemActivityLogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SystemActivityLogDefaultArgs<ExtArgs>
     /**
-     * @deprecated Use MiniAppDefaultArgs instead
+     * @deprecated Use SecurityPolicyDefaultArgs instead
      */
-    export type MiniAppArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MiniAppDefaultArgs<ExtArgs>
+    export type SecurityPolicyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SecurityPolicyDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use IpWhitelistDefaultArgs instead
+     */
+    export type IpWhitelistArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = IpWhitelistDefaultArgs<ExtArgs>
     /**
      * @deprecated Use OtpCodeDefaultArgs instead
      */

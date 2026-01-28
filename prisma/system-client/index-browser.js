@@ -132,7 +132,12 @@ exports.Prisma.UserScalarFieldEnum = {
   branch: 'branch',
   department: 'department',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  mfaEnabled: 'mfaEnabled',
+  status: 'status',
+  failedLoginAttempts: 'failedLoginAttempts',
+  isLocked: 'isLocked',
+  lastLoginAttempt: 'lastLoginAttempt'
 };
 
 exports.Prisma.RoleScalarFieldEnum = {
@@ -189,23 +194,29 @@ exports.Prisma.TransactionScalarFieldEnum = {
   anomaly_reason: 'anomaly_reason'
 };
 
-exports.Prisma.CorporateScalarFieldEnum = {
+exports.Prisma.SystemActivityLogScalarFieldEnum = {
   id: 'id',
-  name: 'name',
-  industry: 'industry',
+  timestamp: 'timestamp',
+  userEmail: 'userEmail',
+  action: 'action',
   status: 'status',
-  internet_banking_status: 'internet_banking_status',
-  logo_url: 'logo_url'
+  details: 'details',
+  ipAddress: 'ipAddress'
 };
 
-exports.Prisma.MiniAppScalarFieldEnum = {
+exports.Prisma.SecurityPolicyScalarFieldEnum = {
   id: 'id',
-  name: 'name',
-  url: 'url',
-  logo_url: 'logo_url',
-  username: 'username',
-  password: 'password',
-  encryption_key: 'encryption_key'
+  mfaRequired: 'mfaRequired',
+  allowedMfaMethods: 'allowedMfaMethods',
+  sessionTimeout: 'sessionTimeout',
+  concurrentSessions: 'concurrentSessions'
+};
+
+exports.Prisma.IpWhitelistScalarFieldEnum = {
+  id: 'id',
+  cidr: 'cidr',
+  label: 'label',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.OtpCodeScalarFieldEnum = {
@@ -245,8 +256,9 @@ exports.Prisma.ModelName = {
   Customer: 'Customer',
   PendingApproval: 'PendingApproval',
   Transaction: 'Transaction',
-  Corporate: 'Corporate',
-  MiniApp: 'MiniApp',
+  SystemActivityLog: 'SystemActivityLog',
+  SecurityPolicy: 'SecurityPolicy',
+  IpWhitelist: 'IpWhitelist',
   OtpCode: 'OtpCode'
 };
 
