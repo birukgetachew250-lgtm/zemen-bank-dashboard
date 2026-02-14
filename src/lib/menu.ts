@@ -53,7 +53,8 @@ import {
   Unlink,
   LockOpen,
   CreditCard,
-  Layers
+  Layers,
+  LayoutGrid,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -93,6 +94,15 @@ export const menu: MenuItem[] = [
           { icon: Building2, label: "Existing Corporates", href: "/corporates" },
         ],
       },
+    ]
+  },
+  {
+    label: "Bill Management",
+    icon: Receipt,
+    children: [
+      { icon: LayoutGrid, label: "Categories", href: "/integrations/billers/categories" },
+      { icon: Layers, label: "Subcategories", href: "/integrations/billers/subcategories" },
+      { icon: Building2, label: "Providers", href: "/integrations/billers/providers" },
     ]
   },
   {
@@ -188,7 +198,6 @@ export const menu: MenuItem[] = [
     icon: Network,
     children: [
       { icon: Plug, label: "Configuration", href: "/integrations/config" },
-      { icon: CreditCard, label: "Billers & Payments", href: "/integrations/billers" },
       { icon: Building, label: "IPS Bank Management", href: "/integrations/ips-bank-management" },
       { icon: Activity, label: "API Monitoring", href: "/integrations/api-monitoring" },
     ],

@@ -1,28 +1,59 @@
 
-import { Suspense } from 'react';
-import { executeQuery } from '@/lib/oracle-db';
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, Save, Play, Code, Layout, ListTodo, FileJson } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, Code, Layout, ListTodo, FileJson, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
+import { SDUIFieldBuilder } from '@/components/integrations/billers/SDUIFieldBuilder';
+import { SDUIFlowDesigner } from '@/components/integrations/billers/SDUIFlowDesigner';
+import { SDUIApiConfig } from '@/components/integrations/billers/SDUIApiConfig';
+import { SDUIDisplayConfig } from '@/components/integrations/billers/SDUIDisplayConfig';
 
-async function getProviderDetails(id: string) {
-    const query = `
-        SELECT p.*, c."CategoryName"
-        FROM "APP_CONTROL_MODULE"."BillProvider" p
-        JOIN "APP_CONTROL_MODULE"."BillCategory" c ON p."CategoryId" = c."CategoryId"
-        WHERE p."ProviderId" = :id
-    `;
-    const result: any = await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, query, { id });
-    return result.rows?.[0];
-}
+export default function BillerConfigDashboardPage({ params }: { params: { providerId: string } }) {
+    const { providerId } = params;
+    const [config, setConfig] = useState<any>(null);
+    const [provider, setProvider] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const { toast } = useToast();
 
-export default async function BillerConfigDashboardPage({ params }: { params: { providerId: string } }) {
-    const provider = await getProviderDetails(params.providerId);
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            // Fetch provider basic info
+            const pRes = await fetch(`/api/bill-management/providers?id=${providerId}`);
+            const pData = await pRes.json();
+            // In a real list endpoint this might be an array, but we assume it has our specific provider
+            setProvider(pData.find((p: any) => p.ProviderId === providerId));
+
+            // Fetch full config (fields, steps, api, display)
+            const cRes = await fetch(`/api/bill-management/providers/${providerId}/config`);
+            const cData = await cRes.json();
+            setConfig(cData);
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to load configuration.' });
+        } finally {
+            setLoading(false);
+        }
+    }, [providerId, toast]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    if (loading && !config) {
+        return <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    }
 
     if (!provider) {
-        return <div className="p-8 text-center">Provider not found.</div>;
+        return (
+            <div className="p-8 text-center space-y-4">
+                <p>Provider not found.</p>
+                <Button asChild variant="outline"><Link href="/integrations/billers/providers">Back to Providers</Link></Button>
+            </div>
+        );
     }
 
     return (
@@ -30,73 +61,41 @@ export default async function BillerConfigDashboardPage({ params }: { params: { 
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/integrations/billers/${provider.CategoryId}`}><ArrowLeft className="h-5 w-5" /></Link>
+                        <Link href={`/integrations/billers/providers`}><ArrowLeft className="h-5 w-5" /></Link>
                     </Button>
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight font-headline">{provider.ProviderName}</h1>
-                        <p className="text-muted-foreground">Configuration Dashboard for {provider.CategoryName}</p>
+                        <p className="text-muted-foreground text-sm uppercase tracking-widest font-mono">{provider.ProviderCode}</p>
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline"><Play className="mr-2 h-4 w-4" /> Test Flow</Button>
+                    <Button variant="outline" onClick={fetchData}><RefreshCw className="mr-2 h-4 w-4" /> Refresh</Button>
                     <Button><Save className="mr-2 h-4 w-4" /> Save All Changes</Button>
                 </div>
             </div>
 
-            <Tabs defaultValue="api" className="w-full">
+            <Tabs defaultValue="fields" className="w-full">
                 <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
+                    <TabsTrigger value="fields"><Layout className="mr-2 h-4 w-4" /> Form Fields</TabsTrigger>
+                    <TabsTrigger value="steps"><ListTodo className="mr-2 h-4 w-4" /> Flow Steps</TabsTrigger>
                     <TabsTrigger value="api"><Code className="mr-2 h-4 w-4" /> API Config</TabsTrigger>
-                    <TabsTrigger value="form"><Layout className="mr-2 h-4 w-4" /> UI Form</TabsTrigger>
-                    <TabsTrigger value="flow"><ListTodo className="mr-2 h-4 w-4" /> Steps</TabsTrigger>
                     <TabsTrigger value="display"><FileJson className="mr-2 h-4 w-4" /> Display</TabsTrigger>
                 </TabsList>
 
+                <TabsContent value="fields" className="mt-6">
+                    <SDUIFieldBuilder providerId={providerId} initialFields={config?.fields || []} />
+                </TabsContent>
+
+                <TabsContent value="steps" className="mt-6">
+                    <SDUIFlowDesigner providerId={providerId} initialSteps={config?.steps || []} />
+                </TabsContent>
+
                 <TabsContent value="api" className="mt-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Integration API Endpoints</CardTitle>
-                            <CardDescription>Configure HTTP endpoints for lookup, validation, and payment execution.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground italic">API Configuration Editor Component will be rendered here...</p>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="form" className="mt-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Form Field Definitions</CardTitle>
-                            <CardDescription>Define the input fields users see when initiating a payment.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground italic">Form Field Builder Component will be rendered here...</p>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="flow" className="mt-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Payment Flow Steps</CardTitle>
-                            <CardDescription>Define the sequence of screens and transitions for this provider.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground italic">Flow Sequence Editor Component will be rendered here...</p>
-                        </CardContent>
-                    </Card>
+                    <SDUIApiConfig providerId={providerId} initialConfigs={config?.api || []} />
                 </TabsContent>
 
                 <TabsContent value="display" className="mt-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Output Display Mapping</CardTitle>
-                            <CardDescription>Control which fields are shown on the confirmation and receipt screens.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground italic">Display Field Mapper Component will be rendered here...</p>
-                        </CardContent>
-                    </Card>
+                    <SDUIDisplayConfig providerId={providerId} initialFields={config?.display || []} />
                 </TabsContent>
             </Tabs>
         </div>
