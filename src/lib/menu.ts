@@ -51,7 +51,9 @@ import {
   Lock,
   Link,
   Unlink,
-  LockOpen
+  LockOpen,
+  CreditCard,
+  Layers
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -186,6 +188,7 @@ export const menu: MenuItem[] = [
     icon: Network,
     children: [
       { icon: Plug, label: "Configuration", href: "/integrations/config" },
+      { icon: CreditCard, label: "Billers & Payments", href: "/integrations/billers" },
       { icon: Building, label: "IPS Bank Management", href: "/integrations/ips-bank-management" },
       { icon: Activity, label: "API Monitoring", href: "/integrations/api-monitoring" },
     ],
