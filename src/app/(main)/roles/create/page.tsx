@@ -77,8 +77,9 @@ async function getRoleData(id?: string) {
 }
 
 
-export default async function CreateRolePage({ searchParams }: { searchParams: { id?: string }}) {
-    const { id } = searchParams;
+export default async function CreateRolePage({ searchParams }: { searchParams: Promise<{ id?: string }> | any }) {
+    const params = await searchParams;
+    const id = params?.id;
     const { permissions, role } = await getRoleData(id);
     return (
         <div className="w-full h-full">

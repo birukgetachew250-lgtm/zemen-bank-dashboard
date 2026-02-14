@@ -24,7 +24,9 @@ async function getFormData(id?: string) {
             where: { id: userId },
         });
 
-        if (!user) return { branches, departments, roles, user: null };
+        if (!user) {
+            return { branches, departments, roles, user: null };
+        }
         
         const { password, ...userWithoutPassword } = user;
         
@@ -43,8 +45,9 @@ async function CreateUserPageLoader({ id }: { id?: string }) {
     )
 }
 
-export default async function CreateOrEditUserPage({ searchParams }: { searchParams: { id?: string }}) {
-    const { id } = searchParams;
+export default async function CreateOrEditUserPage({ searchParams }: { searchParams: Promise<{ id?: string }> | any }) {
+    const params = await searchParams;
+    const id = params?.id;
     return (
         <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="animate-spin" /></div>}>
             <div className="w-full h-full">
