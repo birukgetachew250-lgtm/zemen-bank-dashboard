@@ -32,6 +32,36 @@ async function getOracleConnection(connectionString: string | undefined) {
     });
 }
 
+/**
+ * Sanitizes a row from Oracle DB to ensure it is a plain object 
+ * and handles types like Uint8Array that are not JSON-serializable.
+ */
+function sanitizeRow(row: any) {
+    if (!row || typeof row !== 'object') return row;
+    
+    const sanitized: any = {};
+    for (const key in row) {
+        if (Object.prototype.hasOwnProperty.call(row, key)) {
+            let value = row[key];
+            
+            // Handle Uint8Array (RAW types) - convert to Hex string
+            if (value instanceof Uint8Array) {
+                sanitized[key] = Buffer.from(value).toString('hex');
+            } 
+            // Ensure we don't pass complex objects that might have circular refs
+            else if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
+                // If it's a simple object or array, we could recurse, but for DB rows
+                // it's safer to just handle the standard types we expect.
+                sanitized[key] = JSON.parse(JSON.stringify(value));
+            }
+            else {
+                sanitized[key] = value;
+            }
+        }
+    }
+    return sanitized;
+}
+
 export async function executeQuery(connectionString: string | undefined, query: string, binds: any[] | Record<string, any> = []) {
     let connection;
     try {
@@ -52,10 +82,13 @@ export async function executeQuery(connectionString: string | undefined, query: 
         console.log(`[Oracle DB] Executing query (autoCommit: ${isDML}): ${query}`);
         const result = await connection.execute(query, binds, options);
         
-        console.log(`[Oracle DB] Execution result:`, { rowsAffected: result.rowsAffected, rows: result.rows ? 'omitted for brevity' : 'none' });
+        // Ensure rows are sanitized and free of circular references
+        const sanitizedRows = result.rows ? result.rows.map(sanitizeRow) : [];
+
+        console.log(`[Oracle DB] Execution result:`, { rowsAffected: result.rowsAffected, rowCount: sanitizedRows.length });
 
         return {
-          rows: result.rows,
+          rows: sanitizedRows,
           rowsAffected: result.rowsAffected,
           outBinds: result.outBinds,
         };
