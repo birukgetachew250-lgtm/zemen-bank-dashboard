@@ -97,16 +97,6 @@ export const menu: MenuItem[] = [
     ]
   },
   {
-    label: "Bill Management",
-    icon: Receipt,
-    children: [
-      { icon: LayoutGrid, label: "Categories", href: "/integrations/billers/categories" },
-      { icon: Layers, label: "Subcategories", href: "/integrations/billers/subcategories" },
-      { icon: Building2, label: "Providers", href: "/integrations/billers/providers" },
-      { icon: Plug, label: "System Config", href: "/integrations/config" },
-    ]
-  },
-  {
     label: "Transactions",
     icon: ArrowRightLeft,
     href: "/transactions/all-transactions",
@@ -116,6 +106,50 @@ export const menu: MenuItem[] = [
         { icon: Network, label: "Interoperability", href: "/transactions/interoperability" },
         { icon: Receipt, label: "Bill Payments", href: "/transactions/bills-utilities" },
         { icon: BookCheck, label: "Settlements", href: "/transactions/settlements" },
+    ]
+  },
+  {
+    label: "Administration",
+    icon: UserCog,
+    children: [
+      {
+        label: "Bill Management",
+        icon: Receipt,
+        children: [
+          { icon: LayoutGrid, label: "Categories", href: "/integrations/billers/categories" },
+          { icon: Layers, label: "Subcategories", href: "/integrations/billers/subcategories" },
+          { icon: Building2, label: "Providers", href: "/integrations/billers/providers" },
+          {
+            label: "Configuration",
+            icon: Settings,
+            children: [
+              { icon: Plug, label: "System Config", href: "/integrations/config" },
+            ]
+          }
+        ]
+      },
+      {
+        label: "Structure",
+        icon: Building,
+        href: "/branches",
+        children: [
+          { icon: Building, label: "Branches", href: "/branches" },
+          { icon: Building2, label: "Departments", href: "/departments" },
+        ],
+      },
+       { 
+        label: "Limits & Charges",
+        icon: SlidersHorizontal, 
+        href: "/limits",
+        children: [
+          { icon: SlidersHorizontal, label: "Transaction Limits", href: "/limits" },
+          { icon: SlidersHorizontal, label: "Transaction Charges", href: "/charges" },
+          { icon: List, label: "Transaction Types", href: "/limits/types" },
+          { icon: Users, label: "Customer Categories", href: "/limits/categories" },
+          { icon: History, label: "Intervals", href: "/limits/intervals" },
+          { icon: ShieldAlert, label: "Exceptional Limits", href: "/limits/exceptional-limits" },
+        ]
+      },
     ]
   },
    {
@@ -218,34 +252,6 @@ export const menu: MenuItem[] = [
       },
       { icon: Table, label: "Permissions Matrix", href: "/security/permission-matrix" },
       { icon: Shield, label: "Security Policies", href: "/security/mfa-policies" },
-    ]
-  },
-  {
-    label: "Administration",
-    icon: UserCog,
-    children: [
-      {
-        label: "Structure",
-        icon: Building,
-        href: "/branches",
-        children: [
-          { icon: Building, label: "Branches", href: "/branches" },
-          { icon: Building2, label: "Departments", href: "/departments" },
-        ],
-      },
-       { 
-        label: "Limits & Charges",
-        icon: SlidersHorizontal, 
-        href: "/limits",
-        children: [
-          { icon: SlidersHorizontal, label: "Transaction Limits", href: "/limits" },
-          { icon: SlidersHorizontal, label: "Transaction Charges", href: "/charges" },
-          { icon: List, label: "Transaction Types", href: "/limits/types" },
-          { icon: Users, label: "Customer Categories", href: "/limits/categories" },
-          { icon: History, label: "Intervals", href: "/limits/intervals" },
-          { icon: ShieldAlert, label: "Exceptional Limits", href: "/limits/exceptional-limits" },
-        ]
-      },
     ]
   },
   { 

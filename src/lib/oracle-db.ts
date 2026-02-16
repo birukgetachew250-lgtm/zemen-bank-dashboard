@@ -3,9 +3,13 @@
 
 import oracledb from 'oracledb';
 
+// Force CLOBs to be fetched as strings to avoid Lob objects/circular structures
+if (typeof oracledb !== 'undefined' && oracledb.CLOB) {
+    oracledb.fetchAsString = [oracledb.CLOB];
+}
+
 async function getOracleConnection(connectionString: string | undefined) {
     if (!connectionString) {
-        // During build, env var may not be available. Return null to avoid crashing build.
         if (process.env.NODE_ENV === 'production') {
             console.warn("[Oracle DB] Connection string is not defined. Skipping connection during build.");
             return null;
@@ -35,6 +39,7 @@ async function getOracleConnection(connectionString: string | undefined) {
 /**
  * Sanitizes a row from Oracle DB to ensure it is a plain object 
  * and handles types like Uint8Array that are not JSON-serializable.
+ * Prevents circular structure errors by safely handling objects.
  */
 function sanitizeRow(row: any) {
     if (!row || typeof row !== 'object') return row;
@@ -48,11 +53,20 @@ function sanitizeRow(row: any) {
             if (value instanceof Uint8Array) {
                 sanitized[key] = Buffer.from(value).toString('hex');
             } 
-            // Ensure we don't pass complex objects that might have circular refs
-            else if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
-                // If it's a simple object or array, we could recurse, but for DB rows
-                // it's safer to just handle the standard types we expect.
-                sanitized[key] = JSON.parse(JSON.stringify(value));
+            // Dates are fine for RSC but sometimes need stringification for specific APIs
+            else if (value instanceof Date) {
+                sanitized[key] = value;
+            }
+            // Safely handle other objects/arrays to avoid circular refs (like NVPair)
+            else if (value !== null && typeof value === 'object') {
+                try {
+                    // Verify it's serializable
+                    const str = JSON.stringify(value);
+                    sanitized[key] = JSON.parse(str);
+                } catch (e) {
+                    // Fallback for non-serializable objects (like internal driver types)
+                    sanitized[key] = String(value);
+                }
             }
             else {
                 sanitized[key] = value;
@@ -68,7 +82,6 @@ export async function executeQuery(connectionString: string | undefined, query: 
         connection = await getOracleConnection(connectionString);
         
         if (!connection) {
-            // Gracefully return empty during build if connection is not available
             return { rows: [], rowsAffected: 0, outBinds: undefined };
         }
 
