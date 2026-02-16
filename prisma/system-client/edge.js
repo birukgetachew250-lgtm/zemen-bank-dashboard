@@ -240,7 +240,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/home/user/studio/prisma/system-client",
+      "value": "C:\\Users\\GE68HX\\Documents\\firebase\\zemen-bank-dashboard\\prisma\\system-client",
       "fromEnvVar": null
     },
     "config": {
@@ -249,12 +249,12 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "debian-openssl-1.1.x",
+        "value": "windows",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/home/user/studio/prisma/schema.prisma",
+    "sourceFilePath": "C:\\Users\\GE68HX\\Documents\\firebase\\zemen-bank-dashboard\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
