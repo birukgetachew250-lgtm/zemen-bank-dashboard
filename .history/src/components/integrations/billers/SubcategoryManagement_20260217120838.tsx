@@ -145,7 +145,7 @@ export function SubcategoryManagement({ initialSubcategories, categories }: { in
       const refreshed = await fetch('/api/bill-management/subcategories');
       if (refreshed.ok) {
         const data = await refreshed.json();
-        setSubcategories(Array.isArray(data) ? data : data.value || []);
+        setSubcategories(data.value || data);
       }
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error', description: error.message });

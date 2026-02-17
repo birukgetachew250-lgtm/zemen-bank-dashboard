@@ -145,7 +145,7 @@ export function ProviderManagement({ initialProviders, categories, subcategories
       const refreshed = await fetch('/api/bill-management/providers');
       if (refreshed.ok) {
         const data = await refreshed.json();
-        setProviders(Array.isArray(data) ? data : data.value || []);
+        setProviders(data.value || data);
       }
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error', description: error.message });

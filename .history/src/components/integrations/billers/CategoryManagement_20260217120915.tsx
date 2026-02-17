@@ -130,7 +130,7 @@ export function CategoryManagement({ initialCategories }: { initialCategories: C
       const refreshed = await fetch('/api/bill-management/categories');
       if (refreshed.ok) {
         const data = await refreshed.json();
-        setCategories(Array.isArray(data) ? data : data.value || []);
+        setCategories(data.value || data);
       }
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
