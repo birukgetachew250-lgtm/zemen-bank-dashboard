@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { PlusCircle, Edit, Trash2, GripVertical, Loader2, Copy, Star } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, GripVertical, Loader2, Eye, Copy, Star } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
@@ -196,6 +196,7 @@ export function SDUIDisplayConfig({ providerId, initialFields }: { providerId: s
               <TableCell>
                 <div className="flex gap-1">
                   {(f.Copyable === 1 || f.Copyable === true) && <span title="Copyable"><Copy className="h-3 w-3 text-muted-foreground" /></span>}
+                  {(f.Shareable === 1 || f.Shareable === true) && <span title="Shareable"><Eye className="h-3 w-3 text-muted-foreground" /></span>}
                   {f.TextStyle && f.TextStyle !== 'normal' && <Badge variant="outline" className="text-[9px]">{f.TextStyle}</Badge>}
                 </div>
               </TableCell>

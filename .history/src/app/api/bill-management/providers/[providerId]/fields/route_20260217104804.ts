@@ -33,17 +33,6 @@ function toBind(key: string, value: any): any {
     return (value === '' || value === undefined) ? null : value;
 }
 
-export async function GET(req: Request, { params }: { params: { providerId: string } }) {
-    try {
-        const query = `SELECT * FROM ${TABLE} WHERE "ProviderId" = :providerId ORDER BY "StepNumber", "FieldOrder"`;
-        const rows = await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, query, { providerId: params.providerId });
-        return NextResponse.json(rows);
-    } catch (error: any) {
-        console.error("Failed to fetch form fields:", error);
-        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
-    }
-}
-
 export async function POST(req: Request, { params }: { params: { providerId: string } }) {
     try {
         const body = await req.json();

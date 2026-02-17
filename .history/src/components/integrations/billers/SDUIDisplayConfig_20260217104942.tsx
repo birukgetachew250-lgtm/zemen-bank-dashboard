@@ -196,6 +196,7 @@ export function SDUIDisplayConfig({ providerId, initialFields }: { providerId: s
               <TableCell>
                 <div className="flex gap-1">
                   {(f.Copyable === 1 || f.Copyable === true) && <span title="Copyable"><Copy className="h-3 w-3 text-muted-foreground" /></span>}
+                  {(f.Shareable === 1 || f.Shareable === true) && <span title="Shareable"><Eye className="h-3 w-3 text-muted-foreground" /></span>}
                   {f.TextStyle && f.TextStyle !== 'normal' && <Badge variant="outline" className="text-[9px]">{f.TextStyle}</Badge>}
                 </div>
               </TableCell>
