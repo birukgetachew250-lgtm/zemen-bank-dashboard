@@ -58,11 +58,14 @@ export async function GET() {
 
 export async function POST(req: Request) {
     try {
+       
+               
         const { categoryId, transactionTypeId, serviceName, percentage, fixedAmount, vatPercentage, minCharge, maxCharge, effectiveFrom, effectiveTo } = await req.json();
         const id = crypto.randomUUID();
+         const version = crypto.randomBytes(8);
         const query = `
             INSERT INTO ${TABLE} ("Id", "CustomerCategoryId", "TransactionTypeId", "ServiceName", "Percentage", "FixedAmount", "VatPercentage", "MinCharge", "MaxCharge", "EffectiveFrom", "EffectiveTo", "IsActive", "InsertDate", "Version") 
-            VALUES (:Id, :CustomerCategoryId, :TransactionTypeId, :ServiceName, :Percentage, :FixedAmount, :VatPercentage, :MinCharge, :MaxCharge, TO_TIMESTAMP(:EffectiveFrom, 'YYYY-MM-DD"T"HH24:MI:SS'), TO_TIMESTAMP(:EffectiveTo, 'YYYY-MM-DD"T"HH24:MI:SS'), 1, SYSTIMESTAMP, SYS_GUID())
+            VALUES (:Id, :CustomerCategoryId, :TransactionTypeId, :ServiceName, :Percentage, :FixedAmount, :VatPercentage, :MinCharge, :MaxCharge, TO_TIMESTAMP(:EffectiveFrom, 'YYYY-MM-DD"T"HH24:MI:SS'), TO_TIMESTAMP(:EffectiveTo, 'YYYY-MM-DD"T"HH24:MI:SS'), 1, SYSTIMESTAMP, :version)
         `;
         const binds = {
             Id: id,
