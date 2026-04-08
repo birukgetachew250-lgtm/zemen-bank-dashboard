@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import crypto from 'crypto';
@@ -29,12 +28,10 @@ export async function GET() {
           WHERE cr."IsActive" = 1 
           ORDER BY cc."Name", tt."Name"
         `;
-        const result: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, query);
+        const result: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING!, query);
         
-        if (!result.rows) {
-            return NextResponse.json([]);
-        }
-        
+        if (!result.rows) return NextResponse.json([]);
+
         return NextResponse.json(result.rows.map((row: any) => ({
             id: row.id,
             customerCategoryId: row.customerCategoryId,
@@ -58,48 +55,113 @@ export async function GET() {
 
 export async function POST(req: Request) {
     try {
-        const { categoryId, transactionTypeId, serviceName, percentage, fixedAmount, vatPercentage, minCharge, maxCharge, effectiveFrom, effectiveTo } = await req.json();
+        const body = await req.json();
+        const {
+            categoryId,
+            transactionTypeId,
+            serviceName,
+            percentage,
+            fixedAmount,
+            vatPercentage,
+            minCharge,
+            maxCharge,
+            effectiveFrom,
+            effectiveTo,
+        } = body;
+
         const id = crypto.randomUUID();
+        const version = crypto.randomBytes(8); // ← Exactly 8 bytes for RAW(8)
+
         const query = `
-            INSERT INTO ${TABLE} ("Id", "CustomerCategoryId", "TransactionTypeId", "ServiceName", "Percentage", "FixedAmount", "VatPercentage", "MinCharge", "MaxCharge", "EffectiveFrom", "EffectiveTo", "IsActive", "InsertDate", "Version") 
-            VALUES (:Id, :CustomerCategoryId, :TransactionTypeId, :ServiceName, :Percentage, :FixedAmount, :VatPercentage, :MinCharge, :MaxCharge, TO_TIMESTAMP(:EffectiveFrom, 'YYYY-MM-DD"T"HH24:MI:SS'), TO_TIMESTAMP(:EffectiveTo, 'YYYY-MM-DD"T"HH24:MI:SS'), 1, SYSTIMESTAMP, SYS_GUID())
+            INSERT INTO ${TABLE} (
+                "Id", 
+                "CustomerCategoryId", 
+                "TransactionTypeId", 
+                "ServiceName", 
+                "Percentage", 
+                "FixedAmount", 
+                "VatPercentage", 
+                "MinCharge", 
+                "MaxCharge", 
+                "EffectiveFrom", 
+                "EffectiveTo", 
+                "IsActive", 
+                "InsertDate", 
+                "UpdateDate", 
+                "InsertUser", 
+                "UpdateUser",
+                "Version"
+            ) 
+            VALUES (
+                :Id, 
+                :CustomerCategoryId, 
+                :TransactionTypeId, 
+                :ServiceName, 
+                :Percentage, 
+                :FixedAmount, 
+                :VatPercentage, 
+                :MinCharge, 
+                :MaxCharge, 
+                TO_TIMESTAMP(:EffectiveFrom, 'YYYY-MM-DD"T"HH24:MI:SS'), 
+                TO_TIMESTAMP(:EffectiveTo, 'YYYY-MM-DD"T"HH24:MI:SS'), 
+                1, 
+                SYSTIMESTAMP, 
+                SYSTIMESTAMP, 
+                'system', 
+                'system',
+                :Version
+            )
         `;
+
         const binds = {
             Id: id,
             CustomerCategoryId: categoryId || null,
             TransactionTypeId: transactionTypeId || null,
             ServiceName: serviceName || null,
-            Percentage: parseFloat(percentage) || 0,
-            FixedAmount: parseFloat(fixedAmount) || 0,
-            VatPercentage: vatPercentage !== undefined && vatPercentage !== '' ? parseFloat(vatPercentage) : 15,
+            Percentage: parseFloat(percentage ?? '0'),
+            FixedAmount: parseFloat(fixedAmount ?? '0'),
+            VatPercentage: vatPercentage !== undefined && vatPercentage !== '' 
+                ? parseFloat(vatPercentage) 
+                : 15,
             MinCharge: minCharge ? parseFloat(minCharge) : null,
             MaxCharge: maxCharge ? parseFloat(maxCharge) : null,
             EffectiveFrom: effectiveFrom || null,
             EffectiveTo: effectiveTo || null,
+            Version: version,   // Buffer → RAW(8) in oracledb
         };
 
-        await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, query, binds);
+        await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING!, query, binds);
 
+        // Fetch friendly names
         let categoryName = 'All Categories';
         let typeName = 'All Types';
+
         if (categoryId) {
-            const categoryRes: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, `SELECT "Name" FROM "LIMIT_CHARGE_MODULE"."CustomerCategories" WHERE "Id" = :id`, [categoryId]);
-            if (categoryRes.rows?.[0]) categoryName = categoryRes.rows[0].Name;
+            const catRes: any = await executeQuery(
+                process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING!,
+                `SELECT "Name" FROM "LIMIT_CHARGE_MODULE"."CustomerCategories" WHERE "Id" = :id`,
+                { id: categoryId }
+            );
+            if (catRes.rows?.[0]) categoryName = catRes.rows[0].Name;
         }
         if (transactionTypeId) {
-            const typeRes: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, `SELECT "Name" FROM "LIMIT_CHARGE_MODULE"."TransactionTypes" WHERE "Id" = :id`, [transactionTypeId]);
+            const typeRes: any = await executeQuery(
+                process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING!,
+                `SELECT "Name" FROM "LIMIT_CHARGE_MODULE"."TransactionTypes" WHERE "Id" = :id`,
+                { id: transactionTypeId }
+            );
             if (typeRes.rows?.[0]) typeName = typeRes.rows[0].Name;
         }
 
-        return NextResponse.json({ 
+        return NextResponse.json({
             id,
             customerCategoryId: categoryId || null,
             transactionTypeId: transactionTypeId || null,
             category: categoryName,
             transactionType: typeName,
             serviceName: serviceName || null,
-            percentage: parseFloat(percentage) || 0,
-            fixedAmount: parseFloat(fixedAmount) || 0,
+            percentage: binds.Percentage,
+            fixedAmount: binds.FixedAmount,
             vatPercentage: binds.VatPercentage,
             minCharge: binds.MinCharge,
             maxCharge: binds.MaxCharge,
@@ -114,7 +176,21 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
     try {
-        const { id, categoryId, transactionTypeId, serviceName, percentage, fixedAmount, vatPercentage, minCharge, maxCharge, effectiveFrom, effectiveTo } = await req.json();
+        const body = await req.json();
+        const {
+            id,
+            categoryId,
+            transactionTypeId,
+            serviceName,
+            percentage,
+            fixedAmount,
+            vatPercentage,
+            minCharge,
+            maxCharge,
+            effectiveFrom,
+            effectiveTo,
+        } = body;
+
         const query = `
             UPDATE ${TABLE} SET 
                 "CustomerCategoryId" = :CustomerCategoryId, 
@@ -127,44 +203,59 @@ export async function PUT(req: Request) {
                 "MaxCharge" = :MaxCharge,
                 "EffectiveFrom" = TO_TIMESTAMP(:EffectiveFrom, 'YYYY-MM-DD"T"HH24:MI:SS'),
                 "EffectiveTo" = TO_TIMESTAMP(:EffectiveTo, 'YYYY-MM-DD"T"HH24:MI:SS'),
-                "UpdateDate" = SYSTIMESTAMP
+                "UpdateDate" = SYSTIMESTAMP,
+                "UpdateUser" = 'system'
             WHERE "Id" = :Id
         `;
+
         const binds = {
             Id: id,
             CustomerCategoryId: categoryId || null,
             TransactionTypeId: transactionTypeId || null,
             ServiceName: serviceName || null,
-            Percentage: parseFloat(percentage) || 0,
-            FixedAmount: parseFloat(fixedAmount) || 0,
-            VatPercentage: vatPercentage !== undefined && vatPercentage !== '' ? parseFloat(vatPercentage) : 15,
+            Percentage: parseFloat(percentage ?? '0'),
+            FixedAmount: parseFloat(fixedAmount ?? '0'),
+            VatPercentage: vatPercentage !== undefined && vatPercentage !== '' 
+                ? parseFloat(vatPercentage) 
+                : 15,
             MinCharge: minCharge ? parseFloat(minCharge) : null,
             MaxCharge: maxCharge ? parseFloat(maxCharge) : null,
             EffectiveFrom: effectiveFrom || null,
             EffectiveTo: effectiveTo || null,
         };
-        await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, query, binds);
-        
+
+        await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING!, query, binds);
+
+        // Fetch friendly names
         let categoryName = 'All Categories';
         let typeName = 'All Types';
+
         if (categoryId) {
-            const categoryRes: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, `SELECT "Name" FROM "LIMIT_CHARGE_MODULE"."CustomerCategories" WHERE "Id" = :id`, [categoryId]);
-            if (categoryRes.rows?.[0]) categoryName = categoryRes.rows[0].Name;
+            const catRes: any = await executeQuery(
+                process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING!,
+                `SELECT "Name" FROM "LIMIT_CHARGE_MODULE"."CustomerCategories" WHERE "Id" = :id`,
+                { id: categoryId }
+            );
+            if (catRes.rows?.[0]) categoryName = catRes.rows[0].Name;
         }
         if (transactionTypeId) {
-            const typeRes: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, `SELECT "Name" FROM "LIMIT_CHARGE_MODULE"."TransactionTypes" WHERE "Id" = :id`, [transactionTypeId]);
+            const typeRes: any = await executeQuery(
+                process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING!,
+                `SELECT "Name" FROM "LIMIT_CHARGE_MODULE"."TransactionTypes" WHERE "Id" = :id`,
+                { id: transactionTypeId }
+            );
             if (typeRes.rows?.[0]) typeName = typeRes.rows[0].Name;
         }
 
-        return NextResponse.json({ 
-            id, 
+        return NextResponse.json({
+            id,
             customerCategoryId: categoryId || null,
             transactionTypeId: transactionTypeId || null,
             category: categoryName,
             transactionType: typeName,
             serviceName: serviceName || null,
-            percentage: parseFloat(percentage) || 0,
-            fixedAmount: parseFloat(fixedAmount) || 0,
+            percentage: binds.Percentage,
+            fixedAmount: binds.FixedAmount,
             vatPercentage: binds.VatPercentage,
             minCharge: binds.MinCharge,
             maxCharge: binds.MaxCharge,
@@ -180,8 +271,14 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
     try {
         const { id } = await req.json();
-        const query = `UPDATE ${TABLE} SET "IsActive" = 0, "UpdateDate" = SYSTIMESTAMP WHERE "Id" = :Id`;
-        await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, query, { Id: id });
+        const query = `
+            UPDATE ${TABLE} 
+            SET "IsActive" = 0, 
+                "UpdateDate" = SYSTIMESTAMP,
+                "UpdateUser" = 'system'
+            WHERE "Id" = :Id
+        `;
+        await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING!, query, { Id: id });
         return new Response(null, { status: 204 });
     } catch (error) {
         console.error('Failed to delete charge rule:', error);

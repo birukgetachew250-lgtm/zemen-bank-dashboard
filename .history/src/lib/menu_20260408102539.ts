@@ -307,7 +307,6 @@ export const menu: MenuItem[] = [
     label: "WSO2 Integration",
     icon: Waypoints,
     children: [
-      { icon: LayoutDashboard, label: "Overview", href: "/wso2/dashboard" },
       { icon: Settings, label: "Configurations", href: "/wso2/configurations" },
       { icon: KeyRound, label: "OAuth Credentials", href: "/wso2/oauth-credentials" },
       { icon: Activity, label: "Request Logs", href: "/wso2/request-logs" },

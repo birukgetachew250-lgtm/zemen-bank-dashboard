@@ -94,8 +94,7 @@ function MobileSidebarNavItem({ item, pathname, userPermissions }: { item: MenuI
         type="single"
         collapsible
         className="w-full"
-        key={`${item.label}-${isChildActive}`}
-        defaultValue={isChildActive ? `item-${item.label}` : undefined}
+        value={isChildActive ? `item-${item.label}` : undefined}
       >
         <AccordionItem value={`item-${item.label}`} className="border-b-0">
           <AccordionTrigger
