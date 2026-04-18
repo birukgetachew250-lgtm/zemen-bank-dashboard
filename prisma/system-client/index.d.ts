@@ -68,6 +68,16 @@ export type IpWhitelist = $Result.DefaultSelection<Prisma.$IpWhitelistPayload>
  * 
  */
 export type OtpCode = $Result.DefaultSelection<Prisma.$OtpCodePayload>
+/**
+ * Model IPSBank
+ * 
+ */
+export type IPSBank = $Result.DefaultSelection<Prisma.$IPSBankPayload>
+/**
+ * Model IPSWallet
+ * 
+ */
+export type IPSWallet = $Result.DefaultSelection<Prisma.$IPSWalletPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -301,6 +311,26 @@ export class PrismaClient<
     * ```
     */
   get otpCode(): Prisma.OtpCodeDelegate<ExtArgs>;
+
+  /**
+   * `prisma.iPSBank`: Exposes CRUD operations for the **IPSBank** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more IPSBanks
+    * const iPSBanks = await prisma.iPSBank.findMany()
+    * ```
+    */
+  get iPSBank(): Prisma.IPSBankDelegate<ExtArgs>;
+
+  /**
+   * `prisma.iPSWallet`: Exposes CRUD operations for the **IPSWallet** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more IPSWallets
+    * const iPSWallets = await prisma.iPSWallet.findMany()
+    * ```
+    */
+  get iPSWallet(): Prisma.IPSWalletDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -752,7 +782,9 @@ export namespace Prisma {
     SystemActivityLog: 'SystemActivityLog',
     SecurityPolicy: 'SecurityPolicy',
     IpWhitelist: 'IpWhitelist',
-    OtpCode: 'OtpCode'
+    OtpCode: 'OtpCode',
+    IPSBank: 'IPSBank',
+    IPSWallet: 'IPSWallet'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -768,7 +800,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "role" | "branch" | "department" | "customer" | "pendingApproval" | "transaction" | "systemActivityLog" | "securityPolicy" | "ipWhitelist" | "otpCode"
+      modelProps: "user" | "role" | "branch" | "department" | "customer" | "pendingApproval" | "transaction" | "systemActivityLog" | "securityPolicy" | "ipWhitelist" | "otpCode" | "iPSBank" | "iPSWallet"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1539,6 +1571,146 @@ export namespace Prisma {
           count: {
             args: Prisma.OtpCodeCountArgs<ExtArgs>
             result: $Utils.Optional<OtpCodeCountAggregateOutputType> | number
+          }
+        }
+      }
+      IPSBank: {
+        payload: Prisma.$IPSBankPayload<ExtArgs>
+        fields: Prisma.IPSBankFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.IPSBankFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSBankPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.IPSBankFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSBankPayload>
+          }
+          findFirst: {
+            args: Prisma.IPSBankFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSBankPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.IPSBankFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSBankPayload>
+          }
+          findMany: {
+            args: Prisma.IPSBankFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSBankPayload>[]
+          }
+          create: {
+            args: Prisma.IPSBankCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSBankPayload>
+          }
+          createMany: {
+            args: Prisma.IPSBankCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.IPSBankCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSBankPayload>[]
+          }
+          delete: {
+            args: Prisma.IPSBankDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSBankPayload>
+          }
+          update: {
+            args: Prisma.IPSBankUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSBankPayload>
+          }
+          deleteMany: {
+            args: Prisma.IPSBankDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.IPSBankUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.IPSBankUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSBankPayload>
+          }
+          aggregate: {
+            args: Prisma.IPSBankAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateIPSBank>
+          }
+          groupBy: {
+            args: Prisma.IPSBankGroupByArgs<ExtArgs>
+            result: $Utils.Optional<IPSBankGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.IPSBankCountArgs<ExtArgs>
+            result: $Utils.Optional<IPSBankCountAggregateOutputType> | number
+          }
+        }
+      }
+      IPSWallet: {
+        payload: Prisma.$IPSWalletPayload<ExtArgs>
+        fields: Prisma.IPSWalletFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.IPSWalletFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSWalletPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.IPSWalletFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSWalletPayload>
+          }
+          findFirst: {
+            args: Prisma.IPSWalletFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSWalletPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.IPSWalletFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSWalletPayload>
+          }
+          findMany: {
+            args: Prisma.IPSWalletFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSWalletPayload>[]
+          }
+          create: {
+            args: Prisma.IPSWalletCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSWalletPayload>
+          }
+          createMany: {
+            args: Prisma.IPSWalletCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.IPSWalletCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSWalletPayload>[]
+          }
+          delete: {
+            args: Prisma.IPSWalletDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSWalletPayload>
+          }
+          update: {
+            args: Prisma.IPSWalletUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSWalletPayload>
+          }
+          deleteMany: {
+            args: Prisma.IPSWalletDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.IPSWalletUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.IPSWalletUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$IPSWalletPayload>
+          }
+          aggregate: {
+            args: Prisma.IPSWalletAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateIPSWallet>
+          }
+          groupBy: {
+            args: Prisma.IPSWalletGroupByArgs<ExtArgs>
+            result: $Utils.Optional<IPSWalletGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.IPSWalletCountArgs<ExtArgs>
+            result: $Utils.Optional<IPSWalletCountAggregateOutputType> | number
           }
         }
       }
@@ -12355,6 +12527,2022 @@ export namespace Prisma {
 
 
   /**
+   * Model IPSBank
+   */
+
+  export type AggregateIPSBank = {
+    _count: IPSBankCountAggregateOutputType | null
+    _avg: IPSBankAvgAggregateOutputType | null
+    _sum: IPSBankSumAggregateOutputType | null
+    _min: IPSBankMinAggregateOutputType | null
+    _max: IPSBankMaxAggregateOutputType | null
+  }
+
+  export type IPSBankAvgAggregateOutputType = {
+    rank: number | null
+  }
+
+  export type IPSBankSumAggregateOutputType = {
+    rank: number | null
+  }
+
+  export type IPSBankMinAggregateOutputType = {
+    id: string | null
+    bankName: string | null
+    bankCode: string | null
+    reconciliationAccount: string | null
+    bankLogo: string | null
+    primaryColor: string | null
+    secondaryColor: string | null
+    accentColor: string | null
+    status: string | null
+    rank: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    branchCode: string | null
+  }
+
+  export type IPSBankMaxAggregateOutputType = {
+    id: string | null
+    bankName: string | null
+    bankCode: string | null
+    reconciliationAccount: string | null
+    bankLogo: string | null
+    primaryColor: string | null
+    secondaryColor: string | null
+    accentColor: string | null
+    status: string | null
+    rank: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    branchCode: string | null
+  }
+
+  export type IPSBankCountAggregateOutputType = {
+    id: number
+    bankName: number
+    bankCode: number
+    reconciliationAccount: number
+    bankLogo: number
+    primaryColor: number
+    secondaryColor: number
+    accentColor: number
+    status: number
+    rank: number
+    createdAt: number
+    updatedAt: number
+    branchCode: number
+    _all: number
+  }
+
+
+  export type IPSBankAvgAggregateInputType = {
+    rank?: true
+  }
+
+  export type IPSBankSumAggregateInputType = {
+    rank?: true
+  }
+
+  export type IPSBankMinAggregateInputType = {
+    id?: true
+    bankName?: true
+    bankCode?: true
+    reconciliationAccount?: true
+    bankLogo?: true
+    primaryColor?: true
+    secondaryColor?: true
+    accentColor?: true
+    status?: true
+    rank?: true
+    createdAt?: true
+    updatedAt?: true
+    branchCode?: true
+  }
+
+  export type IPSBankMaxAggregateInputType = {
+    id?: true
+    bankName?: true
+    bankCode?: true
+    reconciliationAccount?: true
+    bankLogo?: true
+    primaryColor?: true
+    secondaryColor?: true
+    accentColor?: true
+    status?: true
+    rank?: true
+    createdAt?: true
+    updatedAt?: true
+    branchCode?: true
+  }
+
+  export type IPSBankCountAggregateInputType = {
+    id?: true
+    bankName?: true
+    bankCode?: true
+    reconciliationAccount?: true
+    bankLogo?: true
+    primaryColor?: true
+    secondaryColor?: true
+    accentColor?: true
+    status?: true
+    rank?: true
+    createdAt?: true
+    updatedAt?: true
+    branchCode?: true
+    _all?: true
+  }
+
+  export type IPSBankAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which IPSBank to aggregate.
+     */
+    where?: IPSBankWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of IPSBanks to fetch.
+     */
+    orderBy?: IPSBankOrderByWithRelationInput | IPSBankOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: IPSBankWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` IPSBanks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` IPSBanks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned IPSBanks
+    **/
+    _count?: true | IPSBankCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: IPSBankAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: IPSBankSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: IPSBankMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: IPSBankMaxAggregateInputType
+  }
+
+  export type GetIPSBankAggregateType<T extends IPSBankAggregateArgs> = {
+        [P in keyof T & keyof AggregateIPSBank]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateIPSBank[P]>
+      : GetScalarType<T[P], AggregateIPSBank[P]>
+  }
+
+
+
+
+  export type IPSBankGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: IPSBankWhereInput
+    orderBy?: IPSBankOrderByWithAggregationInput | IPSBankOrderByWithAggregationInput[]
+    by: IPSBankScalarFieldEnum[] | IPSBankScalarFieldEnum
+    having?: IPSBankScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: IPSBankCountAggregateInputType | true
+    _avg?: IPSBankAvgAggregateInputType
+    _sum?: IPSBankSumAggregateInputType
+    _min?: IPSBankMinAggregateInputType
+    _max?: IPSBankMaxAggregateInputType
+  }
+
+  export type IPSBankGroupByOutputType = {
+    id: string
+    bankName: string
+    bankCode: string
+    reconciliationAccount: string
+    bankLogo: string | null
+    primaryColor: string | null
+    secondaryColor: string | null
+    accentColor: string | null
+    status: string
+    rank: number
+    createdAt: Date
+    updatedAt: Date
+    branchCode: string
+    _count: IPSBankCountAggregateOutputType | null
+    _avg: IPSBankAvgAggregateOutputType | null
+    _sum: IPSBankSumAggregateOutputType | null
+    _min: IPSBankMinAggregateOutputType | null
+    _max: IPSBankMaxAggregateOutputType | null
+  }
+
+  type GetIPSBankGroupByPayload<T extends IPSBankGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<IPSBankGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof IPSBankGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], IPSBankGroupByOutputType[P]>
+            : GetScalarType<T[P], IPSBankGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type IPSBankSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    bankName?: boolean
+    bankCode?: boolean
+    reconciliationAccount?: boolean
+    bankLogo?: boolean
+    primaryColor?: boolean
+    secondaryColor?: boolean
+    accentColor?: boolean
+    status?: boolean
+    rank?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    branchCode?: boolean
+  }, ExtArgs["result"]["iPSBank"]>
+
+  export type IPSBankSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    bankName?: boolean
+    bankCode?: boolean
+    reconciliationAccount?: boolean
+    bankLogo?: boolean
+    primaryColor?: boolean
+    secondaryColor?: boolean
+    accentColor?: boolean
+    status?: boolean
+    rank?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    branchCode?: boolean
+  }, ExtArgs["result"]["iPSBank"]>
+
+  export type IPSBankSelectScalar = {
+    id?: boolean
+    bankName?: boolean
+    bankCode?: boolean
+    reconciliationAccount?: boolean
+    bankLogo?: boolean
+    primaryColor?: boolean
+    secondaryColor?: boolean
+    accentColor?: boolean
+    status?: boolean
+    rank?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    branchCode?: boolean
+  }
+
+
+  export type $IPSBankPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "IPSBank"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      bankName: string
+      bankCode: string
+      reconciliationAccount: string
+      bankLogo: string | null
+      primaryColor: string | null
+      secondaryColor: string | null
+      accentColor: string | null
+      status: string
+      rank: number
+      createdAt: Date
+      updatedAt: Date
+      branchCode: string
+    }, ExtArgs["result"]["iPSBank"]>
+    composites: {}
+  }
+
+  type IPSBankGetPayload<S extends boolean | null | undefined | IPSBankDefaultArgs> = $Result.GetResult<Prisma.$IPSBankPayload, S>
+
+  type IPSBankCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<IPSBankFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: IPSBankCountAggregateInputType | true
+    }
+
+  export interface IPSBankDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['IPSBank'], meta: { name: 'IPSBank' } }
+    /**
+     * Find zero or one IPSBank that matches the filter.
+     * @param {IPSBankFindUniqueArgs} args - Arguments to find a IPSBank
+     * @example
+     * // Get one IPSBank
+     * const iPSBank = await prisma.iPSBank.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends IPSBankFindUniqueArgs>(args: SelectSubset<T, IPSBankFindUniqueArgs<ExtArgs>>): Prisma__IPSBankClient<$Result.GetResult<Prisma.$IPSBankPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one IPSBank that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {IPSBankFindUniqueOrThrowArgs} args - Arguments to find a IPSBank
+     * @example
+     * // Get one IPSBank
+     * const iPSBank = await prisma.iPSBank.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends IPSBankFindUniqueOrThrowArgs>(args: SelectSubset<T, IPSBankFindUniqueOrThrowArgs<ExtArgs>>): Prisma__IPSBankClient<$Result.GetResult<Prisma.$IPSBankPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first IPSBank that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSBankFindFirstArgs} args - Arguments to find a IPSBank
+     * @example
+     * // Get one IPSBank
+     * const iPSBank = await prisma.iPSBank.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends IPSBankFindFirstArgs>(args?: SelectSubset<T, IPSBankFindFirstArgs<ExtArgs>>): Prisma__IPSBankClient<$Result.GetResult<Prisma.$IPSBankPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first IPSBank that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSBankFindFirstOrThrowArgs} args - Arguments to find a IPSBank
+     * @example
+     * // Get one IPSBank
+     * const iPSBank = await prisma.iPSBank.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends IPSBankFindFirstOrThrowArgs>(args?: SelectSubset<T, IPSBankFindFirstOrThrowArgs<ExtArgs>>): Prisma__IPSBankClient<$Result.GetResult<Prisma.$IPSBankPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more IPSBanks that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSBankFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all IPSBanks
+     * const iPSBanks = await prisma.iPSBank.findMany()
+     * 
+     * // Get first 10 IPSBanks
+     * const iPSBanks = await prisma.iPSBank.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const iPSBankWithIdOnly = await prisma.iPSBank.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends IPSBankFindManyArgs>(args?: SelectSubset<T, IPSBankFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$IPSBankPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a IPSBank.
+     * @param {IPSBankCreateArgs} args - Arguments to create a IPSBank.
+     * @example
+     * // Create one IPSBank
+     * const IPSBank = await prisma.iPSBank.create({
+     *   data: {
+     *     // ... data to create a IPSBank
+     *   }
+     * })
+     * 
+     */
+    create<T extends IPSBankCreateArgs>(args: SelectSubset<T, IPSBankCreateArgs<ExtArgs>>): Prisma__IPSBankClient<$Result.GetResult<Prisma.$IPSBankPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many IPSBanks.
+     * @param {IPSBankCreateManyArgs} args - Arguments to create many IPSBanks.
+     * @example
+     * // Create many IPSBanks
+     * const iPSBank = await prisma.iPSBank.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends IPSBankCreateManyArgs>(args?: SelectSubset<T, IPSBankCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many IPSBanks and returns the data saved in the database.
+     * @param {IPSBankCreateManyAndReturnArgs} args - Arguments to create many IPSBanks.
+     * @example
+     * // Create many IPSBanks
+     * const iPSBank = await prisma.iPSBank.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many IPSBanks and only return the `id`
+     * const iPSBankWithIdOnly = await prisma.iPSBank.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends IPSBankCreateManyAndReturnArgs>(args?: SelectSubset<T, IPSBankCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$IPSBankPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a IPSBank.
+     * @param {IPSBankDeleteArgs} args - Arguments to delete one IPSBank.
+     * @example
+     * // Delete one IPSBank
+     * const IPSBank = await prisma.iPSBank.delete({
+     *   where: {
+     *     // ... filter to delete one IPSBank
+     *   }
+     * })
+     * 
+     */
+    delete<T extends IPSBankDeleteArgs>(args: SelectSubset<T, IPSBankDeleteArgs<ExtArgs>>): Prisma__IPSBankClient<$Result.GetResult<Prisma.$IPSBankPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one IPSBank.
+     * @param {IPSBankUpdateArgs} args - Arguments to update one IPSBank.
+     * @example
+     * // Update one IPSBank
+     * const iPSBank = await prisma.iPSBank.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends IPSBankUpdateArgs>(args: SelectSubset<T, IPSBankUpdateArgs<ExtArgs>>): Prisma__IPSBankClient<$Result.GetResult<Prisma.$IPSBankPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more IPSBanks.
+     * @param {IPSBankDeleteManyArgs} args - Arguments to filter IPSBanks to delete.
+     * @example
+     * // Delete a few IPSBanks
+     * const { count } = await prisma.iPSBank.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends IPSBankDeleteManyArgs>(args?: SelectSubset<T, IPSBankDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more IPSBanks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSBankUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many IPSBanks
+     * const iPSBank = await prisma.iPSBank.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends IPSBankUpdateManyArgs>(args: SelectSubset<T, IPSBankUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one IPSBank.
+     * @param {IPSBankUpsertArgs} args - Arguments to update or create a IPSBank.
+     * @example
+     * // Update or create a IPSBank
+     * const iPSBank = await prisma.iPSBank.upsert({
+     *   create: {
+     *     // ... data to create a IPSBank
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the IPSBank we want to update
+     *   }
+     * })
+     */
+    upsert<T extends IPSBankUpsertArgs>(args: SelectSubset<T, IPSBankUpsertArgs<ExtArgs>>): Prisma__IPSBankClient<$Result.GetResult<Prisma.$IPSBankPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of IPSBanks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSBankCountArgs} args - Arguments to filter IPSBanks to count.
+     * @example
+     * // Count the number of IPSBanks
+     * const count = await prisma.iPSBank.count({
+     *   where: {
+     *     // ... the filter for the IPSBanks we want to count
+     *   }
+     * })
+    **/
+    count<T extends IPSBankCountArgs>(
+      args?: Subset<T, IPSBankCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], IPSBankCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a IPSBank.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSBankAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends IPSBankAggregateArgs>(args: Subset<T, IPSBankAggregateArgs>): Prisma.PrismaPromise<GetIPSBankAggregateType<T>>
+
+    /**
+     * Group by IPSBank.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSBankGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends IPSBankGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: IPSBankGroupByArgs['orderBy'] }
+        : { orderBy?: IPSBankGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, IPSBankGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetIPSBankGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the IPSBank model
+   */
+  readonly fields: IPSBankFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for IPSBank.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__IPSBankClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the IPSBank model
+   */ 
+  interface IPSBankFieldRefs {
+    readonly id: FieldRef<"IPSBank", 'String'>
+    readonly bankName: FieldRef<"IPSBank", 'String'>
+    readonly bankCode: FieldRef<"IPSBank", 'String'>
+    readonly reconciliationAccount: FieldRef<"IPSBank", 'String'>
+    readonly bankLogo: FieldRef<"IPSBank", 'String'>
+    readonly primaryColor: FieldRef<"IPSBank", 'String'>
+    readonly secondaryColor: FieldRef<"IPSBank", 'String'>
+    readonly accentColor: FieldRef<"IPSBank", 'String'>
+    readonly status: FieldRef<"IPSBank", 'String'>
+    readonly rank: FieldRef<"IPSBank", 'Int'>
+    readonly createdAt: FieldRef<"IPSBank", 'DateTime'>
+    readonly updatedAt: FieldRef<"IPSBank", 'DateTime'>
+    readonly branchCode: FieldRef<"IPSBank", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * IPSBank findUnique
+   */
+  export type IPSBankFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSBank
+     */
+    select?: IPSBankSelect<ExtArgs> | null
+    /**
+     * Filter, which IPSBank to fetch.
+     */
+    where: IPSBankWhereUniqueInput
+  }
+
+  /**
+   * IPSBank findUniqueOrThrow
+   */
+  export type IPSBankFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSBank
+     */
+    select?: IPSBankSelect<ExtArgs> | null
+    /**
+     * Filter, which IPSBank to fetch.
+     */
+    where: IPSBankWhereUniqueInput
+  }
+
+  /**
+   * IPSBank findFirst
+   */
+  export type IPSBankFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSBank
+     */
+    select?: IPSBankSelect<ExtArgs> | null
+    /**
+     * Filter, which IPSBank to fetch.
+     */
+    where?: IPSBankWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of IPSBanks to fetch.
+     */
+    orderBy?: IPSBankOrderByWithRelationInput | IPSBankOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for IPSBanks.
+     */
+    cursor?: IPSBankWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` IPSBanks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` IPSBanks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of IPSBanks.
+     */
+    distinct?: IPSBankScalarFieldEnum | IPSBankScalarFieldEnum[]
+  }
+
+  /**
+   * IPSBank findFirstOrThrow
+   */
+  export type IPSBankFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSBank
+     */
+    select?: IPSBankSelect<ExtArgs> | null
+    /**
+     * Filter, which IPSBank to fetch.
+     */
+    where?: IPSBankWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of IPSBanks to fetch.
+     */
+    orderBy?: IPSBankOrderByWithRelationInput | IPSBankOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for IPSBanks.
+     */
+    cursor?: IPSBankWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` IPSBanks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` IPSBanks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of IPSBanks.
+     */
+    distinct?: IPSBankScalarFieldEnum | IPSBankScalarFieldEnum[]
+  }
+
+  /**
+   * IPSBank findMany
+   */
+  export type IPSBankFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSBank
+     */
+    select?: IPSBankSelect<ExtArgs> | null
+    /**
+     * Filter, which IPSBanks to fetch.
+     */
+    where?: IPSBankWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of IPSBanks to fetch.
+     */
+    orderBy?: IPSBankOrderByWithRelationInput | IPSBankOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing IPSBanks.
+     */
+    cursor?: IPSBankWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` IPSBanks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` IPSBanks.
+     */
+    skip?: number
+    distinct?: IPSBankScalarFieldEnum | IPSBankScalarFieldEnum[]
+  }
+
+  /**
+   * IPSBank create
+   */
+  export type IPSBankCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSBank
+     */
+    select?: IPSBankSelect<ExtArgs> | null
+    /**
+     * The data needed to create a IPSBank.
+     */
+    data: XOR<IPSBankCreateInput, IPSBankUncheckedCreateInput>
+  }
+
+  /**
+   * IPSBank createMany
+   */
+  export type IPSBankCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many IPSBanks.
+     */
+    data: IPSBankCreateManyInput | IPSBankCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * IPSBank createManyAndReturn
+   */
+  export type IPSBankCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSBank
+     */
+    select?: IPSBankSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many IPSBanks.
+     */
+    data: IPSBankCreateManyInput | IPSBankCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * IPSBank update
+   */
+  export type IPSBankUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSBank
+     */
+    select?: IPSBankSelect<ExtArgs> | null
+    /**
+     * The data needed to update a IPSBank.
+     */
+    data: XOR<IPSBankUpdateInput, IPSBankUncheckedUpdateInput>
+    /**
+     * Choose, which IPSBank to update.
+     */
+    where: IPSBankWhereUniqueInput
+  }
+
+  /**
+   * IPSBank updateMany
+   */
+  export type IPSBankUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update IPSBanks.
+     */
+    data: XOR<IPSBankUpdateManyMutationInput, IPSBankUncheckedUpdateManyInput>
+    /**
+     * Filter which IPSBanks to update
+     */
+    where?: IPSBankWhereInput
+  }
+
+  /**
+   * IPSBank upsert
+   */
+  export type IPSBankUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSBank
+     */
+    select?: IPSBankSelect<ExtArgs> | null
+    /**
+     * The filter to search for the IPSBank to update in case it exists.
+     */
+    where: IPSBankWhereUniqueInput
+    /**
+     * In case the IPSBank found by the `where` argument doesn't exist, create a new IPSBank with this data.
+     */
+    create: XOR<IPSBankCreateInput, IPSBankUncheckedCreateInput>
+    /**
+     * In case the IPSBank was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<IPSBankUpdateInput, IPSBankUncheckedUpdateInput>
+  }
+
+  /**
+   * IPSBank delete
+   */
+  export type IPSBankDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSBank
+     */
+    select?: IPSBankSelect<ExtArgs> | null
+    /**
+     * Filter which IPSBank to delete.
+     */
+    where: IPSBankWhereUniqueInput
+  }
+
+  /**
+   * IPSBank deleteMany
+   */
+  export type IPSBankDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which IPSBanks to delete
+     */
+    where?: IPSBankWhereInput
+  }
+
+  /**
+   * IPSBank without action
+   */
+  export type IPSBankDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSBank
+     */
+    select?: IPSBankSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model IPSWallet
+   */
+
+  export type AggregateIPSWallet = {
+    _count: IPSWalletCountAggregateOutputType | null
+    _avg: IPSWalletAvgAggregateOutputType | null
+    _sum: IPSWalletSumAggregateOutputType | null
+    _min: IPSWalletMinAggregateOutputType | null
+    _max: IPSWalletMaxAggregateOutputType | null
+  }
+
+  export type IPSWalletAvgAggregateOutputType = {
+    rank: number | null
+  }
+
+  export type IPSWalletSumAggregateOutputType = {
+    rank: number | null
+  }
+
+  export type IPSWalletMinAggregateOutputType = {
+    id: string | null
+    walletName: string | null
+    walletCode: string | null
+    reconciliationAccount: string | null
+    walletLogo: string | null
+    primaryColor: string | null
+    secondaryColor: string | null
+    accentColor: string | null
+    status: string | null
+    rank: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    branchCode: string | null
+  }
+
+  export type IPSWalletMaxAggregateOutputType = {
+    id: string | null
+    walletName: string | null
+    walletCode: string | null
+    reconciliationAccount: string | null
+    walletLogo: string | null
+    primaryColor: string | null
+    secondaryColor: string | null
+    accentColor: string | null
+    status: string | null
+    rank: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    branchCode: string | null
+  }
+
+  export type IPSWalletCountAggregateOutputType = {
+    id: number
+    walletName: number
+    walletCode: number
+    reconciliationAccount: number
+    walletLogo: number
+    primaryColor: number
+    secondaryColor: number
+    accentColor: number
+    status: number
+    rank: number
+    createdAt: number
+    updatedAt: number
+    branchCode: number
+    _all: number
+  }
+
+
+  export type IPSWalletAvgAggregateInputType = {
+    rank?: true
+  }
+
+  export type IPSWalletSumAggregateInputType = {
+    rank?: true
+  }
+
+  export type IPSWalletMinAggregateInputType = {
+    id?: true
+    walletName?: true
+    walletCode?: true
+    reconciliationAccount?: true
+    walletLogo?: true
+    primaryColor?: true
+    secondaryColor?: true
+    accentColor?: true
+    status?: true
+    rank?: true
+    createdAt?: true
+    updatedAt?: true
+    branchCode?: true
+  }
+
+  export type IPSWalletMaxAggregateInputType = {
+    id?: true
+    walletName?: true
+    walletCode?: true
+    reconciliationAccount?: true
+    walletLogo?: true
+    primaryColor?: true
+    secondaryColor?: true
+    accentColor?: true
+    status?: true
+    rank?: true
+    createdAt?: true
+    updatedAt?: true
+    branchCode?: true
+  }
+
+  export type IPSWalletCountAggregateInputType = {
+    id?: true
+    walletName?: true
+    walletCode?: true
+    reconciliationAccount?: true
+    walletLogo?: true
+    primaryColor?: true
+    secondaryColor?: true
+    accentColor?: true
+    status?: true
+    rank?: true
+    createdAt?: true
+    updatedAt?: true
+    branchCode?: true
+    _all?: true
+  }
+
+  export type IPSWalletAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which IPSWallet to aggregate.
+     */
+    where?: IPSWalletWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of IPSWallets to fetch.
+     */
+    orderBy?: IPSWalletOrderByWithRelationInput | IPSWalletOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: IPSWalletWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` IPSWallets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` IPSWallets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned IPSWallets
+    **/
+    _count?: true | IPSWalletCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: IPSWalletAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: IPSWalletSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: IPSWalletMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: IPSWalletMaxAggregateInputType
+  }
+
+  export type GetIPSWalletAggregateType<T extends IPSWalletAggregateArgs> = {
+        [P in keyof T & keyof AggregateIPSWallet]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateIPSWallet[P]>
+      : GetScalarType<T[P], AggregateIPSWallet[P]>
+  }
+
+
+
+
+  export type IPSWalletGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: IPSWalletWhereInput
+    orderBy?: IPSWalletOrderByWithAggregationInput | IPSWalletOrderByWithAggregationInput[]
+    by: IPSWalletScalarFieldEnum[] | IPSWalletScalarFieldEnum
+    having?: IPSWalletScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: IPSWalletCountAggregateInputType | true
+    _avg?: IPSWalletAvgAggregateInputType
+    _sum?: IPSWalletSumAggregateInputType
+    _min?: IPSWalletMinAggregateInputType
+    _max?: IPSWalletMaxAggregateInputType
+  }
+
+  export type IPSWalletGroupByOutputType = {
+    id: string
+    walletName: string
+    walletCode: string
+    reconciliationAccount: string
+    walletLogo: string | null
+    primaryColor: string | null
+    secondaryColor: string | null
+    accentColor: string | null
+    status: string
+    rank: number
+    createdAt: Date
+    updatedAt: Date
+    branchCode: string
+    _count: IPSWalletCountAggregateOutputType | null
+    _avg: IPSWalletAvgAggregateOutputType | null
+    _sum: IPSWalletSumAggregateOutputType | null
+    _min: IPSWalletMinAggregateOutputType | null
+    _max: IPSWalletMaxAggregateOutputType | null
+  }
+
+  type GetIPSWalletGroupByPayload<T extends IPSWalletGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<IPSWalletGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof IPSWalletGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], IPSWalletGroupByOutputType[P]>
+            : GetScalarType<T[P], IPSWalletGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type IPSWalletSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    walletName?: boolean
+    walletCode?: boolean
+    reconciliationAccount?: boolean
+    walletLogo?: boolean
+    primaryColor?: boolean
+    secondaryColor?: boolean
+    accentColor?: boolean
+    status?: boolean
+    rank?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    branchCode?: boolean
+  }, ExtArgs["result"]["iPSWallet"]>
+
+  export type IPSWalletSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    walletName?: boolean
+    walletCode?: boolean
+    reconciliationAccount?: boolean
+    walletLogo?: boolean
+    primaryColor?: boolean
+    secondaryColor?: boolean
+    accentColor?: boolean
+    status?: boolean
+    rank?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    branchCode?: boolean
+  }, ExtArgs["result"]["iPSWallet"]>
+
+  export type IPSWalletSelectScalar = {
+    id?: boolean
+    walletName?: boolean
+    walletCode?: boolean
+    reconciliationAccount?: boolean
+    walletLogo?: boolean
+    primaryColor?: boolean
+    secondaryColor?: boolean
+    accentColor?: boolean
+    status?: boolean
+    rank?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    branchCode?: boolean
+  }
+
+
+  export type $IPSWalletPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "IPSWallet"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      walletName: string
+      walletCode: string
+      reconciliationAccount: string
+      walletLogo: string | null
+      primaryColor: string | null
+      secondaryColor: string | null
+      accentColor: string | null
+      status: string
+      rank: number
+      createdAt: Date
+      updatedAt: Date
+      branchCode: string
+    }, ExtArgs["result"]["iPSWallet"]>
+    composites: {}
+  }
+
+  type IPSWalletGetPayload<S extends boolean | null | undefined | IPSWalletDefaultArgs> = $Result.GetResult<Prisma.$IPSWalletPayload, S>
+
+  type IPSWalletCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<IPSWalletFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: IPSWalletCountAggregateInputType | true
+    }
+
+  export interface IPSWalletDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['IPSWallet'], meta: { name: 'IPSWallet' } }
+    /**
+     * Find zero or one IPSWallet that matches the filter.
+     * @param {IPSWalletFindUniqueArgs} args - Arguments to find a IPSWallet
+     * @example
+     * // Get one IPSWallet
+     * const iPSWallet = await prisma.iPSWallet.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends IPSWalletFindUniqueArgs>(args: SelectSubset<T, IPSWalletFindUniqueArgs<ExtArgs>>): Prisma__IPSWalletClient<$Result.GetResult<Prisma.$IPSWalletPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one IPSWallet that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {IPSWalletFindUniqueOrThrowArgs} args - Arguments to find a IPSWallet
+     * @example
+     * // Get one IPSWallet
+     * const iPSWallet = await prisma.iPSWallet.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends IPSWalletFindUniqueOrThrowArgs>(args: SelectSubset<T, IPSWalletFindUniqueOrThrowArgs<ExtArgs>>): Prisma__IPSWalletClient<$Result.GetResult<Prisma.$IPSWalletPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first IPSWallet that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSWalletFindFirstArgs} args - Arguments to find a IPSWallet
+     * @example
+     * // Get one IPSWallet
+     * const iPSWallet = await prisma.iPSWallet.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends IPSWalletFindFirstArgs>(args?: SelectSubset<T, IPSWalletFindFirstArgs<ExtArgs>>): Prisma__IPSWalletClient<$Result.GetResult<Prisma.$IPSWalletPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first IPSWallet that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSWalletFindFirstOrThrowArgs} args - Arguments to find a IPSWallet
+     * @example
+     * // Get one IPSWallet
+     * const iPSWallet = await prisma.iPSWallet.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends IPSWalletFindFirstOrThrowArgs>(args?: SelectSubset<T, IPSWalletFindFirstOrThrowArgs<ExtArgs>>): Prisma__IPSWalletClient<$Result.GetResult<Prisma.$IPSWalletPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more IPSWallets that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSWalletFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all IPSWallets
+     * const iPSWallets = await prisma.iPSWallet.findMany()
+     * 
+     * // Get first 10 IPSWallets
+     * const iPSWallets = await prisma.iPSWallet.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const iPSWalletWithIdOnly = await prisma.iPSWallet.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends IPSWalletFindManyArgs>(args?: SelectSubset<T, IPSWalletFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$IPSWalletPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a IPSWallet.
+     * @param {IPSWalletCreateArgs} args - Arguments to create a IPSWallet.
+     * @example
+     * // Create one IPSWallet
+     * const IPSWallet = await prisma.iPSWallet.create({
+     *   data: {
+     *     // ... data to create a IPSWallet
+     *   }
+     * })
+     * 
+     */
+    create<T extends IPSWalletCreateArgs>(args: SelectSubset<T, IPSWalletCreateArgs<ExtArgs>>): Prisma__IPSWalletClient<$Result.GetResult<Prisma.$IPSWalletPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many IPSWallets.
+     * @param {IPSWalletCreateManyArgs} args - Arguments to create many IPSWallets.
+     * @example
+     * // Create many IPSWallets
+     * const iPSWallet = await prisma.iPSWallet.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends IPSWalletCreateManyArgs>(args?: SelectSubset<T, IPSWalletCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many IPSWallets and returns the data saved in the database.
+     * @param {IPSWalletCreateManyAndReturnArgs} args - Arguments to create many IPSWallets.
+     * @example
+     * // Create many IPSWallets
+     * const iPSWallet = await prisma.iPSWallet.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many IPSWallets and only return the `id`
+     * const iPSWalletWithIdOnly = await prisma.iPSWallet.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends IPSWalletCreateManyAndReturnArgs>(args?: SelectSubset<T, IPSWalletCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$IPSWalletPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a IPSWallet.
+     * @param {IPSWalletDeleteArgs} args - Arguments to delete one IPSWallet.
+     * @example
+     * // Delete one IPSWallet
+     * const IPSWallet = await prisma.iPSWallet.delete({
+     *   where: {
+     *     // ... filter to delete one IPSWallet
+     *   }
+     * })
+     * 
+     */
+    delete<T extends IPSWalletDeleteArgs>(args: SelectSubset<T, IPSWalletDeleteArgs<ExtArgs>>): Prisma__IPSWalletClient<$Result.GetResult<Prisma.$IPSWalletPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one IPSWallet.
+     * @param {IPSWalletUpdateArgs} args - Arguments to update one IPSWallet.
+     * @example
+     * // Update one IPSWallet
+     * const iPSWallet = await prisma.iPSWallet.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends IPSWalletUpdateArgs>(args: SelectSubset<T, IPSWalletUpdateArgs<ExtArgs>>): Prisma__IPSWalletClient<$Result.GetResult<Prisma.$IPSWalletPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more IPSWallets.
+     * @param {IPSWalletDeleteManyArgs} args - Arguments to filter IPSWallets to delete.
+     * @example
+     * // Delete a few IPSWallets
+     * const { count } = await prisma.iPSWallet.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends IPSWalletDeleteManyArgs>(args?: SelectSubset<T, IPSWalletDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more IPSWallets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSWalletUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many IPSWallets
+     * const iPSWallet = await prisma.iPSWallet.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends IPSWalletUpdateManyArgs>(args: SelectSubset<T, IPSWalletUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one IPSWallet.
+     * @param {IPSWalletUpsertArgs} args - Arguments to update or create a IPSWallet.
+     * @example
+     * // Update or create a IPSWallet
+     * const iPSWallet = await prisma.iPSWallet.upsert({
+     *   create: {
+     *     // ... data to create a IPSWallet
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the IPSWallet we want to update
+     *   }
+     * })
+     */
+    upsert<T extends IPSWalletUpsertArgs>(args: SelectSubset<T, IPSWalletUpsertArgs<ExtArgs>>): Prisma__IPSWalletClient<$Result.GetResult<Prisma.$IPSWalletPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of IPSWallets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSWalletCountArgs} args - Arguments to filter IPSWallets to count.
+     * @example
+     * // Count the number of IPSWallets
+     * const count = await prisma.iPSWallet.count({
+     *   where: {
+     *     // ... the filter for the IPSWallets we want to count
+     *   }
+     * })
+    **/
+    count<T extends IPSWalletCountArgs>(
+      args?: Subset<T, IPSWalletCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], IPSWalletCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a IPSWallet.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSWalletAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends IPSWalletAggregateArgs>(args: Subset<T, IPSWalletAggregateArgs>): Prisma.PrismaPromise<GetIPSWalletAggregateType<T>>
+
+    /**
+     * Group by IPSWallet.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {IPSWalletGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends IPSWalletGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: IPSWalletGroupByArgs['orderBy'] }
+        : { orderBy?: IPSWalletGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, IPSWalletGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetIPSWalletGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the IPSWallet model
+   */
+  readonly fields: IPSWalletFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for IPSWallet.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__IPSWalletClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the IPSWallet model
+   */ 
+  interface IPSWalletFieldRefs {
+    readonly id: FieldRef<"IPSWallet", 'String'>
+    readonly walletName: FieldRef<"IPSWallet", 'String'>
+    readonly walletCode: FieldRef<"IPSWallet", 'String'>
+    readonly reconciliationAccount: FieldRef<"IPSWallet", 'String'>
+    readonly walletLogo: FieldRef<"IPSWallet", 'String'>
+    readonly primaryColor: FieldRef<"IPSWallet", 'String'>
+    readonly secondaryColor: FieldRef<"IPSWallet", 'String'>
+    readonly accentColor: FieldRef<"IPSWallet", 'String'>
+    readonly status: FieldRef<"IPSWallet", 'String'>
+    readonly rank: FieldRef<"IPSWallet", 'Int'>
+    readonly createdAt: FieldRef<"IPSWallet", 'DateTime'>
+    readonly updatedAt: FieldRef<"IPSWallet", 'DateTime'>
+    readonly branchCode: FieldRef<"IPSWallet", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * IPSWallet findUnique
+   */
+  export type IPSWalletFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSWallet
+     */
+    select?: IPSWalletSelect<ExtArgs> | null
+    /**
+     * Filter, which IPSWallet to fetch.
+     */
+    where: IPSWalletWhereUniqueInput
+  }
+
+  /**
+   * IPSWallet findUniqueOrThrow
+   */
+  export type IPSWalletFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSWallet
+     */
+    select?: IPSWalletSelect<ExtArgs> | null
+    /**
+     * Filter, which IPSWallet to fetch.
+     */
+    where: IPSWalletWhereUniqueInput
+  }
+
+  /**
+   * IPSWallet findFirst
+   */
+  export type IPSWalletFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSWallet
+     */
+    select?: IPSWalletSelect<ExtArgs> | null
+    /**
+     * Filter, which IPSWallet to fetch.
+     */
+    where?: IPSWalletWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of IPSWallets to fetch.
+     */
+    orderBy?: IPSWalletOrderByWithRelationInput | IPSWalletOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for IPSWallets.
+     */
+    cursor?: IPSWalletWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` IPSWallets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` IPSWallets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of IPSWallets.
+     */
+    distinct?: IPSWalletScalarFieldEnum | IPSWalletScalarFieldEnum[]
+  }
+
+  /**
+   * IPSWallet findFirstOrThrow
+   */
+  export type IPSWalletFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSWallet
+     */
+    select?: IPSWalletSelect<ExtArgs> | null
+    /**
+     * Filter, which IPSWallet to fetch.
+     */
+    where?: IPSWalletWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of IPSWallets to fetch.
+     */
+    orderBy?: IPSWalletOrderByWithRelationInput | IPSWalletOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for IPSWallets.
+     */
+    cursor?: IPSWalletWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` IPSWallets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` IPSWallets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of IPSWallets.
+     */
+    distinct?: IPSWalletScalarFieldEnum | IPSWalletScalarFieldEnum[]
+  }
+
+  /**
+   * IPSWallet findMany
+   */
+  export type IPSWalletFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSWallet
+     */
+    select?: IPSWalletSelect<ExtArgs> | null
+    /**
+     * Filter, which IPSWallets to fetch.
+     */
+    where?: IPSWalletWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of IPSWallets to fetch.
+     */
+    orderBy?: IPSWalletOrderByWithRelationInput | IPSWalletOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing IPSWallets.
+     */
+    cursor?: IPSWalletWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` IPSWallets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` IPSWallets.
+     */
+    skip?: number
+    distinct?: IPSWalletScalarFieldEnum | IPSWalletScalarFieldEnum[]
+  }
+
+  /**
+   * IPSWallet create
+   */
+  export type IPSWalletCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSWallet
+     */
+    select?: IPSWalletSelect<ExtArgs> | null
+    /**
+     * The data needed to create a IPSWallet.
+     */
+    data: XOR<IPSWalletCreateInput, IPSWalletUncheckedCreateInput>
+  }
+
+  /**
+   * IPSWallet createMany
+   */
+  export type IPSWalletCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many IPSWallets.
+     */
+    data: IPSWalletCreateManyInput | IPSWalletCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * IPSWallet createManyAndReturn
+   */
+  export type IPSWalletCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSWallet
+     */
+    select?: IPSWalletSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many IPSWallets.
+     */
+    data: IPSWalletCreateManyInput | IPSWalletCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * IPSWallet update
+   */
+  export type IPSWalletUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSWallet
+     */
+    select?: IPSWalletSelect<ExtArgs> | null
+    /**
+     * The data needed to update a IPSWallet.
+     */
+    data: XOR<IPSWalletUpdateInput, IPSWalletUncheckedUpdateInput>
+    /**
+     * Choose, which IPSWallet to update.
+     */
+    where: IPSWalletWhereUniqueInput
+  }
+
+  /**
+   * IPSWallet updateMany
+   */
+  export type IPSWalletUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update IPSWallets.
+     */
+    data: XOR<IPSWalletUpdateManyMutationInput, IPSWalletUncheckedUpdateManyInput>
+    /**
+     * Filter which IPSWallets to update
+     */
+    where?: IPSWalletWhereInput
+  }
+
+  /**
+   * IPSWallet upsert
+   */
+  export type IPSWalletUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSWallet
+     */
+    select?: IPSWalletSelect<ExtArgs> | null
+    /**
+     * The filter to search for the IPSWallet to update in case it exists.
+     */
+    where: IPSWalletWhereUniqueInput
+    /**
+     * In case the IPSWallet found by the `where` argument doesn't exist, create a new IPSWallet with this data.
+     */
+    create: XOR<IPSWalletCreateInput, IPSWalletUncheckedCreateInput>
+    /**
+     * In case the IPSWallet was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<IPSWalletUpdateInput, IPSWalletUncheckedUpdateInput>
+  }
+
+  /**
+   * IPSWallet delete
+   */
+  export type IPSWalletDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSWallet
+     */
+    select?: IPSWalletSelect<ExtArgs> | null
+    /**
+     * Filter which IPSWallet to delete.
+     */
+    where: IPSWalletWhereUniqueInput
+  }
+
+  /**
+   * IPSWallet deleteMany
+   */
+  export type IPSWalletDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which IPSWallets to delete
+     */
+    where?: IPSWalletWhereInput
+  }
+
+  /**
+   * IPSWallet without action
+   */
+  export type IPSWalletDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the IPSWallet
+     */
+    select?: IPSWalletSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -12509,6 +14697,44 @@ export namespace Prisma {
   };
 
   export type OtpCodeScalarFieldEnum = (typeof OtpCodeScalarFieldEnum)[keyof typeof OtpCodeScalarFieldEnum]
+
+
+  export const IPSBankScalarFieldEnum: {
+    id: 'id',
+    bankName: 'bankName',
+    bankCode: 'bankCode',
+    reconciliationAccount: 'reconciliationAccount',
+    bankLogo: 'bankLogo',
+    primaryColor: 'primaryColor',
+    secondaryColor: 'secondaryColor',
+    accentColor: 'accentColor',
+    status: 'status',
+    rank: 'rank',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    branchCode: 'branchCode'
+  };
+
+  export type IPSBankScalarFieldEnum = (typeof IPSBankScalarFieldEnum)[keyof typeof IPSBankScalarFieldEnum]
+
+
+  export const IPSWalletScalarFieldEnum: {
+    id: 'id',
+    walletName: 'walletName',
+    walletCode: 'walletCode',
+    reconciliationAccount: 'reconciliationAccount',
+    walletLogo: 'walletLogo',
+    primaryColor: 'primaryColor',
+    secondaryColor: 'secondaryColor',
+    accentColor: 'accentColor',
+    status: 'status',
+    rank: 'rank',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    branchCode: 'branchCode'
+  };
+
+  export type IPSWalletScalarFieldEnum = (typeof IPSWalletScalarFieldEnum)[keyof typeof IPSWalletScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -13324,6 +15550,194 @@ export namespace Prisma {
     UpdateDate?: DateTimeWithAggregatesFilter<"OtpCode"> | Date | string
   }
 
+  export type IPSBankWhereInput = {
+    AND?: IPSBankWhereInput | IPSBankWhereInput[]
+    OR?: IPSBankWhereInput[]
+    NOT?: IPSBankWhereInput | IPSBankWhereInput[]
+    id?: StringFilter<"IPSBank"> | string
+    bankName?: StringFilter<"IPSBank"> | string
+    bankCode?: StringFilter<"IPSBank"> | string
+    reconciliationAccount?: StringFilter<"IPSBank"> | string
+    bankLogo?: StringNullableFilter<"IPSBank"> | string | null
+    primaryColor?: StringNullableFilter<"IPSBank"> | string | null
+    secondaryColor?: StringNullableFilter<"IPSBank"> | string | null
+    accentColor?: StringNullableFilter<"IPSBank"> | string | null
+    status?: StringFilter<"IPSBank"> | string
+    rank?: IntFilter<"IPSBank"> | number
+    createdAt?: DateTimeFilter<"IPSBank"> | Date | string
+    updatedAt?: DateTimeFilter<"IPSBank"> | Date | string
+    branchCode?: StringFilter<"IPSBank"> | string
+  }
+
+  export type IPSBankOrderByWithRelationInput = {
+    id?: SortOrder
+    bankName?: SortOrder
+    bankCode?: SortOrder
+    reconciliationAccount?: SortOrder
+    bankLogo?: SortOrderInput | SortOrder
+    primaryColor?: SortOrderInput | SortOrder
+    secondaryColor?: SortOrderInput | SortOrder
+    accentColor?: SortOrderInput | SortOrder
+    status?: SortOrder
+    rank?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    branchCode?: SortOrder
+  }
+
+  export type IPSBankWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    bankCode?: string
+    AND?: IPSBankWhereInput | IPSBankWhereInput[]
+    OR?: IPSBankWhereInput[]
+    NOT?: IPSBankWhereInput | IPSBankWhereInput[]
+    bankName?: StringFilter<"IPSBank"> | string
+    reconciliationAccount?: StringFilter<"IPSBank"> | string
+    bankLogo?: StringNullableFilter<"IPSBank"> | string | null
+    primaryColor?: StringNullableFilter<"IPSBank"> | string | null
+    secondaryColor?: StringNullableFilter<"IPSBank"> | string | null
+    accentColor?: StringNullableFilter<"IPSBank"> | string | null
+    status?: StringFilter<"IPSBank"> | string
+    rank?: IntFilter<"IPSBank"> | number
+    createdAt?: DateTimeFilter<"IPSBank"> | Date | string
+    updatedAt?: DateTimeFilter<"IPSBank"> | Date | string
+    branchCode?: StringFilter<"IPSBank"> | string
+  }, "id" | "bankCode">
+
+  export type IPSBankOrderByWithAggregationInput = {
+    id?: SortOrder
+    bankName?: SortOrder
+    bankCode?: SortOrder
+    reconciliationAccount?: SortOrder
+    bankLogo?: SortOrderInput | SortOrder
+    primaryColor?: SortOrderInput | SortOrder
+    secondaryColor?: SortOrderInput | SortOrder
+    accentColor?: SortOrderInput | SortOrder
+    status?: SortOrder
+    rank?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    branchCode?: SortOrder
+    _count?: IPSBankCountOrderByAggregateInput
+    _avg?: IPSBankAvgOrderByAggregateInput
+    _max?: IPSBankMaxOrderByAggregateInput
+    _min?: IPSBankMinOrderByAggregateInput
+    _sum?: IPSBankSumOrderByAggregateInput
+  }
+
+  export type IPSBankScalarWhereWithAggregatesInput = {
+    AND?: IPSBankScalarWhereWithAggregatesInput | IPSBankScalarWhereWithAggregatesInput[]
+    OR?: IPSBankScalarWhereWithAggregatesInput[]
+    NOT?: IPSBankScalarWhereWithAggregatesInput | IPSBankScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"IPSBank"> | string
+    bankName?: StringWithAggregatesFilter<"IPSBank"> | string
+    bankCode?: StringWithAggregatesFilter<"IPSBank"> | string
+    reconciliationAccount?: StringWithAggregatesFilter<"IPSBank"> | string
+    bankLogo?: StringNullableWithAggregatesFilter<"IPSBank"> | string | null
+    primaryColor?: StringNullableWithAggregatesFilter<"IPSBank"> | string | null
+    secondaryColor?: StringNullableWithAggregatesFilter<"IPSBank"> | string | null
+    accentColor?: StringNullableWithAggregatesFilter<"IPSBank"> | string | null
+    status?: StringWithAggregatesFilter<"IPSBank"> | string
+    rank?: IntWithAggregatesFilter<"IPSBank"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"IPSBank"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"IPSBank"> | Date | string
+    branchCode?: StringWithAggregatesFilter<"IPSBank"> | string
+  }
+
+  export type IPSWalletWhereInput = {
+    AND?: IPSWalletWhereInput | IPSWalletWhereInput[]
+    OR?: IPSWalletWhereInput[]
+    NOT?: IPSWalletWhereInput | IPSWalletWhereInput[]
+    id?: StringFilter<"IPSWallet"> | string
+    walletName?: StringFilter<"IPSWallet"> | string
+    walletCode?: StringFilter<"IPSWallet"> | string
+    reconciliationAccount?: StringFilter<"IPSWallet"> | string
+    walletLogo?: StringNullableFilter<"IPSWallet"> | string | null
+    primaryColor?: StringNullableFilter<"IPSWallet"> | string | null
+    secondaryColor?: StringNullableFilter<"IPSWallet"> | string | null
+    accentColor?: StringNullableFilter<"IPSWallet"> | string | null
+    status?: StringFilter<"IPSWallet"> | string
+    rank?: IntFilter<"IPSWallet"> | number
+    createdAt?: DateTimeFilter<"IPSWallet"> | Date | string
+    updatedAt?: DateTimeFilter<"IPSWallet"> | Date | string
+    branchCode?: StringFilter<"IPSWallet"> | string
+  }
+
+  export type IPSWalletOrderByWithRelationInput = {
+    id?: SortOrder
+    walletName?: SortOrder
+    walletCode?: SortOrder
+    reconciliationAccount?: SortOrder
+    walletLogo?: SortOrderInput | SortOrder
+    primaryColor?: SortOrderInput | SortOrder
+    secondaryColor?: SortOrderInput | SortOrder
+    accentColor?: SortOrderInput | SortOrder
+    status?: SortOrder
+    rank?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    branchCode?: SortOrder
+  }
+
+  export type IPSWalletWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    walletCode?: string
+    AND?: IPSWalletWhereInput | IPSWalletWhereInput[]
+    OR?: IPSWalletWhereInput[]
+    NOT?: IPSWalletWhereInput | IPSWalletWhereInput[]
+    walletName?: StringFilter<"IPSWallet"> | string
+    reconciliationAccount?: StringFilter<"IPSWallet"> | string
+    walletLogo?: StringNullableFilter<"IPSWallet"> | string | null
+    primaryColor?: StringNullableFilter<"IPSWallet"> | string | null
+    secondaryColor?: StringNullableFilter<"IPSWallet"> | string | null
+    accentColor?: StringNullableFilter<"IPSWallet"> | string | null
+    status?: StringFilter<"IPSWallet"> | string
+    rank?: IntFilter<"IPSWallet"> | number
+    createdAt?: DateTimeFilter<"IPSWallet"> | Date | string
+    updatedAt?: DateTimeFilter<"IPSWallet"> | Date | string
+    branchCode?: StringFilter<"IPSWallet"> | string
+  }, "id" | "walletCode">
+
+  export type IPSWalletOrderByWithAggregationInput = {
+    id?: SortOrder
+    walletName?: SortOrder
+    walletCode?: SortOrder
+    reconciliationAccount?: SortOrder
+    walletLogo?: SortOrderInput | SortOrder
+    primaryColor?: SortOrderInput | SortOrder
+    secondaryColor?: SortOrderInput | SortOrder
+    accentColor?: SortOrderInput | SortOrder
+    status?: SortOrder
+    rank?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    branchCode?: SortOrder
+    _count?: IPSWalletCountOrderByAggregateInput
+    _avg?: IPSWalletAvgOrderByAggregateInput
+    _max?: IPSWalletMaxOrderByAggregateInput
+    _min?: IPSWalletMinOrderByAggregateInput
+    _sum?: IPSWalletSumOrderByAggregateInput
+  }
+
+  export type IPSWalletScalarWhereWithAggregatesInput = {
+    AND?: IPSWalletScalarWhereWithAggregatesInput | IPSWalletScalarWhereWithAggregatesInput[]
+    OR?: IPSWalletScalarWhereWithAggregatesInput[]
+    NOT?: IPSWalletScalarWhereWithAggregatesInput | IPSWalletScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"IPSWallet"> | string
+    walletName?: StringWithAggregatesFilter<"IPSWallet"> | string
+    walletCode?: StringWithAggregatesFilter<"IPSWallet"> | string
+    reconciliationAccount?: StringWithAggregatesFilter<"IPSWallet"> | string
+    walletLogo?: StringNullableWithAggregatesFilter<"IPSWallet"> | string | null
+    primaryColor?: StringNullableWithAggregatesFilter<"IPSWallet"> | string | null
+    secondaryColor?: StringNullableWithAggregatesFilter<"IPSWallet"> | string | null
+    accentColor?: StringNullableWithAggregatesFilter<"IPSWallet"> | string | null
+    status?: StringWithAggregatesFilter<"IPSWallet"> | string
+    rank?: IntWithAggregatesFilter<"IPSWallet"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"IPSWallet"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"IPSWallet"> | Date | string
+    branchCode?: StringWithAggregatesFilter<"IPSWallet"> | string
+  }
+
   export type UserCreateInput = {
     employeeId: string
     name: string
@@ -14082,6 +16496,230 @@ export namespace Prisma {
     UpdateDate?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type IPSBankCreateInput = {
+    id: string
+    bankName: string
+    bankCode: string
+    reconciliationAccount: string
+    bankLogo?: string | null
+    primaryColor?: string | null
+    secondaryColor?: string | null
+    accentColor?: string | null
+    status: string
+    rank: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branchCode: string
+  }
+
+  export type IPSBankUncheckedCreateInput = {
+    id: string
+    bankName: string
+    bankCode: string
+    reconciliationAccount: string
+    bankLogo?: string | null
+    primaryColor?: string | null
+    secondaryColor?: string | null
+    accentColor?: string | null
+    status: string
+    rank: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branchCode: string
+  }
+
+  export type IPSBankUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bankName?: StringFieldUpdateOperationsInput | string
+    bankCode?: StringFieldUpdateOperationsInput | string
+    reconciliationAccount?: StringFieldUpdateOperationsInput | string
+    bankLogo?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    secondaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    accentColor?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rank?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branchCode?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type IPSBankUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bankName?: StringFieldUpdateOperationsInput | string
+    bankCode?: StringFieldUpdateOperationsInput | string
+    reconciliationAccount?: StringFieldUpdateOperationsInput | string
+    bankLogo?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    secondaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    accentColor?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rank?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branchCode?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type IPSBankCreateManyInput = {
+    id: string
+    bankName: string
+    bankCode: string
+    reconciliationAccount: string
+    bankLogo?: string | null
+    primaryColor?: string | null
+    secondaryColor?: string | null
+    accentColor?: string | null
+    status: string
+    rank: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branchCode: string
+  }
+
+  export type IPSBankUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bankName?: StringFieldUpdateOperationsInput | string
+    bankCode?: StringFieldUpdateOperationsInput | string
+    reconciliationAccount?: StringFieldUpdateOperationsInput | string
+    bankLogo?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    secondaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    accentColor?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rank?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branchCode?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type IPSBankUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bankName?: StringFieldUpdateOperationsInput | string
+    bankCode?: StringFieldUpdateOperationsInput | string
+    reconciliationAccount?: StringFieldUpdateOperationsInput | string
+    bankLogo?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    secondaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    accentColor?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rank?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branchCode?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type IPSWalletCreateInput = {
+    id: string
+    walletName: string
+    walletCode: string
+    reconciliationAccount: string
+    walletLogo?: string | null
+    primaryColor?: string | null
+    secondaryColor?: string | null
+    accentColor?: string | null
+    status: string
+    rank: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branchCode: string
+  }
+
+  export type IPSWalletUncheckedCreateInput = {
+    id: string
+    walletName: string
+    walletCode: string
+    reconciliationAccount: string
+    walletLogo?: string | null
+    primaryColor?: string | null
+    secondaryColor?: string | null
+    accentColor?: string | null
+    status: string
+    rank: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branchCode: string
+  }
+
+  export type IPSWalletUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    walletName?: StringFieldUpdateOperationsInput | string
+    walletCode?: StringFieldUpdateOperationsInput | string
+    reconciliationAccount?: StringFieldUpdateOperationsInput | string
+    walletLogo?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    secondaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    accentColor?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rank?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branchCode?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type IPSWalletUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    walletName?: StringFieldUpdateOperationsInput | string
+    walletCode?: StringFieldUpdateOperationsInput | string
+    reconciliationAccount?: StringFieldUpdateOperationsInput | string
+    walletLogo?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    secondaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    accentColor?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rank?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branchCode?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type IPSWalletCreateManyInput = {
+    id: string
+    walletName: string
+    walletCode: string
+    reconciliationAccount: string
+    walletLogo?: string | null
+    primaryColor?: string | null
+    secondaryColor?: string | null
+    accentColor?: string | null
+    status: string
+    rank: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branchCode: string
+  }
+
+  export type IPSWalletUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    walletName?: StringFieldUpdateOperationsInput | string
+    walletCode?: StringFieldUpdateOperationsInput | string
+    reconciliationAccount?: StringFieldUpdateOperationsInput | string
+    walletLogo?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    secondaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    accentColor?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rank?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branchCode?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type IPSWalletUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    walletName?: StringFieldUpdateOperationsInput | string
+    walletCode?: StringFieldUpdateOperationsInput | string
+    reconciliationAccount?: StringFieldUpdateOperationsInput | string
+    walletLogo?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    secondaryColor?: NullableStringFieldUpdateOperationsInput | string | null
+    accentColor?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    rank?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branchCode?: StringFieldUpdateOperationsInput | string
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -14730,6 +17368,118 @@ export namespace Prisma {
   export type OtpCodeSumOrderByAggregateInput = {
     Id?: SortOrder
     Attempts?: SortOrder
+  }
+
+  export type IPSBankCountOrderByAggregateInput = {
+    id?: SortOrder
+    bankName?: SortOrder
+    bankCode?: SortOrder
+    reconciliationAccount?: SortOrder
+    bankLogo?: SortOrder
+    primaryColor?: SortOrder
+    secondaryColor?: SortOrder
+    accentColor?: SortOrder
+    status?: SortOrder
+    rank?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    branchCode?: SortOrder
+  }
+
+  export type IPSBankAvgOrderByAggregateInput = {
+    rank?: SortOrder
+  }
+
+  export type IPSBankMaxOrderByAggregateInput = {
+    id?: SortOrder
+    bankName?: SortOrder
+    bankCode?: SortOrder
+    reconciliationAccount?: SortOrder
+    bankLogo?: SortOrder
+    primaryColor?: SortOrder
+    secondaryColor?: SortOrder
+    accentColor?: SortOrder
+    status?: SortOrder
+    rank?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    branchCode?: SortOrder
+  }
+
+  export type IPSBankMinOrderByAggregateInput = {
+    id?: SortOrder
+    bankName?: SortOrder
+    bankCode?: SortOrder
+    reconciliationAccount?: SortOrder
+    bankLogo?: SortOrder
+    primaryColor?: SortOrder
+    secondaryColor?: SortOrder
+    accentColor?: SortOrder
+    status?: SortOrder
+    rank?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    branchCode?: SortOrder
+  }
+
+  export type IPSBankSumOrderByAggregateInput = {
+    rank?: SortOrder
+  }
+
+  export type IPSWalletCountOrderByAggregateInput = {
+    id?: SortOrder
+    walletName?: SortOrder
+    walletCode?: SortOrder
+    reconciliationAccount?: SortOrder
+    walletLogo?: SortOrder
+    primaryColor?: SortOrder
+    secondaryColor?: SortOrder
+    accentColor?: SortOrder
+    status?: SortOrder
+    rank?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    branchCode?: SortOrder
+  }
+
+  export type IPSWalletAvgOrderByAggregateInput = {
+    rank?: SortOrder
+  }
+
+  export type IPSWalletMaxOrderByAggregateInput = {
+    id?: SortOrder
+    walletName?: SortOrder
+    walletCode?: SortOrder
+    reconciliationAccount?: SortOrder
+    walletLogo?: SortOrder
+    primaryColor?: SortOrder
+    secondaryColor?: SortOrder
+    accentColor?: SortOrder
+    status?: SortOrder
+    rank?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    branchCode?: SortOrder
+  }
+
+  export type IPSWalletMinOrderByAggregateInput = {
+    id?: SortOrder
+    walletName?: SortOrder
+    walletCode?: SortOrder
+    reconciliationAccount?: SortOrder
+    walletLogo?: SortOrder
+    primaryColor?: SortOrder
+    secondaryColor?: SortOrder
+    accentColor?: SortOrder
+    status?: SortOrder
+    rank?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    branchCode?: SortOrder
+  }
+
+  export type IPSWalletSumOrderByAggregateInput = {
+    rank?: SortOrder
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -15634,6 +18384,14 @@ export namespace Prisma {
      * @deprecated Use OtpCodeDefaultArgs instead
      */
     export type OtpCodeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OtpCodeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use IPSBankDefaultArgs instead
+     */
+    export type IPSBankArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = IPSBankDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use IPSWalletDefaultArgs instead
+     */
+    export type IPSWalletArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = IPSWalletDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

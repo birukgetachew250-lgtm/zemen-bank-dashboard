@@ -232,6 +232,38 @@ exports.Prisma.OtpCodeScalarFieldEnum = {
   UpdateDate: 'UpdateDate'
 };
 
+exports.Prisma.IPSBankScalarFieldEnum = {
+  id: 'id',
+  bankName: 'bankName',
+  bankCode: 'bankCode',
+  reconciliationAccount: 'reconciliationAccount',
+  bankLogo: 'bankLogo',
+  primaryColor: 'primaryColor',
+  secondaryColor: 'secondaryColor',
+  accentColor: 'accentColor',
+  status: 'status',
+  rank: 'rank',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  branchCode: 'branchCode'
+};
+
+exports.Prisma.IPSWalletScalarFieldEnum = {
+  id: 'id',
+  walletName: 'walletName',
+  walletCode: 'walletCode',
+  reconciliationAccount: 'reconciliationAccount',
+  walletLogo: 'walletLogo',
+  primaryColor: 'primaryColor',
+  secondaryColor: 'secondaryColor',
+  accentColor: 'accentColor',
+  status: 'status',
+  rank: 'rank',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  branchCode: 'branchCode'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -259,7 +291,9 @@ exports.Prisma.ModelName = {
   SystemActivityLog: 'SystemActivityLog',
   SecurityPolicy: 'SecurityPolicy',
   IpWhitelist: 'IpWhitelist',
-  OtpCode: 'OtpCode'
+  OtpCode: 'OtpCode',
+  IPSBank: 'IPSBank',
+  IPSWallet: 'IPSWallet'
 };
 
 /**

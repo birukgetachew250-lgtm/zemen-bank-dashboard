@@ -14,6 +14,14 @@ export default function AppControlClient() {
       { label: "IPS Banks", href: "/app-control/ips-banks", desc: "Interoperability bank management" },
       { label: "IPS Wallets", href: "/app-control/ips-wallets", desc: "Interoperability wallet management" },
     ]},
+    { title: "Ethio Telecom", items: [
+      { label: "Categories", href: "/app-control/ethio-telecom-categories", desc: "Manage package category definitions" },
+      { label: "Tags", href: "/app-control/ethio-telecom-tags", desc: "Manage package tags and labels" },
+      { label: "Packages", href: "/app-control/ethio-telecom-packages", desc: "Manage Ethio Telecom package catalog" },
+    ]},
+    { title: "Release Management", items: [
+      { label: "App Updates", href: "/app-control/app-updates", desc: "Manage mobile app versions and forced update policy" },
+    ]},
     { title: "Integrations", items: [
       { label: "FlexCube Integrations", href: "/app-control/flexcube-integrations", desc: "Core banking integration settings" },
     ]},

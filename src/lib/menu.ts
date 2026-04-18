@@ -180,6 +180,15 @@ export const menu: MenuItem[] = [
           { icon: Wallet, label: "IPS Wallets", href: "/app-control/ips-wallets" },
         ],
       },
+      {
+        label: "Ethio Telecom",
+        icon: Layers,
+        children: [
+          { icon: LayoutGrid, label: "Categories", href: "/app-control/ethio-telecom-categories" },
+          { icon: List, label: "Tags", href: "/app-control/ethio-telecom-tags" },
+          { icon: Smartphone, label: "Packages", href: "/app-control/ethio-telecom-packages" },
+        ],
+      },
       { icon: Plug, label: "FlexCube Integrations", href: "/app-control/flexcube-integrations" },
       {
         label: "Fees & Charges",
@@ -198,6 +207,7 @@ export const menu: MenuItem[] = [
           { icon: Megaphone, label: "Promo Ads", href: "/app-control/promo-ads" },
         ],
       },
+      { icon: DownloadCloud, label: "App Updates", href: "/app-control/app-updates" },
       { icon: MapPin, label: "Bank Locations", href: "/app-control/bank-locations" },
     ]
   },
@@ -309,6 +319,7 @@ export const menu: MenuItem[] = [
     children: [
       { icon: LayoutDashboard, label: "Overview", href: "/wso2/dashboard" },
       { icon: Settings, label: "Configurations", href: "/wso2/configurations" },
+      { icon: MonitorCog, label: "Third-Party Services", href: "/wso2/third-party-services" },
       { icon: KeyRound, label: "OAuth Credentials", href: "/wso2/oauth-credentials" },
       { icon: Activity, label: "Request Logs", href: "/wso2/request-logs" },
     ]
