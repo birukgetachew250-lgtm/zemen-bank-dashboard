@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Building2,
@@ -10,6 +11,7 @@ import {
   AppWindow,
   CheckSquare,
   type LucideIcon,
+  Users2,
   History,
   Building,
   UserCog,
@@ -17,10 +19,12 @@ import {
   List,
   ShieldCheck,
   AlertTriangle,
+  ArrowRightLeft,
   Network,
   Receipt,
   Globe,
   ShieldAlert,
+  BookCheck,
   Siren,
   FileWarning,
   FileText,
@@ -47,6 +51,17 @@ import {
   Lock,
   Link,
   Unlink,
+  LockOpen,
+  CreditCard,
+  Layers,
+  LayoutGrid,
+  Smartphone,
+  Wallet,
+  DollarSign,
+  ScrollText,
+  Megaphone,
+  MapPin,
+  MonitorCog,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -77,16 +92,114 @@ export const menu: MenuItem[] = [
           { icon: KeyRound, label: "Pin Reset", href: "/customers/request-pin-reset" },
         ],
       },
+    ]
+  },
+  {
+    label: "Transactions",
+    icon: ArrowRightLeft,
+    href: "/transaction-logs",
+    children: [
+        { icon: BookCheck, label: "Settlements", href: "/transactions/settlements" },
+        { icon: FileText, label: "Transaction Logs", href: "/transaction-logs" },
+        { icon: Globe, label: "API Call Logs", href: "/transaction-logs/api-calls" },
+    ]
+  },
+  {
+    label: "Administration",
+    icon: UserCog,
+    children: [
       {
-        label: "Corporates",
-        icon: Building2,
-        href: "/corporates",
+        label: "Bill Management",
+        icon: Receipt,
         children: [
-          { icon: Building2, label: "Create Corporate", href: "/corporates/create" },
-          { icon: Building2, label: "Existing Corporates", href: "/corporates" },
-          { icon: SlidersHorizontal, label: "Exceptional Limits", href: "/corporates/exceptional-limits" },
+          { icon: LayoutGrid, label: "Categories", href: "/integrations/billers/categories" },
+          { icon: Layers, label: "Subcategories", href: "/integrations/billers/subcategories" },
+          { icon: Building2, label: "Providers", href: "/integrations/billers/providers" },
+          {
+            label: "Configuration",
+            icon: Settings,
+            children: [
+              { icon: Plug, label: "System Config", href: "/integrations/config" },
+            ]
+          }
+        ]
+      },
+      {
+        label: "Structure",
+        icon: Building,
+        href: "/branches",
+        children: [
+          { icon: Building, label: "Branches", href: "/branches" },
+          { icon: Building2, label: "Departments", href: "/departments" },
         ],
       },
+       { 
+        label: "Limits & Charges",
+        icon: SlidersHorizontal, 
+        href: "/limits",
+        children: [
+          { icon: SlidersHorizontal, label: "Transaction Limits", href: "/limits" },
+          { icon: SlidersHorizontal, label: "Transaction Charges", href: "/charges" },
+          { icon: List, label: "Transaction Types", href: "/limits/types" },
+          { icon: Users, label: "Customer Categories", href: "/limits/categories" },
+          { icon: History, label: "Intervals", href: "/limits/intervals" },
+          { icon: ShieldAlert, label: "Exceptional Limits", href: "/limits/exceptional-limits" },
+          { icon: DatabaseZap, label: "Limit Usage", href: "/limits/usages" },
+        ]
+      },
+    ]
+  },
+  {
+    label: "App Control",
+    icon: MonitorCog,
+    href: "/app-control",
+    children: [
+      {
+        label: "Mini Apps",
+        icon: Smartphone,
+        children: [
+          { icon: LayoutGrid, label: "Categories", href: "/app-control/mini-app-categories" },
+          { icon: AppWindow, label: "Apps", href: "/app-control/mini-apps" },
+          { icon: ArrowRightLeft, label: "Transactions", href: "/app-control/mini-app-transactions" },
+        ],
+      },
+      {
+        label: "IPS Management",
+        icon: Network,
+        children: [
+          { icon: Building, label: "IPS Banks", href: "/app-control/ips-banks" },
+          { icon: Wallet, label: "IPS Wallets", href: "/app-control/ips-wallets" },
+        ],
+      },
+      {
+        label: "Ethio Telecom",
+        icon: Layers,
+        children: [
+          { icon: LayoutGrid, label: "Categories", href: "/app-control/ethio-telecom-categories" },
+          { icon: List, label: "Tags", href: "/app-control/ethio-telecom-tags" },
+          { icon: Smartphone, label: "Packages", href: "/app-control/ethio-telecom-packages" },
+        ],
+      },
+      { icon: Plug, label: "FlexCube Integrations", href: "/app-control/flexcube-integrations" },
+      {
+        label: "Fees & Charges",
+        icon: DollarSign,
+        children: [
+          { icon: LayoutGrid, label: "Fee Categories", href: "/app-control/fee-categories" },
+          { icon: CreditCard, label: "Fee Charges", href: "/app-control/fee-charges" },
+        ],
+      },
+      {
+        label: "Content & Legal",
+        icon: ScrollText,
+        children: [
+          { icon: Shield, label: "Privacy Policies", href: "/app-control/privacy-policies" },
+          { icon: FileText, label: "Terms & Conditions", href: "/app-control/terms-conditions" },
+          { icon: Megaphone, label: "Promo Ads", href: "/app-control/promo-ads" },
+        ],
+      },
+      { icon: DownloadCloud, label: "App Updates", href: "/app-control/app-updates" },
+      { icon: MapPin, label: "Bank Locations", href: "/app-control/bank-locations" },
     ]
   },
    {
@@ -133,7 +246,7 @@ export const menu: MenuItem[] = [
        {
         label: "Audit Trails",
         icon: History,
-        href: "/customers/audit",
+        href: "/users/audit",
         children: [
           { icon: Users, label: "Customers", href: "/customers/audit" },
           { icon: UserCog, label: "System Users", href: "/users/audit" },
@@ -169,11 +282,8 @@ export const menu: MenuItem[] = [
     label: "Integrations",
     icon: Network,
     children: [
-      { icon: Plug, label: "Configuration", href: "/integrations/config" },
       { icon: Building, label: "IPS Bank Management", href: "/integrations/ips-bank-management" },
       { icon: Activity, label: "API Monitoring", href: "/integrations/api-monitoring" },
-      { icon: Globe, label: "Third-Party Apps", href: "/integrations/third-party" },
-      { icon: History, label: "Webhooks", href: "/integrations/webhooks" },
     ],
   },
   {
@@ -187,38 +297,22 @@ export const menu: MenuItem[] = [
         children: [
             { icon: ShieldCheck, label: "Manage Roles", href: "/roles" },
             { icon: Users, label: "Manage Users", href: "/users" },
+            { icon: KeyRound, label: "Reset User Password", href: "/users/reset-password" },
         ]
       },
       { icon: Table, label: "Permissions Matrix", href: "/security/permission-matrix" },
-      { icon: KeyRound, label: "Session Logs", href: "/security/sessions" },
       { icon: Shield, label: "Security Policies", href: "/security/mfa-policies" },
     ]
   },
   {
-    label: "Administration",
-    icon: UserCog,
+    label: "WSO2 Integration",
+    icon: Waypoints,
     children: [
-      {
-        label: "Structure",
-        icon: Building,
-        href: "/branches",
-        children: [
-          { icon: Building, label: "Branches", href: "/branches" },
-          { icon: Building2, label: "Departments", href: "/departments" },
-        ],
-      },
-       { 
-        label: "Limits & Charges",
-        icon: SlidersHorizontal, 
-        href: "/limits",
-        children: [
-          { icon: SlidersHorizontal, label: "Transaction Limits", href: "/limits" },
-          { icon: SlidersHorizontal, label: "Transaction Charges", href: "/charges" },
-          { icon: List, label: "Transaction Types", href: "/limits/types" },
-          { icon: Users, label: "Customer Categories", href: "/limits/categories" },
-          { icon: History, label: "Intervals", href: "/limits/intervals" },
-        ]
-      },
+      { icon: LayoutDashboard, label: "Overview", href: "/wso2/dashboard" },
+      { icon: Settings, label: "Configurations", href: "/wso2/configurations" },
+      { icon: MonitorCog, label: "Third-Party Services", href: "/wso2/third-party-services" },
+      { icon: KeyRound, label: "OAuth Credentials", href: "/wso2/oauth-credentials" },
+      { icon: Activity, label: "Request Logs", href: "/wso2/request-logs" },
     ]
   },
   { 

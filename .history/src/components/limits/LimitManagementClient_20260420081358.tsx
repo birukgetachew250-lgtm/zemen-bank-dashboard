@@ -52,6 +52,7 @@ import {
 import { DropdownItem } from "../charges/ChargeManagementClient";
 import type { Interval } from "@/app/(main)/limits/page";
 import { Separator } from "../ui/separator";
+import Link from "next/link";
 
 export interface LimitRule {
     id: string;
@@ -260,10 +261,15 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
             <CardTitle>Transaction Limits</CardTitle>
             <CardDescription>Manage daily, weekly, and monthly transaction limits for different customer categories.</CardDescription>
           </div>
-          <Button onClick={openAddDialog}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add New Limit Rule
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+              <Link href="/limits/usages">Manage Usage</Link>
+            </Button>
+            <Button onClick={openAddDialog}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add New Limit Rule
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
