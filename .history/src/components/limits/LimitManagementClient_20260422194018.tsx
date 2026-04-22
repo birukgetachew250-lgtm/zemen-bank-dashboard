@@ -289,7 +289,6 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
                   <TableHead>Daily Limit</TableHead>
                   <TableHead>Weekly Limit</TableHead>
                   <TableHead>Monthly Limit</TableHead>
-                  <TableHead>Per-Txn Limit</TableHead>
                   <TableHead>Currency</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -308,7 +307,6 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
                     <TableCell>{formatCurrency(rule.dailyLimit)}</TableCell>
                     <TableCell>{formatCurrency(rule.weeklyLimit)}</TableCell>
                     <TableCell>{formatCurrency(rule.monthlyLimit)}</TableCell>
-                    <TableCell>{rule.perTransactionLimit != null ? formatCurrency(rule.perTransactionLimit) : '-'}</TableCell>
                     <TableCell>{rule.currency}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => openEditDialog(rule)}>
@@ -406,21 +404,11 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
               />
             </div>
              <Separator />
-             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Per-Txn Limit</Label>
-              <Input
-                type="number"
-                value={ruleData.perTransactionLimit}
-                onChange={(e) => setRuleData(prev => ({...prev, perTransactionLimit: e.target.value}))}
-                className="col-span-3"
-                placeholder="Max amount per single transaction (optional)"
-              />
-            </div>
-             <Separator />
              <div className="space-y-4">
                 <Label>Limits per Interval</Label>
                 {ruleData.limits.map((limit, index) => (
-                    <div key={index} className="flex items-center gap-2">
+                    <div key={index} className="space-y-1">
+                        <div className="flex items-center gap-2">
                             <Select
                                 value={limit.intervalId}
                                 onValueChange={(value) => handleLimitChange(index, 'intervalId', value)}
@@ -445,6 +433,18 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
                             <Button variant="ghost" size="icon" onClick={() => removeLimitField(index)} disabled={ruleData.limits.length <= 1}>
                                 <Trash2 className="h-4 w-4 text-red-500"/>
                             </Button>
+                        </div>
+                        <div className="flex items-center gap-2 pl-1">
+                            <span className="text-xs text-muted-foreground w-1/3">Per-txn limit (optional)</span>
+                            <Input
+                                type="number"
+                                placeholder="Max per single transaction"
+                                value={limit.perTransactionLimit}
+                                onChange={(e) => handleLimitChange(index, 'perTransactionLimit', e.target.value)}
+                                className="text-xs"
+                            />
+                            <div className="w-9" />
+                        </div>
                     </div>
                 ))}
                 <Button variant="outline" size="sm" onClick={addLimitField} disabled={ruleData.limits.length >= intervals.length}>
