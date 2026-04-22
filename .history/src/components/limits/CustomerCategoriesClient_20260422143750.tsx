@@ -417,3 +417,44 @@ export function CustomerCategoriesClient({
     </>
   );
 }
+        </CardContent>
+      </Card>
+      
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingItem ? 'Edit Customer Category' : 'Add New Customer Category'}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+             <Input placeholder="Category Code" value={newItem.code} onChange={(e) => setNewItem(prev => ({...prev, code: e.target.value}))}/>
+             <Input placeholder="Category Name" value={newItem.name} onChange={(e) => setNewItem(prev => ({...prev, name: e.target.value}))}/>
+             <Input placeholder="Description" value={newItem.description} onChange={(e) => setNewItem(prev => ({...prev, description: e.target.value}))}/>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+            <Button onClick={handleSaveItem} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                {editingItem ? 'Update' : 'Add'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>This will permanently delete the category "{itemToDelete?.name}".</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700" disabled={isSaving}>
+                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                    Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}

@@ -30,6 +30,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -84,7 +85,6 @@ interface ChargeManagementClientProps {
 
 export function ChargeManagementClient({ initialChargeRules, customerCategories, transactionTypes }: ChargeManagementClientProps) {
   const [chargeRules, setChargeRules] = useState<ChargeRule[]>(initialChargeRules);
-  const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingRule, setEditingRule] = useState<ChargeRule | null>(null);
@@ -103,17 +103,6 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
     effectiveTo: "",
   });
   const { toast } = useToast();
-
-  const filteredRules = useMemo(() => {
-    if (!searchTerm.trim()) return chargeRules;
-    const term = searchTerm.toLowerCase();
-    return chargeRules.filter(
-      (r) =>
-        r.category.toLowerCase().includes(term) ||
-        r.transactionType.toLowerCase().includes(term) ||
-        (r.serviceName || "").toLowerCase().includes(term)
-    );
-  }, [chargeRules, searchTerm]);
 
   const openAddDialog = () => {
     setEditingRule(null);
@@ -210,21 +199,10 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
             <CardTitle>Transaction Charges</CardTitle>
             <CardDescription>Manage percentage-based or fixed charges for different transactions.</CardDescription>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search category, type, service…"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 w-64"
-              />
-            </div>
-            <Button onClick={openAddDialog}>
+          <Button onClick={openAddDialog}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add New Charge Rule
-            </Button>
-          </div>
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -243,11 +221,7 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRules.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No charge rules found.</TableCell>
-                  </TableRow>
-                ) : filteredRules.map((rule) => (
+                {chargeRules.map((rule) => (
                   <TableRow key={rule.id}>
                     <TableCell>
                       <Badge variant="secondary">{rule.category}</Badge>

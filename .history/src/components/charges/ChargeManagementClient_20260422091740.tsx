@@ -30,6 +30,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -243,11 +244,7 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRules.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No charge rules found.</TableCell>
-                  </TableRow>
-                ) : filteredRules.map((rule) => (
+                {chargeRules.map((rule) => (
                   <TableRow key={rule.id}>
                     <TableCell>
                       <Badge variant="secondary">{rule.category}</Badge>
