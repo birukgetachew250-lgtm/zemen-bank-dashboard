@@ -404,44 +404,31 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
              <div className="space-y-4">
                 <Label>Limits per Interval</Label>
                 {ruleData.limits.map((limit, index) => (
-                    <div key={index} className="space-y-1">
-                        <div className="flex items-center gap-2">
-                            <Select
-                                value={limit.intervalId}
-                                onValueChange={(value) => handleLimitChange(index, 'intervalId', value)}
-                            >
-                                <SelectTrigger className="w-1/3">
-                                    <SelectValue placeholder="Select Interval" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {intervals.map(i => (
-                                        <SelectItem key={i.id} value={i.id} disabled={ruleData.limits.some((l, idx) => l.intervalId === i.id && idx !== index)}>
-                                            {i.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Input
-                                type="number"
-                                placeholder="Period Limit"
-                                value={limit.amount}
-                                onChange={(e) => handleLimitChange(index, 'amount', e.target.value)}
-                            />
-                            <Button variant="ghost" size="icon" onClick={() => removeLimitField(index)} disabled={ruleData.limits.length <= 1}>
-                                <Trash2 className="h-4 w-4 text-red-500"/>
-                            </Button>
-                        </div>
-                        <div className="flex items-center gap-2 pl-1">
-                            <span className="text-xs text-muted-foreground w-1/3">Per-txn limit (optional)</span>
-                            <Input
-                                type="number"
-                                placeholder="Max per single transaction"
-                                value={limit.perTransactionLimit}
-                                onChange={(e) => handleLimitChange(index, 'perTransactionLimit', e.target.value)}
-                                className="text-xs"
-                            />
-                            <div className="w-9" />
-                        </div>
+                    <div key={index} className="flex items-center gap-2">
+                        <Select
+                            value={limit.intervalId}
+                            onValueChange={(value) => handleLimitChange(index, 'intervalId', value)}
+                        >
+                            <SelectTrigger className="w-1/3">
+                                <SelectValue placeholder="Select Interval" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {intervals.map(i => (
+                                    <SelectItem key={i.id} value={i.id} disabled={ruleData.limits.some((l, idx) => l.intervalId === i.id && idx !== index)}>
+                                        {i.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Input
+                            type="number"
+                            placeholder="Limit Amount"
+                            value={limit.amount}
+                            onChange={(e) => handleLimitChange(index, 'amount', e.target.value)}
+                        />
+                        <Button variant="ghost" size="icon" onClick={() => removeLimitField(index)} disabled={ruleData.limits.length <= 1}>
+                            <Trash2 className="h-4 w-4 text-red-500"/>
+                        </Button>
                     </div>
                 ))}
                 <Button variant="outline" size="sm" onClick={addLimitField} disabled={ruleData.limits.length >= intervals.length}>

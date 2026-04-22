@@ -224,7 +224,7 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
     setTierFormOpen(true);
   };
 
-  const handleSaveTier = async (addAnother = false) => {
+  const handleSaveTier = async () => {
     if (tierData.amountFrom === "") {
       toast({ variant: "destructive", title: "Missing Fields", description: "Amount From is required." });
       return;
@@ -240,21 +240,15 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
       const res = await fetch('/api/charges/tiers', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message);
-      const updatedTiers = editingTier
-        ? tiers.map(t => t.id === editingTier.id ? result : t)
-        : [...tiers, result];
-      setTiers(updatedTiers);
-      toast({ title: editingTier ? "Tier Updated" : "Tier Saved" });
-      setEditingTier(null);
-      if (addAnother && !editingTier) {
-        // Pre-fill amountFrom with previous tier's amountTo + 0.01
-        const prevAmountTo = result.amountTo;
-        const nextFrom = prevAmountTo != null ? String(parseFloat(prevAmountTo) + 0.01) : "";
-        setTierData({ tierName: "", amountFrom: nextFrom, amountTo: "", percentage: tierData.percentage, fixedAmount: "", vatPercentage: tierData.vatPercentage, minCharge: "", maxCharge: "", displayOrder: String(updatedTiers.length + 1) });
-        setTierFormOpen(true);
+      if (editingTier) {
+        setTiers(prev => prev.map(t => t.id === editingTier.id ? result : t));
+        toast({ title: "Tier Updated" });
       } else {
-        setTierFormOpen(false);
+        setTiers(prev => [...prev, result]);
+        toast({ title: "Tier Added" });
       }
+      setTierFormOpen(false);
+      setEditingTier(null);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
     } finally {
@@ -316,8 +310,7 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
             // Auto-open tier dialog for newly created TIERED rules
             if (ruleData.chargeType === 'TIERED') {
                 toast({ title: "Rule Added", description: "Now configure the pricing tiers for this rule." });
-                // Delay so the rule dialog fully closes before the tier dialog opens
-                setTimeout(() => openTierDialog(result), 150);
+                await openTierDialog(result);
                 return;
             }
             toast({ title: "Rule Added", description: "New transaction charge rule has been added successfully." });
@@ -495,7 +488,7 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
                       variant="outline"
                       size="sm"
                       className="mt-3"
-                      onClick={() => { setDialogOpen(false); setTimeout(() => openTierDialog(editingRule), 150); }}
+                      onClick={() => { setDialogOpen(false); openTierDialog(editingRule); }}
                     >
                       <Layers className="mr-2 h-4 w-4" />
                       Manage Tiers
@@ -624,126 +617,106 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
           <DialogHeader>
             <DialogTitle>Manage Tiers – {tierRule?.serviceName || tierRule?.category}</DialogTitle>
             <DialogDescription>
-              Define amount ranges and their fees. Each tier covers a range (e.g. 0–50 ETB) with its own percentage, fixed fee, and VAT.
+              Configure amount-based pricing tiers for this charge rule.
             </DialogDescription>
           </DialogHeader>
           {isLoadingTiers ? (
             <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
           ) : (
             <>
-              {/* Tier form — shown first when adding */}
-              {isTierFormOpen && (
-                <div className="border rounded-md p-4 bg-muted/30 grid gap-3">
-                  <p className="text-sm font-semibold">{editingTier ? 'Edit Tier' : '➕ New Tier'}</p>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>#</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>From (ETB)</TableHead>
+                      <TableHead>To (ETB)</TableHead>
+                      <TableHead>%</TableHead>
+                      <TableHead>Fixed</TableHead>
+                      <TableHead>Min/Max</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tiers.length === 0 ? (
+                      <TableRow><TableCell colSpan={8} className="text-center py-6 text-muted-foreground">No tiers configured.</TableCell></TableRow>
+                    ) : tiers.map((tier) => (
+                      <TableRow key={tier.id}>
+                        <TableCell>{tier.displayOrder}</TableCell>
+                        <TableCell>{tier.tierName || '-'}</TableCell>
+                        <TableCell>{tier.amountFrom}</TableCell>
+                        <TableCell>{tier.amountTo ?? '∞'}</TableCell>
+                        <TableCell>{tier.percentage ? `${tier.percentage}%` : '-'}</TableCell>
+                        <TableCell>{tier.fixedAmount ? formatCurrency(tier.fixedAmount) : '-'}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {tier.minCharge != null ? `Min: ${tier.minCharge}` : ''}{tier.minCharge != null && tier.maxCharge != null ? ' / ' : ''}{tier.maxCharge != null ? `Max: ${tier.maxCharge}` : ''}
+                          {tier.minCharge == null && tier.maxCharge == null ? '-' : ''}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" onClick={() => openEditTierForm(tier)}><Edit className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="text-red-500" onClick={() => setTierToDelete(tier)}><Trash2 className="h-4 w-4" /></Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <Button variant="outline" size="sm" onClick={openAddTierForm} className="mt-2">
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Tier
+              </Button>
 
-                  {/* Amount range row */}
+              {/* Inline Tier Form */}
+              {isTierFormOpen && (
+                <div className="border rounded-md p-4 mt-2 grid gap-3">
+                  <p className="text-sm font-medium">{editingTier ? 'Edit Tier' : 'Add New Tier'}</p>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs font-medium">Amount From (ETB) *</Label>
-                      <Input type="number" value={tierData.amountFrom} onChange={(e) => setTierData(p => ({...p, amountFrom: e.target.value}))} placeholder="e.g. 0" />
+                      <Label className="text-xs">Tier Name</Label>
+                      <Input value={tierData.tierName} onChange={(e) => setTierData(p => ({...p, tierName: e.target.value}))} placeholder="e.g. Small Amount" />
                     </div>
                     <div>
-                      <Label className="text-xs font-medium">Amount To (ETB) <span className="text-muted-foreground font-normal">— leave blank for unlimited</span></Label>
-                      <Input type="number" value={tierData.amountTo} onChange={(e) => setTierData(p => ({...p, amountTo: e.target.value}))} placeholder="e.g. 50  (blank = ∞)" />
-                    </div>
-                  </div>
-
-                  {/* Charges row */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <Label className="text-xs font-medium">Percentage (%)</Label>
-                      <Input type="number" value={tierData.percentage} onChange={(e) => setTierData(p => ({...p, percentage: e.target.value}))} placeholder="e.g. 2.5" />
+                      <Label className="text-xs">Display Order</Label>
+                      <Input type="number" value={tierData.displayOrder} onChange={(e) => setTierData(p => ({...p, displayOrder: e.target.value}))} placeholder="1" />
                     </div>
                     <div>
-                      <Label className="text-xs font-medium">Fixed Amount (ETB)</Label>
-                      <Input type="number" value={tierData.fixedAmount} onChange={(e) => setTierData(p => ({...p, fixedAmount: e.target.value}))} placeholder="e.g. 1.00" />
+                      <Label className="text-xs">Amount From (ETB) *</Label>
+                      <Input type="number" value={tierData.amountFrom} onChange={(e) => setTierData(p => ({...p, amountFrom: e.target.value}))} placeholder="0" />
                     </div>
                     <div>
-                      <Label className="text-xs font-medium">VAT % <span className="text-muted-foreground font-normal">(optional override)</span></Label>
+                      <Label className="text-xs">Amount To (ETB, blank = unlimited)</Label>
+                      <Input type="number" value={tierData.amountTo} onChange={(e) => setTierData(p => ({...p, amountTo: e.target.value}))} placeholder="∞" />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Percentage (%)</Label>
+                      <Input type="number" value={tierData.percentage} onChange={(e) => setTierData(p => ({...p, percentage: e.target.value}))} placeholder="0" />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Fixed Amount (ETB)</Label>
+                      <Input type="number" value={tierData.fixedAmount} onChange={(e) => setTierData(p => ({...p, fixedAmount: e.target.value}))} placeholder="0" />
+                    </div>
+                    <div>
+                      <Label className="text-xs">VAT % (override, optional)</Label>
                       <Input type="number" value={tierData.vatPercentage} onChange={(e) => setTierData(p => ({...p, vatPercentage: e.target.value}))} placeholder="Inherit from rule" />
                     </div>
-                  </div>
-
-                  {/* Min/Max + metadata row */}
-                  <div className="grid grid-cols-3 gap-3">
+                    <div></div>
                     <div>
-                      <Label className="text-xs font-medium">Min Charge (ETB)</Label>
+                      <Label className="text-xs">Min Charge (optional)</Label>
                       <Input type="number" value={tierData.minCharge} onChange={(e) => setTierData(p => ({...p, minCharge: e.target.value}))} placeholder="Optional" />
                     </div>
                     <div>
-                      <Label className="text-xs font-medium">Max Charge (ETB)</Label>
+                      <Label className="text-xs">Max Charge (optional)</Label>
                       <Input type="number" value={tierData.maxCharge} onChange={(e) => setTierData(p => ({...p, maxCharge: e.target.value}))} placeholder="Optional" />
                     </div>
-                    <div>
-                      <Label className="text-xs font-medium">Tier Name</Label>
-                      <Input value={tierData.tierName} onChange={(e) => setTierData(p => ({...p, tierName: e.target.value}))} placeholder="e.g. Small Amount" />
-                    </div>
                   </div>
-
-                  <div className="flex gap-2 justify-end pt-1">
+                  <div className="flex gap-2 justify-end">
                     <Button variant="outline" size="sm" onClick={() => setTierFormOpen(false)}>Cancel</Button>
-                    {!editingTier && (
-                      <Button variant="outline" size="sm" onClick={() => handleSaveTier(true)} disabled={isTierSaving}>
-                        {isTierSaving && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-                        Save &amp; Add Another
-                      </Button>
-                    )}
-                    <Button size="sm" onClick={() => handleSaveTier(false)} disabled={isTierSaving}>
+                    <Button size="sm" onClick={handleSaveTier} disabled={isTierSaving}>
                       {isTierSaving && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-                      {editingTier ? 'Update Tier' : 'Save Tier'}
+                      Save Tier
                     </Button>
                   </div>
                 </div>
-              )}
-
-              {/* Existing tiers table */}
-              {tiers.length > 0 && (
-                <div className="rounded-md border mt-2">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>#</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>From (ETB)</TableHead>
-                        <TableHead>To (ETB)</TableHead>
-                        <TableHead>%</TableHead>
-                        <TableHead>Fixed</TableHead>
-                        <TableHead>VAT %</TableHead>
-                        <TableHead>Min / Max</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {tiers.map((tier) => (
-                        <TableRow key={tier.id}>
-                          <TableCell>{tier.displayOrder}</TableCell>
-                          <TableCell>{tier.tierName || '-'}</TableCell>
-                          <TableCell className="font-mono">{tier.amountFrom}</TableCell>
-                          <TableCell className="font-mono">{tier.amountTo ?? '∞'}</TableCell>
-                          <TableCell>{tier.percentage ? `${tier.percentage}%` : '-'}</TableCell>
-                          <TableCell>{tier.fixedAmount ? formatCurrency(tier.fixedAmount) : '-'}</TableCell>
-                          <TableCell>{tier.vatPercentage != null ? `${tier.vatPercentage}%` : <span className="text-muted-foreground text-xs">inherit</span>}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
-                            {tier.minCharge != null ? `Min: ${tier.minCharge}` : ''}
-                            {tier.minCharge != null && tier.maxCharge != null ? ' / ' : ''}
-                            {tier.maxCharge != null ? `Max: ${tier.maxCharge}` : ''}
-                            {tier.minCharge == null && tier.maxCharge == null ? '-' : ''}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" onClick={() => openEditTierForm(tier)}><Edit className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" className="text-red-500" onClick={() => setTierToDelete(tier)}><Trash2 className="h-4 w-4" /></Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
-              {!isTierFormOpen && (
-                <Button variant="outline" size="sm" onClick={openAddTierForm} className="mt-2">
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Tier
-                </Button>
               )}
             </>
           )}

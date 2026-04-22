@@ -11,7 +11,7 @@ export async function GET(req: Request) {
         }
 
         const query = `
-            SELECT "Id" as "id", "PeriodIntervalId" as "periodIntervalId", "LimitAmount" as "limitAmount", "Currency" as "currency"
+            SELECT "Id" as "id", "PeriodIntervalId" as "periodIntervalId", "LimitAmount" as "limitAmount", "Currency" as "currency", "PerTransactionLimit" as "perTransactionLimit"
             FROM "LIMIT_CHARGE_MODULE"."LimitRuleIntervals"
             WHERE "LimitRuleId" = :RuleId
         `;

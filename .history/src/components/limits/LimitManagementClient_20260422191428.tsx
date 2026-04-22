@@ -113,7 +113,7 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
 
   const openAddDialog = () => {
     setEditingRule(null);
-    setRuleData({ categoryId: "", transactionTypeId: "", serviceName: "", isGlobal: false, currency: "ETB", effectiveFrom: "", effectiveTo: "", limits: [{ intervalId: "", amount: "", perTransactionLimit: "" }] });
+    setRuleData({ categoryId: "", transactionTypeId: "", serviceName: "", isGlobal: false, currency: "ETB", effectiveFrom: "", effectiveTo: "", limits: [{ intervalId: "", amount: "" }] });
     setDialogOpen(true);
   };
   
@@ -124,8 +124,8 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
       const res = await fetch(`/api/limits/intervals-for-rule?ruleId=${rule.id}`);
       const intervalsData = await res.json();
       const limitsArr = Array.isArray(intervalsData) && intervalsData.length > 0
-        ? intervalsData.map((i: any) => ({ intervalId: i.periodIntervalId, amount: String(i.limitAmount), perTransactionLimit: i.perTransactionLimit != null ? String(i.perTransactionLimit) : '' }))
-        : [{ intervalId: "", amount: "", perTransactionLimit: "" }];
+        ? intervalsData.map((i: any) => ({ intervalId: i.periodIntervalId, amount: String(i.limitAmount) }))
+        : [{ intervalId: "", amount: "" }];
       
       setRuleData({
         categoryId: rule.customerCategoryId || "",
@@ -147,13 +147,13 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
         currency: rule.currency || "ETB",
         effectiveFrom: rule.effectiveFrom ? new Date(rule.effectiveFrom).toISOString().slice(0, 16) : "",
         effectiveTo: rule.effectiveTo ? new Date(rule.effectiveTo).toISOString().slice(0, 16) : "",
-        limits: [{ intervalId: "", amount: "", perTransactionLimit: "" }],
+        limits: [{ intervalId: "", amount: "" }],
       });
       setDialogOpen(true);
     }
   };
 
-  const handleLimitChange = (index: number, field: 'intervalId' | 'amount' | 'perTransactionLimit', value: string) => {
+  const handleLimitChange = (index: number, field: 'intervalId' | 'amount', value: string) => {
     const newLimits = [...ruleData.limits];
     newLimits[index] = { ...newLimits[index], [field]: value };
     setRuleData(prev => ({ ...prev, limits: newLimits }));
@@ -162,7 +162,7 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
   const addLimitField = () => {
       setRuleData(prev => ({
           ...prev,
-          limits: [...prev.limits, { intervalId: '', amount: '', perTransactionLimit: '' }]
+          limits: [...prev.limits, { intervalId: '', amount: '' }]
       }));
   };
 
@@ -187,13 +187,10 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
     setIsSaving(true);
     const limitsToSubmit = ruleData.limits.reduce((acc, limit) => {
         if (limit.intervalId && limit.amount) {
-            acc[limit.intervalId] = {
-                amount: limit.amount,
-                perTransactionLimit: limit.perTransactionLimit || null,
-            };
+            acc[limit.intervalId] = limit.amount;
         }
         return acc;
-    }, {} as Record<string, { amount: string, perTransactionLimit: string | null }>);
+    }, {} as Record<string, string>);
     
     const method = editingRule ? 'PUT' : 'POST';
     const payload = { 
@@ -404,44 +401,31 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
              <div className="space-y-4">
                 <Label>Limits per Interval</Label>
                 {ruleData.limits.map((limit, index) => (
-                    <div key={index} className="space-y-1">
-                        <div className="flex items-center gap-2">
-                            <Select
-                                value={limit.intervalId}
-                                onValueChange={(value) => handleLimitChange(index, 'intervalId', value)}
-                            >
-                                <SelectTrigger className="w-1/3">
-                                    <SelectValue placeholder="Select Interval" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {intervals.map(i => (
-                                        <SelectItem key={i.id} value={i.id} disabled={ruleData.limits.some((l, idx) => l.intervalId === i.id && idx !== index)}>
-                                            {i.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Input
-                                type="number"
-                                placeholder="Period Limit"
-                                value={limit.amount}
-                                onChange={(e) => handleLimitChange(index, 'amount', e.target.value)}
-                            />
-                            <Button variant="ghost" size="icon" onClick={() => removeLimitField(index)} disabled={ruleData.limits.length <= 1}>
-                                <Trash2 className="h-4 w-4 text-red-500"/>
-                            </Button>
-                        </div>
-                        <div className="flex items-center gap-2 pl-1">
-                            <span className="text-xs text-muted-foreground w-1/3">Per-txn limit (optional)</span>
-                            <Input
-                                type="number"
-                                placeholder="Max per single transaction"
-                                value={limit.perTransactionLimit}
-                                onChange={(e) => handleLimitChange(index, 'perTransactionLimit', e.target.value)}
-                                className="text-xs"
-                            />
-                            <div className="w-9" />
-                        </div>
+                    <div key={index} className="flex items-center gap-2">
+                        <Select
+                            value={limit.intervalId}
+                            onValueChange={(value) => handleLimitChange(index, 'intervalId', value)}
+                        >
+                            <SelectTrigger className="w-1/3">
+                                <SelectValue placeholder="Select Interval" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {intervals.map(i => (
+                                    <SelectItem key={i.id} value={i.id} disabled={ruleData.limits.some((l, idx) => l.intervalId === i.id && idx !== index)}>
+                                        {i.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Input
+                            type="number"
+                            placeholder="Limit Amount"
+                            value={limit.amount}
+                            onChange={(e) => handleLimitChange(index, 'amount', e.target.value)}
+                        />
+                        <Button variant="ghost" size="icon" onClick={() => removeLimitField(index)} disabled={ruleData.limits.length <= 1}>
+                            <Trash2 className="h-4 w-4 text-red-500"/>
+                        </Button>
                     </div>
                 ))}
                 <Button variant="outline" size="sm" onClick={addLimitField} disabled={ruleData.limits.length >= intervals.length}>

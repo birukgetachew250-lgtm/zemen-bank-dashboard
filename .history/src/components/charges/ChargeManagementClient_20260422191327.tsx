@@ -180,23 +180,12 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
     setTierRule(rule);
     setLoadingTiers(true);
     setTierDialogOpen(true);
-    setTierFormOpen(false);
     try {
       const res = await fetch(`/api/charges/tiers?chargeRuleId=${rule.id}`);
       const data = await res.json();
-      const loaded = Array.isArray(data) ? data : [];
-      setTiers(loaded);
-      // Auto-open the add form when there are no tiers yet
-      if (loaded.length === 0) {
-        setEditingTier(null);
-        setTierData({ tierName: "", amountFrom: "0", amountTo: "", percentage: "", fixedAmount: "", vatPercentage: "", minCharge: "", maxCharge: "", displayOrder: "1" });
-        setTierFormOpen(true);
-      }
+      setTiers(Array.isArray(data) ? data : []);
     } catch {
       setTiers([]);
-      setEditingTier(null);
-      setTierData({ tierName: "", amountFrom: "0", amountTo: "", percentage: "", fixedAmount: "", vatPercentage: "", minCharge: "", maxCharge: "", displayOrder: "1" });
-      setTierFormOpen(true);
     } finally {
       setLoadingTiers(false);
     }
@@ -224,7 +213,7 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
     setTierFormOpen(true);
   };
 
-  const handleSaveTier = async (addAnother = false) => {
+  const handleSaveTier = async () => {
     if (tierData.amountFrom === "") {
       toast({ variant: "destructive", title: "Missing Fields", description: "Amount From is required." });
       return;
@@ -240,21 +229,15 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
       const res = await fetch('/api/charges/tiers', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message);
-      const updatedTiers = editingTier
-        ? tiers.map(t => t.id === editingTier.id ? result : t)
-        : [...tiers, result];
-      setTiers(updatedTiers);
-      toast({ title: editingTier ? "Tier Updated" : "Tier Saved" });
-      setEditingTier(null);
-      if (addAnother && !editingTier) {
-        // Pre-fill amountFrom with previous tier's amountTo + 0.01
-        const prevAmountTo = result.amountTo;
-        const nextFrom = prevAmountTo != null ? String(parseFloat(prevAmountTo) + 0.01) : "";
-        setTierData({ tierName: "", amountFrom: nextFrom, amountTo: "", percentage: tierData.percentage, fixedAmount: "", vatPercentage: tierData.vatPercentage, minCharge: "", maxCharge: "", displayOrder: String(updatedTiers.length + 1) });
-        setTierFormOpen(true);
+      if (editingTier) {
+        setTiers(prev => prev.map(t => t.id === editingTier.id ? result : t));
+        toast({ title: "Tier Updated" });
       } else {
-        setTierFormOpen(false);
+        setTiers(prev => [...prev, result]);
+        toast({ title: "Tier Added" });
       }
+      setTierFormOpen(false);
+      setEditingTier(null);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
     } finally {
@@ -279,7 +262,7 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
   };
 
   const handleSaveRule = async () => {
-    if (ruleData.chargeType === 'FLAT' && !ruleData.percentage && !ruleData.fixedAmount) {
+    if (!ruleData.percentage && !ruleData.fixedAmount) {
       toast({
         variant: "destructive",
         title: "Missing Fields",
@@ -307,21 +290,13 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
         if (editingRule) {
             setChargeRules(prev => prev.map(r => r.id === editingRule.id ? result : r));
             toast({ title: "Rule Updated", description: "The transaction charge rule has been updated successfully." });
-            setDialogOpen(false);
-            setEditingRule(null);
         } else {
             setChargeRules(prev => [...prev, result]);
-            setDialogOpen(false);
-            setEditingRule(null);
-            // Auto-open tier dialog for newly created TIERED rules
-            if (ruleData.chargeType === 'TIERED') {
-                toast({ title: "Rule Added", description: "Now configure the pricing tiers for this rule." });
-                // Delay so the rule dialog fully closes before the tier dialog opens
-                setTimeout(() => openTierDialog(result), 150);
-                return;
-            }
             toast({ title: "Rule Added", description: "New transaction charge rule has been added successfully." });
         }
+        
+        setDialogOpen(false);
+        setEditingRule(null);
     } catch (error: any) {
         toast({ variant: 'destructive', title: 'Error', description: error.message });
     } finally {
@@ -473,103 +448,55 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Charge Type</Label>
-              <Select value={ruleData.chargeType} onValueChange={(value) => setRuleData(prev => ({...prev, chargeType: value}))}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select Charge Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FLAT">FLAT – Single rate</SelectItem>
-                  <SelectItem value="TIERED">TIERED – Amount-based tiers</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="text-right">Percentage</Label>
+              <Input
+                type="number"
+                value={ruleData.percentage}
+                onChange={(e) => setRuleData(prev => ({...prev, percentage: e.target.value}))}
+                className="col-span-3"
+                placeholder="e.g. 0.5"
+              />
             </div>
-            {ruleData.chargeType === 'TIERED' ? (
-              <>
-                <div className="rounded-md border border-dashed border-muted-foreground/40 bg-muted/30 p-4 text-sm text-muted-foreground">
-                  <p className="font-medium text-foreground mb-1">Tiered pricing enabled</p>
-                  <p>Rates (%, fixed amount, min/max) are set per tier based on transaction amount ranges.</p>
-                  {editingRule && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="mt-3"
-                      onClick={() => { setDialogOpen(false); setTimeout(() => openTierDialog(editingRule), 150); }}
-                    >
-                      <Layers className="mr-2 h-4 w-4" />
-                      Manage Tiers
-                    </Button>
-                  )}
-                  {!editingRule && (
-                    <p className="mt-2 text-xs italic">Save this rule — the tier editor will open automatically.</p>
-                  )}
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Default VAT %</Label>
-                  <Input
-                    type="number"
-                    value={ruleData.vatPercentage}
-                    onChange={(e) => setRuleData(prev => ({...prev, vatPercentage: e.target.value}))}
-                    className="col-span-3"
-                    placeholder="15"
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Percentage</Label>
-                  <Input
-                    type="number"
-                    value={ruleData.percentage}
-                    onChange={(e) => setRuleData(prev => ({...prev, percentage: e.target.value}))}
-                    className="col-span-3"
-                    placeholder="e.g. 0.5"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Fixed Amt</Label>
-                  <Input
-                    type="number"
-                    value={ruleData.fixedAmount}
-                    onChange={(e) => setRuleData(prev => ({...prev, fixedAmount: e.target.value}))}
-                    className="col-span-3"
-                    placeholder="e.g. 10.00"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">VAT %</Label>
-                  <Input
-                    type="number"
-                    value={ruleData.vatPercentage}
-                    onChange={(e) => setRuleData(prev => ({...prev, vatPercentage: e.target.value}))}
-                    className="col-span-3"
-                    placeholder="15"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Min Charge</Label>
-                  <Input
-                    type="number"
-                    value={ruleData.minCharge}
-                    onChange={(e) => setRuleData(prev => ({...prev, minCharge: e.target.value}))}
-                    className="col-span-3"
-                    placeholder="Min charge (optional)"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Max Charge</Label>
-                  <Input
-                    type="number"
-                    value={ruleData.maxCharge}
-                    onChange={(e) => setRuleData(prev => ({...prev, maxCharge: e.target.value}))}
-                    className="col-span-3"
-                    placeholder="Max charge (optional)"
-                  />
-                </div>
-              </>
-            )}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Fixed Amt</Label>
+              <Input
+                type="number"
+                value={ruleData.fixedAmount}
+                onChange={(e) => setRuleData(prev => ({...prev, fixedAmount: e.target.value}))}
+                className="col-span-3"
+                placeholder="e.g. 10.00"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">VAT %</Label>
+              <Input
+                type="number"
+                value={ruleData.vatPercentage}
+                onChange={(e) => setRuleData(prev => ({...prev, vatPercentage: e.target.value}))}
+                className="col-span-3"
+                placeholder="15"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Min Charge</Label>
+              <Input
+                type="number"
+                value={ruleData.minCharge}
+                onChange={(e) => setRuleData(prev => ({...prev, minCharge: e.target.value}))}
+                className="col-span-3"
+                placeholder="Min charge (optional)"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Max Charge</Label>
+              <Input
+                type="number"
+                value={ruleData.maxCharge}
+                onChange={(e) => setRuleData(prev => ({...prev, maxCharge: e.target.value}))}
+                className="col-span-3"
+                placeholder="Max charge (optional)"
+              />
+            </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right">Effective From</Label>
               <Input
@@ -615,156 +542,6 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
                     Delete
                 </AlertDialogAction>
             </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Tier Management Dialog */}
-      <Dialog open={isTierDialogOpen} onOpenChange={(open) => { setTierDialogOpen(open); if (!open) setTierFormOpen(false); }}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Manage Tiers – {tierRule?.serviceName || tierRule?.category}</DialogTitle>
-            <DialogDescription>
-              Define amount ranges and their fees. Each tier covers a range (e.g. 0–50 ETB) with its own percentage, fixed fee, and VAT.
-            </DialogDescription>
-          </DialogHeader>
-          {isLoadingTiers ? (
-            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
-          ) : (
-            <>
-              {/* Tier form — shown first when adding */}
-              {isTierFormOpen && (
-                <div className="border rounded-md p-4 bg-muted/30 grid gap-3">
-                  <p className="text-sm font-semibold">{editingTier ? 'Edit Tier' : '➕ New Tier'}</p>
-
-                  {/* Amount range row */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-xs font-medium">Amount From (ETB) *</Label>
-                      <Input type="number" value={tierData.amountFrom} onChange={(e) => setTierData(p => ({...p, amountFrom: e.target.value}))} placeholder="e.g. 0" />
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium">Amount To (ETB) <span className="text-muted-foreground font-normal">— leave blank for unlimited</span></Label>
-                      <Input type="number" value={tierData.amountTo} onChange={(e) => setTierData(p => ({...p, amountTo: e.target.value}))} placeholder="e.g. 50  (blank = ∞)" />
-                    </div>
-                  </div>
-
-                  {/* Charges row */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <Label className="text-xs font-medium">Percentage (%)</Label>
-                      <Input type="number" value={tierData.percentage} onChange={(e) => setTierData(p => ({...p, percentage: e.target.value}))} placeholder="e.g. 2.5" />
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium">Fixed Amount (ETB)</Label>
-                      <Input type="number" value={tierData.fixedAmount} onChange={(e) => setTierData(p => ({...p, fixedAmount: e.target.value}))} placeholder="e.g. 1.00" />
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium">VAT % <span className="text-muted-foreground font-normal">(optional override)</span></Label>
-                      <Input type="number" value={tierData.vatPercentage} onChange={(e) => setTierData(p => ({...p, vatPercentage: e.target.value}))} placeholder="Inherit from rule" />
-                    </div>
-                  </div>
-
-                  {/* Min/Max + metadata row */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <Label className="text-xs font-medium">Min Charge (ETB)</Label>
-                      <Input type="number" value={tierData.minCharge} onChange={(e) => setTierData(p => ({...p, minCharge: e.target.value}))} placeholder="Optional" />
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium">Max Charge (ETB)</Label>
-                      <Input type="number" value={tierData.maxCharge} onChange={(e) => setTierData(p => ({...p, maxCharge: e.target.value}))} placeholder="Optional" />
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium">Tier Name</Label>
-                      <Input value={tierData.tierName} onChange={(e) => setTierData(p => ({...p, tierName: e.target.value}))} placeholder="e.g. Small Amount" />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 justify-end pt-1">
-                    <Button variant="outline" size="sm" onClick={() => setTierFormOpen(false)}>Cancel</Button>
-                    {!editingTier && (
-                      <Button variant="outline" size="sm" onClick={() => handleSaveTier(true)} disabled={isTierSaving}>
-                        {isTierSaving && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-                        Save &amp; Add Another
-                      </Button>
-                    )}
-                    <Button size="sm" onClick={() => handleSaveTier(false)} disabled={isTierSaving}>
-                      {isTierSaving && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-                      {editingTier ? 'Update Tier' : 'Save Tier'}
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Existing tiers table */}
-              {tiers.length > 0 && (
-                <div className="rounded-md border mt-2">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>#</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>From (ETB)</TableHead>
-                        <TableHead>To (ETB)</TableHead>
-                        <TableHead>%</TableHead>
-                        <TableHead>Fixed</TableHead>
-                        <TableHead>VAT %</TableHead>
-                        <TableHead>Min / Max</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {tiers.map((tier) => (
-                        <TableRow key={tier.id}>
-                          <TableCell>{tier.displayOrder}</TableCell>
-                          <TableCell>{tier.tierName || '-'}</TableCell>
-                          <TableCell className="font-mono">{tier.amountFrom}</TableCell>
-                          <TableCell className="font-mono">{tier.amountTo ?? '∞'}</TableCell>
-                          <TableCell>{tier.percentage ? `${tier.percentage}%` : '-'}</TableCell>
-                          <TableCell>{tier.fixedAmount ? formatCurrency(tier.fixedAmount) : '-'}</TableCell>
-                          <TableCell>{tier.vatPercentage != null ? `${tier.vatPercentage}%` : <span className="text-muted-foreground text-xs">inherit</span>}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
-                            {tier.minCharge != null ? `Min: ${tier.minCharge}` : ''}
-                            {tier.minCharge != null && tier.maxCharge != null ? ' / ' : ''}
-                            {tier.maxCharge != null ? `Max: ${tier.maxCharge}` : ''}
-                            {tier.minCharge == null && tier.maxCharge == null ? '-' : ''}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" onClick={() => openEditTierForm(tier)}><Edit className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" className="text-red-500" onClick={() => setTierToDelete(tier)}><Trash2 className="h-4 w-4" /></Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
-              {!isTierFormOpen && (
-                <Button variant="outline" size="sm" onClick={openAddTierForm} className="mt-2">
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Tier
-                </Button>
-              )}
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={!!tierToDelete} onOpenChange={(open) => !open && setTierToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Tier?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will remove the tier "{tierToDelete?.tierName || `${tierToDelete?.amountFrom} – ${tierToDelete?.amountTo ?? '∞'}`}".
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteTier} className="bg-red-600 hover:bg-red-700" disabled={isTierSaving}>
-              {isTierSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>

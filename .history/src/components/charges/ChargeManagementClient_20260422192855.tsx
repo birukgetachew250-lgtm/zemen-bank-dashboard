@@ -495,7 +495,7 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
                       variant="outline"
                       size="sm"
                       className="mt-3"
-                      onClick={() => { setDialogOpen(false); setTimeout(() => openTierDialog(editingRule), 150); }}
+                      onClick={() => { setDialogOpen(false); openTierDialog(editingRule); }}
                     >
                       <Layers className="mr-2 h-4 w-4" />
                       Manage Tiers

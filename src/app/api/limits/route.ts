@@ -77,13 +77,16 @@ export async function POST(req: Request) {
 
         for (const intervalId in limits) {
             if (Object.prototype.hasOwnProperty.call(limits, intervalId)) {
-                const amount = limits[intervalId];
+                const entry = limits[intervalId];
+                const amount = typeof entry === 'object' ? entry.amount : entry;
+                const perTransactionLimit = typeof entry === 'object' ? entry.perTransactionLimit : null;
                 if (amount !== null && amount !== '') {
-                    const intervalQuery = `INSERT INTO ${INTERVAL_TABLE} ("Id", "LimitRuleId", "PeriodIntervalId", "LimitAmount", "Currency", "InsertDate", "Version") VALUES (SYS_GUID(), :LimitRuleId, :PeriodIntervalId, :LimitAmount, :Currency, SYSTIMESTAMP, SUBSTR(RAWTOHEX(SYS_GUID()), 1, 8))`;
+                    const intervalQuery = `INSERT INTO ${INTERVAL_TABLE} ("Id", "LimitRuleId", "PeriodIntervalId", "LimitAmount", "PerTransactionLimit", "Currency", "InsertDate", "Version") VALUES (SYS_GUID(), :LimitRuleId, :PeriodIntervalId, :LimitAmount, :PerTransactionLimit, :Currency, SYSTIMESTAMP, SUBSTR(RAWTOHEX(SYS_GUID()), 1, 8))`;
                     await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, intervalQuery, {
                         LimitRuleId: limitRuleId,
                         PeriodIntervalId: intervalId,
                         LimitAmount: parseFloat(amount),
+                        PerTransactionLimit: perTransactionLimit ? parseFloat(perTransactionLimit) : null,
                         Currency: currency || 'ETB',
                     });
                 }
@@ -130,13 +133,16 @@ export async function PUT(req: Request) {
         
         for (const intervalId in limits) {
             if (Object.prototype.hasOwnProperty.call(limits, intervalId)) {
-                const amount = limits[intervalId];
+                const entry = limits[intervalId];
+                const amount = typeof entry === 'object' ? entry.amount : entry;
+                const perTransactionLimit = typeof entry === 'object' ? entry.perTransactionLimit : null;
                 if (amount !== null && amount !== '') {
-                    const intervalQuery = `INSERT INTO ${INTERVAL_TABLE} ("Id", "LimitRuleId", "PeriodIntervalId", "LimitAmount", "Currency", "InsertDate", "Version") VALUES (SYS_GUID(), :LimitRuleId, :PeriodIntervalId, :LimitAmount, :Currency, SYSTIMESTAMP, SUBSTR(RAWTOHEX(SYS_GUID()), 1, 8))`;
+                    const intervalQuery = `INSERT INTO ${INTERVAL_TABLE} ("Id", "LimitRuleId", "PeriodIntervalId", "LimitAmount", "PerTransactionLimit", "Currency", "InsertDate", "Version") VALUES (SYS_GUID(), :LimitRuleId, :PeriodIntervalId, :LimitAmount, :PerTransactionLimit, :Currency, SYSTIMESTAMP, SUBSTR(RAWTOHEX(SYS_GUID()), 1, 8))`;
                     await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, intervalQuery, {
                         LimitRuleId: id,
                         PeriodIntervalId: intervalId,
                         LimitAmount: parseFloat(amount),
+                        PerTransactionLimit: perTransactionLimit ? parseFloat(perTransactionLimit) : null,
                         Currency: currency || 'ETB',
                     });
                 }

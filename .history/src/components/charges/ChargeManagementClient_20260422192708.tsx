@@ -316,8 +316,7 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
             // Auto-open tier dialog for newly created TIERED rules
             if (ruleData.chargeType === 'TIERED') {
                 toast({ title: "Rule Added", description: "Now configure the pricing tiers for this rule." });
-                // Delay so the rule dialog fully closes before the tier dialog opens
-                setTimeout(() => openTierDialog(result), 150);
+                await openTierDialog(result);
                 return;
             }
             toast({ title: "Rule Added", description: "New transaction charge rule has been added successfully." });
@@ -495,7 +494,7 @@ export function ChargeManagementClient({ initialChargeRules, customerCategories,
                       variant="outline"
                       size="sm"
                       className="mt-3"
-                      onClick={() => { setDialogOpen(false); setTimeout(() => openTierDialog(editingRule), 150); }}
+                      onClick={() => { setDialogOpen(false); openTierDialog(editingRule); }}
                     >
                       <Layers className="mr-2 h-4 w-4" />
                       Manage Tiers

@@ -15,6 +15,7 @@ export async function GET() {
             cc."Name" as "category",
             tt."Name" as "transactionType",
             cr."ServiceName" as "serviceName",
+            cr."ChargeType" as "chargeType",
             cr."Percentage" as "percentage",
             cr."FixedAmount" as "fixedAmount",
             cr."VatPercentage" as "vatPercentage",
@@ -42,6 +43,7 @@ export async function GET() {
             category: row.category || 'All Categories',
             transactionType: row.transactionType || 'All Types',
             serviceName: row.serviceName,
+            chargeType: row.chargeType || 'FLAT',
             percentage: row.percentage,
             fixedAmount: row.fixedAmount,
             vatPercentage: row.vatPercentage,
@@ -58,20 +60,18 @@ export async function GET() {
 
 export async function POST(req: Request) {
     try {
-       
-               
-        const { categoryId, transactionTypeId, serviceName, percentage, fixedAmount, vatPercentage, minCharge, maxCharge, effectiveFrom, effectiveTo } = await req.json();
+        const { categoryId, transactionTypeId, serviceName, chargeType, percentage, fixedAmount, vatPercentage, minCharge, maxCharge, effectiveFrom, effectiveTo } = await req.json();
         const id = crypto.randomUUID();
-         const version = crypto.randomBytes(8);
         const query = `
-            INSERT INTO ${TABLE} ("Id", "CustomerCategoryId", "TransactionTypeId", "ServiceName", "Percentage", "FixedAmount", "VatPercentage", "MinCharge", "MaxCharge", "EffectiveFrom", "EffectiveTo", "IsActive", "InsertDate", "Version") 
-            VALUES (:Id, :CustomerCategoryId, :TransactionTypeId, :ServiceName, :Percentage, :FixedAmount, :VatPercentage, :MinCharge, :MaxCharge, TO_TIMESTAMP(:EffectiveFrom, 'YYYY-MM-DD"T"HH24:MI:SS'), TO_TIMESTAMP(:EffectiveTo, 'YYYY-MM-DD"T"HH24:MI:SS'), 1, SYSTIMESTAMP, :version)
+            INSERT INTO ${TABLE} ("Id", "CustomerCategoryId", "TransactionTypeId", "ServiceName", "ChargeType", "Percentage", "FixedAmount", "VatPercentage", "MinCharge", "MaxCharge", "EffectiveFrom", "EffectiveTo", "IsActive", "InsertDate", "Version") 
+            VALUES (:Id, :CustomerCategoryId, :TransactionTypeId, :ServiceName, :ChargeType, :Percentage, :FixedAmount, :VatPercentage, :MinCharge, :MaxCharge, TO_TIMESTAMP(:EffectiveFrom, 'YYYY-MM-DD"T"HH24:MI:SS'), TO_TIMESTAMP(:EffectiveTo, 'YYYY-MM-DD"T"HH24:MI:SS'), 1, SYSTIMESTAMP, SUBSTR(RAWTOHEX(SYS_GUID()), 1, 8))
         `;
         const binds = {
             Id: id,
             CustomerCategoryId: categoryId || null,
             TransactionTypeId: transactionTypeId || null,
             ServiceName: serviceName || null,
+            ChargeType: chargeType || 'FLAT',
             Percentage: parseFloat(percentage) || 0,
             FixedAmount: parseFloat(fixedAmount) || 0,
             VatPercentage: vatPercentage !== undefined && vatPercentage !== '' ? parseFloat(vatPercentage) : 15,
@@ -101,6 +101,7 @@ export async function POST(req: Request) {
             category: categoryName,
             transactionType: typeName,
             serviceName: serviceName || null,
+            chargeType: chargeType || 'FLAT',
             percentage: parseFloat(percentage) || 0,
             fixedAmount: parseFloat(fixedAmount) || 0,
             vatPercentage: binds.VatPercentage,
@@ -117,12 +118,13 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
     try {
-        const { id, categoryId, transactionTypeId, serviceName, percentage, fixedAmount, vatPercentage, minCharge, maxCharge, effectiveFrom, effectiveTo } = await req.json();
+        const { id, categoryId, transactionTypeId, serviceName, chargeType, percentage, fixedAmount, vatPercentage, minCharge, maxCharge, effectiveFrom, effectiveTo } = await req.json();
         const query = `
             UPDATE ${TABLE} SET 
                 "CustomerCategoryId" = :CustomerCategoryId, 
                 "TransactionTypeId" = :TransactionTypeId, 
                 "ServiceName" = :ServiceName,
+                "ChargeType" = :ChargeType,
                 "Percentage" = :Percentage,
                 "FixedAmount" = :FixedAmount,
                 "VatPercentage" = :VatPercentage,
@@ -138,6 +140,7 @@ export async function PUT(req: Request) {
             CustomerCategoryId: categoryId || null,
             TransactionTypeId: transactionTypeId || null,
             ServiceName: serviceName || null,
+            ChargeType: chargeType || 'FLAT',
             Percentage: parseFloat(percentage) || 0,
             FixedAmount: parseFloat(fixedAmount) || 0,
             VatPercentage: vatPercentage !== undefined && vatPercentage !== '' ? parseFloat(vatPercentage) : 15,
@@ -166,6 +169,7 @@ export async function PUT(req: Request) {
             category: categoryName,
             transactionType: typeName,
             serviceName: serviceName || null,
+            chargeType: chargeType || 'FLAT',
             percentage: parseFloat(percentage) || 0,
             fixedAmount: parseFloat(fixedAmount) || 0,
             vatPercentage: binds.VatPercentage,
