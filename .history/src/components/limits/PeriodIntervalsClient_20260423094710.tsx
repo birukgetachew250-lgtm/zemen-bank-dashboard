@@ -178,7 +178,7 @@ export function PeriodIntervalsClient({
       </Card>
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="w-[98vw] max-w-[98vw] sm:max-w-[98vw] h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Edit Period Interval' : 'Add New Period Interval'}</DialogTitle>
           </DialogHeader>

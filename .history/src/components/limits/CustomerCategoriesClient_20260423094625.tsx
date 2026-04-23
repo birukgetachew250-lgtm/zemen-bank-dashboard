@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useMemo, useRef } from 'react';
-import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -20,6 +19,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,11 +50,14 @@ export function CustomerCategoriesClient({
 }: CustomerCategoriesClientProps) {
   const [items, setItems] = useState(initialItems);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importPreview, setImportPreview] = useState<Category[] | null>(null);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Category | null>(null);
+  const [editingItem, setEditingItem] = useState<Category | null>(null);
+  const [newItem, setNewItem] = useState({ code: '', name: '', description: '' });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -61,6 +71,62 @@ export function CustomerCategoriesClient({
         (item.description || '').toLowerCase().includes(term)
     );
   }, [items, searchTerm]);
+
+  const openAddDialog = () => {
+    setEditingItem(null);
+    setNewItem({ code: '', name: '', description: '' });
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (item: Category) => {
+    setEditingItem(item);
+    setNewItem({ code: item.code, name: item.name, description: item.description });
+    setIsDialogOpen(true);
+  };
+
+  const handleSaveItem = async () => {
+    if (!newItem.code || !newItem.name) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Fields',
+        description: 'Code and Name are required.',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    const method = editingItem ? 'PUT' : 'POST';
+    const payload = editingItem ? { id: editingItem.id, ...newItem } : newItem;
+
+    try {
+      const res = await fetch('/api/limits/customer-categories', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.message || 'Failed to save category');
+      }
+
+      if (editingItem) {
+        setItems((prev) => prev.map((item) => (item.id === editingItem.id ? result : item)));
+        toast({ title: 'Success', description: 'Category updated.' });
+      } else {
+        setItems((prev) => [...prev, result].sort((a, b) => a.name.localeCompare(b.name)));
+        toast({ title: 'Success', description: 'New category added.' });
+      }
+
+      setNewItem({ code: '', name: '', description: '' });
+      setEditingItem(null);
+      setIsDialogOpen(false);
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Error', description: error.message });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!itemToDelete) {
@@ -192,11 +258,9 @@ export function CustomerCategoriesClient({
               <Upload className="mr-2 h-4 w-4" />
               Import Excel
             </Button>
-            <Button size="sm" asChild>
-              <Link href="/limits/categories/new">
+            <Button size="sm" onClick={openAddDialog}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Category
-              </Link>
             </Button>
           </div>
         </CardHeader>
@@ -225,10 +289,8 @@ export function CustomerCategoriesClient({
                       <TableCell className="font-medium">{item.name}</TableCell>
                       <TableCell>{item.description || '-'}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/limits/categories/${item.id}/edit`}>
-                            <Edit className="h-4 w-4" />
-                          </Link>
+                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)}>
+                          <Edit className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => setItemToDelete(item)}>
                           <Trash2 className="h-4 w-4 text-red-500" />
@@ -243,12 +305,53 @@ export function CustomerCategoriesClient({
         </CardContent>
       </Card>
 
-      {isImportDialogOpen && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Import Preview - {importPreview?.length ?? 0} row(s)</CardTitle>
-          </CardHeader>
-          <CardContent>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="w-[98vw] max-w-[98vw] sm:max-w-[98vw] h-[95vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingItem ? 'Edit Customer Category' : 'Add New Customer Category'}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Input
+              placeholder="Category Code"
+              value={newItem.code}
+              onChange={(event) => setNewItem((prev) => ({ ...prev, code: event.target.value }))}
+            />
+            <Input
+              placeholder="Category Name"
+              value={newItem.name}
+              onChange={(event) => setNewItem((prev) => ({ ...prev, name: event.target.value }))}
+            />
+            <Input
+              placeholder="Description"
+              value={newItem.description}
+              onChange={(event) => setNewItem((prev) => ({ ...prev, description: event.target.value }))}
+            />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleSaveItem} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {editingItem ? 'Update' : 'Add'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isImportDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsImportDialogOpen(false);
+            setImportPreview(null);
+          }
+        }}
+      >
+        <DialogContent className="w-[98vw] max-w-[98vw] sm:max-w-[98vw] h-[95vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Import Preview - {importPreview?.length ?? 0} row(s)</DialogTitle>
+          </DialogHeader>
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
@@ -272,7 +375,7 @@ export function CustomerCategoriesClient({
           <p className="text-xs text-muted-foreground mt-2">
             Duplicate codes will be skipped. This cannot be undone.
           </p>
-          <div className="mt-4 flex items-center justify-end gap-2">
+          <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
@@ -286,10 +389,9 @@ export function CustomerCategoriesClient({
               {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Confirm Import
             </Button>
-          </div>
-          </CardContent>
-        </Card>
-      )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
         <AlertDialogContent>

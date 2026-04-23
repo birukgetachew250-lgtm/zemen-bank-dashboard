@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useMemo, useRef } from 'react';
-import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -20,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,11 +43,14 @@ export function CustomerCategoriesClient({
 }: CustomerCategoriesClientProps) {
   const [items, setItems] = useState(initialItems);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importPreview, setImportPreview] = useState<Category[] | null>(null);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Category | null>(null);
+  const [editingItem, setEditingItem] = useState<Category | null>(null);
+  const [newItem, setNewItem] = useState({ code: '', name: '', description: '' });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -61,6 +64,62 @@ export function CustomerCategoriesClient({
         (item.description || '').toLowerCase().includes(term)
     );
   }, [items, searchTerm]);
+
+  const openAddDialog = () => {
+    setEditingItem(null);
+    setNewItem({ code: '', name: '', description: '' });
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (item: Category) => {
+    setEditingItem(item);
+    setNewItem({ code: item.code, name: item.name, description: item.description });
+    setIsDialogOpen(true);
+  };
+
+  const handleSaveItem = async () => {
+    if (!newItem.code || !newItem.name) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Fields',
+        description: 'Code and Name are required.',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    const method = editingItem ? 'PUT' : 'POST';
+    const payload = editingItem ? { id: editingItem.id, ...newItem } : newItem;
+
+    try {
+      const res = await fetch('/api/limits/customer-categories', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.message || 'Failed to save category');
+      }
+
+      if (editingItem) {
+        setItems((prev) => prev.map((item) => (item.id === editingItem.id ? result : item)));
+        toast({ title: 'Success', description: 'Category updated.' });
+      } else {
+        setItems((prev) => [...prev, result].sort((a, b) => a.name.localeCompare(b.name)));
+        toast({ title: 'Success', description: 'New category added.' });
+      }
+
+      setNewItem({ code: '', name: '', description: '' });
+      setEditingItem(null);
+      setIsDialogOpen(false);
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Error', description: error.message });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!itemToDelete) {
@@ -192,11 +251,9 @@ export function CustomerCategoriesClient({
               <Upload className="mr-2 h-4 w-4" />
               Import Excel
             </Button>
-            <Button size="sm" asChild>
-              <Link href="/limits/categories/new">
+            <Button size="sm" onClick={openAddDialog}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Category
-              </Link>
             </Button>
           </div>
         </CardHeader>
@@ -225,10 +282,8 @@ export function CustomerCategoriesClient({
                       <TableCell className="font-medium">{item.name}</TableCell>
                       <TableCell>{item.description || '-'}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/limits/categories/${item.id}/edit`}>
-                            <Edit className="h-4 w-4" />
-                          </Link>
+                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)}>
+                          <Edit className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => setItemToDelete(item)}>
                           <Trash2 className="h-4 w-4 text-red-500" />
@@ -242,6 +297,39 @@ export function CustomerCategoriesClient({
           </div>
         </CardContent>
       </Card>
+
+      {isDialogOpen && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>{editingItem ? 'Edit Customer Category' : 'Add New Customer Category'}</CardTitle>
+            <CardDescription>Provide category details and save your changes.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 py-2">
+            <Input
+              placeholder="Category Code"
+              value={newItem.code}
+              onChange={(event) => setNewItem((prev) => ({ ...prev, code: event.target.value }))}
+            />
+            <Input
+              placeholder="Category Name"
+              value={newItem.name}
+              onChange={(event) => setNewItem((prev) => ({ ...prev, name: event.target.value }))}
+            />
+            <Input
+              placeholder="Description"
+              value={newItem.description}
+              onChange={(event) => setNewItem((prev) => ({ ...prev, description: event.target.value }))}
+            />
+          </CardContent>
+          <div className="flex items-center justify-end gap-2 p-6 pt-0">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveItem} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {editingItem ? 'Update' : 'Add'}
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {isImportDialogOpen && (
         <Card className="mt-6">

@@ -20,6 +20,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, PlusCircle, Trash2, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -317,15 +326,15 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
         </CardContent>
       </Card>
 
-      {isDialogOpen && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>{editingRule ? 'Edit' : 'Add'} Limit Rule</CardTitle>
-            <CardDescription>
+      <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="w-[98vw] max-w-[98vw] sm:max-w-[98vw] h-[95vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingRule ? 'Edit' : 'Add'} Limit Rule</DialogTitle>
+            <DialogDescription>
               Define the limits for a customer category and transaction type. Click save when you're done.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 py-2">
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right">Category</Label>
               <Select value={ruleData.categoryId} onValueChange={(value) => setRuleData(prev => ({...prev, categoryId: value}))}>
@@ -442,16 +451,18 @@ export function LimitManagementClient({ initialLimitRules, customerCategories, t
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Interval
                 </Button>
             </div>
-          </CardContent>
-          <div className="flex items-center justify-end gap-2 p-6 pt-0">
-            <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline">Cancel</Button>
+            </DialogClose>
             <Button type="button" onClick={handleSaveRule} disabled={isSaving}>
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save changes
             </Button>
-          </div>
-        </Card>
-      )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <AlertDialog open={!!ruleToDelete} onOpenChange={(open) => !open && setRuleToDelete(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>

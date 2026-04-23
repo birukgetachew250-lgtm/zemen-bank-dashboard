@@ -215,7 +215,7 @@ export function ExceptionalLimitsClient({ initialItems }: ExceptionalLimitsClien
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[98vw] max-w-[98vw] sm:max-w-[98vw] h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingLimit ? 'Edit' : 'Add'} Exceptional Limit</DialogTitle>
             <DialogDescription>

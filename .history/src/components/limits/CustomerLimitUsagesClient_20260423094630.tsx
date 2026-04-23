@@ -19,6 +19,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Loader2, PlusCircle, Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -426,14 +435,14 @@ export function CustomerLimitUsagesClient({ initialItems, dropdownData }: Custom
         </CardContent>
       </Card>
 
-      {isDialogOpen && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>{editingItem ? "Edit" : "Add"} Customer Limit Usage</CardTitle>
-            <CardDescription>Configure usage counters and period boundaries for a customer and service.</CardDescription>
-          </CardHeader>
+      <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="w-[98vw] max-w-[98vw] sm:max-w-[98vw] h-[95vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingItem ? "Edit" : "Add"} Customer Limit Usage</DialogTitle>
+            <DialogDescription>Configure usage counters and period boundaries for a customer and service.</DialogDescription>
+          </DialogHeader>
 
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
             <div className="space-y-2">
               <Label>CIF Number</Label>
               <Input value={formData.cifNumber} onChange={(e) => setFormData((p) => ({ ...p, cifNumber: e.target.value }))} />
@@ -593,17 +602,19 @@ export function CustomerLimitUsagesClient({ initialItems, dropdownData }: Custom
                 <span className="text-sm text-muted-foreground">Active usage record</span>
               </div>
             </div>
-          </CardContent>
+          </div>
 
-          <div className="flex items-center justify-end gap-2 p-6 pt-0">
-            <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline">Cancel</Button>
+            </DialogClose>
             <Button type="button" onClick={handleSave} disabled={isSaving}>
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Usage
             </Button>
-          </div>
-        </Card>
-      )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
         <AlertDialogContent>
