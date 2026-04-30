@@ -38,6 +38,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { DropdownItem } from "../charges/ChargeManagementClient";
+import type { Interval } from "@/app/(main)/limits/page";
 import Link from "next/link";
 
 export interface LimitRule {
@@ -68,6 +70,10 @@ const formatCurrency = (amount: number) => {
 
 interface LimitManagementClientProps {
   initialLimitRules: LimitRule[];
+  customerCategories: DropdownItem[];
+  transactionTypes: DropdownItem[];
+  intervals: Interval[];
+  serviceOptions: DropdownItem[];
 }
 
 function parseAdvancedQuery(query: string) {
@@ -95,6 +101,10 @@ function parseAdvancedQuery(query: string) {
 
 export function LimitManagementClient({
   initialLimitRules,
+  customerCategories,
+  transactionTypes,
+  intervals,
+  serviceOptions,
 }: LimitManagementClientProps) {
   const [limitRules, setLimitRules] = useState<LimitRule[]>(initialLimitRules);
   const [isSaving, setIsSaving] = useState(false);
