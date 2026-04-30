@@ -83,6 +83,16 @@ const statusColors: Record<string, string> = {
   REVERSED: "bg-purple-100 text-purple-800",
 };
 
+const NO_LIMIT_CONFIGURED_MESSAGE = "No limit is configured for this transaction.";
+
+function formatLimitValidationMessage(message: string | null) {
+  if (!message) return null;
+  if (message.trim() === NO_LIMIT_CONFIGURED_MESSAGE) {
+    return "Transaction blocked: No limit rule is configured for this service/customer category. Please configure a limit rule before processing.";
+  }
+  return message;
+}
+
 export function CustomerTransactionsClient() {
   const [transactions, setTransactions] = useState<CustomerTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -275,7 +285,7 @@ export function CustomerTransactionsClient() {
                                   label="Limit Passed"
                                   value={tx.LimitValidationPassed === 1 ? "Yes" : tx.LimitValidationPassed === 0 ? "No" : null}
                                 />
-                                <DetailField label="Limit Message" value={tx.LimitValidationMessage} />
+                                <DetailField label="Limit Message" value={formatLimitValidationMessage(tx.LimitValidationMessage)} />
                                 <DetailField label="Approved" value={tx.IsApproved === 1 ? "Yes" : tx.IsApproved === 0 ? "No" : null} />
                                 <DetailField label="Error Code" value={tx.ErrorCode} />
                                 <DetailField label="Error Message" value={tx.ErrorMessage} />

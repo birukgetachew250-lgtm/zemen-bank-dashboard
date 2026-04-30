@@ -50,7 +50,6 @@ export async function GET() {
         cr."Percentage" as "percentage",
         cr."FixedAmount" as "fixedAmount",
         cr."VatPercentage" as "vatPercentage",
-        cr."DisasterRiskPercentage" as "disasterRiskPercentage",
         cr."MinCharge" as "minCharge",
         cr."MaxCharge" as "maxCharge",
         cr."EffectiveFrom" as "effectiveFrom",
@@ -94,7 +93,6 @@ export async function GET() {
           percentage: row.percentage,
           fixedAmount: row.fixedAmount,
           vatPercentage: row.vatPercentage,
-          disasterRiskPercentage: row.disasterRiskPercentage,
           minCharge: row.minCharge,
           maxCharge: row.maxCharge,
           effectiveFrom: row.effectiveFrom,
@@ -119,7 +117,6 @@ export async function POST(req: Request) {
       percentage,
       fixedAmount,
       vatPercentage,
-      disasterRiskPercentage,
       minCharge,
       maxCharge,
       effectiveFrom,
@@ -130,10 +127,10 @@ export async function POST(req: Request) {
     const id = crypto.randomUUID();
     const query = `
       INSERT INTO ${TABLE} (
-        "Id", "CustomerCategoryId", "TransactionTypeId", "ServiceName", "ChargeType", "Percentage", "FixedAmount", "VatPercentage", "DisasterRiskPercentage", "MinCharge", "MaxCharge", "EffectiveFrom", "EffectiveTo", "IsActive", "InsertDate", "Version"
+        "Id", "CustomerCategoryId", "TransactionTypeId", "ServiceName", "ChargeType", "Percentage", "FixedAmount", "VatPercentage", "MinCharge", "MaxCharge", "EffectiveFrom", "EffectiveTo", "IsActive", "InsertDate", "Version"
       )
       VALUES (
-        :Id, :CustomerCategoryId, :TransactionTypeId, :ServiceName, :ChargeType, :Percentage, :FixedAmount, :VatPercentage, :DisasterRiskPercentage, :MinCharge, :MaxCharge,
+        :Id, :CustomerCategoryId, :TransactionTypeId, :ServiceName, :ChargeType, :Percentage, :FixedAmount, :VatPercentage, :MinCharge, :MaxCharge,
         CASE WHEN :EffectiveFrom IS NOT NULL THEN TO_TIMESTAMP(:EffectiveFrom, 'YYYY-MM-DD"T"HH24:MI') ELSE NULL END,
         CASE WHEN :EffectiveTo IS NOT NULL THEN TO_TIMESTAMP(:EffectiveTo, 'YYYY-MM-DD"T"HH24:MI') ELSE NULL END,
         1, SYSTIMESTAMP, SUBSTR(RAWTOHEX(SYS_GUID()), 1, 8)
@@ -149,8 +146,6 @@ export async function POST(req: Request) {
       Percentage: parseFloat(percentage) || 0,
       FixedAmount: parseFloat(fixedAmount) || 0,
       VatPercentage: vatPercentage !== undefined && vatPercentage !== '' ? parseFloat(vatPercentage) : 15,
-      DisasterRiskPercentage:
-        disasterRiskPercentage !== undefined && disasterRiskPercentage !== '' ? parseFloat(disasterRiskPercentage) : null,
       MinCharge: minCharge ? parseFloat(minCharge) : null,
       MaxCharge: maxCharge ? parseFloat(maxCharge) : null,
       EffectiveFrom: parseDateTime(effectiveFrom),
@@ -208,7 +203,6 @@ export async function POST(req: Request) {
         percentage: parseFloat(percentage) || 0,
         fixedAmount: parseFloat(fixedAmount) || 0,
         vatPercentage: binds.VatPercentage,
-        disasterRiskPercentage: binds.DisasterRiskPercentage,
         minCharge: binds.MinCharge,
         maxCharge: binds.MaxCharge,
         effectiveFrom: binds.EffectiveFrom,
@@ -234,7 +228,6 @@ export async function PUT(req: Request) {
       percentage,
       fixedAmount,
       vatPercentage,
-      disasterRiskPercentage,
       minCharge,
       maxCharge,
       effectiveFrom,
@@ -252,7 +245,6 @@ export async function PUT(req: Request) {
         "Percentage" = :Percentage,
         "FixedAmount" = :FixedAmount,
         "VatPercentage" = :VatPercentage,
-        "DisasterRiskPercentage" = :DisasterRiskPercentage,
         "MinCharge" = :MinCharge,
         "MaxCharge" = :MaxCharge,
         "EffectiveFrom" = CASE WHEN :EffectiveFrom IS NOT NULL THEN TO_TIMESTAMP(:EffectiveFrom, 'YYYY-MM-DD"T"HH24:MI') ELSE NULL END,
@@ -270,8 +262,6 @@ export async function PUT(req: Request) {
       Percentage: parseFloat(percentage) || 0,
       FixedAmount: parseFloat(fixedAmount) || 0,
       VatPercentage: vatPercentage !== undefined && vatPercentage !== '' ? parseFloat(vatPercentage) : 15,
-      DisasterRiskPercentage:
-        disasterRiskPercentage !== undefined && disasterRiskPercentage !== '' ? parseFloat(disasterRiskPercentage) : null,
       MinCharge: minCharge ? parseFloat(minCharge) : null,
       MaxCharge: maxCharge ? parseFloat(maxCharge) : null,
       EffectiveFrom: parseDateTime(effectiveFrom),
@@ -334,7 +324,6 @@ export async function PUT(req: Request) {
       percentage: parseFloat(percentage) || 0,
       fixedAmount: parseFloat(fixedAmount) || 0,
       vatPercentage: binds.VatPercentage,
-      disasterRiskPercentage: binds.DisasterRiskPercentage,
       minCharge: binds.MinCharge,
       maxCharge: binds.MaxCharge,
       effectiveFrom: binds.EffectiveFrom,

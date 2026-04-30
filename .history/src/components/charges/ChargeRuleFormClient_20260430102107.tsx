@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MultiSelectSearch } from '@/components/ui/multi-select-search';
 import { useToast } from '@/hooks/use-toast';
 
 interface DropdownItem {
@@ -31,7 +31,6 @@ interface ChargeRuleFormClientProps {
     percentage: number;
     fixedAmount: number;
     vatPercentage: number;
-    disasterRiskPercentage?: number;
     minCharge: number | null;
     maxCharge: number | null;
     effectiveFrom: string | null;
@@ -59,7 +58,6 @@ export function ChargeRuleFormClient({
     percentage: String(initialRule?.percentage || ''),
     fixedAmount: String(initialRule?.fixedAmount || ''),
     vatPercentage: String(initialRule?.vatPercentage ?? 15),
-    disasterRiskPercentage: String(initialRule?.disasterRiskPercentage ?? ''),
     minCharge: initialRule?.minCharge !== null && initialRule?.minCharge !== undefined ? String(initialRule.minCharge) : '',
     maxCharge: initialRule?.maxCharge !== null && initialRule?.maxCharge !== undefined ? String(initialRule.maxCharge) : '',
     effectiveFrom: toDateTimeLocal(initialRule?.effectiveFrom),
@@ -127,14 +125,27 @@ export function ChargeRuleFormClient({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="grid gap-2">
             <Label>Customer Categories</Label>
-            <MultiSelectSearch
-              options={customerCategories.map((cat) => ({ id: cat.id, label: cat.name }))}
-              selectedIds={ruleData.categoryIds}
-              onChange={(ids) => setRuleData((prev) => ({ ...prev, categoryIds: ids }))}
-              placeholder="All Categories (wildcard)"
-              searchPlaceholder="Search categories..."
-              emptyText="No categories found."
-            />
+            <div className="rounded-md border p-3 space-y-2 max-h-48 overflow-auto">
+              {customerCategories.map((cat) => {
+                const checked = ruleData.categoryIds.includes(cat.id);
+                return (
+                  <label key={cat.id} className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(state) => {
+                        setRuleData((prev) => ({
+                          ...prev,
+                          categoryIds: state
+                            ? [...prev.categoryIds, cat.id]
+                            : prev.categoryIds.filter((id) => id !== cat.id),
+                        }));
+                      }}
+                    />
+                    <span>{cat.name}</span>
+                  </label>
+                );
+              })}
+            </div>
             <p className="text-xs text-muted-foreground">Leave all unchecked to apply to all categories.</p>
           </div>
 
@@ -162,10 +173,6 @@ export function ChargeRuleFormClient({
             value={ruleData.serviceName}
             onChange={(e) => setRuleData((prev) => ({ ...prev, serviceName: e.target.value }))}
           />
-        </div>
-
-        <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
-          Disaster Risk Levy is mandatory for every charge calculation and is applied server-side.
         </div>
 
         <div className="grid gap-2">
@@ -227,15 +234,6 @@ export function ChargeRuleFormClient({
               type="number"
               value={ruleData.vatPercentage}
               onChange={(e) => setRuleData((prev) => ({ ...prev, vatPercentage: e.target.value }))}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label>Disaster Risk %</Label>
-            <Input
-              type="number"
-              placeholder="e.g. 1.5"
-              value={ruleData.disasterRiskPercentage}
-              onChange={(e) => setRuleData((prev) => ({ ...prev, disasterRiskPercentage: e.target.value }))}
             />
           </div>
           <div className="grid gap-2">

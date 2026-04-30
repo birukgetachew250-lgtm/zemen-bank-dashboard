@@ -31,7 +31,6 @@ interface ChargeRuleFormClientProps {
     percentage: number;
     fixedAmount: number;
     vatPercentage: number;
-    disasterRiskPercentage?: number;
     minCharge: number | null;
     maxCharge: number | null;
     effectiveFrom: string | null;
@@ -59,7 +58,6 @@ export function ChargeRuleFormClient({
     percentage: String(initialRule?.percentage || ''),
     fixedAmount: String(initialRule?.fixedAmount || ''),
     vatPercentage: String(initialRule?.vatPercentage ?? 15),
-    disasterRiskPercentage: String(initialRule?.disasterRiskPercentage ?? ''),
     minCharge: initialRule?.minCharge !== null && initialRule?.minCharge !== undefined ? String(initialRule.minCharge) : '',
     maxCharge: initialRule?.maxCharge !== null && initialRule?.maxCharge !== undefined ? String(initialRule.maxCharge) : '',
     effectiveFrom: toDateTimeLocal(initialRule?.effectiveFrom),
@@ -227,15 +225,6 @@ export function ChargeRuleFormClient({
               type="number"
               value={ruleData.vatPercentage}
               onChange={(e) => setRuleData((prev) => ({ ...prev, vatPercentage: e.target.value }))}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label>Disaster Risk %</Label>
-            <Input
-              type="number"
-              placeholder="e.g. 1.5"
-              value={ruleData.disasterRiskPercentage}
-              onChange={(e) => setRuleData((prev) => ({ ...prev, disasterRiskPercentage: e.target.value }))}
             />
           </div>
           <div className="grid gap-2">

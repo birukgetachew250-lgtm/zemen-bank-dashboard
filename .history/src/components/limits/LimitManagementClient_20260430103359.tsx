@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, PlusCircle, Trash2, Loader2, Search, FilterX, Eye } from "lucide-react";
+import { Edit, PlusCircle, Trash2, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MultiSelectSearch } from "@/components/ui/multi-select-search";
@@ -79,29 +79,6 @@ interface LimitManagementClientProps {
   serviceOptions: DropdownItem[];
 }
 
-function parseAdvancedQuery(query: string) {
-  const tokens = query.trim().split(/\s+/).filter(Boolean);
-  const advanced: Record<string, string> = {};
-  const freeText: string[] = [];
-
-  for (const token of tokens) {
-    const [rawKey, ...valueParts] = token.split(":");
-    if (!rawKey || valueParts.length === 0) {
-      freeText.push(token);
-      continue;
-    }
-    const key = rawKey.toLowerCase();
-    const value = valueParts.join(":").toLowerCase();
-    if (["category", "type", "service", "aggregation"].includes(key) && value) {
-      advanced[key] = value;
-    } else {
-      freeText.push(token);
-    }
-  }
-
-  return { advanced, freeText: freeText.join(" ").toLowerCase() };
-}
-
 export function LimitManagementClient({
   initialLimitRules,
   customerCategories,
@@ -114,11 +91,6 @@ export function LimitManagementClient({
   const [isSaving, setIsSaving] = useState(false);
   const [editingRule, setEditingRule] = useState<LimitRule | null>(null);
   const [ruleToDelete, setRuleToDelete] = useState<LimitRule | null>(null);
-  const [viewingRule, setViewingRule] = useState<LimitRule | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("ALL");
-  const [transactionTypeFilter, setTransactionTypeFilter] = useState("ALL");
-  const [aggregationFilter, setAggregationFilter] = useState("ALL");
 
   const [ruleData, setRuleData] = useState<{
     categoryIds: string[];
@@ -147,47 +119,6 @@ export function LimitManagementClient({
   });
 
   const { toast } = useToast();
-
-  const categoryOptions = useMemo(
-    () => Array.from(new Set(limitRules.map((r) => r.category || "All Categories"))).sort(),
-    [limitRules]
-  );
-
-  const transactionTypeOptions = useMemo(
-    () => Array.from(new Set(limitRules.map((r) => r.transactionType || "All Types"))).sort(),
-    [limitRules]
-  );
-
-  const filteredRules = useMemo(() => {
-    const { advanced, freeText } = parseAdvancedQuery(searchTerm);
-
-    return limitRules.filter((rule) => {
-      const category = (rule.category || "All Categories").toLowerCase();
-      const type = (rule.transactionType || "All Types").toLowerCase();
-      const aggregation = (rule.limitAggregationType || "PER_SERVICE").toLowerCase();
-      const service = (rule.serviceGroupDisplay || rule.serviceName || "").toLowerCase();
-
-      if (categoryFilter !== "ALL" && (rule.category || "All Categories") !== categoryFilter) return false;
-      if (transactionTypeFilter !== "ALL" && (rule.transactionType || "All Types") !== transactionTypeFilter) return false;
-      if (aggregationFilter !== "ALL" && (rule.limitAggregationType || "PER_SERVICE") !== aggregationFilter) return false;
-
-      if (advanced.category && !category.includes(advanced.category)) return false;
-      if (advanced.type && !type.includes(advanced.type)) return false;
-      if (advanced.aggregation && !aggregation.includes(advanced.aggregation)) return false;
-      if (advanced.service && !service.includes(advanced.service)) return false;
-
-      if (!freeText) return true;
-
-      return category.includes(freeText) || type.includes(freeText) || aggregation.includes(freeText) || service.includes(freeText);
-    });
-  }, [limitRules, searchTerm, categoryFilter, transactionTypeFilter, aggregationFilter]);
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setCategoryFilter("ALL");
-    setTransactionTypeFilter("ALL");
-    setAggregationFilter("ALL");
-  };
 
   const openAddDialog = () => {
     setEditingRule(null);
@@ -372,52 +303,7 @@ export function LimitManagementClient({
               Manage daily, weekly, and monthly transaction limits for different customer categories.
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Advanced search: category:RETAIL type:TRANSFER service:TELEBIRR aggregation:PER_SERVICE"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 w-[420px]"
-              />
-            </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Categories</SelectItem>
-                {categoryOptions.map((value) => (
-                  <SelectItem key={value} value={value}>{value}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={transactionTypeFilter} onValueChange={setTransactionTypeFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Types</SelectItem>
-                {transactionTypeOptions.map((value) => (
-                  <SelectItem key={value} value={value}>{value}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={aggregationFilter} onValueChange={setAggregationFilter}>
-              <SelectTrigger className="w-[170px]">
-                <SelectValue placeholder="All Aggregation" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Aggregation</SelectItem>
-                <SelectItem value="PER_SERVICE">PER_SERVICE</SelectItem>
-                <SelectItem value="SERVICE_GROUP">SERVICE_GROUP</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={clearFilters}>
-              <FilterX className="mr-2 h-4 w-4" />
-              Clear
-            </Button>
+          <div className="flex items-center gap-2">
             <Button variant="outline" asChild>
               <Link href="/limits/usages">Manage Usage</Link>
             </Button>
@@ -436,13 +322,17 @@ export function LimitManagementClient({
                   <TableHead>Transaction Type</TableHead>
                   <TableHead>Aggregation</TableHead>
                   <TableHead>Service(s)</TableHead>
-                  <TableHead>Limits Summary</TableHead>
+                  <TableHead>Global</TableHead>
+                  <TableHead>Daily Limit</TableHead>
+                  <TableHead>Weekly Limit</TableHead>
+                  <TableHead>Monthly Limit</TableHead>
+                  <TableHead>Per-Txn Limit</TableHead>
                   <TableHead>Currency</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRules.map((rule) => (
+                {limitRules.map((rule) => (
                   <TableRow key={rule.id}>
                     <TableCell>
                       <Badge variant="secondary">{rule.category || "All Categories"}</Badge>
@@ -454,18 +344,13 @@ export function LimitManagementClient({
                       </Badge>
                     </TableCell>
                     <TableCell>{rule.serviceGroupDisplay || rule.serviceName || "-"}</TableCell>
-                    <TableCell className="text-sm">
-                      <div>D: {formatCurrency(rule.dailyLimit)}</div>
-                      <div>W: {formatCurrency(rule.weeklyLimit)}</div>
-                      <div>M: {formatCurrency(rule.monthlyLimit)}</div>
-                      <div>P: {rule.perTransactionLimit != null ? formatCurrency(rule.perTransactionLimit) : "-"}</div>
-                      <div className="text-muted-foreground">Global: {rule.isGlobal ? "Yes" : "No"}</div>
-                    </TableCell>
+                    <TableCell>{rule.isGlobal ? <Badge>Yes</Badge> : "-"}</TableCell>
+                    <TableCell>{formatCurrency(rule.dailyLimit)}</TableCell>
+                    <TableCell>{formatCurrency(rule.weeklyLimit)}</TableCell>
+                    <TableCell>{formatCurrency(rule.monthlyLimit)}</TableCell>
+                    <TableCell>{rule.perTransactionLimit != null ? formatCurrency(rule.perTransactionLimit) : "-"}</TableCell>
                     <TableCell>{rule.currency}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => setViewingRule(rule)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => openEditDialog(rule)}>
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -676,34 +561,6 @@ export function LimitManagementClient({
           </div>
         </Card>
       )}
-
-      <AlertDialog open={!!viewingRule} onOpenChange={(open) => !open && setViewingRule(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Limit Rule Details</AlertDialogTitle>
-            <AlertDialogDescription>
-              Full details for {viewingRule?.category || "All Categories"} - {viewingRule?.transactionType || "All Types"}.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div><span className="text-muted-foreground">Category:</span> {viewingRule?.category || '-'}</div>
-            <div><span className="text-muted-foreground">Transaction Type:</span> {viewingRule?.transactionType || '-'}</div>
-            <div><span className="text-muted-foreground">Aggregation:</span> {viewingRule?.limitAggregationType || 'PER_SERVICE'}</div>
-            <div><span className="text-muted-foreground">Service(s):</span> {viewingRule?.serviceGroupDisplay || viewingRule?.serviceName || '-'}</div>
-            <div><span className="text-muted-foreground">Global:</span> {viewingRule?.isGlobal ? 'Yes' : 'No'}</div>
-            <div><span className="text-muted-foreground">Currency:</span> {viewingRule?.currency || '-'}</div>
-            <div><span className="text-muted-foreground">Daily:</span> {viewingRule ? formatCurrency(viewingRule.dailyLimit) : '-'}</div>
-            <div><span className="text-muted-foreground">Weekly:</span> {viewingRule ? formatCurrency(viewingRule.weeklyLimit) : '-'}</div>
-            <div><span className="text-muted-foreground">Monthly:</span> {viewingRule ? formatCurrency(viewingRule.monthlyLimit) : '-'}</div>
-            <div><span className="text-muted-foreground">Per Transaction:</span> {viewingRule?.perTransactionLimit != null ? formatCurrency(viewingRule.perTransactionLimit) : '-'}</div>
-            <div><span className="text-muted-foreground">Effective From:</span> {viewingRule?.effectiveFrom ? new Date(viewingRule.effectiveFrom).toLocaleString() : '-'}</div>
-            <div><span className="text-muted-foreground">Effective To:</span> {viewingRule?.effectiveTo ? new Date(viewingRule.effectiveTo).toLocaleString() : '-'}</div>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Close</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
       <AlertDialog open={!!ruleToDelete} onOpenChange={(open) => !open && setRuleToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

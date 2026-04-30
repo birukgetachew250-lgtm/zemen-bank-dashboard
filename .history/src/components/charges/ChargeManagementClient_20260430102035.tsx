@@ -20,16 +20,9 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, PlusCircle, Trash2, Loader2, Search, Layers, FilterX } from "lucide-react";
+import { Edit, PlusCircle, Trash2, Loader2, Search, Layers } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,7 +60,6 @@ export interface ChargeRule {
     percentage: number;
     fixedAmount: number;
     vatPercentage: number;
-    disasterRiskPercentage?: number | null;
     minCharge: number | null;
     maxCharge: number | null;
     effectiveFrom: string | null;
@@ -88,89 +80,24 @@ interface ChargeManagementClientProps {
     initialChargeRules: ChargeRule[];
 }
 
-function parseAdvancedQuery(query: string) {
-  const tokens = query.trim().split(/\s+/).filter(Boolean);
-  const advanced: Record<string, string> = {};
-  const freeText: string[] = [];
-
-  for (const token of tokens) {
-    const [rawKey, ...valueParts] = token.split(":");
-    if (!rawKey || valueParts.length === 0) {
-      freeText.push(token);
-      continue;
-    }
-    const key = rawKey.toLowerCase();
-    const value = valueParts.join(":").toLowerCase();
-    if (["category", "type", "service", "charge"].includes(key) && value) {
-      advanced[key] = value;
-    } else {
-      freeText.push(token);
-    }
-  }
-
-  return { advanced, freeText: freeText.join(" ").toLowerCase() };
-}
-
 export function ChargeManagementClient({ initialChargeRules }: ChargeManagementClientProps) {
   const [chargeRules, setChargeRules] = useState<ChargeRule[]>(initialChargeRules);
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("ALL");
-  const [transactionTypeFilter, setTransactionTypeFilter] = useState("ALL");
-  const [chargeTypeFilter, setChargeTypeFilter] = useState("ALL");
-  const [serviceFilter, setServiceFilter] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [ruleToDelete, setRuleToDelete] = useState<ChargeRule | null>(null);
 
   const { toast } = useToast();
 
-  const categoryOptions = useMemo(
-    () => Array.from(new Set(chargeRules.map((r) => r.categories || "All Categories"))).sort(),
-    [chargeRules]
-  );
-
-  const transactionTypeOptions = useMemo(
-    () => Array.from(new Set(chargeRules.map((r) => r.transactionType || "All Types"))).sort(),
-    [chargeRules]
-  );
-
   const filteredRules = useMemo(() => {
-    const { advanced, freeText } = parseAdvancedQuery(searchTerm);
-    const serviceTerm = serviceFilter.trim().toLowerCase();
-
-    return chargeRules.filter((r) => {
-      const categories = (r.categories || "All Categories").toLowerCase();
-      const type = (r.transactionType || "All Types").toLowerCase();
-      const service = (r.serviceName || "").toLowerCase();
-      const chargeType = (r.chargeType || "FLAT").toLowerCase();
-
-      if (categoryFilter !== "ALL" && (r.categories || "All Categories") !== categoryFilter) return false;
-      if (transactionTypeFilter !== "ALL" && (r.transactionType || "All Types") !== transactionTypeFilter) return false;
-      if (chargeTypeFilter !== "ALL" && (r.chargeType || "FLAT") !== chargeTypeFilter) return false;
-      if (serviceTerm && !service.includes(serviceTerm)) return false;
-
-      if (advanced.category && !categories.includes(advanced.category)) return false;
-      if (advanced.type && !type.includes(advanced.type)) return false;
-      if (advanced.service && !service.includes(advanced.service)) return false;
-      if (advanced.charge && !chargeType.includes(advanced.charge)) return false;
-
-      if (!freeText) return true;
-
-      return (
-        categories.includes(freeText) ||
-        type.includes(freeText) ||
-        service.includes(freeText) ||
-        chargeType.includes(freeText)
-      );
-    });
-  }, [chargeRules, searchTerm, categoryFilter, transactionTypeFilter, chargeTypeFilter, serviceFilter]);
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setCategoryFilter("ALL");
-    setTransactionTypeFilter("ALL");
-    setChargeTypeFilter("ALL");
-    setServiceFilter("");
-  };
+    if (!searchTerm.trim()) return chargeRules;
+    const term = searchTerm.toLowerCase();
+    return chargeRules.filter(
+      (r) =>
+        (r.categories || "All Categories").toLowerCase().includes(term) ||
+        r.transactionType.toLowerCase().includes(term) ||
+        (r.serviceName || "").toLowerCase().includes(term)
+    );
+  }, [chargeRules, searchTerm]);
 
   const handleDeleteRule = async () => {
       if (!ruleToDelete) return;
@@ -199,61 +126,18 @@ export function ChargeManagementClient({ initialChargeRules }: ChargeManagementC
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Transaction Charges</CardTitle>
-            <CardDescription>
-              Cleaner charge list with advanced filtering. Disaster Risk Levy is mandatory on every transaction.
-            </CardDescription>
+            <CardDescription>Manage percentage-based or fixed charges for different transactions.</CardDescription>
           </div>
-          <div className="flex items-center gap-2 flex-wrap justify-end">
+          <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Advanced search: category:GOLD type:TRANSFER service:TELEBIRR charge:FLAT"
+                placeholder="Search category, type, service…"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 w-[420px]"
+                className="pl-8 w-64"
               />
             </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Categories</SelectItem>
-                {categoryOptions.map((value) => (
-                  <SelectItem key={value} value={value}>{value}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={transactionTypeFilter} onValueChange={setTransactionTypeFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Types</SelectItem>
-                {transactionTypeOptions.map((value) => (
-                  <SelectItem key={value} value={value}>{value}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={chargeTypeFilter} onValueChange={setChargeTypeFilter}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="All Charges" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Charges</SelectItem>
-                <SelectItem value="FLAT">FLAT</SelectItem>
-                <SelectItem value="TIERED">TIERED</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              placeholder="Service contains..."
-              value={serviceFilter}
-              onChange={(e) => setServiceFilter(e.target.value)}
-              className="w-[180px]"
-            />
-            <Button variant="outline" onClick={clearFilters}>
-              <FilterX className="h-4 w-4 mr-2" /> Clear
-            </Button>
             <Button asChild>
               <Link href="/charges/new">
               <PlusCircle className="mr-2 h-4 w-4" />
@@ -271,15 +155,18 @@ export function ChargeManagementClient({ initialChargeRules }: ChargeManagementC
                   <TableHead>Transaction Type</TableHead>
                   <TableHead>Service</TableHead>
                   <TableHead>Charge Type</TableHead>
-                  <TableHead>Pricing Summary</TableHead>
-                  <TableHead>Disaster Risk</TableHead>
+                  <TableHead>Percentage</TableHead>
+                  <TableHead>Fixed Amount</TableHead>
+                  <TableHead>VAT %</TableHead>
+                  <TableHead>Min Charge</TableHead>
+                  <TableHead>Max Charge</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredRules.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No charge rules found.</TableCell>
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">No charge rules found.</TableCell>
                   </TableRow>
                 ) : filteredRules.map((rule) => (
                   <TableRow key={rule.id}>
@@ -291,17 +178,11 @@ export function ChargeManagementClient({ initialChargeRules }: ChargeManagementC
                     <TableCell>
                       <Badge variant={rule.chargeType === 'TIERED' ? 'default' : 'outline'}>{rule.chargeType || 'FLAT'}</Badge>
                     </TableCell>
-                    <TableCell className="text-sm">
-                      <div className="space-y-1">
-                        <div>{rule.percentage ? `${rule.percentage}%` : '-'} + {rule.fixedAmount ? formatCurrency(rule.fixedAmount) : '-'}</div>
-                        <div className="text-muted-foreground">VAT {rule.vatPercentage}%</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="destructive">
-                        Mandatory {rule.disasterRiskPercentage != null ? `(${rule.disasterRiskPercentage}%)` : ''}
-                      </Badge>
-                    </TableCell>
+                    <TableCell>{rule.percentage ? `${rule.percentage}%` : '-'}</TableCell>
+                    <TableCell>{rule.fixedAmount ? formatCurrency(rule.fixedAmount) : '-'}</TableCell>
+                    <TableCell>{rule.vatPercentage}%</TableCell>
+                    <TableCell>{formatCurrency(rule.minCharge)}</TableCell>
+                    <TableCell>{formatCurrency(rule.maxCharge)}</TableCell>
                     <TableCell className="text-right">
                       {rule.chargeType === 'TIERED' && (
                         <Button variant="ghost" size="icon" title="Manage Tiers" asChild>

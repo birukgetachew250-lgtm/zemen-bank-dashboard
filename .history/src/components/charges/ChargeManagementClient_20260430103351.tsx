@@ -67,7 +67,6 @@ export interface ChargeRule {
     percentage: number;
     fixedAmount: number;
     vatPercentage: number;
-    disasterRiskPercentage?: number | null;
     minCharge: number | null;
     maxCharge: number | null;
     effectiveFrom: string | null;
@@ -298,9 +297,7 @@ export function ChargeManagementClient({ initialChargeRules }: ChargeManagementC
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="destructive">
-                        Mandatory {rule.disasterRiskPercentage != null ? `(${rule.disasterRiskPercentage}%)` : ''}
-                      </Badge>
+                      <Badge variant="destructive">Mandatory</Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       {rule.chargeType === 'TIERED' && (

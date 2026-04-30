@@ -31,7 +31,6 @@ interface ChargeRuleFormClientProps {
     percentage: number;
     fixedAmount: number;
     vatPercentage: number;
-    disasterRiskPercentage?: number;
     minCharge: number | null;
     maxCharge: number | null;
     effectiveFrom: string | null;
@@ -59,7 +58,6 @@ export function ChargeRuleFormClient({
     percentage: String(initialRule?.percentage || ''),
     fixedAmount: String(initialRule?.fixedAmount || ''),
     vatPercentage: String(initialRule?.vatPercentage ?? 15),
-    disasterRiskPercentage: String(initialRule?.disasterRiskPercentage ?? ''),
     minCharge: initialRule?.minCharge !== null && initialRule?.minCharge !== undefined ? String(initialRule.minCharge) : '',
     maxCharge: initialRule?.maxCharge !== null && initialRule?.maxCharge !== undefined ? String(initialRule.maxCharge) : '',
     effectiveFrom: toDateTimeLocal(initialRule?.effectiveFrom),
@@ -164,10 +162,6 @@ export function ChargeRuleFormClient({
           />
         </div>
 
-        <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
-          Disaster Risk Levy is mandatory for every charge calculation and is applied server-side.
-        </div>
-
         <div className="grid gap-2">
           <Label>Charge Type</Label>
           <Select value={ruleData.chargeType} onValueChange={(value) => setRuleData((prev) => ({ ...prev, chargeType: value }))}>
@@ -227,15 +221,6 @@ export function ChargeRuleFormClient({
               type="number"
               value={ruleData.vatPercentage}
               onChange={(e) => setRuleData((prev) => ({ ...prev, vatPercentage: e.target.value }))}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label>Disaster Risk %</Label>
-            <Input
-              type="number"
-              placeholder="e.g. 1.5"
-              value={ruleData.disasterRiskPercentage}
-              onChange={(e) => setRuleData((prev) => ({ ...prev, disasterRiskPercentage: e.target.value }))}
             />
           </div>
           <div className="grid gap-2">
