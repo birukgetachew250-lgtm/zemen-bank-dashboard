@@ -14,15 +14,15 @@ function quoteIdentifier(identifier: string): string {
 
 async function resolveDisasterRiskColumn(): Promise<string | null> {
   const sql = `
-    SELECT "COLUMN_NAME"
-    FROM "USER_TAB_COLUMNS"
-    WHERE UPPER("TABLE_NAME") = 'CHARGERULES'
+    SELECT "COLUMN_NAME" as "columnName"
+    FROM "ALL_TAB_COLUMNS"
+    WHERE UPPER("OWNER") = 'LIMIT_CHARGE_MODULE'
+      AND UPPER("TABLE_NAME") = 'CHARGERULES'
       AND UPPER("COLUMN_NAME") = 'DISASTERRISKPERCENTAGE'
   `;
   const result: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, sql);
   const row = result.rows?.[0];
-  if (!row || typeof row !== 'object') return null;
-  return (row as any).COLUMN_NAME || (row as any).column_name || Object.values(row)[0] || null;
+  return row?.columnName || row?.COLUMN_NAME || null;
 }
 
 async function getChargeRules(): Promise<ChargeRule[]> {
