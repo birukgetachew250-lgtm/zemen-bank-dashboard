@@ -2,15 +2,30 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 
 export async function POST(req: Request) {
     try {
-        var test = await req.json();
-        console.log("incomplete:",test);
-        const { customer, accounts, manualData } = await req.json();
+        const session = await getServerSession(authOptions);
+        const sessionEmail = session?.user?.email;
+        if (!sessionEmail) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        }
 
-        if (!customer || !customer.customer_number || !accounts || !manualData) {
-            return NextResponse.json({ message: 'Incomplete customer, account, or manual data' }, { status: 400 });
+        const requester = await db.user.findUnique({
+            where: { email: sessionEmail },
+            select: { branch: true, email: true },
+        });
+
+        if (!requester) {
+            return NextResponse.json({ message: 'Requester account not found' }, { status: 403 });
+        }
+
+        const { customer, accounts, onboardingData } = await req.json();
+
+        if (!customer || !customer.customer_number || !accounts || !onboardingData) {
+            return NextResponse.json({ message: 'Incomplete customer, account, or onboarding data' }, { status: 400 });
         }
 
         // Find or create a "legacy" customer record to link the approval to.
@@ -33,7 +48,11 @@ export async function POST(req: Request) {
             cif: customer.customer_number, 
             customerData: customer, 
             linkedAccounts: accounts, 
-            onboardingData: manualData 
+            onboardingData: onboardingData,
+            requestContext: {
+                requesterBranch: requester.branch || null,
+                requesterEmail: requester.email,
+            },
         };
 
         // Create the approval request in the dashboard's database.
