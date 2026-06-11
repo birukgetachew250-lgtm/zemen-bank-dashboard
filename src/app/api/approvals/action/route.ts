@@ -412,10 +412,14 @@ export async function POST(req: Request) {
                     UPDATE "SECURITY_MODULE"."UserSecurities" 
                     SET 
                         "PinHash" = :pinHash, 
+                        "OnPinReset" = 1,
+                        "FailedAttempts" = 0,
                         "Status" = 'Active', 
                         "IsLocked" = 0, 
                         "UnlockedTime" = :unlockedTime, 
-                        "LockedIntervalMinutes" = 0
+                        "LockedIntervalMinutes" = 0,
+                        "UpdateDate" = SYSTIMESTAMP,
+                        "UpdateUser" = 'system'
                     WHERE "CIFNumber" = :cif`;
                 
                 await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, updateSecurityQuery, {

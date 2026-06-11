@@ -12,6 +12,17 @@ import { authOptions } from '@/lib/auth-options';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
 import { sendSms } from '@/services/sms-service';
 
+const extractRequesterBranch = (details?: string | null): string | null => {
+    if (!details) return null;
+
+    try {
+        const parsed = JSON.parse(details);
+        return parsed?.requestContext?.requesterBranch || parsed?.customerData?.branch || null;
+    } catch {
+        return null;
+    }
+};
+
 const approvalTypeToActionMap: Record<string, ActivityLogAction> = {
     'new-customer': 'CUSTOMER_CREATE_APPROVED',
     'updated-customer': 'CUSTOMER_UPDATE_APPROVED',
@@ -114,6 +125,30 @@ export async function POST(req: Request) {
         
         if (!approval) {
              return NextResponse.json({ message: 'Approval not found' }, { status: 404 });
+        }
+
+        const sessionEmail = session?.user?.email;
+        if (!sessionEmail) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        }
+
+        const approver = await db.user.findUnique({
+            where: { email: sessionEmail },
+            select: { role: true, branch: true },
+        });
+
+        if (!approver) {
+            return NextResponse.json({ message: 'Approver account not found' }, { status: 403 });
+        }
+
+        const requesterBranch = extractRequesterBranch(approval.details);
+        const isSuperAdmin = approver.role === 'Super Admin';
+        const isSameBranch = Boolean(approver.branch && requesterBranch && approver.branch === requesterBranch);
+
+        if (!isSuperAdmin && !isSameBranch) {
+            return NextResponse.json({
+                message: 'This request can only be actioned by users from the same branch as the requester.',
+            }, { status: 403 });
         }
 
         const logDetails = `Request ID: ${approval.id}, Type: ${approval.type}, Customer: ${approval.customerName} (${approval.customerPhone})`;
@@ -377,10 +412,14 @@ export async function POST(req: Request) {
                     UPDATE "SECURITY_MODULE"."UserSecurities" 
                     SET 
                         "PinHash" = :pinHash, 
+                        "OnPinReset" = 1,
+                        "FailedAttempts" = 0,
                         "Status" = 'Active', 
                         "IsLocked" = 0, 
                         "UnlockedTime" = :unlockedTime, 
-                        "LockedIntervalMinutes" = 0
+                        "LockedIntervalMinutes" = 0,
+                        "UpdateDate" = SYSTIMESTAMP,
+                        "UpdateUser" = 'system'
                     WHERE "CIFNumber" = :cif`;
                 
                 await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, updateSecurityQuery, {
