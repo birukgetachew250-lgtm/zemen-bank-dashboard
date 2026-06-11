@@ -7,6 +7,8 @@ import { sendEmail } from '@/services/email-service';
 
 const DEFAULT_SESSION_TIMEOUT_MINUTES = 30;
 
+const MAX_LOGIN_ATTEMPTS = 5;
+
 async function getSessionTimeoutMinutes(): Promise<number> {
   try {
     const policy = await db.securityPolicy.findUnique({ where: { id: 1 } });
@@ -73,7 +75,52 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
+          // If account is locked, prevent authentication
+          if ((user as any).isLocked) {
+            await logActivity({
+              userEmail: user.email,
+              action: 'LOGIN_FAILURE',
+              status: 'Failure',
+              details: 'Attempt to login to locked account.',
+              ipAddress: ip,
+            });
+            throw new Error('Your account is locked due to multiple failed login attempts.');
+          }
+
           if (user.password !== credentials.password) {
+            // increment failed attempts
+            try {
+              await db.user.update({
+                where: { id: user.id },
+                data: { failedLoginAttempts: { increment: 1 } as any },
+              });
+            } catch (e) {
+              console.error('Failed to increment failedLoginAttempts:', e);
+            }
+
+            // re-fetch to check count
+            const refreshed = await db.user.findUnique({ where: { id: user.id } });
+            const attempts = Number((refreshed as any)?.failedLoginAttempts || 0);
+
+            if (attempts >= MAX_LOGIN_ATTEMPTS) {
+              try {
+                await db.user.update({
+                  where: { id: user.id },
+                  data: { isLocked: true, status: 'Suspended' },
+                });
+              } catch (e) {
+                console.error('Failed to lock user account:', e);
+              }
+              await logActivity({
+                userEmail: user.email,
+                action: 'LOGIN_FAILURE',
+                status: 'Failure',
+                details: `Account locked after ${attempts} failed attempts.`,
+                ipAddress: ip,
+              });
+              throw new Error('Your account has been locked due to multiple failed login attempts. Please contact an administrator.');
+            }
+
             await logActivity({
               userEmail: user.email,
               action: 'LOGIN_FAILURE',
@@ -150,6 +197,13 @@ export const authOptions: NextAuthOptions = {
             } as any;
           }
 
+          // reset failed attempts on successful login
+          try {
+            await db.user.update({ where: { id: user.id }, data: { failedLoginAttempts: 0, isLocked: false } as any });
+          } catch (e) {
+            console.error('Failed to reset failedLoginAttempts after successful login:', e);
+          }
+
           await logActivity({
             userEmail: user.email,
             action: 'LOGIN_SUCCESS',
@@ -219,6 +273,22 @@ export const authOptions: NextAuthOptions = {
       if (!token.sessionTimeoutMinutes) {
         const timeoutMinutes = await getSessionTimeoutMinutes();
         token.sessionTimeoutMinutes = timeoutMinutes;
+      }
+
+      // Check for server-side session invalidation (e.g., after suspicious activity)
+      try {
+        if (token.email) {
+          const dbUser = await db.user.findUnique({ where: { email: token.email as string } });
+          if (dbUser?.sessionInvalidatedAt) {
+            const invalidatedAt = new Date(dbUser.sessionInvalidatedAt).getTime();
+            const tokenLastActivity = Number(token.lastActivityAt || 0);
+            if (tokenLastActivity < invalidatedAt) {
+              token.sessionExpired = true;
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to check session invalidation timestamp for user:', e);
       }
 
       const lastActivityAt = Number(token.lastActivityAt || now);

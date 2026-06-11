@@ -28,13 +28,31 @@ export async function POST(req: Request) {
         // IMPORTANT: In a real application, passwords should be hashed.
         // This is a plain-text comparison for demonstration purposes only.
         if (user.password !== currentPassword) {
+            // increment failed attempts and lock if threshold reached
+            try {
+                await db.user.update({ where: { id: user.id }, data: { failedLoginAttempts: { increment: 1 } as any } });
+            } catch (e) {
+                console.error('Failed to increment failedLoginAttempts on change-password:', e);
+            }
+
+            const refreshed = await db.user.findUnique({ where: { id: user.id } });
+            const attempts = Number((refreshed as any)?.failedLoginAttempts || 0);
+            if (attempts >= 5) {
+                try {
+                    await db.user.update({ where: { id: user.id }, data: { isLocked: true, status: 'Suspended' } as any });
+                } catch (e) {
+                    console.error('Failed to lock user on change-password:', e);
+                }
+                return NextResponse.json({ message: 'Account locked due to multiple failed attempts' }, { status: 403 });
+            }
+
             return NextResponse.json({ message: 'Incorrect current password' }, { status: 403 });
         }
         
         // In a real app, the new password would be hashed here.
         await db.user.update({
             where: { email: session.user.email },
-            data: { password: newPassword },
+            data: { password: newPassword, status: 'Active' },
         });
 
         return NextResponse.json({ success: true, message: 'Password updated successfully' });

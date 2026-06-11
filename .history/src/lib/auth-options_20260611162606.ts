@@ -7,10 +7,12 @@ import { sendEmail } from '@/services/email-service';
 
 const DEFAULT_SESSION_TIMEOUT_MINUTES = 30;
 
+const MAX_LOGIN_ATTEMPTS = 5;
+
 async function getSessionTimeoutMinutes(): Promise<number> {
   try {
     const policy = await db.securityPolicy.findUnique({ where: { id: 1 } });
-    return Math.max(5, Number(policy?.sessionTimeout || DEFAULT_SESSION_TIMEOUT_MINUTES));
+    return Math.max(1, Number(policy?.sessionTimeout || DEFAULT_SESSION_TIMEOUT_MINUTES));
   } catch {
     return DEFAULT_SESSION_TIMEOUT_MINUTES;
   }
@@ -84,6 +86,19 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid email or password.');
           }
 
+          if (user.status === 'Suspended') {
+            await logActivity({
+              userEmail: user.email,
+              action: 'LOGIN_FAILURE',
+              status: 'Failure',
+              details: 'Login blocked for suspended account.',
+              ipAddress: ip,
+            });
+            throw new Error('Your account is suspended. Please contact an administrator.');
+          }
+
+          const mustChangePassword = user.status === 'PasswordChangeRequired';
+
           const permissions = await getUserPermissions(user.role);
 
           if (user.mfaEnabled) {
@@ -123,6 +138,8 @@ export const authOptions: NextAuthOptions = {
               ipAddress: ip,
             });
 
+            const timeoutMinutes = await getSessionTimeoutMinutes();
+
             return {
               id: user.id.toString(),
               email: user.email,
@@ -130,6 +147,8 @@ export const authOptions: NextAuthOptions = {
               role: user.role,
               permissions,
               mfaRequired: true,
+              mustChangePassword,
+              sessionTimeoutMinutes: timeoutMinutes,
             } as any;
           }
 
@@ -150,6 +169,7 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
             permissions,
             mfaRequired: false,
+            mustChangePassword,
             sessionTimeoutMinutes: timeoutMinutes,
           } as any;
         } catch (error: any) {
@@ -173,9 +193,11 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name as string;
         token.role = (user as any).role;
         token.mfaRequired = (user as any).mfaRequired;
+        token.mustChangePassword = (user as any).mustChangePassword;
         token.permissions = (user as any).permissions;
         token.lastActivityAt = now;
         token.sessionExpired = false;
+        token.sessionTimeoutMinutes = (user as any).sessionTimeoutMinutes;
       }
 
       if (token.role && !token.permissions) {
@@ -186,16 +208,24 @@ export const authOptions: NextAuthOptions = {
         token.mfaRequired = false;
       }
 
+      if (trigger === 'update' && (session as any)?.passwordChanged) {
+        token.mustChangePassword = false;
+      }
+
       if (trigger === 'update' && typeof (session as any)?.touchSessionAt === 'number') {
         token.lastActivityAt = (session as any).touchSessionAt;
         token.sessionExpired = false;
       }
 
-      const timeoutMinutes = await getSessionTimeoutMinutes();
-      token.sessionTimeoutMinutes = timeoutMinutes;
+      // Always recalculate timeout on every JWT callback to pick up DB changes
+      if (!token.sessionTimeoutMinutes) {
+        const timeoutMinutes = await getSessionTimeoutMinutes();
+        token.sessionTimeoutMinutes = timeoutMinutes;
+      }
 
       const lastActivityAt = Number(token.lastActivityAt || now);
-      token.sessionExpired = now - lastActivityAt > timeoutMinutes * 60 * 1000;
+      const timeoutMs = (Number(token.sessionTimeoutMinutes) || DEFAULT_SESSION_TIMEOUT_MINUTES) * 60 * 1000;
+      token.sessionExpired = now - lastActivityAt > timeoutMs;
 
       return token;
     },
@@ -207,6 +237,7 @@ export const authOptions: NextAuthOptions = {
 
       session.permissions = token.permissions as string[] | undefined;
       session.mfaRequired = token.mfaRequired as boolean | undefined;
+      session.mustChangePassword = token.mustChangePassword as boolean | undefined;
       session.sessionTimeoutMinutes = Number(token.sessionTimeoutMinutes || DEFAULT_SESSION_TIMEOUT_MINUTES);
       session.lastActivityAt = Number(token.lastActivityAt || Date.now());
       session.sessionExpired = Boolean(token.sessionExpired);

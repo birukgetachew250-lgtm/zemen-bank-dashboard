@@ -31,6 +31,7 @@ model User {
   failedLoginAttempts Int       @default(0)
   isLocked            Boolean   @default(false)
   lastLoginAttempt    DateTime?
+  sessionInvalidatedAt DateTime?
 }
 
 model Role {

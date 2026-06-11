@@ -15,21 +15,22 @@ generator system {
 }
 
 model User {
-  id                  Int       @id @default(autoincrement())
-  employeeId          String    @unique
-  name                String
-  email               String    @unique
-  password            String // In a real app, this would be a hash
-  role                String
-  branch              String?
-  department          String
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  mfaEnabled          Boolean   @default(false)
-  status              String    @default("Active") // e.g., Active, Suspended, Locked
-  failedLoginAttempts Int       @default(0)
-  isLocked            Boolean   @default(false)
-  lastLoginAttempt    DateTime?
+  id                   Int       @id @default(autoincrement())
+  employeeId           String    @unique
+  name                 String
+  email                String    @unique
+  password             String // In a real app, this would be a hash
+  role                 String
+  branch               String?
+  department           String
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  mfaEnabled           Boolean   @default(false)
+  status               String    @default("Active") // e.g., Active, Suspended, Locked
+  failedLoginAttempts  Int       @default(0)
+  isLocked             Boolean   @default(false)
+  lastLoginAttempt     DateTime?
+  sessionInvalidatedAt DateTime?
 }
 
 model Role {

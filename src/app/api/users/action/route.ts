@@ -47,10 +47,13 @@ export async function POST(req: Request) {
         switch (action) {
             case 'suspend':
                 data.status = 'Suspended';
+                data.isLocked = true;
                 successMessage = `User ${userToUpdate.name} has been suspended.`;
                 break;
             case 'unsuspend':
                 data.status = 'Active';
+                data.isLocked = false;
+                data.failedLoginAttempts = 0;
                 successMessage = `User ${userToUpdate.name} has been unsuspended.`;
                 break;
             case 'unlock':

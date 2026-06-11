@@ -1983,6 +1983,7 @@ export namespace Prisma {
     failedLoginAttempts: number | null
     isLocked: boolean | null
     lastLoginAttempt: Date | null
+    sessionInvalidatedAt: Date | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -2001,6 +2002,7 @@ export namespace Prisma {
     failedLoginAttempts: number | null
     isLocked: boolean | null
     lastLoginAttempt: Date | null
+    sessionInvalidatedAt: Date | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -2019,6 +2021,7 @@ export namespace Prisma {
     failedLoginAttempts: number
     isLocked: number
     lastLoginAttempt: number
+    sessionInvalidatedAt: number
     _all: number
   }
 
@@ -2049,6 +2052,7 @@ export namespace Prisma {
     failedLoginAttempts?: true
     isLocked?: true
     lastLoginAttempt?: true
+    sessionInvalidatedAt?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -2067,6 +2071,7 @@ export namespace Prisma {
     failedLoginAttempts?: true
     isLocked?: true
     lastLoginAttempt?: true
+    sessionInvalidatedAt?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -2085,6 +2090,7 @@ export namespace Prisma {
     failedLoginAttempts?: true
     isLocked?: true
     lastLoginAttempt?: true
+    sessionInvalidatedAt?: true
     _all?: true
   }
 
@@ -2190,6 +2196,7 @@ export namespace Prisma {
     failedLoginAttempts: number
     isLocked: boolean
     lastLoginAttempt: Date | null
+    sessionInvalidatedAt: Date | null
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -2227,6 +2234,7 @@ export namespace Prisma {
     failedLoginAttempts?: boolean
     isLocked?: boolean
     lastLoginAttempt?: boolean
+    sessionInvalidatedAt?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -2245,6 +2253,7 @@ export namespace Prisma {
     failedLoginAttempts?: boolean
     isLocked?: boolean
     lastLoginAttempt?: boolean
+    sessionInvalidatedAt?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
@@ -2263,6 +2272,7 @@ export namespace Prisma {
     failedLoginAttempts?: boolean
     isLocked?: boolean
     lastLoginAttempt?: boolean
+    sessionInvalidatedAt?: boolean
   }
 
 
@@ -2285,6 +2295,7 @@ export namespace Prisma {
       failedLoginAttempts: number
       isLocked: boolean
       lastLoginAttempt: Date | null
+      sessionInvalidatedAt: Date | null
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -2693,6 +2704,7 @@ export namespace Prisma {
     readonly failedLoginAttempts: FieldRef<"User", 'Int'>
     readonly isLocked: FieldRef<"User", 'Boolean'>
     readonly lastLoginAttempt: FieldRef<"User", 'DateTime'>
+    readonly sessionInvalidatedAt: FieldRef<"User", 'DateTime'>
   }
     
 
@@ -14571,7 +14583,8 @@ export namespace Prisma {
     status: 'status',
     failedLoginAttempts: 'failedLoginAttempts',
     isLocked: 'isLocked',
-    lastLoginAttempt: 'lastLoginAttempt'
+    lastLoginAttempt: 'lastLoginAttempt',
+    sessionInvalidatedAt: 'sessionInvalidatedAt'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -14851,6 +14864,7 @@ export namespace Prisma {
     failedLoginAttempts?: IntFilter<"User"> | number
     isLocked?: BoolFilter<"User"> | boolean
     lastLoginAttempt?: DateTimeNullableFilter<"User"> | Date | string | null
+    sessionInvalidatedAt?: DateTimeNullableFilter<"User"> | Date | string | null
   }
 
   export type UserOrderByWithRelationInput = {
@@ -14869,6 +14883,7 @@ export namespace Prisma {
     failedLoginAttempts?: SortOrder
     isLocked?: SortOrder
     lastLoginAttempt?: SortOrderInput | SortOrder
+    sessionInvalidatedAt?: SortOrderInput | SortOrder
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -14890,6 +14905,7 @@ export namespace Prisma {
     failedLoginAttempts?: IntFilter<"User"> | number
     isLocked?: BoolFilter<"User"> | boolean
     lastLoginAttempt?: DateTimeNullableFilter<"User"> | Date | string | null
+    sessionInvalidatedAt?: DateTimeNullableFilter<"User"> | Date | string | null
   }, "id" | "employeeId" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -14908,6 +14924,7 @@ export namespace Prisma {
     failedLoginAttempts?: SortOrder
     isLocked?: SortOrder
     lastLoginAttempt?: SortOrderInput | SortOrder
+    sessionInvalidatedAt?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -14934,6 +14951,7 @@ export namespace Prisma {
     failedLoginAttempts?: IntWithAggregatesFilter<"User"> | number
     isLocked?: BoolWithAggregatesFilter<"User"> | boolean
     lastLoginAttempt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+    sessionInvalidatedAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   }
 
   export type RoleWhereInput = {
@@ -15753,6 +15771,7 @@ export namespace Prisma {
     failedLoginAttempts?: number
     isLocked?: boolean
     lastLoginAttempt?: Date | string | null
+    sessionInvalidatedAt?: Date | string | null
   }
 
   export type UserUncheckedCreateInput = {
@@ -15771,6 +15790,7 @@ export namespace Prisma {
     failedLoginAttempts?: number
     isLocked?: boolean
     lastLoginAttempt?: Date | string | null
+    sessionInvalidatedAt?: Date | string | null
   }
 
   export type UserUpdateInput = {
@@ -15788,6 +15808,7 @@ export namespace Prisma {
     failedLoginAttempts?: IntFieldUpdateOperationsInput | number
     isLocked?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sessionInvalidatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserUncheckedUpdateInput = {
@@ -15806,6 +15827,7 @@ export namespace Prisma {
     failedLoginAttempts?: IntFieldUpdateOperationsInput | number
     isLocked?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sessionInvalidatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserCreateManyInput = {
@@ -15824,6 +15846,7 @@ export namespace Prisma {
     failedLoginAttempts?: number
     isLocked?: boolean
     lastLoginAttempt?: Date | string | null
+    sessionInvalidatedAt?: Date | string | null
   }
 
   export type UserUpdateManyMutationInput = {
@@ -15841,6 +15864,7 @@ export namespace Prisma {
     failedLoginAttempts?: IntFieldUpdateOperationsInput | number
     isLocked?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sessionInvalidatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -15859,6 +15883,7 @@ export namespace Prisma {
     failedLoginAttempts?: IntFieldUpdateOperationsInput | number
     isLocked?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sessionInvalidatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type RoleCreateInput = {
@@ -16809,6 +16834,7 @@ export namespace Prisma {
     failedLoginAttempts?: SortOrder
     isLocked?: SortOrder
     lastLoginAttempt?: SortOrder
+    sessionInvalidatedAt?: SortOrder
   }
 
   export type UserAvgOrderByAggregateInput = {
@@ -16832,6 +16858,7 @@ export namespace Prisma {
     failedLoginAttempts?: SortOrder
     isLocked?: SortOrder
     lastLoginAttempt?: SortOrder
+    sessionInvalidatedAt?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -16850,6 +16877,7 @@ export namespace Prisma {
     failedLoginAttempts?: SortOrder
     isLocked?: SortOrder
     lastLoginAttempt?: SortOrder
+    sessionInvalidatedAt?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {

@@ -7,10 +7,12 @@ import { sendEmail } from '@/services/email-service';
 
 const DEFAULT_SESSION_TIMEOUT_MINUTES = 30;
 
+const MAX_LOGIN_ATTEMPTS = 5;
+
 async function getSessionTimeoutMinutes(): Promise<number> {
   try {
     const policy = await db.securityPolicy.findUnique({ where: { id: 1 } });
-    return Math.max(5, Number(policy?.sessionTimeout || DEFAULT_SESSION_TIMEOUT_MINUTES));
+    return Math.max(1, Number(policy?.sessionTimeout || DEFAULT_SESSION_TIMEOUT_MINUTES));
   } catch {
     return DEFAULT_SESSION_TIMEOUT_MINUTES;
   }
@@ -73,7 +75,52 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
+          // If account is locked, prevent authentication
+          if ((user as any).isLocked) {
+            await logActivity({
+              userEmail: user.email,
+              action: 'LOGIN_FAILURE',
+              status: 'Failure',
+              details: 'Attempt to login to locked account.',
+              ipAddress: ip,
+            });
+            throw new Error('Your account is locked due to multiple failed login attempts.');
+          }
+
           if (user.password !== credentials.password) {
+            // increment failed attempts
+            try {
+              await db.user.update({
+                where: { id: user.id },
+                data: { failedLoginAttempts: { increment: 1 } as any },
+              });
+            } catch (e) {
+              console.error('Failed to increment failedLoginAttempts:', e);
+            }
+
+            // re-fetch to check count
+            const refreshed = await db.user.findUnique({ where: { id: user.id } });
+            const attempts = Number((refreshed as any)?.failedLoginAttempts || 0);
+
+            if (attempts >= MAX_LOGIN_ATTEMPTS) {
+              try {
+                await db.user.update({
+                  where: { id: user.id },
+                  data: { isLocked: true, status: 'Suspended' },
+                });
+              } catch (e) {
+                console.error('Failed to lock user account:', e);
+              }
+              await logActivity({
+                userEmail: user.email,
+                action: 'LOGIN_FAILURE',
+                status: 'Failure',
+                details: `Account locked after ${attempts} failed attempts.`,
+                ipAddress: ip,
+              });
+              throw new Error('Your account has been locked due to multiple failed login attempts. Please contact an administrator.');
+            }
+
             await logActivity({
               userEmail: user.email,
               action: 'LOGIN_FAILURE',
@@ -83,6 +130,19 @@ export const authOptions: NextAuthOptions = {
             });
             throw new Error('Invalid email or password.');
           }
+
+          if (user.status === 'Suspended') {
+            await logActivity({
+              userEmail: user.email,
+              action: 'LOGIN_FAILURE',
+              status: 'Failure',
+              details: 'Login blocked for suspended account.',
+              ipAddress: ip,
+            });
+            throw new Error('Your account is suspended. Please contact an administrator.');
+          }
+
+          const mustChangePassword = user.status === 'PasswordChangeRequired';
 
           const permissions = await getUserPermissions(user.role);
 
@@ -123,6 +183,8 @@ export const authOptions: NextAuthOptions = {
               ipAddress: ip,
             });
 
+            const timeoutMinutes = await getSessionTimeoutMinutes();
+
             return {
               id: user.id.toString(),
               email: user.email,
@@ -130,7 +192,16 @@ export const authOptions: NextAuthOptions = {
               role: user.role,
               permissions,
               mfaRequired: true,
+              mustChangePassword,
+              sessionTimeoutMinutes: timeoutMinutes,
             } as any;
+          }
+
+          // reset failed attempts on successful login
+          try {
+            await db.user.update({ where: { id: user.id }, data: { failedLoginAttempts: 0, isLocked: false } as any });
+          } catch (e) {
+            console.error('Failed to reset failedLoginAttempts after successful login:', e);
           }
 
           await logActivity({
@@ -141,6 +212,8 @@ export const authOptions: NextAuthOptions = {
             ipAddress: ip,
           });
 
+          const timeoutMinutes = await getSessionTimeoutMinutes();
+
           return {
             id: user.id.toString(),
             email: user.email,
@@ -148,6 +221,8 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
             permissions,
             mfaRequired: false,
+            mustChangePassword,
+            sessionTimeoutMinutes: timeoutMinutes,
           } as any;
         } catch (error: any) {
           console.error('Authorization error:', error);
@@ -170,9 +245,11 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name as string;
         token.role = (user as any).role;
         token.mfaRequired = (user as any).mfaRequired;
+        token.mustChangePassword = (user as any).mustChangePassword;
         token.permissions = (user as any).permissions;
         token.lastActivityAt = now;
         token.sessionExpired = false;
+        token.sessionTimeoutMinutes = (user as any).sessionTimeoutMinutes;
       }
 
       if (token.role && !token.permissions) {
@@ -183,16 +260,40 @@ export const authOptions: NextAuthOptions = {
         token.mfaRequired = false;
       }
 
+      if (trigger === 'update' && (session as any)?.passwordChanged) {
+        token.mustChangePassword = false;
+      }
+
       if (trigger === 'update' && typeof (session as any)?.touchSessionAt === 'number') {
         token.lastActivityAt = (session as any).touchSessionAt;
         token.sessionExpired = false;
       }
 
-      const timeoutMinutes = await getSessionTimeoutMinutes();
-      token.sessionTimeoutMinutes = timeoutMinutes;
+      // Always recalculate timeout on every JWT callback to pick up DB changes
+      if (!token.sessionTimeoutMinutes) {
+        const timeoutMinutes = await getSessionTimeoutMinutes();
+        token.sessionTimeoutMinutes = timeoutMinutes;
+      }
+
+      // Check for server-side session invalidation (e.g., after suspicious activity)
+      try {
+        if (token.email) {
+          const dbUser = await db.user.findUnique({ where: { email: token.email as string } });
+          if (dbUser?.sessionInvalidatedAt) {
+            const invalidatedAt = new Date(dbUser.sessionInvalidatedAt).getTime();
+            const tokenLastActivity = Number(token.lastActivityAt || 0);
+            if (tokenLastActivity < invalidatedAt) {
+              token.sessionExpired = true;
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to check session invalidation timestamp for user:', e);
+      }
 
       const lastActivityAt = Number(token.lastActivityAt || now);
-      token.sessionExpired = now - lastActivityAt > timeoutMinutes * 60 * 1000;
+      const timeoutMs = (Number(token.sessionTimeoutMinutes) || DEFAULT_SESSION_TIMEOUT_MINUTES) * 60 * 1000;
+      token.sessionExpired = now - lastActivityAt > timeoutMs;
 
       return token;
     },
@@ -204,6 +305,7 @@ export const authOptions: NextAuthOptions = {
 
       session.permissions = token.permissions as string[] | undefined;
       session.mfaRequired = token.mfaRequired as boolean | undefined;
+      session.mustChangePassword = token.mustChangePassword as boolean | undefined;
       session.sessionTimeoutMinutes = Number(token.sessionTimeoutMinutes || DEFAULT_SESSION_TIMEOUT_MINUTES);
       session.lastActivityAt = Number(token.lastActivityAt || Date.now());
       session.sessionExpired = Boolean(token.sessionExpired);

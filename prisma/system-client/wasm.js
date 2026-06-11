@@ -137,7 +137,8 @@ exports.Prisma.UserScalarFieldEnum = {
   status: 'status',
   failedLoginAttempts: 'failedLoginAttempts',
   isLocked: 'isLocked',
-  lastLoginAttempt: 'lastLoginAttempt'
+  lastLoginAttempt: 'lastLoginAttempt',
+  sessionInvalidatedAt: 'sessionInvalidatedAt'
 };
 
 exports.Prisma.RoleScalarFieldEnum = {

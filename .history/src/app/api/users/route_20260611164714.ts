@@ -7,17 +7,17 @@ import { authOptions } from '@/lib/auth-options';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
 import { sendEmail } from '@/services/email-service';
 
-function generateWelcomeEmail(name: string, tempPassword: string, loginUrl: string): string {
+function generateWelcomeEmail(name: string, username: string, tempPassword: string, loginUrl: string): string {
   return `
     <html>
       <body style="font-family: sans-serif; line-height: 1.6;">
         <h2>Welcome to Zemen Admin Center</h2>
         <p>Dear ${name},</p>
-        <p>An administrator account has been created for you. You can use the following temporary password to log in. You will be required to change it upon your first login.</p>
-        <p><strong>Username:</strong> Your Email Address</p>
+        <p>An administrator account has been created for you. Please use the credentials below to log in, and update your password on the first login.</p>
+        <p><strong>Login URL:</strong> <a href="${loginUrl}" style="color: #D02149;">${loginUrl}</a></p>
+        <p><strong>Username:</strong> ${username}</p>
         <p><strong>Temporary Password:</strong> <strong style='font-size: 18px; letter-spacing: 2px;'>${tempPassword}</strong></p>
-        <p><a href="${loginUrl}" style="display: inline-block; padding: 10px 15px; background-color: #D02149; color: #fff; text-decoration: none; border-radius: 5px;">Click Here to Log In</a></p>
-        <p>If you have any trouble logging in, please contact the IT department.</p>
+        <p>If you have any trouble logging in, please contact the IT department immediately.</p>
         <br/>
         <p>Best regards,<br/><strong>Zemen Bank System Administrator</strong></p>
       </body>
