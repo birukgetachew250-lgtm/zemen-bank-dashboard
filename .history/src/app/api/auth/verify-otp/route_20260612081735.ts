@@ -58,6 +58,17 @@ export async function POST(req: Request) {
             data: { IsUsed: true },
         });
 
+        // Invalidate all previous sessions when MFA is validated
+        try {
+            const now = new Date();
+            await db.user.update({
+                where: { email: session.user.email },
+                data: { sessionInvalidatedAt: now } as any,
+            });
+        } catch (e) {
+            console.error('Failed to set sessionInvalidatedAt after MFA validation:', e);
+        }
+
         return NextResponse.json({ success: true, message: 'Verification successful.' });
     } catch (error) {
         console.error("OTP Verification Error:", error);
