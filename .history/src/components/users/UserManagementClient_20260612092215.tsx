@@ -76,46 +76,6 @@ export function UserManagementClient({
     setUserToDelete(null);
   };
 
-  const handleToggleLock = async (user: User) => {
-    try {
-      const action = user.isLocked ? 'unlock' : 'suspend';
-      const res = await fetch('/api/users/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: String(user.id), action }),
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || 'Failed to update user');
-      toast({ title: 'Success', description: result.message });
-      // refresh list
-      const usersRes = await fetch('/api/users');
-      if (usersRes.ok) {
-        const newData = await usersRes.json();
-        setUsers(newData);
-      } else {
-        router.refresh();
-      }
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Error', description: e.message });
-    }
-  };
-
-  const handleResetPassword = async (user: User) => {
-    try {
-      const res = await fetch('/api/users/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: String(user.id), action: 'reset-password' }),
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || 'Failed to reset password');
-      toast({ title: 'Password Reset', description: 'Temporary password generated. Please provide it to the user.' });
-      router.refresh();
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Error', description: e.message });
-    }
-  };
-
   return (
     <>
       <Card>

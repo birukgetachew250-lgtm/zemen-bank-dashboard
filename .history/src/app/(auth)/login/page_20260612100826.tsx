@@ -40,6 +40,7 @@ function LoginPageContent() {
   const [showPassword, setShowPassword] = useState(false);
 
   const error = searchParams.get('error');
+  const reason = searchParams.get('reason');
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -58,16 +59,20 @@ function LoginPageContent() {
     });
 
     if (result?.error) {
+      const message = result.error || 'Invalid email or password.';
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Invalid email or password.',
+        description: message,
       });
       setIsLoading(false);
+      return;
     } else if (result?.ok) {
       const session = await getSession();
       if ((session as any)?.mfaRequired) {
         router.push(`/login/verify-otp?email=${encodeURIComponent(values.email)}`);
+      } else if ((session as any)?.mustChangePassword) {
+        router.push('/settings/change-password');
       } else {
         router.push('/dashboard');
       }
@@ -88,12 +93,21 @@ function LoginPageContent() {
                 <CardTitle>Secure Sign-In</CardTitle>
             </CardHeader>
             <CardContent>
+                {reason === 'session-timeout' && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Session Expired</AlertTitle>
+                    <AlertDescription>
+                      Your session expired due to inactivity. Please sign in again.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 {error && (
                   <Alert variant="destructive" className="mb-4">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Login Error</AlertTitle>
                     <AlertDescription>
-                      Invalid credentials. Please try again.
+                      {error}
                     </AlertDescription>
                   </Alert>
                 )}

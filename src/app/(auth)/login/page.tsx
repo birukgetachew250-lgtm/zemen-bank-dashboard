@@ -59,12 +59,14 @@ function LoginPageContent() {
     });
 
     if (result?.error) {
+      const message = result.error || 'Invalid email or password.';
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Invalid email or password.',
+        description: message,
       });
       setIsLoading(false);
+      return;
     } else if (result?.ok) {
       const session = await getSession();
       if ((session as any)?.mfaRequired) {
@@ -105,7 +107,7 @@ function LoginPageContent() {
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Login Error</AlertTitle>
                     <AlertDescription>
-                      Invalid credentials. Please try again.
+                      {error}
                     </AlertDescription>
                   </Alert>
                 )}
