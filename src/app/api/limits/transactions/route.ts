@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { executeQuery } from "@/lib/oracle-db";
 import { decrypt } from "@/lib/crypto";
 
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
+
 const connStr = process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING;
 
 export async function GET(request: NextRequest) {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
   try {
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));

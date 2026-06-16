@@ -1,11 +1,14 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
+import { requireAuthenticatedSession, requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 import { logActivity } from '@/lib/activity-log';
 
 export async function GET(req: Request) {
+    const session = await requireAuthenticatedSession();
+    if (session instanceof NextResponse) return session;
+
     try {
         const roles = await db.role.findMany({
             orderBy: {
@@ -29,7 +32,9 @@ export async function GET(req: Request) {
 
 
 export async function POST(req: Request) {
-    const session = await getServerSession(authOptions);
+    const session = await requirePermission(PERMISSIONS.ROLES_CREATE);
+    if (session instanceof NextResponse) return session;
+
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
 
     try {
@@ -52,7 +57,7 @@ export async function POST(req: Request) {
         });
         
         await logActivity({
-            userEmail: session?.user?.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: 'ROLE_CREATED',
             status: 'Success',
             details: `Created new role: ${name}`,
@@ -63,7 +68,7 @@ export async function POST(req: Request) {
     } catch (error) {
         console.error('Failed to create role:', error);
         await logActivity({
-            userEmail: session?.user?.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: 'ROLE_CREATED',
             status: 'Failure',
             details: `Failed to create role. Error: ${error instanceof Error ? error.message : 'Unknown error'}`,

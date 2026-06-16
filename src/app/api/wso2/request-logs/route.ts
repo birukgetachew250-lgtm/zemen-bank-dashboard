@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const CS = process.env.WSO2_MODULE_DB_CONNECTION_STRING;
 const TABLE = '"WSO2_MODULE"."WSO2_REQUEST_LOGS"';
 
 export async function GET(req: Request) {
+  const session = await requirePermission(PERMISSIONS.SECURITY_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');

@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import crypto from 'crypto';
 
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
+
 const TABLE = '"LIMIT_CHARGE_MODULE"."TransactionTypes"';
 
 interface ImportRow {
@@ -11,6 +14,8 @@ interface ImportRow {
 }
 
 export async function POST(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
   try {
     const { rows } = (await req.json()) as { rows: ImportRow[] };
 

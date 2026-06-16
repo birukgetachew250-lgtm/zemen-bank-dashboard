@@ -2,8 +2,13 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 export async function POST(req: Request) {
+    const session = await requirePermission(PERMISSIONS.USERS_CREATE);
+    if (session instanceof NextResponse) return session;
+
     try {
         const { name, location } = await req.json();
 
@@ -25,6 +30,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+    const session = await requirePermission(PERMISSIONS.USERS_DELETE);
+    if (session instanceof NextResponse) return session;
+
     try {
         const { id } = await req.json();
 

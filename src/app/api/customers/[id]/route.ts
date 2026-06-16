@@ -5,6 +5,8 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { decrypt, encrypt } from '@/lib/crypto';
 import crypto from 'crypto';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const getCustomerByCifOrId = async (identifier: string) => {
     let query;
@@ -90,6 +92,9 @@ export async function GET(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+  const session = await requirePermission(PERMISSIONS.CUSTOMERS_READ);
+  if (session instanceof NextResponse) return session;
+
   try {
     const customerId = params.id;
     const customer = await getCustomerByCifOrId(customerId);

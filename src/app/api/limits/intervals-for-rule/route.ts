@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
+
 export async function GET(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
     try {
         const { searchParams } = new URL(req.url);
         const ruleId = searchParams.get('ruleId');

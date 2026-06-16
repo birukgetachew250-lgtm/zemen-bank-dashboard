@@ -2,8 +2,13 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 export async function POST(req: Request) {
+    const session = await requirePermission(PERMISSIONS.CUSTOMERS_READ);
+    if (session instanceof NextResponse) return session;
+
     try {
         const { name, industry, logo_url } = await req.json();
 

@@ -2,9 +2,14 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 const SCHEMA = "APP_CONTROL_MODULE";
 
 export async function GET(req: Request, { params }: { params: { providerId: string } }) {
+  const _authSession = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
+
     const { providerId } = params;
 
     try {

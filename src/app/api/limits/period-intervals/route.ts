@@ -3,9 +3,14 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import crypto from 'crypto';
 
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
+
 const TABLE = '"LIMIT_CHARGE_MODULE"."PeriodIntervals"';
 
 export async function GET() {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
     try {
         const query = `SELECT "Id", "Code", "Name", "Days" FROM ${TABLE} ORDER BY "Days"`;
         const result: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, query);
@@ -22,6 +27,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
     try {
         const { code, name, days } = await req.json();
         if (!code || !name || days === undefined) {
@@ -39,6 +46,8 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
     try {
         const { id, code, name, days } = await req.json();
         if (!id || !code || !name || days === undefined) {
@@ -54,6 +63,8 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
     try {
         const { id } = await req.json();
         const query = `DELETE FROM ${TABLE} WHERE "Id" = :Id`;

@@ -1,10 +1,10 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
 import crypto from 'crypto';
+import { requireAnyPermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 type Action = 'suspend' | 'unsuspend' | 'unlock' | 'reset-password';
 
@@ -18,12 +18,10 @@ const actionToActionLog: Record<Action, ActivityLogAction> = {
 const MAX_LOGIN_ATTEMPTS = 5;
 
 export async function POST(req: Request) {
-    const session = await getServerSession(authOptions);
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
+    const session = await requireAnyPermission([PERMISSIONS.USERS_SUSPEND, PERMISSIONS.USERS_UNLOCK, PERMISSIONS.USERS_RESET_PASSWORD]);
+    if (session instanceof NextResponse) return session;
 
-    if (!session || !session.user) {
-        return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
-    }
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
 
     try {
         const { userId, action } = await req.json() as { userId: string, action: Action };
@@ -80,7 +78,7 @@ export async function POST(req: Request) {
         });
 
         await logActivity({
-            userEmail: session.user.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: actionToActionLog[action],
             status: 'Success',
             details: `User: ${userToUpdate.email}, Action: ${action}`,
@@ -93,7 +91,7 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error('User action failed:', error);
          await logActivity({
-            userEmail: session.user.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: 'USER_UPDATED',
             status: 'Failure',
             details: `Failed to perform action on user. Error: ${error.message}`,

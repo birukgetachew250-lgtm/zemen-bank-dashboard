@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const CS = process.env.APP_CONTROL_DB_CONNECTION_STRING;
 const TABLE = '"APP_CONTROL_MODULE"."TermsCondition"';
 
 export async function GET() {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const result: any = await executeQuery(CS, `SELECT * FROM ${TABLE} ORDER BY "DisplayOrder" ASC`);
     return NextResponse.json(result.rows || []);
@@ -15,6 +20,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const b = await req.json();
     const id = crypto.randomUUID();
@@ -23,7 +31,7 @@ export async function POST(req: Request) {
       icon: b.IconName || null, order: b.DisplayOrder || 0, ver: b.Version || null,
       effDate: b.EffectiveDate ? new Date(b.EffectiveDate) : null, lastUpd: new Date(),
       reqAccept: b.RequiresAcceptance ? 1 : 0, status: b.Status || 'Active',
-      createdBy: b.CreatedBy || 'system', updatedBy: b.UpdatedBy || 'system'
+      createdBy: b.CreatedBy || session.user?.email || 'system', updatedBy: b.UpdatedBy || session.user?.email || 'system'
     });
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "TermId"=:id`, { id });
     return NextResponse.json(r.rows[0], { status: 201 });
@@ -34,6 +42,9 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const b = await req.json();
     if (!b.TermId) return NextResponse.json({ message: 'TermId required' }, { status: 400 });
@@ -42,7 +53,7 @@ export async function PUT(req: Request) {
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
     if (b.EffectiveDate !== undefined) { fields.push('"EffectiveDate"=:effDate'); binds.effDate = b.EffectiveDate ? new Date(b.EffectiveDate) : null; }
     if (b.RequiresAcceptance !== undefined) { fields.push('"RequiresAcceptance"=:reqAccept'); binds.reqAccept = b.RequiresAcceptance ? 1 : 0; }
-    fields.push('"LastUpdated"=CURRENT_TIMESTAMP'); fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = b.UpdatedBy || 'system';
+    fields.push('"LastUpdated"=CURRENT_TIMESTAMP'); fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = b.UpdatedBy || session.user?.email || 'system';
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "TermId"=:id`, binds);
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "TermId"=:id`, { id: b.TermId });
     return NextResponse.json(r.rows[0]);
@@ -53,6 +64,9 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const { TermId } = await req.json();
     if (!TermId) return NextResponse.json({ message: 'TermId required' }, { status: 400 });

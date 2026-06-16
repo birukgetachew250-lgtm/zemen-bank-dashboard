@@ -2,8 +2,13 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { parseISO, startOfDay, endOfDay } from 'date-fns';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 export async function GET(req: Request) {
+    const session = await requirePermission(PERMISSIONS.SECURITY_MANAGE);
+    if (session instanceof NextResponse) return session;
+
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('query');
     const from = searchParams.get('from');

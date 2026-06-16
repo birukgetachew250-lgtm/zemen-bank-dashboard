@@ -1,8 +1,8 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
+import { requireAuthenticatedSession, requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 import { logActivity } from '@/lib/activity-log';
 
 // GET a single role
@@ -10,6 +10,9 @@ export async function GET(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+    const session = await requireAuthenticatedSession();
+    if (session instanceof NextResponse) return session;
+
     try {
         const id = parseInt(params.id, 10);
         if (isNaN(id)) {
@@ -38,7 +41,9 @@ export async function PUT(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-    const session = await getServerSession(authOptions);
+    const session = await requirePermission(PERMISSIONS.ROLES_UPDATE);
+    if (session instanceof NextResponse) return session;
+
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
 
     try {
@@ -66,7 +71,7 @@ export async function PUT(
         });
         
         await logActivity({
-            userEmail: session?.user?.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: 'ROLE_UPDATED',
             status: 'Success',
             details: `Updated role: ${name}`,
@@ -80,7 +85,7 @@ export async function PUT(
         }
         console.error('Failed to update role:', error);
         await logActivity({
-            userEmail: session?.user?.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: 'ROLE_UPDATED',
             status: 'Failure',
             details: `Failed to update role ID ${params.id}. Error: ${error.message}`,
@@ -95,7 +100,9 @@ export async function DELETE(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-    const session = await getServerSession(authOptions);
+    const session = await requirePermission(PERMISSIONS.ROLES_DELETE);
+    if (session instanceof NextResponse) return session;
+
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
     
     try {
@@ -114,7 +121,7 @@ export async function DELETE(
         });
 
         await logActivity({
-            userEmail: session?.user?.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: 'ROLE_DELETED',
             status: 'Success',
             details: `Deleted role: ${role.name}`,
@@ -128,7 +135,7 @@ export async function DELETE(
             return NextResponse.json({ message: 'Role not found' }, { status: 404 });
         }
         await logActivity({
-            userEmail: session?.user?.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: 'ROLE_DELETED',
             status: 'Failure',
             details: `Failed to delete role ID ${params.id}. Error: ${error.message}`,

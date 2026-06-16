@@ -1,6 +1,8 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const DEFAULT_POLICY = {
     id: 1,
@@ -11,6 +13,9 @@ const DEFAULT_POLICY = {
 };
 
 export async function GET() {
+    const session = await requirePermission(PERMISSIONS.SECURITY_MANAGE);
+    if (session instanceof NextResponse) return session;
+
     try {
         let policy = await db.securityPolicy.findUnique({
             where: { id: 1 },
@@ -29,6 +34,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+    const session = await requirePermission(PERMISSIONS.SECURITY_MANAGE);
+    if (session instanceof NextResponse) return session;
+
      try {
         const body = await req.json();
         
@@ -52,4 +60,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }
-

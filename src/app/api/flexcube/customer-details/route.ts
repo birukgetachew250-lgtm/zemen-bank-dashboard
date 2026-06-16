@@ -8,6 +8,8 @@ import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import * as protobuf from 'protobufjs';
 import crypto from 'crypto';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const mockCustomer = {
     "full_name": "TSEDALE ADAMU MEDHANE",
@@ -77,6 +79,9 @@ function promisifyCall<TRequest, TResponse>(methodName: string, request: TReques
 }
 
 export async function POST(req: Request) {
+    const session = await requirePermission(PERMISSIONS.CUSTOMERS_READ);
+    if (session instanceof NextResponse) return session;
+
     const { branch_code, customer_id } = await req.json();
 
     if (!branch_code || !customer_id) {

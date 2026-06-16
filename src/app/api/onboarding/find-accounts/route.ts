@@ -7,6 +7,8 @@ import path from 'path';
 import * as protobuf from 'protobufjs';
 import crypto from 'crypto';
 import { executeQuery } from '@/lib/oracle-db';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const mockAccounts = [
   { custacno: "1031110048533015", branch_code: "103", ccy: "ETB", account_type: "S", acclassdesc: "Personal Saving - Private and Individual", status: "Active" },
@@ -94,6 +96,9 @@ function promisifyCall<TRequest, TResponse>(methodName: string, request: TReques
 }
 
 export async function POST(req: Request) {
+  const session = await requirePermission(PERMISSIONS.CUSTOMERS_READ);
+  if (session instanceof NextResponse) return session;
+
   console.log('===== DEBUG 2025-01-22 A - NEW CODE VERSION STARTED =====');
   console.log('If you see this line, the updated file is active');
 

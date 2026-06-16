@@ -1,15 +1,18 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
 import { logActivity } from '@/lib/activity-log';
+import { requireAuthenticatedSession, requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 // GET a single user
 export async function GET(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+    const session = await requireAuthenticatedSession();
+    if (session instanceof NextResponse) return session;
+
     try {
         const id = parseInt(params.id, 10);
         if (isNaN(id)) {
@@ -39,7 +42,9 @@ export async function PUT(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-    const session = await getServerSession(authOptions);
+    const session = await requirePermission(PERMISSIONS.USERS_UPDATE);
+    if (session instanceof NextResponse) return session;
+
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
 
     try {
@@ -66,7 +71,7 @@ export async function PUT(
         });
         
         await logActivity({
-            userEmail: session?.user?.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: 'USER_UPDATED',
             status: 'Success',
             details: `Updated user: ${email}`,
@@ -79,7 +84,7 @@ export async function PUT(
 
     } catch (error: any) {
         await logActivity({
-            userEmail: session?.user?.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: 'USER_UPDATED',
             status: 'Failure',
             details: `Failed to update user ID ${params.id}. Error: ${error.message}`,

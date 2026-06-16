@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import crypto from 'crypto';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const TABLE = '"LIMIT_CHARGE_MODULE"."LimitRules"';
 const INTERVAL_TABLE = '"LIMIT_CHARGE_MODULE"."LimitRuleIntervals"';
@@ -38,6 +40,9 @@ function parseDateTime(value: unknown): string | null {
 }
 
 export async function GET() {
+  const session = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const query = `
       SELECT
@@ -139,6 +144,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const session = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const {
       categoryIds,
@@ -233,6 +241,9 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+  const session = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const {
       id,
@@ -345,6 +356,9 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const session = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const { id } = await req.json();
     const query = `DELETE FROM ${TABLE} WHERE "Id" = :Id`;

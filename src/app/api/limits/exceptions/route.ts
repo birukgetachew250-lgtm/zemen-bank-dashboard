@@ -4,9 +4,14 @@ import { executeQuery } from '@/lib/oracle-db';
 import { encrypt, decrypt } from '@/lib/crypto';
 import crypto from 'crypto';
 
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
+
 const TABLE = '"LIMIT_CHARGE_MODULE"."LimitExceptions"';
 
 export async function GET() {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
     try {
         const query = `
             SELECT "Id", "CIFNumber", "AccountNumber", "AdditionalDailyLimit", "AdditionalWeeklyLimit", "AdditionalMonthlyLimit", "IsOverride", "Reason", "EffectiveFrom", "EffectiveTo", "IsActive"
@@ -37,6 +42,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
     try {
         const { cifNumber, accountNumber, additionalDailyLimit, additionalWeeklyLimit, additionalMonthlyLimit, isOverride, reason, effectiveFrom, effectiveTo } = await req.json();
         
@@ -90,6 +97,8 @@ export async function POST(req: Request) {
 
 
 export async function PUT(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
     try {
         const { id, cifNumber, accountNumber, additionalDailyLimit, additionalWeeklyLimit, additionalMonthlyLimit, isOverride, reason, effectiveFrom, effectiveTo } = await req.json();
         
@@ -151,6 +160,8 @@ export async function PUT(req: Request) {
 
 
 export async function DELETE(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
     try {
         const { id } = await req.json();
         const query = `DELETE FROM ${TABLE} WHERE "Id" = :Id`;

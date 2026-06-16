@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const CS = process.env.APP_CONTROL_DB_CONNECTION_STRING;
 const TABLE = '"APP_CONTROL_MODULE"."AppUpdate"';
 const DEFAULT_AUDIT_USER = 'dmin@zemen.com';
 
 export async function GET() {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const result: any = await executeQuery(
       CS,
@@ -19,6 +24,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const b = await req.json();
 
@@ -45,8 +53,8 @@ export async function POST(req: Request) {
         isForcedUpdate: b.IsForcedUpdate ? 1 : 0,
         isNewVersionAvailable: b.IsNewVersionAvailable ? 1 : 0,
         platform: String(b.Platform).trim(),
-        insertUser: b.InsertUser || DEFAULT_AUDIT_USER,
-        updateUser: b.UpdateUser || DEFAULT_AUDIT_USER,
+        insertUser: b.InsertUser || session.user?.email || DEFAULT_AUDIT_USER,
+        updateUser: b.UpdateUser || session.user?.email || DEFAULT_AUDIT_USER,
       }
     );
 
@@ -66,6 +74,9 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const b = await req.json();
     if (!b.Id) {
@@ -106,7 +117,7 @@ export async function PUT(req: Request) {
     fields.push('"UpdateDate"=CURRENT_TIMESTAMP');
     if (!fields.some((f) => f.includes('"UpdateUser"'))) {
       fields.push('"UpdateUser"=:updateUser');
-      binds.updateUser = DEFAULT_AUDIT_USER;
+      binds.updateUser = session.user?.email || DEFAULT_AUDIT_USER;
     }
 
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "Id"=:id`, binds);
@@ -126,6 +137,9 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const { Id } = await req.json();
     if (!Id) return NextResponse.json({ message: 'Id required' }, { status: 400 });

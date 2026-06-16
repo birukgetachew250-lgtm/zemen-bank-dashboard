@@ -1,8 +1,13 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 export async function GET() {
+    const session = await requirePermission(PERMISSIONS.SECURITY_MANAGE);
+    if (session instanceof NextResponse) return session;
+
     try {
         const whitelist = await db.ipWhitelist.findMany({
             orderBy: { createdAt: 'desc' },
@@ -15,6 +20,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+    const session = await requirePermission(PERMISSIONS.SECURITY_MANAGE);
+    if (session instanceof NextResponse) return session;
+
     try {
         const { cidr, label } = await req.json();
         if (!cidr || !label) {
@@ -34,6 +42,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+    const session = await requirePermission(PERMISSIONS.SECURITY_MANAGE);
+    if (session instanceof NextResponse) return session;
+
     try {
         const { id } = await req.json();
         if (!id) {

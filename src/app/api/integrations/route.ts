@@ -3,10 +3,14 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { encrypt, decrypt } from '@/lib/crypto';
 import oracledb from 'oracledb';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const TABLE = '"APP_CONTROL_MODULE"."Integration"';
 
 export async function GET() {
+    const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+    if (session instanceof NextResponse) return session;
     try {
         const query = `SELECT "Id", "Name", "Service", "EndpointUrl", "Username", "Status", "IsProduction" FROM ${TABLE} ORDER BY "Service" ASC`;
         const result: any = await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, query);
@@ -32,6 +36,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+    const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+    if (session instanceof NextResponse) return session;
     try {
         const { name, service, endpointUrl, username, password, isProduction } = await req.json();
         
@@ -81,6 +87,8 @@ export async function POST(req: Request) {
 
 
 export async function PUT(req: Request) {
+    const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+    if (session instanceof NextResponse) return session;
     try {
         const { id, name, service, endpointUrl, username, password, isProduction, status } = await req.json();
 
@@ -132,6 +140,8 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+    const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+    if (session instanceof NextResponse) return session;
     try {
         const { id } = await req.json();
         if (!id) {

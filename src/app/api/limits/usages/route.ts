@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import crypto from 'crypto';
 
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
+
 const TABLE = '"LIMIT_CHARGE_MODULE"."CustomerLimitUsages"';
 
 const toNumberOrNull = (value: any) => {
@@ -49,6 +52,8 @@ const mapUsageRow = (row: any) => ({
 });
 
 export async function GET() {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
   try {
     const query = `
       SELECT
@@ -98,6 +103,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
   try {
     const {
       cifNumber,
@@ -200,6 +207,8 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
   try {
     const {
       id,
@@ -307,6 +316,8 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
   try {
     const { id } = await req.json();
 

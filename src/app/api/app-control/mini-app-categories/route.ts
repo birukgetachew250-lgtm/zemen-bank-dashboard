@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const CS = process.env.APP_CONTROL_DB_CONNECTION_STRING;
 const TABLE = '"APP_CONTROL_MODULE"."MiniAppCategory"';
 
 export async function GET() {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const result: any = await executeQuery(CS, `SELECT * FROM ${TABLE} ORDER BY "Rank" ASC, "Name" ASC`);
     return NextResponse.json(result.rows || []);
@@ -15,6 +20,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const b = await req.json();
     const id = crypto.randomUUID();
@@ -30,6 +38,9 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const b = await req.json();
     if (!b.Id) return NextResponse.json({ message: 'Id required' }, { status: 400 });
@@ -47,6 +58,9 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const { Id } = await req.json();
     if (!Id) return NextResponse.json({ message: 'Id required' }, { status: 400 });

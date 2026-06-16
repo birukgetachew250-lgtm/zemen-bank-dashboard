@@ -2,9 +2,14 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import crypto from 'crypto';
 
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
+
 const TABLE = '"LIMIT_CHARGE_MODULE"."ChargeTiers"';
 
 export async function GET(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.CHARGES_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
     try {
         const { searchParams } = new URL(req.url);
         const chargeRuleId = searchParams.get('chargeRuleId');
@@ -43,6 +48,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.CHARGES_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
     try {
         const { chargeRuleId, tierName, amountFrom, amountTo, percentage, fixedAmount, vatPercentage, minCharge, maxCharge, displayOrder } = await req.json();
 
@@ -92,6 +99,8 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.CHARGES_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
     try {
         const { id, tierName, amountFrom, amountTo, percentage, fixedAmount, vatPercentage, minCharge, maxCharge, displayOrder } = await req.json();
 
@@ -146,6 +155,8 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const _authSession = await requirePermission(PERMISSIONS.CHARGES_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
     try {
         const { id } = await req.json();
 

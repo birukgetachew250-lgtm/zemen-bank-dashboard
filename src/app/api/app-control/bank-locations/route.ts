@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import oracledb from 'oracledb';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const CS = process.env.APP_CONTROL_DB_CONNECTION_STRING;
 const TABLE = '"APP_CONTROL_MODULE"."BankLocation"';
 
 export async function GET() {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const result: any = await executeQuery(CS, `SELECT * FROM ${TABLE} ORDER BY "Rank" ASC, "PlaceName" ASC`);
     return NextResponse.json(result.rows || []);
@@ -16,6 +21,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const b = await req.json();
     const query = `INSERT INTO ${TABLE} ("PlaceName","Latitude","Longitude","Location","Description","Type","Status","Rank","CreatedAt","UpdatedAt") VALUES (:name,:lat,:lng,:loc,:descr,:type,:status,:rank,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) RETURNING "Lid" INTO :lid`;
@@ -34,6 +42,9 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const b = await req.json();
     if (!b.Lid) return NextResponse.json({ message: 'Lid required' }, { status: 400 });
@@ -51,6 +62,9 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const { Lid } = await req.json();
     if (!Lid) return NextResponse.json({ message: 'Lid required' }, { status: 400 });

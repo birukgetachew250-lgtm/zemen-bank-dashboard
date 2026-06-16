@@ -2,10 +2,15 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import crypto from 'crypto';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const TABLE = '"APP_CONTROL_MODULE"."IPSBank"';
 
 export async function GET() {
+    const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+    if (session instanceof NextResponse) return session;
+
     try {
         const query = `SELECT "Id", "BankName", "BankCode", "ReconciliationAccount", "BankLogo", "BranchCode", "Status", "Rank", "CreatedAt", "UpdatedAt" FROM ${TABLE} ORDER BY "Rank" ASC`;
         const result: any = await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, query);
@@ -32,6 +37,9 @@ export async function GET() {
 
 
 export async function POST(req: Request) {
+    const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+    if (session instanceof NextResponse) return session;
+
     try {
         const { bankName, bankCode, reconciliationAccount, bankLogo, branchCode, status, rank } = await req.json();
         
@@ -79,6 +87,9 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+    const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+    if (session instanceof NextResponse) return session;
+
     try {
         const { id, bankName, bankCode, reconciliationAccount, bankLogo, branchCode, status, rank } = await req.json();
 
@@ -135,6 +146,9 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+    const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+    if (session instanceof NextResponse) return session;
+
     try {
         const { id } = await req.json();
         if (!id) {

@@ -1,16 +1,13 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-options';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 import crypto from 'crypto';
 import { executeQuery } from '@/lib/oracle-db';
 import { sendSms } from '@/services/sms-service';
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.email) {
-    return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
-  }
+  const session = await requirePermission(PERMISSIONS.CUSTOMERS_PIN_RESET);
+  if (session instanceof NextResponse) return session;
 
   try {
     const { cif, phone } = await req.json();

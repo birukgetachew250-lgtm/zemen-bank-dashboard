@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const CS = process.env.APP_CONTROL_DB_CONNECTION_STRING;
 const TABLE = '"APP_CONTROL_MODULE"."FlexCubeIntegration"';
 
 export async function GET() {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const result: any = await executeQuery(CS, `SELECT * FROM ${TABLE} ORDER BY "CreatedAt" DESC`);
     return NextResponse.json((result.rows || []).map((r: any) => ({ ...r, Password: r.Password ? '••••••••' : null, ApiKey: r.ApiKey ? '••••••••' : null })));
@@ -15,6 +20,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const b = await req.json();
     const id = crypto.randomUUID();
@@ -23,7 +31,7 @@ export async function POST(req: Request) {
       apiKey: b.ApiKey || null, authParams: b.AuthenticationParams || null, itype: b.IntegrationType || 'REST',
       timeout: b.TimeoutSeconds || 30, maxRetry: b.MaxRetryAttempts || 3, ssl: b.UseSSL !== false ? 1 : 0,
       status: b.Status || 'Pending', isProd: b.IsProduction ? 1 : 0,
-      createdBy: b.CreatedBy || 'system', updatedBy: b.UpdatedBy || 'system'
+      createdBy: b.CreatedBy || session.user?.email || 'system', updatedBy: b.UpdatedBy || session.user?.email || 'system'
     });
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "Id"=:id`, { id });
     return NextResponse.json({ ...r.rows[0], Password: '••••••••', ApiKey: r.rows[0].ApiKey ? '••••••••' : null }, { status: 201 });
@@ -34,6 +42,9 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const b = await req.json();
     if (!b.Id) return NextResponse.json({ message: 'Id required' }, { status: 400 });
@@ -44,7 +55,7 @@ export async function PUT(req: Request) {
     if (b.ApiKey && !b.ApiKey.includes('••••')) { fields.push('"ApiKey"=:apiKey'); binds.apiKey = b.ApiKey; }
     const boolMap: Record<string, string> = { UseSSL:'ssl',IsProduction:'isProd' };
     for (const [col, bind] of Object.entries(boolMap)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col] ? 1 : 0; } }
-    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = b.UpdatedBy || 'system';
+    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = b.UpdatedBy || session.user?.email || 'system';
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "Id"=:id`, binds);
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "Id"=:id`, { id: b.Id });
     return NextResponse.json({ ...r.rows[0], Password: '••••••••', ApiKey: r.rows[0].ApiKey ? '••••••••' : null });
@@ -55,6 +66,9 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const { Id } = await req.json();
     if (!Id) return NextResponse.json({ message: 'Id required' }, { status: 400 });

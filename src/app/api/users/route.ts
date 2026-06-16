@@ -2,10 +2,10 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
 import { sendEmail } from '@/services/email-service';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 function generateWelcomeEmail(name: string, username: string, tempPassword: string, loginUrl: string): string {
   return `
@@ -26,7 +26,9 @@ function generateWelcomeEmail(name: string, username: string, tempPassword: stri
 }
 
 export async function POST(req: Request) {
-    const session = await getServerSession(authOptions);
+    const session = await requirePermission(PERMISSIONS.USERS_CREATE);
+    if (session instanceof NextResponse) return session;
+
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
     let body: any;
 
@@ -67,7 +69,7 @@ export async function POST(req: Request) {
         });
         
         await logActivity({
-            userEmail: session?.user?.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: 'USER_CREATED',
             status: 'Success',
             details: `Created new user: ${email} (Role: ${role})`,
@@ -94,7 +96,7 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error('Failed to create user:', error);
          await logActivity({
-            userEmail: session?.user?.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: 'USER_CREATED',
             status: 'Failure',
             details: `Failed to create user. Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -105,7 +107,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-    const session = await getServerSession(authOptions);
+    const session = await requirePermission(PERMISSIONS.USERS_DELETE);
+    if (session instanceof NextResponse) return session;
+
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
 
     try {
@@ -127,7 +131,7 @@ export async function DELETE(req: Request) {
         await db.user.delete({ where: { id: parseInt(id, 10) } });
 
         await logActivity({
-            userEmail: session?.user?.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: 'USER_DELETED',
             status: 'Success',
             details: `Deleted user: ${user.email}`,
@@ -138,7 +142,7 @@ export async function DELETE(req: Request) {
     } catch (error: any) {
         console.error('Failed to delete user:', error);
         await logActivity({
-            userEmail: session?.user?.email || 'system',
+            userEmail: session.user?.email || 'system',
             action: 'USER_DELETED',
             status: 'Failure',
             details: `Failed to delete user. Error: ${error.message || 'Unknown error'}`,

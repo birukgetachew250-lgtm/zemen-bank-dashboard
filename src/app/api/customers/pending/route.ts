@@ -1,8 +1,8 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const extractRequesterBranch = (details?: string | null): string | null => {
     if (!details) return null;
@@ -16,17 +16,15 @@ const extractRequesterBranch = (details?: string | null): string | null => {
 };
 
 export async function GET(req: Request) {
+    const session = await requirePermission(PERMISSIONS.APPROVALS_ACTION);
+    if (session instanceof NextResponse) return session;
+    const sessionEmail = session.user?.email || '';
+
     const { searchParams } = new URL(req.url);
     const type = searchParams.get('type');
 
     if (!type) {
         return NextResponse.json({ message: 'Approval type is required' }, { status: 400 });
-    }
-
-    const session = await getServerSession(authOptions);
-    const sessionEmail = session?.user?.email;
-    if (!sessionEmail) {
-        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     try {

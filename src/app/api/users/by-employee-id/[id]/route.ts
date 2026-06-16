@@ -1,11 +1,16 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 export async function GET(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+    const session = await requirePermission(PERMISSIONS.USERS_READ);
+    if (session instanceof NextResponse) return session;
+
     try {
         const employeeId = params.id;
         if (!employeeId) {

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const CS = process.env.WSO2_MODULE_DB_CONNECTION_STRING;
 const CFG = '"WSO2_MODULE"."WSO2_CONFIGURATIONS"';
@@ -7,6 +9,8 @@ const CRED = '"WSO2_MODULE"."WSO2_OAUTH_CREDENTIALS"';
 const LOGS = '"WSO2_MODULE"."WSO2_REQUEST_LOGS"';
 
 export async function GET() {
+  const session = await requirePermission(PERMISSIONS.SECURITY_MANAGE);
+  if (session instanceof NextResponse) return session;
   try {
     const [
       configStats,

@@ -2,11 +2,15 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import crypto from 'crypto';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const SCHEMA = "APP_CONTROL_MODULE";
 const TABLE = `"${SCHEMA}"."BillProvider"`;
 
 export async function GET(req: Request) {
+    const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+    if (session instanceof NextResponse) return session;
     const { searchParams } = new URL(req.url);
     const categoryId = searchParams.get('categoryId');
     const subcategoryId = searchParams.get('subcategoryId');
@@ -45,6 +49,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+    const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+    if (session instanceof NextResponse) return session;
     try {
         const body = await req.json();
         const providerId = body.ProviderId || `prov-${crypto.randomUUID().slice(0, 8)}`;
@@ -95,6 +101,8 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+    const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+    if (session instanceof NextResponse) return session;
     try {
         const body = await req.json();
         const { ProviderId, ...updateData } = body;
@@ -130,6 +138,8 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+    const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+    if (session instanceof NextResponse) return session;
     try {
         const { id } = await req.json();
         const query = `DELETE FROM ${TABLE} WHERE "ProviderId" = :id`;

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const CS = process.env.WSO2_MODULE_DB_CONNECTION_STRING;
 const TABLE = '"WSO2_MODULE"."WSO2_OAUTH_CREDENTIALS"';
@@ -8,6 +10,9 @@ const maskSecret = (row: any) =>
   row ? { ...row, CLIENT_SECRET: row.CLIENT_SECRET ? '••••••••' : null } : row;
 
 export async function GET() {
+  const session = await requirePermission(PERMISSIONS.SECURITY_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const result: any = await executeQuery(CS, `SELECT * FROM ${TABLE} ORDER BY INSERT_DATE DESC`);
     return NextResponse.json((result.rows || []).map(maskSecret));
@@ -18,6 +23,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const session = await requirePermission(PERMISSIONS.SECURITY_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const b = await req.json();
     const id = crypto.randomUUID();
@@ -48,6 +56,9 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+  const session = await requirePermission(PERMISSIONS.SECURITY_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const b = await req.json();
     if (!b.ID) return NextResponse.json({ message: 'ID required' }, { status: 400 });
@@ -81,6 +92,9 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const session = await requirePermission(PERMISSIONS.SECURITY_MANAGE);
+  if (session instanceof NextResponse) return session;
+
   try {
     const { ID } = await req.json();
     if (!ID) return NextResponse.json({ message: 'ID required' }, { status: 400 });

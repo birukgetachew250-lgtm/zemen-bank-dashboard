@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { subDays, startOfDay, endOfDay, parseISO } from 'date-fns';
+import { requireAuthenticatedSession } from '@/lib/auth-utils';
 
 function getDatesFromRange(range: string): { from: Date, to: Date } {
     const now = new Date();
@@ -20,6 +21,8 @@ function getDatesFromRange(range: string): { from: Date, to: Date } {
 }
 
 export async function GET(req: Request) {
+    const session = await requireAuthenticatedSession();
+    if (session instanceof NextResponse) return session;
     const { searchParams } = new URL(req.url);
     try {
         const range = searchParams.get('range') || 'today';

@@ -2,18 +2,17 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 import { logActivity } from '@/lib/activity-log';
 
 export async function POST(req: Request) {
+    const session = await requirePermission(PERMISSIONS.CUSTOMERS_CREATE);
+    if (session instanceof NextResponse) return session;
+    const sessionEmail = session.user?.email || '';
+
     try {
         const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
-        const session = await getServerSession(authOptions);
-        const sessionEmail = session?.user?.email;
-        if (!sessionEmail) {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-        }
 
         const requester = await db.user.findUnique({
             where: { email: sessionEmail },
@@ -82,10 +81,9 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error('Failed to create approval request:', error);
 
-        const session = await getServerSession(authOptions);
         const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
         await logActivity({
-            userEmail: session?.user?.email || 'system',
+            userEmail: sessionEmail || 'system',
             action: 'CUSTOMER_CREATE_REQUESTED',
             status: 'Failure',
             details: `Failed to submit new customer onboarding approval. Error: ${error?.message || 'Unknown error'}`,

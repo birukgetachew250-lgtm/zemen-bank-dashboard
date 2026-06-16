@@ -2,8 +2,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
 
 const buildApprovalDetails = ({
@@ -42,7 +42,9 @@ const typeToActionMap: Record<string, ActivityLogAction> = {
 
 
 export async function POST(req: Request) {
-    const session = await getServerSession(authOptions);
+    const session = await requirePermission(PERMISSIONS.APPROVALS_REQUEST);
+    if (session instanceof NextResponse) return session;
+
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
     let body: any;
 
@@ -55,9 +57,6 @@ export async function POST(req: Request) {
         }
 
         const sessionEmail = session?.user?.email;
-        if (!sessionEmail) {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-        }
 
         const requester = await db.user.findUnique({
             where: { email: sessionEmail },

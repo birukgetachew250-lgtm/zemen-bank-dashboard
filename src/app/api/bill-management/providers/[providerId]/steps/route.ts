@@ -2,10 +2,15 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import crypto from 'crypto';
 
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 const SCHEMA = "APP_CONTROL_MODULE";
 const TABLE = `"${SCHEMA}"."BillFlowStep"`;
 
 export async function GET(req: Request, { params }: { params: { providerId: string } }) {
+  const _authSession = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
+
     try {
         const query = `SELECT * FROM ${TABLE} WHERE "ProviderId" = :providerId ORDER BY "StepOrder"`;
         const result = await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, query, { providerId: params.providerId });
@@ -17,6 +22,9 @@ export async function GET(req: Request, { params }: { params: { providerId: stri
 }
 
 export async function POST(req: Request, { params }: { params: { providerId: string } }) {
+  const _authSession = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
+
     try {
         const body = await req.json();
         const stepId = `step-${crypto.randomUUID().slice(0, 8)}`;
@@ -84,6 +92,9 @@ export async function POST(req: Request, { params }: { params: { providerId: str
 }
 
 export async function PUT(req: Request, { params }: { params: { providerId: string } }) {
+  const _authSession = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
+
     try {
         const body = await req.json();
         const { StepId, ...updateData } = body;
@@ -124,6 +135,9 @@ export async function PUT(req: Request, { params }: { params: { providerId: stri
 }
 
 export async function DELETE(req: Request, { params }: { params: { providerId: string } }) {
+  const _authSession = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
+  if (_authSession instanceof NextResponse) return _authSession;
+
     try {
         const { id } = await req.json();
         const query = `DELETE FROM ${TABLE} WHERE "StepId" = :id AND "ProviderId" = :providerId`;

@@ -5,10 +5,15 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { decrypt } from '@/lib/crypto';
 
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 export async function GET(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+  const _authSession = await requirePermission(PERMISSIONS.CUSTOMERS_READ);
+  if (_authSession instanceof NextResponse) return _authSession;
+
   try {
     const customerId = params.id;
     let cif = customerId;

@@ -7,8 +7,8 @@ import { executeQuery } from '@/lib/oracle-db';
 import { encrypt } from '@/lib/crypto';
 import crypto from 'crypto';
 import { Prisma } from "@prisma/client";
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
 import { sendSms } from '@/services/sms-service';
 
@@ -109,7 +109,9 @@ const getCifFromApproval = async (approval: any) => {
 
 
 export async function POST(req: Request) {
-    const session = await getServerSession(authOptions);
+    const session = await requirePermission(PERMISSIONS.APPROVALS_ACTION);
+    if (session instanceof NextResponse) return session;
+
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
     let approvalId: number | undefined;
 
