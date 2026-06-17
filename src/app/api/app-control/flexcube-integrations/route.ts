@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       apiKey: b.ApiKey || null, authParams: b.AuthenticationParams || null, itype: b.IntegrationType || 'REST',
       timeout: b.TimeoutSeconds || 30, maxRetry: b.MaxRetryAttempts || 3, ssl: b.UseSSL !== false ? 1 : 0,
       status: b.Status || 'Pending', isProd: b.IsProduction ? 1 : 0,
-      createdBy: b.CreatedBy || session.user?.email || 'system', updatedBy: b.UpdatedBy || session.user?.email || 'system'
+      createdBy: session.user?.email || 'system', updatedBy: session.user?.email || 'system'
     });
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "Id"=:id`, { id });
     return NextResponse.json({ ...r.rows[0], Password: '••••••••', ApiKey: r.rows[0].ApiKey ? '••••••••' : null }, { status: 201 });
@@ -55,7 +55,7 @@ export async function PUT(req: Request) {
     if (b.ApiKey && !b.ApiKey.includes('••••')) { fields.push('"ApiKey"=:apiKey'); binds.apiKey = b.ApiKey; }
     const boolMap: Record<string, string> = { UseSSL:'ssl',IsProduction:'isProd' };
     for (const [col, bind] of Object.entries(boolMap)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col] ? 1 : 0; } }
-    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = b.UpdatedBy || session.user?.email || 'system';
+    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = session.user?.email || 'system';
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "Id"=:id`, binds);
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "Id"=:id`, { id: b.Id });
     return NextResponse.json({ ...r.rows[0], Password: '••••••••', ApiKey: r.rows[0].ApiKey ? '••••••••' : null });

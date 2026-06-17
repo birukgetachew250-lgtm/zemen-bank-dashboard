@@ -147,7 +147,25 @@ export async function POST(req: Request) {
         const isSuperAdmin = approver.role === 'Super Admin';
         const isSameBranch = Boolean(approver.branch && requesterBranch && approver.branch === requesterBranch);
 
+        // ── Maker-Checker: block self-approval for ALL roles ──────────────────
+        // The same user who submitted the request (maker) must not approve it (checker).
+        const makerEmail = (approval as any).requestedByEmail;
+        if (makerEmail && makerEmail === sessionEmail) {
+            await logActivity({
+                userEmail: sessionEmail,
+                action: 'REQUEST_REJECTED',
+                status: 'Failure',
+                details: `Self-approval attempt blocked for request ID ${approval.id} (type: ${approval.type}). Maker and checker must be different users.`,
+                ipAddress: typeof ip === 'string' ? ip : undefined,
+            });
+            return NextResponse.json({
+                message: 'Maker-Checker violation: you cannot approve a request that you submitted.',
+            }, { status: 403 });
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         if (!isSuperAdmin && !isSameBranch) {
+
             return NextResponse.json({
                 message: 'This request can only be actioned by users from the same branch as the requester.',
             }, { status: 403 });

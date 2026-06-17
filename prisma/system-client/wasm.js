@@ -138,7 +138,8 @@ exports.Prisma.UserScalarFieldEnum = {
   failedLoginAttempts: 'failedLoginAttempts',
   isLocked: 'isLocked',
   lastLoginAttempt: 'lastLoginAttempt',
-  sessionInvalidatedAt: 'sessionInvalidatedAt'
+  sessionInvalidatedAt: 'sessionInvalidatedAt',
+  passwordChangedAt: 'passwordChangedAt'
 };
 
 exports.Prisma.RoleScalarFieldEnum = {
@@ -177,7 +178,8 @@ exports.Prisma.PendingApprovalScalarFieldEnum = {
   customerName: 'customerName',
   customerPhone: 'customerPhone',
   details: 'details',
-  status: 'status'
+  status: 'status',
+  requestedByEmail: 'requestedByEmail'
 };
 
 exports.Prisma.TransactionScalarFieldEnum = {
@@ -203,6 +205,13 @@ exports.Prisma.SystemActivityLogScalarFieldEnum = {
   status: 'status',
   details: 'details',
   ipAddress: 'ipAddress'
+};
+
+exports.Prisma.PasswordHistoryScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  password: 'password',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SecurityPolicyScalarFieldEnum = {
@@ -290,6 +299,7 @@ exports.Prisma.ModelName = {
   PendingApproval: 'PendingApproval',
   Transaction: 'Transaction',
   SystemActivityLog: 'SystemActivityLog',
+  PasswordHistory: 'PasswordHistory',
   SecurityPolicy: 'SecurityPolicy',
   IpWhitelist: 'IpWhitelist',
   OtpCode: 'OtpCode',

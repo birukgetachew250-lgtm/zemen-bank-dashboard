@@ -35,6 +35,12 @@ export type ActivityLogAction =
     | 'SECURITY_RESET_APPROVED'
     // System User Security
     | 'USER_PASSWORD_RESET'
+    | 'USER_SUSPENDED'
+    | 'USER_UNSUSPENDED'
+    | 'USER_UNLOCKED'
+    | 'RATE_LIMIT_BLOCK'
+    | 'BRUTE_FORCE_DETECTED'
+    | 'PASSWORD_CHANGE_FAILURE'
     // External Services
     | 'SMS_SENT'
     | 'WELCOME_EMAIL_SENT'

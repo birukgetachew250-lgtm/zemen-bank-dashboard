@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     await executeQuery(CS, `INSERT INTO ${TABLE} ("CategoryId","CategoryName","CategoryCode","Description","IconUrl","ColorHex","Status","Rank","CreatedBy","UpdatedBy","CreatedAt","UpdatedAt") VALUES (:id,:name,:code,:descr,:icon,:color,:status,:rank,:createdBy,:updatedBy,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
       id, name: b.CategoryName, code: b.CategoryCode, descr: b.Description || null, icon: b.IconUrl || null,
       color: b.ColorHex || null, status: b.Status || 'Active', rank: b.Rank || 0,
-      createdBy: b.CreatedBy || session.user?.email || 'system', updatedBy: b.UpdatedBy || session.user?.email || 'system'
+      createdBy: session.user?.email || 'system', updatedBy: session.user?.email || 'system'
     });
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "CategoryId"=:id`, { id });
     return NextResponse.json(r.rows[0], { status: 201 });
@@ -49,7 +49,7 @@ export async function PUT(req: Request) {
     const fields: string[] = []; const binds: any = { id: b.CategoryId };
     const map: Record<string, string> = { CategoryName:'name',CategoryCode:'code',Description:'desc',IconUrl:'icon',ColorHex:'color',Status:'status',Rank:'rank' };
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
-    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = b.UpdatedBy || session.user?.email || 'system';
+    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = session.user?.email || 'system';
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "CategoryId"=:id`, binds);
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "CategoryId"=:id`, { id: b.CategoryId });
     return NextResponse.json(r.rows[0]);

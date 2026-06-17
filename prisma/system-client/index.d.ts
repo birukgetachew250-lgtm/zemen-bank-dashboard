@@ -54,6 +54,11 @@ export type Transaction = $Result.DefaultSelection<Prisma.$TransactionPayload>
  */
 export type SystemActivityLog = $Result.DefaultSelection<Prisma.$SystemActivityLogPayload>
 /**
+ * Model PasswordHistory
+ * 
+ */
+export type PasswordHistory = $Result.DefaultSelection<Prisma.$PasswordHistoryPayload>
+/**
  * Model SecurityPolicy
  * 
  */
@@ -281,6 +286,16 @@ export class PrismaClient<
     * ```
     */
   get systemActivityLog(): Prisma.SystemActivityLogDelegate<ExtArgs>;
+
+  /**
+   * `prisma.passwordHistory`: Exposes CRUD operations for the **PasswordHistory** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PasswordHistories
+    * const passwordHistories = await prisma.passwordHistory.findMany()
+    * ```
+    */
+  get passwordHistory(): Prisma.PasswordHistoryDelegate<ExtArgs>;
 
   /**
    * `prisma.securityPolicy`: Exposes CRUD operations for the **SecurityPolicy** model.
@@ -780,6 +795,7 @@ export namespace Prisma {
     PendingApproval: 'PendingApproval',
     Transaction: 'Transaction',
     SystemActivityLog: 'SystemActivityLog',
+    PasswordHistory: 'PasswordHistory',
     SecurityPolicy: 'SecurityPolicy',
     IpWhitelist: 'IpWhitelist',
     OtpCode: 'OtpCode',
@@ -800,7 +816,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "role" | "branch" | "department" | "customer" | "pendingApproval" | "transaction" | "systemActivityLog" | "securityPolicy" | "ipWhitelist" | "otpCode" | "iPSBank" | "iPSWallet"
+      modelProps: "user" | "role" | "branch" | "department" | "customer" | "pendingApproval" | "transaction" | "systemActivityLog" | "passwordHistory" | "securityPolicy" | "ipWhitelist" | "otpCode" | "iPSBank" | "iPSWallet"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1364,6 +1380,76 @@ export namespace Prisma {
           }
         }
       }
+      PasswordHistory: {
+        payload: Prisma.$PasswordHistoryPayload<ExtArgs>
+        fields: Prisma.PasswordHistoryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PasswordHistoryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasswordHistoryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PasswordHistoryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasswordHistoryPayload>
+          }
+          findFirst: {
+            args: Prisma.PasswordHistoryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasswordHistoryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PasswordHistoryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasswordHistoryPayload>
+          }
+          findMany: {
+            args: Prisma.PasswordHistoryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasswordHistoryPayload>[]
+          }
+          create: {
+            args: Prisma.PasswordHistoryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasswordHistoryPayload>
+          }
+          createMany: {
+            args: Prisma.PasswordHistoryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PasswordHistoryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasswordHistoryPayload>[]
+          }
+          delete: {
+            args: Prisma.PasswordHistoryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasswordHistoryPayload>
+          }
+          update: {
+            args: Prisma.PasswordHistoryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasswordHistoryPayload>
+          }
+          deleteMany: {
+            args: Prisma.PasswordHistoryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PasswordHistoryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PasswordHistoryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasswordHistoryPayload>
+          }
+          aggregate: {
+            args: Prisma.PasswordHistoryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePasswordHistory>
+          }
+          groupBy: {
+            args: Prisma.PasswordHistoryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PasswordHistoryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PasswordHistoryCountArgs<ExtArgs>
+            result: $Utils.Optional<PasswordHistoryCountAggregateOutputType> | number
+          }
+        }
+      }
       SecurityPolicy: {
         payload: Prisma.$SecurityPolicyPayload<ExtArgs>
         fields: Prisma.SecurityPolicyFieldRefs
@@ -1871,6 +1957,37 @@ export namespace Prisma {
 
 
   /**
+   * Count Type UserCountOutputType
+   */
+
+  export type UserCountOutputType = {
+    passwordHistory: number
+  }
+
+  export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    passwordHistory?: boolean | UserCountOutputTypeCountPasswordHistoryArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserCountOutputType
+     */
+    select?: UserCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountPasswordHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PasswordHistoryWhereInput
+  }
+
+
+  /**
    * Count Type BranchCountOutputType
    */
 
@@ -1984,6 +2101,7 @@ export namespace Prisma {
     isLocked: boolean | null
     lastLoginAttempt: Date | null
     sessionInvalidatedAt: Date | null
+    passwordChangedAt: Date | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -2003,6 +2121,7 @@ export namespace Prisma {
     isLocked: boolean | null
     lastLoginAttempt: Date | null
     sessionInvalidatedAt: Date | null
+    passwordChangedAt: Date | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -2022,6 +2141,7 @@ export namespace Prisma {
     isLocked: number
     lastLoginAttempt: number
     sessionInvalidatedAt: number
+    passwordChangedAt: number
     _all: number
   }
 
@@ -2053,6 +2173,7 @@ export namespace Prisma {
     isLocked?: true
     lastLoginAttempt?: true
     sessionInvalidatedAt?: true
+    passwordChangedAt?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -2072,6 +2193,7 @@ export namespace Prisma {
     isLocked?: true
     lastLoginAttempt?: true
     sessionInvalidatedAt?: true
+    passwordChangedAt?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -2091,6 +2213,7 @@ export namespace Prisma {
     isLocked?: true
     lastLoginAttempt?: true
     sessionInvalidatedAt?: true
+    passwordChangedAt?: true
     _all?: true
   }
 
@@ -2197,6 +2320,7 @@ export namespace Prisma {
     isLocked: boolean
     lastLoginAttempt: Date | null
     sessionInvalidatedAt: Date | null
+    passwordChangedAt: Date | null
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -2235,6 +2359,9 @@ export namespace Prisma {
     isLocked?: boolean
     lastLoginAttempt?: boolean
     sessionInvalidatedAt?: boolean
+    passwordChangedAt?: boolean
+    passwordHistory?: boolean | User$passwordHistoryArgs<ExtArgs>
+    _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -2254,6 +2381,7 @@ export namespace Prisma {
     isLocked?: boolean
     lastLoginAttempt?: boolean
     sessionInvalidatedAt?: boolean
+    passwordChangedAt?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
@@ -2273,12 +2401,20 @@ export namespace Prisma {
     isLocked?: boolean
     lastLoginAttempt?: boolean
     sessionInvalidatedAt?: boolean
+    passwordChangedAt?: boolean
   }
 
+  export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    passwordHistory?: boolean | User$passwordHistoryArgs<ExtArgs>
+    _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $UserPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "User"
-    objects: {}
+    objects: {
+      passwordHistory: Prisma.$PasswordHistoryPayload<ExtArgs>[]
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: number
       employeeId: string
@@ -2296,6 +2432,7 @@ export namespace Prisma {
       isLocked: boolean
       lastLoginAttempt: Date | null
       sessionInvalidatedAt: Date | null
+      passwordChangedAt: Date | null
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -2660,6 +2797,7 @@ export namespace Prisma {
    */
   export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    passwordHistory<T extends User$passwordHistoryArgs<ExtArgs> = {}>(args?: Subset<T, User$passwordHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordHistoryPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2705,6 +2843,7 @@ export namespace Prisma {
     readonly isLocked: FieldRef<"User", 'Boolean'>
     readonly lastLoginAttempt: FieldRef<"User", 'DateTime'>
     readonly sessionInvalidatedAt: FieldRef<"User", 'DateTime'>
+    readonly passwordChangedAt: FieldRef<"User", 'DateTime'>
   }
     
 
@@ -2717,6 +2856,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the User
      */
     select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
     /**
      * Filter, which User to fetch.
      */
@@ -2732,6 +2875,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    /**
      * Filter, which User to fetch.
      */
     where: UserWhereUniqueInput
@@ -2745,6 +2892,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the User
      */
     select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
     /**
      * Filter, which User to fetch.
      */
@@ -2790,6 +2941,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    /**
      * Filter, which User to fetch.
      */
     where?: UserWhereInput
@@ -2834,6 +2989,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    /**
      * Filter, which Users to fetch.
      */
     where?: UserWhereInput
@@ -2872,6 +3031,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the User
      */
     select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
     /**
      * The data needed to create a User.
      */
@@ -2913,6 +3076,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    /**
      * The data needed to update a User.
      */
     data: XOR<UserUpdateInput, UserUncheckedUpdateInput>
@@ -2945,6 +3112,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    /**
      * The filter to search for the User to update in case it exists.
      */
     where: UserWhereUniqueInput
@@ -2967,6 +3138,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    /**
      * Filter which User to delete.
      */
     where: UserWhereUniqueInput
@@ -2983,6 +3158,26 @@ export namespace Prisma {
   }
 
   /**
+   * User.passwordHistory
+   */
+  export type User$passwordHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasswordHistory
+     */
+    select?: PasswordHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordHistoryInclude<ExtArgs> | null
+    where?: PasswordHistoryWhereInput
+    orderBy?: PasswordHistoryOrderByWithRelationInput | PasswordHistoryOrderByWithRelationInput[]
+    cursor?: PasswordHistoryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PasswordHistoryScalarFieldEnum | PasswordHistoryScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2990,6 +3185,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the User
      */
     select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
   }
 
 
@@ -6775,6 +6974,7 @@ export namespace Prisma {
     customerPhone: string | null
     details: string | null
     status: string | null
+    requestedByEmail: string | null
   }
 
   export type PendingApprovalMaxAggregateOutputType = {
@@ -6786,6 +6986,7 @@ export namespace Prisma {
     customerPhone: string | null
     details: string | null
     status: string | null
+    requestedByEmail: string | null
   }
 
   export type PendingApprovalCountAggregateOutputType = {
@@ -6797,6 +6998,7 @@ export namespace Prisma {
     customerPhone: number
     details: number
     status: number
+    requestedByEmail: number
     _all: number
   }
 
@@ -6820,6 +7022,7 @@ export namespace Prisma {
     customerPhone?: true
     details?: true
     status?: true
+    requestedByEmail?: true
   }
 
   export type PendingApprovalMaxAggregateInputType = {
@@ -6831,6 +7034,7 @@ export namespace Prisma {
     customerPhone?: true
     details?: true
     status?: true
+    requestedByEmail?: true
   }
 
   export type PendingApprovalCountAggregateInputType = {
@@ -6842,6 +7046,7 @@ export namespace Prisma {
     customerPhone?: true
     details?: true
     status?: true
+    requestedByEmail?: true
     _all?: true
   }
 
@@ -6940,6 +7145,7 @@ export namespace Prisma {
     customerPhone: string
     details: string | null
     status: string
+    requestedByEmail: string | null
     _count: PendingApprovalCountAggregateOutputType | null
     _avg: PendingApprovalAvgAggregateOutputType | null
     _sum: PendingApprovalSumAggregateOutputType | null
@@ -6970,6 +7176,7 @@ export namespace Prisma {
     customerPhone?: boolean
     details?: boolean
     status?: boolean
+    requestedByEmail?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["pendingApproval"]>
 
@@ -6982,6 +7189,7 @@ export namespace Prisma {
     customerPhone?: boolean
     details?: boolean
     status?: boolean
+    requestedByEmail?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["pendingApproval"]>
 
@@ -6994,6 +7202,7 @@ export namespace Prisma {
     customerPhone?: boolean
     details?: boolean
     status?: boolean
+    requestedByEmail?: boolean
   }
 
   export type PendingApprovalInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7017,6 +7226,7 @@ export namespace Prisma {
       customerPhone: string
       details: string | null
       status: string
+      requestedByEmail: string | null
     }, ExtArgs["result"]["pendingApproval"]>
     composites: {}
   }
@@ -7419,6 +7629,7 @@ export namespace Prisma {
     readonly customerPhone: FieldRef<"PendingApproval", 'String'>
     readonly details: FieldRef<"PendingApproval", 'String'>
     readonly status: FieldRef<"PendingApproval", 'String'>
+    readonly requestedByEmail: FieldRef<"PendingApproval", 'String'>
   }
     
 
@@ -9743,6 +9954,965 @@ export namespace Prisma {
      * Select specific fields to fetch from the SystemActivityLog
      */
     select?: SystemActivityLogSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PasswordHistory
+   */
+
+  export type AggregatePasswordHistory = {
+    _count: PasswordHistoryCountAggregateOutputType | null
+    _avg: PasswordHistoryAvgAggregateOutputType | null
+    _sum: PasswordHistorySumAggregateOutputType | null
+    _min: PasswordHistoryMinAggregateOutputType | null
+    _max: PasswordHistoryMaxAggregateOutputType | null
+  }
+
+  export type PasswordHistoryAvgAggregateOutputType = {
+    id: number | null
+    userId: number | null
+  }
+
+  export type PasswordHistorySumAggregateOutputType = {
+    id: number | null
+    userId: number | null
+  }
+
+  export type PasswordHistoryMinAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    password: string | null
+    createdAt: Date | null
+  }
+
+  export type PasswordHistoryMaxAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    password: string | null
+    createdAt: Date | null
+  }
+
+  export type PasswordHistoryCountAggregateOutputType = {
+    id: number
+    userId: number
+    password: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type PasswordHistoryAvgAggregateInputType = {
+    id?: true
+    userId?: true
+  }
+
+  export type PasswordHistorySumAggregateInputType = {
+    id?: true
+    userId?: true
+  }
+
+  export type PasswordHistoryMinAggregateInputType = {
+    id?: true
+    userId?: true
+    password?: true
+    createdAt?: true
+  }
+
+  export type PasswordHistoryMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    password?: true
+    createdAt?: true
+  }
+
+  export type PasswordHistoryCountAggregateInputType = {
+    id?: true
+    userId?: true
+    password?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type PasswordHistoryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PasswordHistory to aggregate.
+     */
+    where?: PasswordHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PasswordHistories to fetch.
+     */
+    orderBy?: PasswordHistoryOrderByWithRelationInput | PasswordHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PasswordHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PasswordHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PasswordHistories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PasswordHistories
+    **/
+    _count?: true | PasswordHistoryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PasswordHistoryAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PasswordHistorySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PasswordHistoryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PasswordHistoryMaxAggregateInputType
+  }
+
+  export type GetPasswordHistoryAggregateType<T extends PasswordHistoryAggregateArgs> = {
+        [P in keyof T & keyof AggregatePasswordHistory]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePasswordHistory[P]>
+      : GetScalarType<T[P], AggregatePasswordHistory[P]>
+  }
+
+
+
+
+  export type PasswordHistoryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PasswordHistoryWhereInput
+    orderBy?: PasswordHistoryOrderByWithAggregationInput | PasswordHistoryOrderByWithAggregationInput[]
+    by: PasswordHistoryScalarFieldEnum[] | PasswordHistoryScalarFieldEnum
+    having?: PasswordHistoryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PasswordHistoryCountAggregateInputType | true
+    _avg?: PasswordHistoryAvgAggregateInputType
+    _sum?: PasswordHistorySumAggregateInputType
+    _min?: PasswordHistoryMinAggregateInputType
+    _max?: PasswordHistoryMaxAggregateInputType
+  }
+
+  export type PasswordHistoryGroupByOutputType = {
+    id: number
+    userId: number
+    password: string
+    createdAt: Date
+    _count: PasswordHistoryCountAggregateOutputType | null
+    _avg: PasswordHistoryAvgAggregateOutputType | null
+    _sum: PasswordHistorySumAggregateOutputType | null
+    _min: PasswordHistoryMinAggregateOutputType | null
+    _max: PasswordHistoryMaxAggregateOutputType | null
+  }
+
+  type GetPasswordHistoryGroupByPayload<T extends PasswordHistoryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PasswordHistoryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PasswordHistoryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PasswordHistoryGroupByOutputType[P]>
+            : GetScalarType<T[P], PasswordHistoryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PasswordHistorySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    password?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["passwordHistory"]>
+
+  export type PasswordHistorySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    password?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["passwordHistory"]>
+
+  export type PasswordHistorySelectScalar = {
+    id?: boolean
+    userId?: boolean
+    password?: boolean
+    createdAt?: boolean
+  }
+
+  export type PasswordHistoryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type PasswordHistoryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $PasswordHistoryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PasswordHistory"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      userId: number
+      password: string
+      createdAt: Date
+    }, ExtArgs["result"]["passwordHistory"]>
+    composites: {}
+  }
+
+  type PasswordHistoryGetPayload<S extends boolean | null | undefined | PasswordHistoryDefaultArgs> = $Result.GetResult<Prisma.$PasswordHistoryPayload, S>
+
+  type PasswordHistoryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PasswordHistoryFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PasswordHistoryCountAggregateInputType | true
+    }
+
+  export interface PasswordHistoryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PasswordHistory'], meta: { name: 'PasswordHistory' } }
+    /**
+     * Find zero or one PasswordHistory that matches the filter.
+     * @param {PasswordHistoryFindUniqueArgs} args - Arguments to find a PasswordHistory
+     * @example
+     * // Get one PasswordHistory
+     * const passwordHistory = await prisma.passwordHistory.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PasswordHistoryFindUniqueArgs>(args: SelectSubset<T, PasswordHistoryFindUniqueArgs<ExtArgs>>): Prisma__PasswordHistoryClient<$Result.GetResult<Prisma.$PasswordHistoryPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PasswordHistory that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PasswordHistoryFindUniqueOrThrowArgs} args - Arguments to find a PasswordHistory
+     * @example
+     * // Get one PasswordHistory
+     * const passwordHistory = await prisma.passwordHistory.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PasswordHistoryFindUniqueOrThrowArgs>(args: SelectSubset<T, PasswordHistoryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PasswordHistoryClient<$Result.GetResult<Prisma.$PasswordHistoryPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PasswordHistory that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasswordHistoryFindFirstArgs} args - Arguments to find a PasswordHistory
+     * @example
+     * // Get one PasswordHistory
+     * const passwordHistory = await prisma.passwordHistory.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PasswordHistoryFindFirstArgs>(args?: SelectSubset<T, PasswordHistoryFindFirstArgs<ExtArgs>>): Prisma__PasswordHistoryClient<$Result.GetResult<Prisma.$PasswordHistoryPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PasswordHistory that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasswordHistoryFindFirstOrThrowArgs} args - Arguments to find a PasswordHistory
+     * @example
+     * // Get one PasswordHistory
+     * const passwordHistory = await prisma.passwordHistory.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PasswordHistoryFindFirstOrThrowArgs>(args?: SelectSubset<T, PasswordHistoryFindFirstOrThrowArgs<ExtArgs>>): Prisma__PasswordHistoryClient<$Result.GetResult<Prisma.$PasswordHistoryPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PasswordHistories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasswordHistoryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PasswordHistories
+     * const passwordHistories = await prisma.passwordHistory.findMany()
+     * 
+     * // Get first 10 PasswordHistories
+     * const passwordHistories = await prisma.passwordHistory.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const passwordHistoryWithIdOnly = await prisma.passwordHistory.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PasswordHistoryFindManyArgs>(args?: SelectSubset<T, PasswordHistoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordHistoryPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PasswordHistory.
+     * @param {PasswordHistoryCreateArgs} args - Arguments to create a PasswordHistory.
+     * @example
+     * // Create one PasswordHistory
+     * const PasswordHistory = await prisma.passwordHistory.create({
+     *   data: {
+     *     // ... data to create a PasswordHistory
+     *   }
+     * })
+     * 
+     */
+    create<T extends PasswordHistoryCreateArgs>(args: SelectSubset<T, PasswordHistoryCreateArgs<ExtArgs>>): Prisma__PasswordHistoryClient<$Result.GetResult<Prisma.$PasswordHistoryPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PasswordHistories.
+     * @param {PasswordHistoryCreateManyArgs} args - Arguments to create many PasswordHistories.
+     * @example
+     * // Create many PasswordHistories
+     * const passwordHistory = await prisma.passwordHistory.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PasswordHistoryCreateManyArgs>(args?: SelectSubset<T, PasswordHistoryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PasswordHistories and returns the data saved in the database.
+     * @param {PasswordHistoryCreateManyAndReturnArgs} args - Arguments to create many PasswordHistories.
+     * @example
+     * // Create many PasswordHistories
+     * const passwordHistory = await prisma.passwordHistory.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PasswordHistories and only return the `id`
+     * const passwordHistoryWithIdOnly = await prisma.passwordHistory.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PasswordHistoryCreateManyAndReturnArgs>(args?: SelectSubset<T, PasswordHistoryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordHistoryPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PasswordHistory.
+     * @param {PasswordHistoryDeleteArgs} args - Arguments to delete one PasswordHistory.
+     * @example
+     * // Delete one PasswordHistory
+     * const PasswordHistory = await prisma.passwordHistory.delete({
+     *   where: {
+     *     // ... filter to delete one PasswordHistory
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PasswordHistoryDeleteArgs>(args: SelectSubset<T, PasswordHistoryDeleteArgs<ExtArgs>>): Prisma__PasswordHistoryClient<$Result.GetResult<Prisma.$PasswordHistoryPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PasswordHistory.
+     * @param {PasswordHistoryUpdateArgs} args - Arguments to update one PasswordHistory.
+     * @example
+     * // Update one PasswordHistory
+     * const passwordHistory = await prisma.passwordHistory.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PasswordHistoryUpdateArgs>(args: SelectSubset<T, PasswordHistoryUpdateArgs<ExtArgs>>): Prisma__PasswordHistoryClient<$Result.GetResult<Prisma.$PasswordHistoryPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PasswordHistories.
+     * @param {PasswordHistoryDeleteManyArgs} args - Arguments to filter PasswordHistories to delete.
+     * @example
+     * // Delete a few PasswordHistories
+     * const { count } = await prisma.passwordHistory.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PasswordHistoryDeleteManyArgs>(args?: SelectSubset<T, PasswordHistoryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PasswordHistories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasswordHistoryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PasswordHistories
+     * const passwordHistory = await prisma.passwordHistory.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PasswordHistoryUpdateManyArgs>(args: SelectSubset<T, PasswordHistoryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PasswordHistory.
+     * @param {PasswordHistoryUpsertArgs} args - Arguments to update or create a PasswordHistory.
+     * @example
+     * // Update or create a PasswordHistory
+     * const passwordHistory = await prisma.passwordHistory.upsert({
+     *   create: {
+     *     // ... data to create a PasswordHistory
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PasswordHistory we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PasswordHistoryUpsertArgs>(args: SelectSubset<T, PasswordHistoryUpsertArgs<ExtArgs>>): Prisma__PasswordHistoryClient<$Result.GetResult<Prisma.$PasswordHistoryPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PasswordHistories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasswordHistoryCountArgs} args - Arguments to filter PasswordHistories to count.
+     * @example
+     * // Count the number of PasswordHistories
+     * const count = await prisma.passwordHistory.count({
+     *   where: {
+     *     // ... the filter for the PasswordHistories we want to count
+     *   }
+     * })
+    **/
+    count<T extends PasswordHistoryCountArgs>(
+      args?: Subset<T, PasswordHistoryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PasswordHistoryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PasswordHistory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasswordHistoryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PasswordHistoryAggregateArgs>(args: Subset<T, PasswordHistoryAggregateArgs>): Prisma.PrismaPromise<GetPasswordHistoryAggregateType<T>>
+
+    /**
+     * Group by PasswordHistory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasswordHistoryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PasswordHistoryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PasswordHistoryGroupByArgs['orderBy'] }
+        : { orderBy?: PasswordHistoryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PasswordHistoryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPasswordHistoryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PasswordHistory model
+   */
+  readonly fields: PasswordHistoryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PasswordHistory.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PasswordHistoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PasswordHistory model
+   */ 
+  interface PasswordHistoryFieldRefs {
+    readonly id: FieldRef<"PasswordHistory", 'Int'>
+    readonly userId: FieldRef<"PasswordHistory", 'Int'>
+    readonly password: FieldRef<"PasswordHistory", 'String'>
+    readonly createdAt: FieldRef<"PasswordHistory", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PasswordHistory findUnique
+   */
+  export type PasswordHistoryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasswordHistory
+     */
+    select?: PasswordHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which PasswordHistory to fetch.
+     */
+    where: PasswordHistoryWhereUniqueInput
+  }
+
+  /**
+   * PasswordHistory findUniqueOrThrow
+   */
+  export type PasswordHistoryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasswordHistory
+     */
+    select?: PasswordHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which PasswordHistory to fetch.
+     */
+    where: PasswordHistoryWhereUniqueInput
+  }
+
+  /**
+   * PasswordHistory findFirst
+   */
+  export type PasswordHistoryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasswordHistory
+     */
+    select?: PasswordHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which PasswordHistory to fetch.
+     */
+    where?: PasswordHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PasswordHistories to fetch.
+     */
+    orderBy?: PasswordHistoryOrderByWithRelationInput | PasswordHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PasswordHistories.
+     */
+    cursor?: PasswordHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PasswordHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PasswordHistories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PasswordHistories.
+     */
+    distinct?: PasswordHistoryScalarFieldEnum | PasswordHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * PasswordHistory findFirstOrThrow
+   */
+  export type PasswordHistoryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasswordHistory
+     */
+    select?: PasswordHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which PasswordHistory to fetch.
+     */
+    where?: PasswordHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PasswordHistories to fetch.
+     */
+    orderBy?: PasswordHistoryOrderByWithRelationInput | PasswordHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PasswordHistories.
+     */
+    cursor?: PasswordHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PasswordHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PasswordHistories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PasswordHistories.
+     */
+    distinct?: PasswordHistoryScalarFieldEnum | PasswordHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * PasswordHistory findMany
+   */
+  export type PasswordHistoryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasswordHistory
+     */
+    select?: PasswordHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which PasswordHistories to fetch.
+     */
+    where?: PasswordHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PasswordHistories to fetch.
+     */
+    orderBy?: PasswordHistoryOrderByWithRelationInput | PasswordHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PasswordHistories.
+     */
+    cursor?: PasswordHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PasswordHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PasswordHistories.
+     */
+    skip?: number
+    distinct?: PasswordHistoryScalarFieldEnum | PasswordHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * PasswordHistory create
+   */
+  export type PasswordHistoryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasswordHistory
+     */
+    select?: PasswordHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordHistoryInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PasswordHistory.
+     */
+    data: XOR<PasswordHistoryCreateInput, PasswordHistoryUncheckedCreateInput>
+  }
+
+  /**
+   * PasswordHistory createMany
+   */
+  export type PasswordHistoryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PasswordHistories.
+     */
+    data: PasswordHistoryCreateManyInput | PasswordHistoryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PasswordHistory createManyAndReturn
+   */
+  export type PasswordHistoryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasswordHistory
+     */
+    select?: PasswordHistorySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PasswordHistories.
+     */
+    data: PasswordHistoryCreateManyInput | PasswordHistoryCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordHistoryIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PasswordHistory update
+   */
+  export type PasswordHistoryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasswordHistory
+     */
+    select?: PasswordHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordHistoryInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PasswordHistory.
+     */
+    data: XOR<PasswordHistoryUpdateInput, PasswordHistoryUncheckedUpdateInput>
+    /**
+     * Choose, which PasswordHistory to update.
+     */
+    where: PasswordHistoryWhereUniqueInput
+  }
+
+  /**
+   * PasswordHistory updateMany
+   */
+  export type PasswordHistoryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PasswordHistories.
+     */
+    data: XOR<PasswordHistoryUpdateManyMutationInput, PasswordHistoryUncheckedUpdateManyInput>
+    /**
+     * Filter which PasswordHistories to update
+     */
+    where?: PasswordHistoryWhereInput
+  }
+
+  /**
+   * PasswordHistory upsert
+   */
+  export type PasswordHistoryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasswordHistory
+     */
+    select?: PasswordHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordHistoryInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PasswordHistory to update in case it exists.
+     */
+    where: PasswordHistoryWhereUniqueInput
+    /**
+     * In case the PasswordHistory found by the `where` argument doesn't exist, create a new PasswordHistory with this data.
+     */
+    create: XOR<PasswordHistoryCreateInput, PasswordHistoryUncheckedCreateInput>
+    /**
+     * In case the PasswordHistory was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PasswordHistoryUpdateInput, PasswordHistoryUncheckedUpdateInput>
+  }
+
+  /**
+   * PasswordHistory delete
+   */
+  export type PasswordHistoryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasswordHistory
+     */
+    select?: PasswordHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordHistoryInclude<ExtArgs> | null
+    /**
+     * Filter which PasswordHistory to delete.
+     */
+    where: PasswordHistoryWhereUniqueInput
+  }
+
+  /**
+   * PasswordHistory deleteMany
+   */
+  export type PasswordHistoryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PasswordHistories to delete
+     */
+    where?: PasswordHistoryWhereInput
+  }
+
+  /**
+   * PasswordHistory without action
+   */
+  export type PasswordHistoryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasswordHistory
+     */
+    select?: PasswordHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordHistoryInclude<ExtArgs> | null
   }
 
 
@@ -14584,7 +15754,8 @@ export namespace Prisma {
     failedLoginAttempts: 'failedLoginAttempts',
     isLocked: 'isLocked',
     lastLoginAttempt: 'lastLoginAttempt',
-    sessionInvalidatedAt: 'sessionInvalidatedAt'
+    sessionInvalidatedAt: 'sessionInvalidatedAt',
+    passwordChangedAt: 'passwordChangedAt'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -14638,7 +15809,8 @@ export namespace Prisma {
     customerName: 'customerName',
     customerPhone: 'customerPhone',
     details: 'details',
-    status: 'status'
+    status: 'status',
+    requestedByEmail: 'requestedByEmail'
   };
 
   export type PendingApprovalScalarFieldEnum = (typeof PendingApprovalScalarFieldEnum)[keyof typeof PendingApprovalScalarFieldEnum]
@@ -14673,6 +15845,16 @@ export namespace Prisma {
   };
 
   export type SystemActivityLogScalarFieldEnum = (typeof SystemActivityLogScalarFieldEnum)[keyof typeof SystemActivityLogScalarFieldEnum]
+
+
+  export const PasswordHistoryScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    password: 'password',
+    createdAt: 'createdAt'
+  };
+
+  export type PasswordHistoryScalarFieldEnum = (typeof PasswordHistoryScalarFieldEnum)[keyof typeof PasswordHistoryScalarFieldEnum]
 
 
   export const SecurityPolicyScalarFieldEnum: {
@@ -14865,6 +16047,8 @@ export namespace Prisma {
     isLocked?: BoolFilter<"User"> | boolean
     lastLoginAttempt?: DateTimeNullableFilter<"User"> | Date | string | null
     sessionInvalidatedAt?: DateTimeNullableFilter<"User"> | Date | string | null
+    passwordChangedAt?: DateTimeNullableFilter<"User"> | Date | string | null
+    passwordHistory?: PasswordHistoryListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -14884,6 +16068,8 @@ export namespace Prisma {
     isLocked?: SortOrder
     lastLoginAttempt?: SortOrderInput | SortOrder
     sessionInvalidatedAt?: SortOrderInput | SortOrder
+    passwordChangedAt?: SortOrderInput | SortOrder
+    passwordHistory?: PasswordHistoryOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -14906,6 +16092,8 @@ export namespace Prisma {
     isLocked?: BoolFilter<"User"> | boolean
     lastLoginAttempt?: DateTimeNullableFilter<"User"> | Date | string | null
     sessionInvalidatedAt?: DateTimeNullableFilter<"User"> | Date | string | null
+    passwordChangedAt?: DateTimeNullableFilter<"User"> | Date | string | null
+    passwordHistory?: PasswordHistoryListRelationFilter
   }, "id" | "employeeId" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -14925,6 +16113,7 @@ export namespace Prisma {
     isLocked?: SortOrder
     lastLoginAttempt?: SortOrderInput | SortOrder
     sessionInvalidatedAt?: SortOrderInput | SortOrder
+    passwordChangedAt?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -14952,6 +16141,7 @@ export namespace Prisma {
     isLocked?: BoolWithAggregatesFilter<"User"> | boolean
     lastLoginAttempt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     sessionInvalidatedAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+    passwordChangedAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   }
 
   export type RoleWhereInput = {
@@ -15170,6 +16360,7 @@ export namespace Prisma {
     customerPhone?: StringFilter<"PendingApproval"> | string
     details?: StringNullableFilter<"PendingApproval"> | string | null
     status?: StringFilter<"PendingApproval"> | string
+    requestedByEmail?: StringNullableFilter<"PendingApproval"> | string | null
     customer?: XOR<CustomerRelationFilter, CustomerWhereInput>
   }
 
@@ -15182,6 +16373,7 @@ export namespace Prisma {
     customerPhone?: SortOrder
     details?: SortOrderInput | SortOrder
     status?: SortOrder
+    requestedByEmail?: SortOrderInput | SortOrder
     customer?: CustomerOrderByWithRelationInput
   }
 
@@ -15197,6 +16389,7 @@ export namespace Prisma {
     customerPhone?: StringFilter<"PendingApproval"> | string
     details?: StringNullableFilter<"PendingApproval"> | string | null
     status?: StringFilter<"PendingApproval"> | string
+    requestedByEmail?: StringNullableFilter<"PendingApproval"> | string | null
     customer?: XOR<CustomerRelationFilter, CustomerWhereInput>
   }, "id">
 
@@ -15209,6 +16402,7 @@ export namespace Prisma {
     customerPhone?: SortOrder
     details?: SortOrderInput | SortOrder
     status?: SortOrder
+    requestedByEmail?: SortOrderInput | SortOrder
     _count?: PendingApprovalCountOrderByAggregateInput
     _avg?: PendingApprovalAvgOrderByAggregateInput
     _max?: PendingApprovalMaxOrderByAggregateInput
@@ -15228,6 +16422,7 @@ export namespace Prisma {
     customerPhone?: StringWithAggregatesFilter<"PendingApproval"> | string
     details?: StringNullableWithAggregatesFilter<"PendingApproval"> | string | null
     status?: StringWithAggregatesFilter<"PendingApproval"> | string
+    requestedByEmail?: StringNullableWithAggregatesFilter<"PendingApproval"> | string | null
   }
 
   export type TransactionWhereInput = {
@@ -15384,6 +16579,58 @@ export namespace Prisma {
     status?: StringWithAggregatesFilter<"SystemActivityLog"> | string
     details?: StringNullableWithAggregatesFilter<"SystemActivityLog"> | string | null
     ipAddress?: StringNullableWithAggregatesFilter<"SystemActivityLog"> | string | null
+  }
+
+  export type PasswordHistoryWhereInput = {
+    AND?: PasswordHistoryWhereInput | PasswordHistoryWhereInput[]
+    OR?: PasswordHistoryWhereInput[]
+    NOT?: PasswordHistoryWhereInput | PasswordHistoryWhereInput[]
+    id?: IntFilter<"PasswordHistory"> | number
+    userId?: IntFilter<"PasswordHistory"> | number
+    password?: StringFilter<"PasswordHistory"> | string
+    createdAt?: DateTimeFilter<"PasswordHistory"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }
+
+  export type PasswordHistoryOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    password?: SortOrder
+    createdAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type PasswordHistoryWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: PasswordHistoryWhereInput | PasswordHistoryWhereInput[]
+    OR?: PasswordHistoryWhereInput[]
+    NOT?: PasswordHistoryWhereInput | PasswordHistoryWhereInput[]
+    userId?: IntFilter<"PasswordHistory"> | number
+    password?: StringFilter<"PasswordHistory"> | string
+    createdAt?: DateTimeFilter<"PasswordHistory"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type PasswordHistoryOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    password?: SortOrder
+    createdAt?: SortOrder
+    _count?: PasswordHistoryCountOrderByAggregateInput
+    _avg?: PasswordHistoryAvgOrderByAggregateInput
+    _max?: PasswordHistoryMaxOrderByAggregateInput
+    _min?: PasswordHistoryMinOrderByAggregateInput
+    _sum?: PasswordHistorySumOrderByAggregateInput
+  }
+
+  export type PasswordHistoryScalarWhereWithAggregatesInput = {
+    AND?: PasswordHistoryScalarWhereWithAggregatesInput | PasswordHistoryScalarWhereWithAggregatesInput[]
+    OR?: PasswordHistoryScalarWhereWithAggregatesInput[]
+    NOT?: PasswordHistoryScalarWhereWithAggregatesInput | PasswordHistoryScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"PasswordHistory"> | number
+    userId?: IntWithAggregatesFilter<"PasswordHistory"> | number
+    password?: StringWithAggregatesFilter<"PasswordHistory"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"PasswordHistory"> | Date | string
   }
 
   export type SecurityPolicyWhereInput = {
@@ -15772,6 +17019,8 @@ export namespace Prisma {
     isLocked?: boolean
     lastLoginAttempt?: Date | string | null
     sessionInvalidatedAt?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    passwordHistory?: PasswordHistoryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -15791,6 +17040,8 @@ export namespace Prisma {
     isLocked?: boolean
     lastLoginAttempt?: Date | string | null
     sessionInvalidatedAt?: Date | string | null
+    passwordChangedAt?: Date | string | null
+    passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -15809,6 +17060,8 @@ export namespace Prisma {
     isLocked?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sessionInvalidatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordHistory?: PasswordHistoryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -15828,6 +17081,8 @@ export namespace Prisma {
     isLocked?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sessionInvalidatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -15847,6 +17102,7 @@ export namespace Prisma {
     isLocked?: boolean
     lastLoginAttempt?: Date | string | null
     sessionInvalidatedAt?: Date | string | null
+    passwordChangedAt?: Date | string | null
   }
 
   export type UserUpdateManyMutationInput = {
@@ -15865,6 +17121,7 @@ export namespace Prisma {
     isLocked?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sessionInvalidatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -15884,6 +17141,7 @@ export namespace Prisma {
     isLocked?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sessionInvalidatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type RoleCreateInput = {
@@ -16094,6 +17352,7 @@ export namespace Prisma {
     customerPhone: string
     details?: string | null
     status?: string
+    requestedByEmail?: string | null
     customer: CustomerCreateNestedOneWithoutApprovalsInput
   }
 
@@ -16106,6 +17365,7 @@ export namespace Prisma {
     customerPhone: string
     details?: string | null
     status?: string
+    requestedByEmail?: string | null
   }
 
   export type PendingApprovalUpdateInput = {
@@ -16115,6 +17375,7 @@ export namespace Prisma {
     customerPhone?: StringFieldUpdateOperationsInput | string
     details?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
+    requestedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     customer?: CustomerUpdateOneRequiredWithoutApprovalsNestedInput
   }
 
@@ -16127,6 +17388,7 @@ export namespace Prisma {
     customerPhone?: StringFieldUpdateOperationsInput | string
     details?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
+    requestedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type PendingApprovalCreateManyInput = {
@@ -16138,6 +17400,7 @@ export namespace Prisma {
     customerPhone: string
     details?: string | null
     status?: string
+    requestedByEmail?: string | null
   }
 
   export type PendingApprovalUpdateManyMutationInput = {
@@ -16147,6 +17410,7 @@ export namespace Prisma {
     customerPhone?: StringFieldUpdateOperationsInput | string
     details?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
+    requestedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type PendingApprovalUncheckedUpdateManyInput = {
@@ -16158,6 +17422,7 @@ export namespace Prisma {
     customerPhone?: StringFieldUpdateOperationsInput | string
     details?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
+    requestedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type TransactionCreateInput = {
@@ -16329,6 +17594,51 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     details?: NullableStringFieldUpdateOperationsInput | string | null
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type PasswordHistoryCreateInput = {
+    password: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutPasswordHistoryInput
+  }
+
+  export type PasswordHistoryUncheckedCreateInput = {
+    id?: number
+    userId: number
+    password: string
+    createdAt?: Date | string
+  }
+
+  export type PasswordHistoryUpdateInput = {
+    password?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutPasswordHistoryNestedInput
+  }
+
+  export type PasswordHistoryUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    password?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PasswordHistoryCreateManyInput = {
+    id?: number
+    userId: number
+    password: string
+    createdAt?: Date | string
+  }
+
+  export type PasswordHistoryUpdateManyMutationInput = {
+    password?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PasswordHistoryUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    password?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type SecurityPolicyCreateInput = {
@@ -16813,9 +18123,19 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
+  export type PasswordHistoryListRelationFilter = {
+    every?: PasswordHistoryWhereInput
+    some?: PasswordHistoryWhereInput
+    none?: PasswordHistoryWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
+  }
+
+  export type PasswordHistoryOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type UserCountOrderByAggregateInput = {
@@ -16835,6 +18155,7 @@ export namespace Prisma {
     isLocked?: SortOrder
     lastLoginAttempt?: SortOrder
     sessionInvalidatedAt?: SortOrder
+    passwordChangedAt?: SortOrder
   }
 
   export type UserAvgOrderByAggregateInput = {
@@ -16859,6 +18180,7 @@ export namespace Prisma {
     isLocked?: SortOrder
     lastLoginAttempt?: SortOrder
     sessionInvalidatedAt?: SortOrder
+    passwordChangedAt?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -16878,6 +18200,7 @@ export namespace Prisma {
     isLocked?: SortOrder
     lastLoginAttempt?: SortOrder
     sessionInvalidatedAt?: SortOrder
+    passwordChangedAt?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
@@ -17122,6 +18445,7 @@ export namespace Prisma {
     customerPhone?: SortOrder
     details?: SortOrder
     status?: SortOrder
+    requestedByEmail?: SortOrder
   }
 
   export type PendingApprovalAvgOrderByAggregateInput = {
@@ -17138,6 +18462,7 @@ export namespace Prisma {
     customerPhone?: SortOrder
     details?: SortOrder
     status?: SortOrder
+    requestedByEmail?: SortOrder
   }
 
   export type PendingApprovalMinOrderByAggregateInput = {
@@ -17149,6 +18474,7 @@ export namespace Prisma {
     customerPhone?: SortOrder
     details?: SortOrder
     status?: SortOrder
+    requestedByEmail?: SortOrder
   }
 
   export type PendingApprovalSumOrderByAggregateInput = {
@@ -17276,6 +18602,42 @@ export namespace Prisma {
 
   export type SystemActivityLogSumOrderByAggregateInput = {
     id?: SortOrder
+  }
+
+  export type UserRelationFilter = {
+    is?: UserWhereInput
+    isNot?: UserWhereInput
+  }
+
+  export type PasswordHistoryCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    password?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PasswordHistoryAvgOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+  }
+
+  export type PasswordHistoryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    password?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PasswordHistoryMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    password?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PasswordHistorySumOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
   }
 
   export type StringNullableListFilter<$PrismaModel = never> = {
@@ -17510,6 +18872,20 @@ export namespace Prisma {
     rank?: SortOrder
   }
 
+  export type PasswordHistoryCreateNestedManyWithoutUserInput = {
+    create?: XOR<PasswordHistoryCreateWithoutUserInput, PasswordHistoryUncheckedCreateWithoutUserInput> | PasswordHistoryCreateWithoutUserInput[] | PasswordHistoryUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PasswordHistoryCreateOrConnectWithoutUserInput | PasswordHistoryCreateOrConnectWithoutUserInput[]
+    createMany?: PasswordHistoryCreateManyUserInputEnvelope
+    connect?: PasswordHistoryWhereUniqueInput | PasswordHistoryWhereUniqueInput[]
+  }
+
+  export type PasswordHistoryUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<PasswordHistoryCreateWithoutUserInput, PasswordHistoryUncheckedCreateWithoutUserInput> | PasswordHistoryCreateWithoutUserInput[] | PasswordHistoryUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PasswordHistoryCreateOrConnectWithoutUserInput | PasswordHistoryCreateOrConnectWithoutUserInput[]
+    createMany?: PasswordHistoryCreateManyUserInputEnvelope
+    connect?: PasswordHistoryWhereUniqueInput | PasswordHistoryWhereUniqueInput[]
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string
   }
@@ -17536,6 +18912,34 @@ export namespace Prisma {
 
   export type NullableDateTimeFieldUpdateOperationsInput = {
     set?: Date | string | null
+  }
+
+  export type PasswordHistoryUpdateManyWithoutUserNestedInput = {
+    create?: XOR<PasswordHistoryCreateWithoutUserInput, PasswordHistoryUncheckedCreateWithoutUserInput> | PasswordHistoryCreateWithoutUserInput[] | PasswordHistoryUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PasswordHistoryCreateOrConnectWithoutUserInput | PasswordHistoryCreateOrConnectWithoutUserInput[]
+    upsert?: PasswordHistoryUpsertWithWhereUniqueWithoutUserInput | PasswordHistoryUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: PasswordHistoryCreateManyUserInputEnvelope
+    set?: PasswordHistoryWhereUniqueInput | PasswordHistoryWhereUniqueInput[]
+    disconnect?: PasswordHistoryWhereUniqueInput | PasswordHistoryWhereUniqueInput[]
+    delete?: PasswordHistoryWhereUniqueInput | PasswordHistoryWhereUniqueInput[]
+    connect?: PasswordHistoryWhereUniqueInput | PasswordHistoryWhereUniqueInput[]
+    update?: PasswordHistoryUpdateWithWhereUniqueWithoutUserInput | PasswordHistoryUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: PasswordHistoryUpdateManyWithWhereWithoutUserInput | PasswordHistoryUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: PasswordHistoryScalarWhereInput | PasswordHistoryScalarWhereInput[]
+  }
+
+  export type PasswordHistoryUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<PasswordHistoryCreateWithoutUserInput, PasswordHistoryUncheckedCreateWithoutUserInput> | PasswordHistoryCreateWithoutUserInput[] | PasswordHistoryUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PasswordHistoryCreateOrConnectWithoutUserInput | PasswordHistoryCreateOrConnectWithoutUserInput[]
+    upsert?: PasswordHistoryUpsertWithWhereUniqueWithoutUserInput | PasswordHistoryUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: PasswordHistoryCreateManyUserInputEnvelope
+    set?: PasswordHistoryWhereUniqueInput | PasswordHistoryWhereUniqueInput[]
+    disconnect?: PasswordHistoryWhereUniqueInput | PasswordHistoryWhereUniqueInput[]
+    delete?: PasswordHistoryWhereUniqueInput | PasswordHistoryWhereUniqueInput[]
+    connect?: PasswordHistoryWhereUniqueInput | PasswordHistoryWhereUniqueInput[]
+    update?: PasswordHistoryUpdateWithWhereUniqueWithoutUserInput | PasswordHistoryUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: PasswordHistoryUpdateManyWithWhereWithoutUserInput | PasswordHistoryUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: PasswordHistoryScalarWhereInput | PasswordHistoryScalarWhereInput[]
   }
 
   export type DepartmentCreateNestedManyWithoutBranchInput = {
@@ -17712,6 +19116,20 @@ export namespace Prisma {
     upsert?: CustomerUpsertWithoutTransactionsInput
     connect?: CustomerWhereUniqueInput
     update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutTransactionsInput, CustomerUpdateWithoutTransactionsInput>, CustomerUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type UserCreateNestedOneWithoutPasswordHistoryInput = {
+    create?: XOR<UserCreateWithoutPasswordHistoryInput, UserUncheckedCreateWithoutPasswordHistoryInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPasswordHistoryInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutPasswordHistoryNestedInput = {
+    create?: XOR<UserCreateWithoutPasswordHistoryInput, UserUncheckedCreateWithoutPasswordHistoryInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPasswordHistoryInput
+    upsert?: UserUpsertWithoutPasswordHistoryInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPasswordHistoryInput, UserUpdateWithoutPasswordHistoryInput>, UserUncheckedUpdateWithoutPasswordHistoryInput>
   }
 
   export type SecurityPolicyCreateallowedMfaMethodsInput = {
@@ -17913,6 +19331,53 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
+  export type PasswordHistoryCreateWithoutUserInput = {
+    password: string
+    createdAt?: Date | string
+  }
+
+  export type PasswordHistoryUncheckedCreateWithoutUserInput = {
+    id?: number
+    password: string
+    createdAt?: Date | string
+  }
+
+  export type PasswordHistoryCreateOrConnectWithoutUserInput = {
+    where: PasswordHistoryWhereUniqueInput
+    create: XOR<PasswordHistoryCreateWithoutUserInput, PasswordHistoryUncheckedCreateWithoutUserInput>
+  }
+
+  export type PasswordHistoryCreateManyUserInputEnvelope = {
+    data: PasswordHistoryCreateManyUserInput | PasswordHistoryCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PasswordHistoryUpsertWithWhereUniqueWithoutUserInput = {
+    where: PasswordHistoryWhereUniqueInput
+    update: XOR<PasswordHistoryUpdateWithoutUserInput, PasswordHistoryUncheckedUpdateWithoutUserInput>
+    create: XOR<PasswordHistoryCreateWithoutUserInput, PasswordHistoryUncheckedCreateWithoutUserInput>
+  }
+
+  export type PasswordHistoryUpdateWithWhereUniqueWithoutUserInput = {
+    where: PasswordHistoryWhereUniqueInput
+    data: XOR<PasswordHistoryUpdateWithoutUserInput, PasswordHistoryUncheckedUpdateWithoutUserInput>
+  }
+
+  export type PasswordHistoryUpdateManyWithWhereWithoutUserInput = {
+    where: PasswordHistoryScalarWhereInput
+    data: XOR<PasswordHistoryUpdateManyMutationInput, PasswordHistoryUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type PasswordHistoryScalarWhereInput = {
+    AND?: PasswordHistoryScalarWhereInput | PasswordHistoryScalarWhereInput[]
+    OR?: PasswordHistoryScalarWhereInput[]
+    NOT?: PasswordHistoryScalarWhereInput | PasswordHistoryScalarWhereInput[]
+    id?: IntFilter<"PasswordHistory"> | number
+    userId?: IntFilter<"PasswordHistory"> | number
+    password?: StringFilter<"PasswordHistory"> | string
+    createdAt?: DateTimeFilter<"PasswordHistory"> | Date | string
+  }
+
   export type DepartmentCreateWithoutBranchInput = {
     id: string
     name: string
@@ -18050,6 +19515,7 @@ export namespace Prisma {
     customerPhone: string
     details?: string | null
     status?: string
+    requestedByEmail?: string | null
   }
 
   export type PendingApprovalUncheckedCreateWithoutCustomerInput = {
@@ -18060,6 +19526,7 @@ export namespace Prisma {
     customerPhone: string
     details?: string | null
     status?: string
+    requestedByEmail?: string | null
   }
 
   export type PendingApprovalCreateOrConnectWithoutCustomerInput = {
@@ -18134,6 +19601,7 @@ export namespace Prisma {
     customerPhone?: StringFilter<"PendingApproval"> | string
     details?: StringNullableFilter<"PendingApproval"> | string | null
     status?: StringFilter<"PendingApproval"> | string
+    requestedByEmail?: StringNullableFilter<"PendingApproval"> | string | null
   }
 
   export type CustomerCreateWithoutApprovalsInput = {
@@ -18236,6 +19704,123 @@ export namespace Prisma {
     approvals?: PendingApprovalUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
+  export type UserCreateWithoutPasswordHistoryInput = {
+    employeeId: string
+    name: string
+    email: string
+    password: string
+    role: string
+    branch?: string | null
+    department: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    mfaEnabled?: boolean
+    status?: string
+    failedLoginAttempts?: number
+    isLocked?: boolean
+    lastLoginAttempt?: Date | string | null
+    sessionInvalidatedAt?: Date | string | null
+    passwordChangedAt?: Date | string | null
+  }
+
+  export type UserUncheckedCreateWithoutPasswordHistoryInput = {
+    id?: number
+    employeeId: string
+    name: string
+    email: string
+    password: string
+    role: string
+    branch?: string | null
+    department: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    mfaEnabled?: boolean
+    status?: string
+    failedLoginAttempts?: number
+    isLocked?: boolean
+    lastLoginAttempt?: Date | string | null
+    sessionInvalidatedAt?: Date | string | null
+    passwordChangedAt?: Date | string | null
+  }
+
+  export type UserCreateOrConnectWithoutPasswordHistoryInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutPasswordHistoryInput, UserUncheckedCreateWithoutPasswordHistoryInput>
+  }
+
+  export type UserUpsertWithoutPasswordHistoryInput = {
+    update: XOR<UserUpdateWithoutPasswordHistoryInput, UserUncheckedUpdateWithoutPasswordHistoryInput>
+    create: XOR<UserCreateWithoutPasswordHistoryInput, UserUncheckedCreateWithoutPasswordHistoryInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutPasswordHistoryInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutPasswordHistoryInput, UserUncheckedUpdateWithoutPasswordHistoryInput>
+  }
+
+  export type UserUpdateWithoutPasswordHistoryInput = {
+    employeeId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    branch?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaEnabled?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    isLocked?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sessionInvalidatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type UserUncheckedUpdateWithoutPasswordHistoryInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    employeeId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    branch?: NullableStringFieldUpdateOperationsInput | string | null
+    department?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mfaEnabled?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    failedLoginAttempts?: IntFieldUpdateOperationsInput | number
+    isLocked?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAttempt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sessionInvalidatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PasswordHistoryCreateManyUserInput = {
+    id?: number
+    password: string
+    createdAt?: Date | string
+  }
+
+  export type PasswordHistoryUpdateWithoutUserInput = {
+    password?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PasswordHistoryUncheckedUpdateWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    password?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PasswordHistoryUncheckedUpdateManyWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    password?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type DepartmentCreateManyBranchInput = {
     id: string
     name: string
@@ -18282,6 +19867,7 @@ export namespace Prisma {
     customerPhone: string
     details?: string | null
     status?: string
+    requestedByEmail?: string | null
   }
 
   export type TransactionUpdateWithoutCustomerInput = {
@@ -18333,6 +19919,7 @@ export namespace Prisma {
     customerPhone?: StringFieldUpdateOperationsInput | string
     details?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
+    requestedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type PendingApprovalUncheckedUpdateWithoutCustomerInput = {
@@ -18343,6 +19930,7 @@ export namespace Prisma {
     customerPhone?: StringFieldUpdateOperationsInput | string
     details?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
+    requestedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type PendingApprovalUncheckedUpdateManyWithoutCustomerInput = {
@@ -18353,6 +19941,7 @@ export namespace Prisma {
     customerPhone?: StringFieldUpdateOperationsInput | string
     details?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
+    requestedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
 
@@ -18360,6 +19949,10 @@ export namespace Prisma {
   /**
    * Aliases for legacy arg types
    */
+    /**
+     * @deprecated Use UserCountOutputTypeDefaultArgs instead
+     */
+    export type UserCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use BranchCountOutputTypeDefaultArgs instead
      */
@@ -18400,6 +19993,10 @@ export namespace Prisma {
      * @deprecated Use SystemActivityLogDefaultArgs instead
      */
     export type SystemActivityLogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SystemActivityLogDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PasswordHistoryDefaultArgs instead
+     */
+    export type PasswordHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PasswordHistoryDefaultArgs<ExtArgs>
     /**
      * @deprecated Use SecurityPolicyDefaultArgs instead
      */

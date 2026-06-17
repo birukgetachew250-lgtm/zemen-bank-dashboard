@@ -4,6 +4,8 @@ import { db } from '@/lib/db';
 import { logActivity } from '@/lib/activity-log';
 import { requireAuthenticatedSession, requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
+import { validatePasswordComplexity } from '@/lib/password-utils';
+
 
 // GET a single user
 export async function GET(
@@ -61,7 +63,15 @@ export async function PUT(
         const dataToUpdate: any = { employeeId, name, email, role, branch, department };
 
         if (password) {
-            dataToUpdate.password = password; 
+            // Validate complexity before accepting a manually-supplied password
+            const complexityCheck = validatePasswordComplexity(password);
+            if (!complexityCheck.valid) {
+                return NextResponse.json({
+                    message: 'Password does not meet complexity requirements.',
+                    errors: complexityCheck.errors,
+                }, { status: 400 });
+            }
+            dataToUpdate.password = password;
             dataToUpdate.status = 'PasswordChangeRequired';
         }
 

@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       target: b.TargetUrl || null, image: b.ImageUrl || null, thumb: b.ThumbnailUrl || null,
       order: b.DisplayOrder || 0, adType: b.AdType || null,
       startDate: b.StartDate ? new Date(b.StartDate) : null, endDate: b.EndDate ? new Date(b.EndDate) : null,
-      status: b.Status || 'Active', createdBy: b.CreatedBy || session.user?.email || 'system', updatedBy: b.UpdatedBy || session.user?.email || 'system'
+      status: b.Status || 'Active', createdBy: session.user?.email || 'system', updatedBy: session.user?.email || 'system'
     });
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "Id"=:id`, { id });
     return NextResponse.json(r.rows[0], { status: 201 });
@@ -53,7 +53,7 @@ export async function PUT(req: Request) {
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
     if (b.StartDate !== undefined) { fields.push('"StartDate"=:startDate'); binds.startDate = b.StartDate ? new Date(b.StartDate) : null; }
     if (b.EndDate !== undefined) { fields.push('"EndDate"=:endDate'); binds.endDate = b.EndDate ? new Date(b.EndDate) : null; }
-    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = b.UpdatedBy || session.user?.email || 'system';
+    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = session.user?.email || 'system';
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "Id"=:id`, binds);
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "Id"=:id`, { id: b.Id });
     return NextResponse.json(r.rows[0]);

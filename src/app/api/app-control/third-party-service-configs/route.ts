@@ -43,8 +43,8 @@ export async function POST(req: Request) {
         status: b.Status || 'Active',
         configParams: b.ConfigParams || null,
         description: b.Description || null,
-        createdBy: b.CreatedBy || session.user?.email || 'system',
-        updatedBy: b.UpdatedBy || session.user?.email || 'system',
+        createdBy: session.user?.email || 'system',
+        updatedBy: session.user?.email || 'system',
       }
     );
 
@@ -76,8 +76,6 @@ export async function PUT(req: Request) {
       Status: 'status',
       ConfigParams: 'configParams',
       Description: 'description',
-      CreatedBy: 'createdBy',
-      UpdatedBy: 'updatedBy',
     };
 
     for (const [col, bind] of Object.entries(map)) {
@@ -92,10 +90,8 @@ export async function PUT(req: Request) {
       binds.isEnabled = b.IsEnabled ? 1 : 0;
     }
 
-    if (!binds.updatedBy) {
-      fields.push('"UpdatedBy"=:updatedBy');
-      binds.updatedBy = session.user?.email || 'system';
-    }
+    fields.push('"UpdatedBy"=:updatedBy');
+    binds.updatedBy = session.user?.email || 'system';
 
     fields.push('"UpdatedAt"=CURRENT_TIMESTAMP');
 

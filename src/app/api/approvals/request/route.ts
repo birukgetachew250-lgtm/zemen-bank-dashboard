@@ -56,7 +56,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'CIF and approval type are required' }, { status: 400 });
         }
 
-        const sessionEmail = session?.user?.email;
+        const sessionEmail = session.user?.email as string;
 
         const requester = await db.user.findUnique({
             where: { email: sessionEmail },
@@ -92,9 +92,11 @@ export async function POST(req: Request) {
                 type: type, 
                 customerName: customerName, 
                 customerPhone: customerPhone, 
-                details: finalDetails
+                details: finalDetails,
+                requestedByEmail: session.user?.email || null,
             }
         });
+
         
         const logAction = typeToActionMap[type];
         if (logAction) {

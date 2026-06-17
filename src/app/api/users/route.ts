@@ -6,6 +6,8 @@ import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
 import { sendEmail } from '@/services/email-service';
 import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
+import { validatePasswordComplexity } from '@/lib/password-utils';
+
 
 function generateWelcomeEmail(name: string, username: string, tempPassword: string, loginUrl: string): string {
   return `
@@ -57,7 +59,30 @@ export async function POST(req: Request) {
         
         const isPasswordGenerated = !password;
         if (isPasswordGenerated) {
-            password = crypto.randomBytes(8).toString('hex').slice(0, 12);
+            // Auto-generate a complex password that satisfies the complexity policy
+            const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+            const lower = 'abcdefghjkmnpqrstuvwxyz';
+            const digits = '23456789';
+            const specials = '!@#$%^&*';
+            const all = upper + lower + digits + specials;
+            let generated =
+                upper[crypto.randomInt(upper.length)] +
+                lower[crypto.randomInt(lower.length)] +
+                digits[crypto.randomInt(digits.length)] +
+                specials[crypto.randomInt(specials.length)];
+            for (let i = generated.length; i < 16; i++) {
+                generated += all[crypto.randomInt(all.length)];
+            }
+            password = generated.split('').sort(() => crypto.randomInt(3) - 1).join('');
+        } else {
+            // Validate caller-supplied password against complexity policy
+            const complexityCheck = validatePasswordComplexity(password);
+            if (!complexityCheck.valid) {
+                return NextResponse.json({
+                    message: 'Password does not meet complexity requirements.',
+                    errors: complexityCheck.errors,
+                }, { status: 400 });
+            }
         }
 
         // In a real app, hash this password before saving

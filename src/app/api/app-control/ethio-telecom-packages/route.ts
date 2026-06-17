@@ -49,8 +49,8 @@ export async function POST(req: Request) {
         isAvailable: b.IsAvailable === false ? 0 : 1,
         status: b.Status || 'Active',
         rank: b.Rank || 0,
-        createdBy: b.CreatedBy || session.user?.email || 'system',
-        updatedBy: b.UpdatedBy || session.user?.email || 'system',
+        createdBy: session.user?.email || 'system',
+        updatedBy: session.user?.email || 'system',
       }
     );
 
@@ -110,7 +110,7 @@ export async function PUT(req: Request) {
 
     fields.push('"UpdatedAt"=CURRENT_TIMESTAMP');
     fields.push('"UpdatedBy"=:updBy');
-    binds.updBy = b.UpdatedBy || session.user?.email || 'system';
+    binds.updBy = session.user?.email || 'system';
 
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "Id"=:id`, binds);
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "Id"=:id`, { id: b.Id });

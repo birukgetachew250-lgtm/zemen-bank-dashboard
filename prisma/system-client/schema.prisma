@@ -15,22 +15,24 @@ generator system {
 }
 
 model User {
-  id                   Int       @id @default(autoincrement())
-  employeeId           String    @unique
+  id                   Int               @id @default(autoincrement())
+  employeeId           String            @unique
   name                 String
-  email                String    @unique
+  email                String            @unique
   password             String // In a real app, this would be a hash
   role                 String
   branch               String?
   department           String
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  mfaEnabled           Boolean   @default(false)
-  status               String    @default("Active") // e.g., Active, Suspended, Locked
-  failedLoginAttempts  Int       @default(0)
-  isLocked             Boolean   @default(false)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  mfaEnabled           Boolean           @default(false)
+  status               String            @default("Active") // e.g., Active, Suspended, Locked
+  failedLoginAttempts  Int               @default(0)
+  isLocked             Boolean           @default(false)
   lastLoginAttempt     DateTime?
   sessionInvalidatedAt DateTime?
+  passwordChangedAt    DateTime?
+  passwordHistory      PasswordHistory[]
 }
 
 model Role {
@@ -66,15 +68,16 @@ model Customer {
 }
 
 model PendingApproval {
-  id            Int      @id @default(autoincrement())
-  customerId    Int
-  customer      Customer @relation(fields: [customerId], references: [id])
-  type          String // e.g. new-customer, pin-reset, suspend
-  requestedAt   DateTime @default(now())
-  customerName  String
-  customerPhone String
-  details       String?
-  status        String   @default("pending") // pending, approved, rejected
+  id               Int      @id @default(autoincrement())
+  customerId       Int
+  customer         Customer @relation(fields: [customerId], references: [id])
+  type             String // e.g. new-customer, pin-reset, suspend
+  requestedAt      DateTime @default(now())
+  customerName     String
+  customerPhone    String
+  details          String?
+  status           String   @default("pending") // pending, approved, rejected
+  requestedByEmail String? // maker: who submitted this request
 }
 
 model Transaction {
@@ -101,6 +104,16 @@ model SystemActivityLog {
   status    String
   details   String?
   ipAddress String?
+}
+
+model PasswordHistory {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  password  String // stored value (plain or hashed, matching the User.password format)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model SecurityPolicy {

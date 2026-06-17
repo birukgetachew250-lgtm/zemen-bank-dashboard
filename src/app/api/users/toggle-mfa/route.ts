@@ -1,15 +1,11 @@
 
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-options';
 import { db } from '@/lib/db';
+import { requireAuthenticatedSession } from '@/lib/auth-utils';
 
 export async function POST(req: Request) {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-        return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
-    }
+    const session = await requireAuthenticatedSession();
+    if (session instanceof NextResponse) return session;
 
     try {
         const { mfaEnabled } = await req.json();
@@ -19,7 +15,8 @@ export async function POST(req: Request) {
         }
         
         await db.user.update({
-            where: { email: session.user.email },
+            where: { email: session.user.email as string },
+
             data: { mfaEnabled: mfaEnabled },
         });
 

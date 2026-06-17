@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       vat: b.IsVATApplicable ? 1 : 0, vatPct: b.VATPercentage || null, waived: b.IsWaivedForPremium ? 1 : 0,
       freeTxnLimit: b.FreeTransactionsLimit || null, freeTxnPeriod: b.FreeTransactionsPeriod || null,
       notes: b.Notes || null, status: b.Status || 'Active', rank: b.Rank || 0,
-      createdBy: b.CreatedBy || session.user?.email || 'system', updatedBy: b.UpdatedBy || session.user?.email || 'system'
+      createdBy: session.user?.email || 'system', updatedBy: session.user?.email || 'system'
     });
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "FeeId"=:id`, { id });
     return NextResponse.json(r.rows[0], { status: 201 });
@@ -65,7 +65,7 @@ export async function PUT(req: Request) {
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
     const boolMap: Record<string, string> = { IsFree:'isFree',IsVATApplicable:'vat',IsWaivedForPremium:'waived' };
     for (const [col, bind] of Object.entries(boolMap)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col] ? 1 : 0; } }
-    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = b.UpdatedBy || session.user?.email || 'system';
+    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = session.user?.email || 'system';
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "FeeId"=:id`, binds);
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "FeeId"=:id`, { id: b.FeeId });
     return NextResponse.json(r.rows[0]);
