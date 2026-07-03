@@ -61,6 +61,10 @@ import {
   Megaphone,
   MapPin,
   MonitorCog,
+  ClipboardList,
+  LayoutList,
+  FileCheck2,
+  XCircle,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -73,6 +77,14 @@ export interface MenuItem {
 
 export const menu: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+  {
+    label: "Overview",
+    icon: LayoutList,
+    children: [
+      { icon: ClipboardList, label: "Maker Dashboard", href: "/overview/maker" },
+      { icon: FileCheck2,    label: "Checker Dashboard", href: "/overview/checker" },
+    ],
+  },
   {
     label: "Banking Users",
     icon: Briefcase,
@@ -88,6 +100,7 @@ export const menu: MenuItem[] = [
           { icon: Unlink, label: "Unlink Account", href: "/customers/unlink-account" },
           { icon: Ban, label: "Suspend Customer", href: "/customers/block" },
           { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/unblock" },
+          { icon: LockOpen, label: "Unlock Customer", href: "/customers/unlock-customer" },
           { icon: Smartphone, label: "Resend Activation Code", href: "/customers/resend-activation" },
           { icon: KeyRound, label: "Pin Reset", href: "/customers/request-pin-reset" },
         ],
@@ -207,6 +220,7 @@ export const menu: MenuItem[] = [
           { icon: Unlink, label: "Unlink Account", href: "/customers/approve-unlink" },
           { icon: UserX, label: "Suspend Customer", href: "/customers/approve-suspension" },
           { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/approve-unblocked" },
+          { icon: LockOpen, label: "Unlock Customer", href: "/customers/approve-unlock" },
           { icon: Smartphone, label: "Resend Activation Code", href: "/customers/approve-resend-activation" },
           { icon: KeyRound, label: "Pin Reset", href: "/customers/approve-pin-reset" },
           { icon: ShieldCheck, label: "Security Reset", href: "/customers/approve-security" },

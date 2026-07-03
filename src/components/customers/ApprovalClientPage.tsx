@@ -16,7 +16,7 @@ import { format, parseISO } from 'date-fns';
 import { Input } from "../ui/input";
 import { Skeleton } from "../ui/skeleton";
 import { Card, CardContent } from "../ui/card";
-import { Loader2, Info, User, Phone, Mail, Fingerprint, Shield, Smartphone, Star, Landmark, ArrowRight } from "lucide-react";
+import { Loader2, Info, User, Phone, Mail, Fingerprint, Shield, Smartphone, Star, Landmark, ArrowRight, FileText } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import {
   Dialog,
@@ -30,6 +30,8 @@ import {
 import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
+import { DocumentViewer, type DocumentMeta } from "../ui/DocumentViewer";
+
 
 
 interface Approval {
@@ -38,6 +40,7 @@ interface Approval {
   customerPhone: string;
   requestedAt: string;
   details: string;
+  documents?: DocumentMeta[];
 }
 
 interface ApprovalClientPageProps {
@@ -290,10 +293,19 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
                     )}
                     {approvalType === 'unlink-account' && (
                        <InfoItem icon={<Landmark />} label="Account to Unlink" value={parsedDetails.accountNumber} />
-                    )}
+                     )}
 
-                 </div>
+                  </div>
             )}
+
+            {/* ── Supporting Documents ── */}
+            {selectedApproval?.documents && selectedApproval.documents.length > 0 && (
+              <div className="pt-2">
+                <Separator className="mb-4" />
+                <DocumentViewer documents={selectedApproval.documents} />
+              </div>
+            )}
+
           <DialogFooter>
             <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
             <Button
