@@ -154,10 +154,16 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
 
   return (
     <>
-      <Card>
+      <div className="relative overflow-hidden rounded-2xl p-6 mb-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(200, 90%, 40%) 0%, hsl(200, 90%, 25%) 100%)' }}>
+        <h1 className="text-3xl font-bold text-white relative z-10">{pageTitle}</h1>
+        <p className="text-white/80 mt-2 relative z-10">Review and manage pending approval requests.</p>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      </div>
+
+      <Card className="glass-card animate-fade-up" style={{ animationDelay: '0.1s' }}>
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-headline font-semibold">{pageTitle}</h2>
+            <h2 className="text-xl font-semibold">Pending Requests</h2>
             <Input 
               placeholder="Search by name or phone..."
               className="max-w-sm"

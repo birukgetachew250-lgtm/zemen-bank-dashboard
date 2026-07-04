@@ -17,12 +17,8 @@ import { CustomerDetailsCard } from "@/components/customers/CustomerDetailsCard"
 import type { CustomerDetails } from "@/components/customers/CustomerDetailsCard";
 import { cn } from "@/lib/utils";
 
-type SearchMode = 'cif-phone' | 'account';
-
 export function ExistingCustomerClient() {
-  const [searchMode, setSearchMode] = useState<SearchMode>('cif-phone');
   const [searchTerm, setSearchTerm] = useState("");
-  const [accountNumber, setAccountNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
   const { toast } = useToast();
@@ -49,107 +45,42 @@ export function ExistingCustomerClient() {
     }
   };
 
-  const handleAccountSearch = async () => {
-    if (!accountNumber.trim()) {
-      toast({ variant: "destructive", title: "Account number required", description: "Please enter an account number." });
-      return;
-    }
-    setIsLoading(true);
-    setCustomer(null);
-    try {
-      const response = await fetch(`/api/customers/search?accountNumber=${encodeURIComponent(accountNumber)}`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "No customer found for this account number");
-      }
-      const data = await response.json();
-      setCustomer(data);
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Search Failed", description: error.message });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      if (searchMode === 'cif-phone') handleCifSearch();
-      else handleAccountSearch();
+      handleCifSearch();
     }
   };
 
   return (
     <>
-      <Card className="max-w-2xl mx-auto rounded-2xl border-slate-200/80 shadow-sm">
+      <div className="relative overflow-hidden rounded-2xl p-6 mb-6 animate-fade-up max-w-2xl" style={{ background: 'linear-gradient(135deg, hsl(200, 90%, 40%) 0%, hsl(200, 90%, 25%) 100%)' }}>
+        <h1 className="text-3xl font-bold text-white relative z-10">Customer Search</h1>
+        <p className="text-white/80 mt-2 relative z-10">Find and manage customer profiles by CIF or phone number.</p>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      </div>
+
+      <Card className="max-w-2xl glass-card animate-fade-up" style={{ animationDelay: '0.1s' }}>
         <CardHeader>
           <CardTitle>Search Existing Customer</CardTitle>
           <CardDescription>
-            Find a customer by CIF number, phone number, or bank account number.
+            Find a customer by CIF number or phone number.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Search mode toggle */}
-          <div className="flex gap-2 p-1 rounded-xl bg-muted/50 w-fit">
-            <button
-              type="button"
-              onClick={() => { setSearchMode('cif-phone'); setCustomer(null); }}
-              className={cn(
-                'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all',
-                searchMode === 'cif-phone'
-                  ? 'bg-white text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <Hash className="h-3.5 w-3.5" />
-              CIF / Phone
-            </button>
-            <button
-              type="button"
-              onClick={() => { setSearchMode('account'); setCustomer(null); }}
-              className={cn(
-                'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all',
-                searchMode === 'account'
-                  ? 'bg-white text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <CreditCard className="h-3.5 w-3.5" />
-              Account Number
-            </button>
+          <div className="flex gap-2">
+            <Input
+              type="text"
+              placeholder="Enter CIF or Phone Number..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="rounded-xl"
+            />
+            <Button onClick={handleCifSearch} disabled={isLoading} className="rounded-xl gap-2">
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              Search
+            </Button>
           </div>
-
-          {/* Search input */}
-          {searchMode === 'cif-phone' ? (
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                placeholder="Enter CIF or Phone Number..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="rounded-xl"
-              />
-              <Button onClick={handleCifSearch} disabled={isLoading} className="rounded-xl gap-2">
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                Search
-              </Button>
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                placeholder="Enter bank account number..."
-                value={accountNumber}
-                onChange={e => setAccountNumber(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="rounded-xl"
-              />
-              <Button onClick={handleAccountSearch} disabled={isLoading} className="rounded-xl gap-2">
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                Search
-              </Button>
-            </div>
-          )}
         </CardContent>
       </Card>
       

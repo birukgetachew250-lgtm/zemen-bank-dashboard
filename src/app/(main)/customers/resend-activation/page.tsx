@@ -124,24 +124,31 @@ export default function ResendActivationCodePage() {
   const isActionDisabled = !customer || isActionLoading;
 
   return (
-    <div className="w-full space-y-8">
-      <Card className="max-w-2xl mx-auto">
+    <div className="w-full space-y-6 animate-fade-up max-w-2xl">
+      <div className="relative overflow-hidden rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, hsl(200, 90%, 40%) 0%, hsl(200, 90%, 25%) 100%)' }}>
+        <h1 className="text-3xl font-bold text-white relative z-10">Resend Activation Code</h1>
+        <p className="text-white/80 mt-2 relative z-10">
+          Enter a CIF number to find a customer and submit an activation-code resend request for approval.
+        </p>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      </div>
+
+      <Card className="glass-card shadow-sm border-slate-200/80 rounded-2xl">
         <CardHeader>
-          <CardTitle>Resend Activation Code</CardTitle>
-          <CardDescription>
-            Enter a CIF number to find a customer and submit an activation-code resend request for approval.
-          </CardDescription>
+          <CardTitle className="text-base">Find Customer</CardTitle>
+          <CardDescription>Search by CIF number</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex w-full items-center space-x-2">
+          <div className="flex w-full items-center gap-2">
             <Input
               type="text"
-              placeholder="Enter CIF Number"
+              placeholder="Enter CIF Number..."
               value={cifNumber}
               onChange={(e) => setCifNumber(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              className="rounded-xl"
             />
-            <Button onClick={handleSearch} disabled={isLoading}>
+            <Button onClick={handleSearch} disabled={isLoading} className="rounded-xl">
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
               Search
             </Button>

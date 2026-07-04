@@ -2,15 +2,11 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { LogOut, Settings, User, Bell, Search, ChevronRight, Menu as MenuIcon } from 'lucide-react';
+import { LogOut, Settings, User, Bell, ChevronRight, Menu as MenuIcon, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -19,18 +15,14 @@ import { useToast } from '@/hooks/use-toast';
 import { menu, type MenuItem } from '@/lib/menu';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetTrigger,
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger,
 } from '@/components/ui/sheet';
 import { ScrollArea } from '../ui/scroll-area';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { cn } from '@/lib/utils';
+import { useEffect, useState, useCallback } from 'react';
 
 /* ─── Build breadcrumbs from pathname ─── */
 function buildBreadcrumbs(menuItems: MenuItem[], pathname: string): MenuItem[] {
@@ -124,16 +116,61 @@ function getRoleLabel(permissions: string[]): { label: string; color: string } {
   return { label: 'Maker Admin', color: 'bg-amber-100 text-amber-700 border-amber-200' };
 }
 
+/* ─── Approval type icons ─── */
+function getApprovalIcon(type: string) {
+  if (type.includes('new')) return <CheckCircle2 className="h-3 w-3 text-green-500" />;
+  if (type.includes('suspend') || type.includes('block')) return <AlertTriangle className="h-3 w-3 text-amber-500" />;
+  return <Clock className="h-3 w-3 text-blue-500" />;
+}
+
+function formatApprovalType(type: string): string {
+  return type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function timeAgo(date: string | Date): string {
+  const diff = Date.now() - new Date(date).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
 export function Header({ user, userPermissions }: { user: any; userPermissions: string[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
+  const [notifCount, setNotifCount] = useState(0);
+  const [notifItems, setNotifItems] = useState<any[]>([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+
   const breadcrumbs = buildBreadcrumbs(menu, pathname);
   const currentPage = breadcrumbs[breadcrumbs.length - 1];
   const role = getRoleLabel(userPermissions);
   const initials = (user?.name || 'U').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch('/api/approvals/pending-count', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifCount(data.count ?? 0);
+        setNotifItems(data.items ?? []);
+      }
+    } catch {
+      // Silently fail — notifications are non-critical
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    // Poll every 60 seconds
+    const interval = setInterval(fetchNotifications, 60_000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   const handleLogout = async () => {
     toast({ title: 'Logging out...' });
@@ -158,11 +195,7 @@ export function Header({ user, userPermissions }: { user: any; userPermissions: 
         {isMobile && (
           <Sheet>
             <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-xl hover:bg-slate-100"
-              >
+              <Button variant="ghost" size="icon" className="rounded-xl hover:bg-slate-100">
                 <MenuIcon className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -222,18 +255,74 @@ export function Header({ user, userPermissions }: { user: any; userPermissions: 
       {/* ─── Right: Actions ─── */}
       <div className="flex items-center gap-2 flex-shrink-0">
         {/* Notification Bell */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative rounded-xl hover:bg-slate-100 text-muted-foreground"
-          aria-label="Notifications"
-        >
-          <Bell className="h-5 w-5" />
-          <span
-            className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[hsl(347,72%,44%)]"
-            style={{ boxShadow: '0 0 6px hsl(347,72%,44%)' }}
-          />
-        </Button>
+        <DropdownMenu open={notifOpen} onOpenChange={(open) => { setNotifOpen(open); if (open) fetchNotifications(); }}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative rounded-xl hover:bg-slate-100 text-muted-foreground"
+              aria-label={`Notifications${notifCount > 0 ? ` (${notifCount} pending)` : ''}`}
+            >
+              <Bell className="h-5 w-5" />
+              {notifCount > 0 && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-[hsl(347,72%,44%)] text-white text-[10px] font-bold flex items-center justify-center px-1 animate-pulse"
+                  style={{ boxShadow: '0 0 8px hsl(347,72%,44%/0.6)' }}
+                >
+                  {notifCount > 99 ? '99+' : notifCount}
+                </span>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="w-80 rounded-xl p-1"
+            style={{ boxShadow: '0 8px 32px rgba(34,47,90,0.14), 0 1px 4px rgba(34,47,90,0.08)' }}
+          >
+            <div className="flex items-center justify-between px-3 py-2 border-b">
+              <p className="text-sm font-semibold">Pending Approvals</p>
+              {notifCount > 0 && (
+                <Badge variant="destructive" className="text-[10px] h-5">
+                  {notifCount} pending
+                </Badge>
+              )}
+            </div>
+            {notifItems.length === 0 ? (
+              <div className="py-6 text-center">
+                <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">All caught up!</p>
+                <p className="text-xs text-muted-foreground">No pending approvals</p>
+              </div>
+            ) : (
+              <>
+                {notifItems.map((item) => (
+                  <DropdownMenuItem
+                    key={item.id}
+                    className="rounded-lg px-3 py-2.5 cursor-pointer"
+                    onClick={() => { router.push('/overview/checker'); setNotifOpen(false); }}
+                  >
+                    <div className="flex items-start gap-3 w-full">
+                      <div className="mt-0.5">{getApprovalIcon(item.type)}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground truncate">{item.customerName}</p>
+                        <p className="text-[11px] text-muted-foreground">{formatApprovalType(item.type)}</p>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground flex-shrink-0">{timeAgo(item.requestedAt)}</span>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+                <div className="border-t mt-1 pt-1">
+                  <DropdownMenuItem
+                    className="rounded-lg px-3 py-2 text-center text-xs font-medium text-[hsl(347,72%,44%)] hover:bg-[hsl(347,72%,44%/0.08)] cursor-pointer justify-center"
+                    onClick={() => { router.push('/overview/checker'); setNotifOpen(false); }}
+                  >
+                    View all {notifCount} pending approvals →
+                  </DropdownMenuItem>
+                </div>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Divider */}
         <div className="w-px h-6 bg-border mx-1" />

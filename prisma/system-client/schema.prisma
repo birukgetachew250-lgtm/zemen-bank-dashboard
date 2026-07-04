@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DASH_MODULE_PROD_DATABASE_URL")
+  url      = env("DASH_MODULE_DEV_DATABASE_URL")
 }
 
 generator client {
@@ -180,4 +180,25 @@ model IPSWallet {
 
   @@index([status])
   @@index([rank])
+}
+
+// ─── Configuration Backup ─────────────────────────────────────────────────────
+model ConfigBackup {
+  id          String    @id @default(cuid())
+  label       String
+  description String?
+  backupType  String    @default("Full") // Full, Partial
+  database    String    @default("PostgreSQL")
+  status      String    @default("Completed") // Completed, InProgress, Failed
+  filePath    String? // Path or S3 key where backup is stored
+  fileSize    Int? // Size in KB
+  checksum    String? // SHA256 for integrity verification
+  createdBy   String
+  restoredAt  DateTime?
+  restoredBy  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
 }

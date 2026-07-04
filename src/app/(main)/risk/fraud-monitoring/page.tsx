@@ -56,18 +56,35 @@ const priorityColors = {
 
 export default function FraudMonitoringPage() {
   const [isOpen, setIsOpen] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterRule, setFilterRule] = useState('all');
+  const [filterPriority, setFilterPriority] = useState('all');
+
+  const filteredTxs = mockFlaggedTxs.filter(tx => {
+      const matchSearch = tx.customerPhone.includes(searchTerm) || tx.id.includes(searchTerm);
+      const matchRule = filterRule === 'all' || tx.ruleTriggered === filterRule;
+      const ruleData = mockRules.find(r => r.name === tx.ruleTriggered);
+      const matchPriority = filterPriority === 'all' || ruleData?.priority === filterPriority;
+      return matchSearch && matchRule && matchPriority;
+  });
 
   return (
     <div className="flex flex-col gap-6 h-full">
+      <div className="relative overflow-hidden rounded-2xl p-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(24, 90%, 50%) 0%, hsl(14, 90%, 40%) 100%)' }}>
+        <h1 className="text-3xl font-bold text-white relative z-10">Fraud Monitoring</h1>
+        <p className="text-white/80 mt-2 relative z-10">Real-time transaction monitoring and rules engine.</p>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      </div>
+
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-            <Card>
+            <Card className="glass-card animate-fade-up">
                 <CardHeader className="flex-row items-center justify-between">
                      <div>
                         <CardTitle>Fraud Detection Rules Engine</CardTitle>
                         <CardDescription>Define and manage the logic for detecting fraudulent transactions.</CardDescription>
                     </div>
                      <div className="flex items-center gap-2">
-                        <Button variant="outline"><PlusCircle className="mr-2"/> New Rule</Button>
+                        <Button variant="outline"><PlusCircle className="mr-2 h-4 w-4"/> New Rule</Button>
                         <CollapsibleTrigger asChild>
                             <Button variant="ghost" size="sm">
                                 {isOpen ? <ChevronDown /> : <ChevronRight />}
@@ -120,19 +137,30 @@ export default function FraudMonitoringPage() {
             </Card>
         </Collapsible>
         
-        <Card className="flex-grow flex flex-col">
+        <Card className="flex-grow flex flex-col glass-card animate-fade-up" style={{ animationDelay: '0.1s' }}>
             <CardHeader>
                 <CardTitle>Live Fraud Monitoring Feed</CardTitle>
                 <CardDescription>Real-time stream of transactions flagged by the rules engine.</CardDescription>
             </CardHeader>
             <CardContent className="flex-grow flex flex-col">
                  <div className="flex items-center gap-4 mb-4">
-                    <Input placeholder='Search Tx ID, Phone...' className="flex-grow" />
-                    <Select defaultValue="all"><SelectTrigger className="w-[180px]"><SelectValue placeholder="Filter by rule..." /></SelectTrigger></Select>
-                    <Select defaultValue="all"><SelectTrigger className="w-[180px]"><SelectValue placeholder="Filter by priority..." /></SelectTrigger></Select>
-                    <Button><Search className="mr-2"/>Search</Button>
+                    <Input placeholder='Search Tx ID, Phone...' className="flex-grow" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                    <Select value={filterRule} onValueChange={setFilterRule}>
+                        <SelectTrigger className="w-[180px]"><SelectValue placeholder="Filter by rule..." /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Rules</SelectItem>
+                            {mockRules.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Select value={filterPriority} onValueChange={setFilterPriority}>
+                        <SelectTrigger className="w-[180px]"><SelectValue placeholder="Filter by priority..." /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Priorities</SelectItem>
+                            {Object.keys(priorityColors).map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                 </div>
-                <div className="rounded-md border flex-grow">
+                <div className="rounded-md border flex-grow overflow-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -146,7 +174,7 @@ export default function FraudMonitoringPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {mockFlaggedTxs.map(tx => (
+                            {filteredTxs.length > 0 ? filteredTxs.map(tx => (
                                 <TableRow key={tx.id}>
                                     <TableCell>{format(tx.timestamp, 'HH:mm:ss')}</TableCell>
                                     <TableCell className="font-mono">{tx.customerPhone}</TableCell>
@@ -155,10 +183,14 @@ export default function FraudMonitoringPage() {
                                     <TableCell className="font-semibold">{tx.riskScore}</TableCell>
                                     <TableCell><Badge variant={tx.status === 'New' ? 'default' : 'outline'}>{tx.status}</Badge></TableCell>
                                     <TableCell className="text-right">
-                                        <Button size="sm" variant="secondary"><HardHat className="mr-2"/>Investigate</Button>
+                                        <Button size="sm" variant="secondary"><HardHat className="mr-2 h-4 w-4"/>Investigate</Button>
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )) : (
+                                <TableRow>
+                                    <TableCell colSpan={7} className="h-24 text-center">No transactions found.</TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </div>

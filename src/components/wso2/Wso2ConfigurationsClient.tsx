@@ -6,9 +6,6 @@ import { Badge } from "@/components/ui/badge";
 const columns: ColumnDef[] = [
   { key: "SERVICE_NAME", label: "Service Name" },
   { key: "ENDPOINT_URL", label: "Endpoint URL" },
-  { key: "HTTP_METHOD", label: "Method", render: (v: any) => <Badge variant="outline">{v}</Badge> },
-  { key: "CONTENT_TYPE", label: "Content Type" },
-  { key: "TIMEOUT_SECONDS", label: "Timeout (s)" },
   {
     key: "IS_ACTIVE", label: "Active",
     render: (v: any) => (
@@ -17,7 +14,6 @@ const columns: ColumnDef[] = [
       </Badge>
     ),
   },
-  { key: "DESCRIPTION", label: "Description" },
 ];
 
 const formFields: FieldDef[] = [

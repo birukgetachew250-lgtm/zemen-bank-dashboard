@@ -222,7 +222,7 @@ export function IPSBankManagementClient({ initialBanks }: IPSBankManagementClien
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-3">
                         <Image 
-                            src={b.bankLogo || `https://picsum.photos/seed/${b.id}/40/40`} 
+                            src={b.bankLogo && (b.bankLogo.startsWith('/') || b.bankLogo.startsWith('http')) ? b.bankLogo : `https://picsum.photos/seed/${b.id}/40/40`} 
                             alt={`${b.bankName} logo`}
                             width={40}
                             height={40}

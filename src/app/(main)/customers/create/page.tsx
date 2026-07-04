@@ -112,14 +112,20 @@ export default function CreateCustomerPage() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
-      <Card className="flex-grow flex flex-col">
+    <div className="w-full flex flex-col gap-6 max-w-3xl">
+      <div className="relative overflow-hidden rounded-2xl p-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(200, 90%, 40%) 0%, hsl(200, 90%, 25%) 100%)' }}>
+        <h1 className="text-3xl font-bold text-white relative z-10">Onboard New Customer</h1>
+        <p className="text-white/80 mt-2 relative z-10">Register a new customer for Mobile Banking.</p>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      </div>
+
+      <Card className="flex-grow flex flex-col glass-card animate-fade-up" style={{ animationDelay: '0.1s' }}>
         <CardHeader>
           <CardTitle className="font-headline text-2xl font-bold">
-            Onboard New Customer for Mobile Banking
+            Step 1: Customer Details
           </CardTitle>
           <CardDescription>
-            Step 1: Enter the Branch Code and CIF number to fetch customer details. The system will first check if the customer is already registered.
+            Enter the Branch Code and CIF number to fetch customer details. The system will first check if the customer is already registered.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-grow">

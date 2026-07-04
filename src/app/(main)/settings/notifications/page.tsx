@@ -50,9 +50,16 @@ export default function NotificationsSettingsPage() {
   }
 
   return (
+    <div className="space-y-6">
+      <div className="relative overflow-hidden rounded-2xl p-6 mb-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(220, 80%, 40%) 0%, hsl(220, 80%, 20%) 100%)' }}>
+        <h1 className="text-3xl font-bold text-white relative z-10">Notification Settings</h1>
+        <p className="text-white/80 mt-2 relative z-10">Manage your email and system notification preferences.</p>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      </div>
+
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <Card>
+            <Card className="glass-card animate-fade-up">
                 <CardHeader>
                     <CardTitle>Notifications</CardTitle>
                     <CardDescription>Manage your notification preferences.</CardDescription>
@@ -105,5 +112,6 @@ export default function NotificationsSettingsPage() {
             </div>
         </form>
     </Form>
+    </div>
   );
 }

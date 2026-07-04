@@ -30,10 +30,16 @@ const mockAuditLogs: AuditLog[] = [
 
 export default function RiskAuditLogPage() {
   return (
-    <Card>
+    <div className="space-y-6">
+      <div className="relative overflow-hidden rounded-2xl p-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(347,72%,44%) 0%, hsl(347,72%,24%) 100%)' }}>
+        <h1 className="text-3xl font-bold text-white relative z-10">Risk & Compliance Audit Log</h1>
+        <p className="text-white/80 mt-2 relative z-10">A tamper-proof log of all actions taken within the risk and compliance modules.</p>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      </div>
+    <Card className="glass-card animate-fade-up">
       <CardHeader>
-        <CardTitle>Risk & Compliance Audit Log</CardTitle>
-        <CardDescription>A tamper-proof log of all actions taken within the risk and compliance modules.</CardDescription>
+        <CardTitle>Audit Log</CardTitle>
+        <CardDescription>Search and filter system logs.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4 mb-4">
@@ -70,5 +76,6 @@ export default function RiskAuditLogPage() {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

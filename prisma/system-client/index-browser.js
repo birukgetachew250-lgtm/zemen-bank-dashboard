@@ -274,6 +274,23 @@ exports.Prisma.IPSWalletScalarFieldEnum = {
   branchCode: 'branchCode'
 };
 
+exports.Prisma.ConfigBackupScalarFieldEnum = {
+  id: 'id',
+  label: 'label',
+  description: 'description',
+  backupType: 'backupType',
+  database: 'database',
+  status: 'status',
+  filePath: 'filePath',
+  fileSize: 'fileSize',
+  checksum: 'checksum',
+  createdBy: 'createdBy',
+  restoredAt: 'restoredAt',
+  restoredBy: 'restoredBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -304,7 +321,8 @@ exports.Prisma.ModelName = {
   IpWhitelist: 'IpWhitelist',
   OtpCode: 'OtpCode',
   IPSBank: 'IPSBank',
-  IPSWallet: 'IPSWallet'
+  IPSWallet: 'IPSWallet',
+  ConfigBackup: 'ConfigBackup'
 };
 
 /**

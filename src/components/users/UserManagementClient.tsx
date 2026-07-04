@@ -49,6 +49,7 @@ export function UserManagementClient({
 }: UserManagementClientProps) {
   const [users, setUsers] = useState(initialUsers);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const router = useRouter();
 
@@ -76,7 +77,10 @@ export function UserManagementClient({
     setUserToDelete(null);
   };
 
+  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
+
   const handleToggleLock = async (user: User) => {
+    setActionLoading(prev => ({ ...prev, [`lock-${user.id}`]: true }));
     try {
       const action = user.isLocked ? 'unlock' : 'suspend';
       const res = await fetch('/api/users/action', {
@@ -87,20 +91,17 @@ export function UserManagementClient({
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || 'Failed to update user');
       toast({ title: 'Success', description: result.message });
-      // refresh list
-      const usersRes = await fetch('/api/users');
-      if (usersRes.ok) {
-        const newData = await usersRes.json();
-        setUsers(newData);
-      } else {
-        router.refresh();
-      }
+      // Update local state instantly
+      setUsers(prev => prev.map(u => u.id === user.id ? { ...u, isLocked: !user.isLocked } : u));
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Error', description: e.message });
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`lock-${user.id}`]: false }));
     }
   };
 
   const handleResetPassword = async (user: User) => {
+    setActionLoading(prev => ({ ...prev, [`reset-${user.id}`]: true }));
     try {
       const res = await fetch('/api/users/action', {
         method: 'POST',
@@ -110,22 +111,42 @@ export function UserManagementClient({
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || 'Failed to reset password');
       toast({ title: 'Password Reset', description: 'Temporary password generated. Please provide it to the user.' });
-      router.refresh();
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Error', description: e.message });
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`reset-${user.id}`]: false }));
     }
   };
+
+  const filteredUsers = users.filter((u) => 
+    u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (u.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (u.employeeId || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (u.role || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <>
       <Card>
         <CardHeader className="flex-row items-center justify-between">
-          <CardTitle>Manage System Users</CardTitle>
+          <div>
+            <CardTitle>Manage System Users</CardTitle>
+            <CardDescription className="mt-1">Create and manage internal bank staff accounts.</CardDescription>
+          </div>
           <Button onClick={() => router.push('/users/create')}>
-            <PlusCircle className="mr-2"/>Add New User
+            <PlusCircle className="mr-2 h-4 w-4"/>Add New User
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+           <div className="flex items-center gap-2 max-w-sm">
+             <input 
+               type="text" 
+               placeholder="Search by name, email, role..." 
+               value={searchQuery}
+               onChange={(e) => setSearchQuery(e.target.value)}
+               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+             />
+           </div>
            <div className="rounded-md border">
             <Table>
                 <TableHeader>
@@ -139,7 +160,13 @@ export function UserManagementClient({
                 </TableRow>
                 </TableHeader>
                 <TableBody>
-                {users.map((user) => (
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      No users found.
+                    </TableCell>
+                  </TableRow>
+                ) : filteredUsers.map((user) => (
                     <TableRow key={user.id}>
                         <TableCell className="font-medium">
                             <div className="flex items-center gap-3">
@@ -166,11 +193,11 @@ export function UserManagementClient({
                                 <Button variant="ghost" size="icon" onClick={() => setUserToDelete(user)}>
                                   <Trash2 className="h-4 w-4 text-red-500" />
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={() => handleToggleLock(user)}>
-                                  {user.isLocked ? 'Unlock' : 'Lock'}
+                                <Button variant="outline" size="sm" onClick={() => handleToggleLock(user)} disabled={actionLoading[`lock-${user.id}`]}>
+                                  {actionLoading[`lock-${user.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : (user.isLocked ? 'Unlock' : 'Lock')}
                                 </Button>
-                                <Button variant="secondary" size="sm" onClick={() => handleResetPassword(user)}>
-                                  Reset Password
+                                <Button variant="secondary" size="sm" onClick={() => handleResetPassword(user)} disabled={actionLoading[`reset-${user.id}`]}>
+                                  {actionLoading[`reset-${user.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Reset Password'}
                                 </Button>
                             </div>
                         </TableCell>

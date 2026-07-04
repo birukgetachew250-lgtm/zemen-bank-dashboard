@@ -54,7 +54,7 @@ export default function CrudTable({ title, apiUrl, idField, columns, formFields,
   const fetchItems = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(apiUrl);
+      const res = await fetch(apiUrl, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
       const data = await res.json();
       setItems(Array.isArray(data) ? data : []);
     } catch {

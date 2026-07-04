@@ -80,4 +80,5 @@ db.$use(async (params, next) => {
 
 if (process.env.NODE_ENV !== 'production') globalThis.prisma = db;
 
+export const prisma = db;
 export { db };

@@ -65,6 +65,7 @@ import {
   LayoutList,
   FileCheck2,
   XCircle,
+  CheckCircle,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -98,8 +99,8 @@ export const menu: MenuItem[] = [
           { icon: Users, label: "Existing Customers", href: "/customers" },
           { icon: Link, label: "Link Account", href: "/customers/link-account" },
           { icon: Unlink, label: "Unlink Account", href: "/customers/unlink-account" },
-          { icon: Ban, label: "Suspend Customer", href: "/customers/block" },
-          { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/unblock" },
+          { icon: Ban, label: "Suspend Customer", href: "/customers/suspend-customer" },
+          { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/unsuspend-customer" },
           { icon: LockOpen, label: "Unlock Customer", href: "/customers/unlock-customer" },
           { icon: Smartphone, label: "Resend Activation Code", href: "/customers/resend-activation" },
           { icon: KeyRound, label: "Pin Reset", href: "/customers/request-pin-reset" },
@@ -134,6 +135,14 @@ export const menu: MenuItem[] = [
         children: [
           { icon: Building, label: "Branches", href: "/branches" },
           { icon: Building2, label: "Departments", href: "/departments" },
+        ],
+      },
+       { 
+        label: "Schools",
+        icon: Building,
+        href: "/administration/schools",
+        children: [
+          { icon: Building, label: "School List", href: "/administration/schools" },
         ],
       },
        { 
@@ -293,7 +302,7 @@ export const menu: MenuItem[] = [
         children: [
             { icon: ShieldCheck, label: "Manage Roles", href: "/roles" },
             { icon: Users, label: "Manage Users", href: "/users" },
-            { icon: KeyRound, label: "Reset User Password", href: "/users/reset-password" },
+
         ]
       },
       { icon: Table, label: "Permissions Matrix", href: "/security/permission-matrix" },
@@ -310,6 +319,16 @@ export const menu: MenuItem[] = [
       { icon: KeyRound, label: "OAuth Credentials", href: "/wso2/oauth-credentials" },
       { icon: Activity, label: "Request Logs", href: "/wso2/request-logs" },
     ]
+  },
+  {
+    icon: Link,
+    label: "Online Linking",
+    href: "/online-linking",
+    children: [
+      { icon: LayoutGrid, label: "Overview", href: "/online-linking/overview" },
+      { icon: ClipboardList, label: "Applications", href: "/online-linking" },
+      { icon: CheckCircle, label: "Approve", href: "/online-linking?status=Verified" },
+    ],
   },
   { 
     icon: Settings, 

@@ -50,14 +50,20 @@ export default function SuspiciousActivityPage() {
   const [selectedAlert, setSelectedAlert] = useState<SuspiciousActivityAlert | null>(mockAlerts[0]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-      <Card className="lg:col-span-2 flex flex-col">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Suspicious Activity Alerts</CardTitle>
-              <CardDescription>Centralized inbox for all fraud and AML alerts, prioritized for triage.</CardDescription>
-            </div>
+    <div className="space-y-6 h-full">
+      <div className="relative overflow-hidden rounded-2xl p-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(347,72%,44%) 0%, hsl(347,72%,24%) 100%)' }}>
+        <h1 className="text-3xl font-bold text-white relative z-10">Suspicious Activity Alerts</h1>
+        <p className="text-white/80 mt-2 relative z-10">Centralized inbox for all fraud and AML alerts, prioritized for triage.</p>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+        <Card className="lg:col-span-2 flex flex-col glass-card animate-fade-up">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Alert Inbox</CardTitle>
+                <CardDescription>Review and manage alerts</CardDescription>
+              </div>
             <div className="flex items-center gap-2">
               <Input placeholder="Search alerts..." className="w-64"/>
               <Button variant="outline" size="icon"><SlidersHorizontal /></Button>
@@ -123,6 +129,7 @@ export default function SuspiciousActivityPage() {
           <div className="flex h-full items-center justify-center text-muted-foreground">Select an alert to view details.</div>
         )}
       </Card>
+      </div>
     </div>
   );
 }

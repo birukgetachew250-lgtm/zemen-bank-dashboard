@@ -3,6 +3,9 @@ import { executeQuery } from '@/lib/oracle-db';
 import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
 
+export const dynamic = 'force-dynamic';
+
+
 const CS = process.env.APP_CONTROL_DB_CONNECTION_STRING;
 const TABLE = '"APP_CONTROL_MODULE"."PrivacyPolicy"';
 

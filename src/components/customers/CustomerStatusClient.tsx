@@ -106,8 +106,12 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
             throw new Error(error.message || `Failed to request ${action.toLowerCase()}`);
         }
         
-        // Redirect to success page
-        router.push(`/customers/${action === 'Suspend' ? 'block' : 'unblock'}/success`);
+        toast({
+            title: `${action} Request Submitted`,
+            description: `Request has been sent to checker for approval.`,
+        });
+        setCifNumber("");
+        setCustomer(null);
 
     } catch (error: any) {
         toast({
@@ -143,26 +147,33 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
   const alertMessage = getAlertMessage();
 
   return (
-    <>
-        <Card className="max-w-2xl mx-auto">
+    <div className="space-y-6 animate-fade-up max-w-2xl">
+        <div className="relative overflow-hidden rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, hsl(200, 90%, 40%) 0%, hsl(200, 90%, 25%) 100%)' }}>
+            <h1 className="text-3xl font-bold text-white relative z-10">{action} Customer</h1>
+            <p className="text-white/80 mt-2 relative z-10">
+                Enter a CIF number to find a customer and submit a request to {action.toLowerCase()} their app access.
+            </p>
+            <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+        </div>
+
+        <Card className="glass-card shadow-sm border-slate-200/80 rounded-2xl">
             <CardHeader>
-                <CardTitle>{action} Customer</CardTitle>
-                <CardDescription>
-                    Enter a CIF number to find a customer and submit a request to {action.toLowerCase()} their app access.
-                </CardDescription>
+                <CardTitle className="text-base">Find Customer</CardTitle>
+                <CardDescription>Search by CIF number</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="flex w-full items-center space-x-2">
+                <div className="flex w-full items-center gap-2">
                     <Input
-                    type="text"
-                    placeholder="Enter CIF Number"
-                    value={cifNumber}
-                    onChange={(e) => setCifNumber(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        type="text"
+                        placeholder="Enter CIF Number..."
+                        value={cifNumber}
+                        onChange={(e) => setCifNumber(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        className="rounded-xl"
                     />
-                    <Button onClick={handleSearch} disabled={isLoading}>
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                    Search
+                    <Button onClick={handleSearch} disabled={isLoading} className="rounded-xl">
+                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                        Search
                     </Button>
                 </div>
             </CardContent>
@@ -175,7 +186,7 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
         )}
 
         {customer && (
-            <Card className="max-w-2xl mx-auto animate-in fade-in-50">
+            <Card className="max-w-2xl animate-in fade-in-50">
                 <CardHeader>
                     <CardTitle>Customer Details</CardTitle>
                 </CardHeader>
@@ -215,7 +226,7 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
                 </CardFooter>
             </Card>
         )}
-    </>
+    </div>
   );
 }
 

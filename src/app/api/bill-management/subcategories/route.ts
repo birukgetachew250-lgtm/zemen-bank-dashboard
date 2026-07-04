@@ -5,6 +5,9 @@ import crypto from 'crypto';
 import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
 
+export const dynamic = 'force-dynamic';
+
+
 const SCHEMA = "APP_CONTROL_MODULE";
 const TABLE = `"${SCHEMA}"."BillSubcategory"`;
 

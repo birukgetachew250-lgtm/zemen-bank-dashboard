@@ -102,10 +102,16 @@ export default function MfaPoliciesPage() {
 
   return (
     <div className="space-y-6">
-        <Card>
+      <div className="relative overflow-hidden rounded-2xl p-6 mb-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(220, 80%, 40%) 0%, hsl(220, 80%, 20%) 100%)' }}>
+        <h1 className="text-3xl font-bold text-white relative z-10">MFA & Security Policies</h1>
+        <p className="text-white/80 mt-2 relative z-10">Manage mandatory authentication and session policies for all admin users.</p>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      </div>
+
+        <Card className="glass-card animate-fade-up">
             <CardHeader>
                 <CardTitle>Global Security Policies</CardTitle>
-                <CardDescription>Manage mandatory authentication and session policies for all admin users.</CardDescription>
+                <CardDescription>Configure session rules and MFA enforcement.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
                 {isLoading ? (
@@ -165,7 +171,7 @@ export default function MfaPoliciesPage() {
             </CardFooter>
         </Card>
 
-        <Card>
+        <Card className="glass-card animate-fade-up" style={{ animationDelay: '0.1s' }}>
             <CardHeader>
                 <CardTitle>User MFA Status</CardTitle>
                 <CardDescription>Monitor and manage MFA enrollment for individual users.</CardDescription>

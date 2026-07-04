@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "createdAt": "2026-07-03T21:00:11.470Z",
+    "createdBy": "admin@zemen.com",
+    "backupType": "Partial",
+    "database": "dash_module",
+    "version": "1.0"
+  },
+  "data": {
+    "users": [
+      {
+        "id": 5,
+        "employeeId": "ops001",
+        "name": "Operations Lead User",
+        "email": "ops@zemen.com",
+        "role": "Operations Lead",
+        "branch": "Bole Branch",
+        "department": "Branch Operations",
+        "status": "Active",
+        "createdAt": "2026-01-23T08:57:24.651Z"
+      },
+      {
+        "id": 6,
+        "employeeId": "ZM123456",
+        "name": "Biruk Geta ",
+        "email": "biruk.getachew.mekonen@zemenbank.com",
+        "role": "Super Admin",
+        "branch": "Head Office",
+        "department": "IT Department",
+        "status": "Active",
+        "createdAt": "2026-05-06T15:10:15.925Z"
+      },
+      {
+        "id": 4,
+        "employeeId": "admin001",
+        "name": "Admin User",
+        "email": "admin@zemen.com",
+        "role": "Super Admin",
+        "branch": "Head Office",
+        "department": "IT Department",
+        "status": "Active",
+        "createdAt": "2026-01-23T08:57:24.649Z"
+      }
+    ],
+    "roles": [
+      {
+        "id": 8,
+        "name": "Operations Lead",
+        "description": "Manages approvals."
+      },
+      {
+        "id": 9,
+        "name": "Support Staff",
+        "description": "Handles customer inquiries."
+      },
+      {
+        "id": 10,
+        "name": "Compliance Officer",
+        "description": "Handles risk and compliance."
+      },
+      {
+        "id": 7,
+        "name": "Super Admin",
+        "description": "{\"main\":\"Full system access.\",\"permissions\":[\"/dashboard\",\"/wso2/dashboard\",\"/wso2/configurations\",\"/wso2/request-logs\",\"/wso2/oauth-credentials\",\"/settings\",\"/settings/change-password\",\"/settings/notifications\",\"/settings/backup\",\"WSO2 Integration\",\"/security/mfa-policies\",\"/security/permission-matrix\",\"/users/reset-password\",\"/users\",\"/roles\",\"Security & Access\",\"/integrations/api-monitoring\",\"/integrations/ips-bank-management\",\"Integrations\",\"/reports/analytics/export-center\",\"/reports/analytics/scheduled\",\"/reports/analytics/custom-builder\",\"/reports/analytics/financial-inclusion\",\"/reports/transactions\",\"/reports/analytics/overview\",\"/monitoring/alerts\",\"/monitoring/tracing\",\"/monitoring/performance\",\"/monitoring/health\",\"System Monitoring\",\"/otp\",\"/customers/audit\",\"/users/audit\",\"/risk/risk-scoring\",\"/risk/dispute-resolution\",\"/risk/nbe-reporting\",\"/risk/aml-kyc\",\"/risk/suspicious-activity\",\"/risk/fraud-monitoring\",\"/customers/approve-security\",\"/customers/approve-pin-reset\",\"/customers/approve-unblocked\",\"/customers/approve-suspension\",\"/customers/approve-unlink\",\"/customers/approve-accounts\",\"/customers/approve-updated\",\"/app-control/terms-conditions\",\"/app-control/promo-ads\",\"/app-control/bank-locations\",\"/mini-apps\",\"Oversight\",\"/mini-apps/create\",\"/customers/approve-new\",\"/app-control/privacy-policies\",\"App Control>Content & Legal\",\"/app-control/fee-categories\",\"/app-control/fee-charges\",\"App Control>Fees & Charges\",\"/app-control/flexcube-integrations\",\"/app-control/ips-wallets\",\"/app-control/ips-banks\",\"/app-control/mini-app-transactions\",\"App Control>IPS Management\",\"/app-control/mini-apps\",\"/app-control/mini-app-categories\",\"App Control>Mini Apps\",\"/limits/transactions\",\"/app-control\",\"/limits/exceptional-limits\",\"/limits/intervals\",\"/limits/categories\",\"/charges\",\"/limits/types\",\"/limits\",\"/departments\",\"/branches\",\"/integrations/config\",\"Administration>Bill Management>Configuration\",\"/integrations/billers/providers\",\"/integrations/billers/subcategories\",\"Administration>Bill Management\",\"/integrations/billers/categories\",\"Administration\",\"/transaction-logs/api-calls\",\"/transactions/settlements\",\"/transaction-logs\",\"/corporates/create\",\"/corporates\",\"/customers/request-pin-reset\",\"/customers/unblock\",\"/customers/block\",\"/customers/unlink-account\",\"/customers/link-account\",\"/customers/create\",\"/customers\",\"Banking Users\"]}"
+      }
+    ],
+    "branches": [
+      {
+        "id": "br_1",
+        "name": "Bole Branch",
+        "location": "Bole, Addis Ababa",
+        "createdAt": "2026-01-23T08:57:24.633Z"
+      },
+      {
+        "id": "br_2",
+        "name": "Head Office",
+        "location": "HQ, Addis Ababa",
+        "createdAt": "2026-01-23T08:57:24.637Z"
+      },
+      {
+        "id": "br_3",
+        "name": "Arada Branch",
+        "location": "Arada, Addis Ababa",
+        "createdAt": "2026-01-23T08:57:24.639Z"
+      }
+    ],
+    "departments": [
+      {
+        "id": "dept_1",
+        "name": "IT Department",
+        "branchId": "br_2",
+        "createdAt": "2026-01-23T08:57:24.640Z"
+      },
+      {
+        "id": "dept_2",
+        "name": "Branch Operations",
+        "branchId": "br_1",
+        "createdAt": "2026-01-23T08:57:24.640Z"
+      },
+      {
+        "id": "dept_3",
+        "name": "Human Resources",
+        "branchId": "br_2",
+        "createdAt": "2026-01-23T08:57:24.640Z"
+      },
+      {
+        "id": "dept_4",
+        "name": "Customer Service",
+        "branchId": "br_3",
+        "createdAt": "2026-01-23T08:57:24.640Z"
+      }
+    ],
+    "schools": [],
+    "securityPolicy": [
+      {
+        "id": 1,
+        "mfaRequired": true,
+        "allowedMfaMethods": [
+          "email"
+        ],
+        "sessionTimeout": 5,
+        "concurrentSessions": 1
+      }
+    ],
+    "ipWhitelist": [],
+    "ipsbanks": [],
+    "ipswallets": []
+  }
+}

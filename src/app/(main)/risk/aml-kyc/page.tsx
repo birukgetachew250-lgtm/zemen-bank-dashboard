@@ -37,17 +37,23 @@ const riskColors: Record<'Low' | 'Medium' | 'High', string> = {
 
 export default function AmlKycPage() {
   return (
-    <Tabs defaultValue="dashboard">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="dashboard">Screening Dashboard &amp; Cases</TabsTrigger>
-        <TabsTrigger value="reporting">NBE Report Generator</TabsTrigger>
-      </TabsList>
-      <TabsContent value="dashboard" className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>AML/KYC Screening Dashboard</CardTitle>
-            <CardDescription>Monitor customers with compliance flags and manage investigation cases.</CardDescription>
-          </CardHeader>
+    <div className="space-y-6">
+      <div className="relative overflow-hidden rounded-2xl p-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(347,72%,44%) 0%, hsl(347,72%,24%) 100%)' }}>
+        <h1 className="text-3xl font-bold text-white relative z-10">AML & KYC Compliance</h1>
+        <p className="text-white/80 mt-2 relative z-10">Monitor customers with compliance flags and manage investigation cases.</p>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      </div>
+      <Tabs defaultValue="dashboard">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="dashboard">Screening Dashboard &amp; Cases</TabsTrigger>
+          <TabsTrigger value="reporting">NBE Report Generator</TabsTrigger>
+        </TabsList>
+        <TabsContent value="dashboard" className="mt-6">
+          <Card className="glass-card animate-fade-up">
+            <CardHeader>
+              <CardTitle>Screening Dashboard</CardTitle>
+              <CardDescription>Manage investigation cases and flagged entities.</CardDescription>
+            </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4 mb-4">
               <Input placeholder="Search by CIF, Name..." className="w-64" />
@@ -127,6 +133,7 @@ export default function AmlKycPage() {
            </CardContent>
          </Card>
        </TabsContent>
-    </Tabs>
+      </Tabs>
+    </div>
   );
 }

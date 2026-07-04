@@ -83,6 +83,11 @@ export type IPSBank = $Result.DefaultSelection<Prisma.$IPSBankPayload>
  * 
  */
 export type IPSWallet = $Result.DefaultSelection<Prisma.$IPSWalletPayload>
+/**
+ * Model ConfigBackup
+ * 
+ */
+export type ConfigBackup = $Result.DefaultSelection<Prisma.$ConfigBackupPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -346,6 +351,16 @@ export class PrismaClient<
     * ```
     */
   get iPSWallet(): Prisma.IPSWalletDelegate<ExtArgs>;
+
+  /**
+   * `prisma.configBackup`: Exposes CRUD operations for the **ConfigBackup** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ConfigBackups
+    * const configBackups = await prisma.configBackup.findMany()
+    * ```
+    */
+  get configBackup(): Prisma.ConfigBackupDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -800,7 +815,8 @@ export namespace Prisma {
     IpWhitelist: 'IpWhitelist',
     OtpCode: 'OtpCode',
     IPSBank: 'IPSBank',
-    IPSWallet: 'IPSWallet'
+    IPSWallet: 'IPSWallet',
+    ConfigBackup: 'ConfigBackup'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -816,7 +832,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "role" | "branch" | "department" | "customer" | "pendingApproval" | "transaction" | "systemActivityLog" | "passwordHistory" | "securityPolicy" | "ipWhitelist" | "otpCode" | "iPSBank" | "iPSWallet"
+      modelProps: "user" | "role" | "branch" | "department" | "customer" | "pendingApproval" | "transaction" | "systemActivityLog" | "passwordHistory" | "securityPolicy" | "ipWhitelist" | "otpCode" | "iPSBank" | "iPSWallet" | "configBackup"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1797,6 +1813,76 @@ export namespace Prisma {
           count: {
             args: Prisma.IPSWalletCountArgs<ExtArgs>
             result: $Utils.Optional<IPSWalletCountAggregateOutputType> | number
+          }
+        }
+      }
+      ConfigBackup: {
+        payload: Prisma.$ConfigBackupPayload<ExtArgs>
+        fields: Prisma.ConfigBackupFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ConfigBackupFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConfigBackupPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ConfigBackupFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConfigBackupPayload>
+          }
+          findFirst: {
+            args: Prisma.ConfigBackupFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConfigBackupPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ConfigBackupFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConfigBackupPayload>
+          }
+          findMany: {
+            args: Prisma.ConfigBackupFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConfigBackupPayload>[]
+          }
+          create: {
+            args: Prisma.ConfigBackupCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConfigBackupPayload>
+          }
+          createMany: {
+            args: Prisma.ConfigBackupCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ConfigBackupCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConfigBackupPayload>[]
+          }
+          delete: {
+            args: Prisma.ConfigBackupDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConfigBackupPayload>
+          }
+          update: {
+            args: Prisma.ConfigBackupUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConfigBackupPayload>
+          }
+          deleteMany: {
+            args: Prisma.ConfigBackupDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ConfigBackupUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ConfigBackupUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConfigBackupPayload>
+          }
+          aggregate: {
+            args: Prisma.ConfigBackupAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateConfigBackup>
+          }
+          groupBy: {
+            args: Prisma.ConfigBackupGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ConfigBackupGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ConfigBackupCountArgs<ExtArgs>
+            result: $Utils.Optional<ConfigBackupCountAggregateOutputType> | number
           }
         }
       }
@@ -15725,6 +15811,1026 @@ export namespace Prisma {
 
 
   /**
+   * Model ConfigBackup
+   */
+
+  export type AggregateConfigBackup = {
+    _count: ConfigBackupCountAggregateOutputType | null
+    _avg: ConfigBackupAvgAggregateOutputType | null
+    _sum: ConfigBackupSumAggregateOutputType | null
+    _min: ConfigBackupMinAggregateOutputType | null
+    _max: ConfigBackupMaxAggregateOutputType | null
+  }
+
+  export type ConfigBackupAvgAggregateOutputType = {
+    fileSize: number | null
+  }
+
+  export type ConfigBackupSumAggregateOutputType = {
+    fileSize: number | null
+  }
+
+  export type ConfigBackupMinAggregateOutputType = {
+    id: string | null
+    label: string | null
+    description: string | null
+    backupType: string | null
+    database: string | null
+    status: string | null
+    filePath: string | null
+    fileSize: number | null
+    checksum: string | null
+    createdBy: string | null
+    restoredAt: Date | null
+    restoredBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ConfigBackupMaxAggregateOutputType = {
+    id: string | null
+    label: string | null
+    description: string | null
+    backupType: string | null
+    database: string | null
+    status: string | null
+    filePath: string | null
+    fileSize: number | null
+    checksum: string | null
+    createdBy: string | null
+    restoredAt: Date | null
+    restoredBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ConfigBackupCountAggregateOutputType = {
+    id: number
+    label: number
+    description: number
+    backupType: number
+    database: number
+    status: number
+    filePath: number
+    fileSize: number
+    checksum: number
+    createdBy: number
+    restoredAt: number
+    restoredBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ConfigBackupAvgAggregateInputType = {
+    fileSize?: true
+  }
+
+  export type ConfigBackupSumAggregateInputType = {
+    fileSize?: true
+  }
+
+  export type ConfigBackupMinAggregateInputType = {
+    id?: true
+    label?: true
+    description?: true
+    backupType?: true
+    database?: true
+    status?: true
+    filePath?: true
+    fileSize?: true
+    checksum?: true
+    createdBy?: true
+    restoredAt?: true
+    restoredBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ConfigBackupMaxAggregateInputType = {
+    id?: true
+    label?: true
+    description?: true
+    backupType?: true
+    database?: true
+    status?: true
+    filePath?: true
+    fileSize?: true
+    checksum?: true
+    createdBy?: true
+    restoredAt?: true
+    restoredBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ConfigBackupCountAggregateInputType = {
+    id?: true
+    label?: true
+    description?: true
+    backupType?: true
+    database?: true
+    status?: true
+    filePath?: true
+    fileSize?: true
+    checksum?: true
+    createdBy?: true
+    restoredAt?: true
+    restoredBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ConfigBackupAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ConfigBackup to aggregate.
+     */
+    where?: ConfigBackupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConfigBackups to fetch.
+     */
+    orderBy?: ConfigBackupOrderByWithRelationInput | ConfigBackupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ConfigBackupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConfigBackups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConfigBackups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ConfigBackups
+    **/
+    _count?: true | ConfigBackupCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ConfigBackupAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ConfigBackupSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ConfigBackupMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ConfigBackupMaxAggregateInputType
+  }
+
+  export type GetConfigBackupAggregateType<T extends ConfigBackupAggregateArgs> = {
+        [P in keyof T & keyof AggregateConfigBackup]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateConfigBackup[P]>
+      : GetScalarType<T[P], AggregateConfigBackup[P]>
+  }
+
+
+
+
+  export type ConfigBackupGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConfigBackupWhereInput
+    orderBy?: ConfigBackupOrderByWithAggregationInput | ConfigBackupOrderByWithAggregationInput[]
+    by: ConfigBackupScalarFieldEnum[] | ConfigBackupScalarFieldEnum
+    having?: ConfigBackupScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ConfigBackupCountAggregateInputType | true
+    _avg?: ConfigBackupAvgAggregateInputType
+    _sum?: ConfigBackupSumAggregateInputType
+    _min?: ConfigBackupMinAggregateInputType
+    _max?: ConfigBackupMaxAggregateInputType
+  }
+
+  export type ConfigBackupGroupByOutputType = {
+    id: string
+    label: string
+    description: string | null
+    backupType: string
+    database: string
+    status: string
+    filePath: string | null
+    fileSize: number | null
+    checksum: string | null
+    createdBy: string
+    restoredAt: Date | null
+    restoredBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ConfigBackupCountAggregateOutputType | null
+    _avg: ConfigBackupAvgAggregateOutputType | null
+    _sum: ConfigBackupSumAggregateOutputType | null
+    _min: ConfigBackupMinAggregateOutputType | null
+    _max: ConfigBackupMaxAggregateOutputType | null
+  }
+
+  type GetConfigBackupGroupByPayload<T extends ConfigBackupGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ConfigBackupGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ConfigBackupGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ConfigBackupGroupByOutputType[P]>
+            : GetScalarType<T[P], ConfigBackupGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ConfigBackupSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    label?: boolean
+    description?: boolean
+    backupType?: boolean
+    database?: boolean
+    status?: boolean
+    filePath?: boolean
+    fileSize?: boolean
+    checksum?: boolean
+    createdBy?: boolean
+    restoredAt?: boolean
+    restoredBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["configBackup"]>
+
+  export type ConfigBackupSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    label?: boolean
+    description?: boolean
+    backupType?: boolean
+    database?: boolean
+    status?: boolean
+    filePath?: boolean
+    fileSize?: boolean
+    checksum?: boolean
+    createdBy?: boolean
+    restoredAt?: boolean
+    restoredBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["configBackup"]>
+
+  export type ConfigBackupSelectScalar = {
+    id?: boolean
+    label?: boolean
+    description?: boolean
+    backupType?: boolean
+    database?: boolean
+    status?: boolean
+    filePath?: boolean
+    fileSize?: boolean
+    checksum?: boolean
+    createdBy?: boolean
+    restoredAt?: boolean
+    restoredBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $ConfigBackupPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ConfigBackup"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      label: string
+      description: string | null
+      backupType: string
+      database: string
+      status: string
+      filePath: string | null
+      fileSize: number | null
+      checksum: string | null
+      createdBy: string
+      restoredAt: Date | null
+      restoredBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["configBackup"]>
+    composites: {}
+  }
+
+  type ConfigBackupGetPayload<S extends boolean | null | undefined | ConfigBackupDefaultArgs> = $Result.GetResult<Prisma.$ConfigBackupPayload, S>
+
+  type ConfigBackupCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ConfigBackupFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ConfigBackupCountAggregateInputType | true
+    }
+
+  export interface ConfigBackupDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ConfigBackup'], meta: { name: 'ConfigBackup' } }
+    /**
+     * Find zero or one ConfigBackup that matches the filter.
+     * @param {ConfigBackupFindUniqueArgs} args - Arguments to find a ConfigBackup
+     * @example
+     * // Get one ConfigBackup
+     * const configBackup = await prisma.configBackup.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ConfigBackupFindUniqueArgs>(args: SelectSubset<T, ConfigBackupFindUniqueArgs<ExtArgs>>): Prisma__ConfigBackupClient<$Result.GetResult<Prisma.$ConfigBackupPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ConfigBackup that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ConfigBackupFindUniqueOrThrowArgs} args - Arguments to find a ConfigBackup
+     * @example
+     * // Get one ConfigBackup
+     * const configBackup = await prisma.configBackup.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ConfigBackupFindUniqueOrThrowArgs>(args: SelectSubset<T, ConfigBackupFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ConfigBackupClient<$Result.GetResult<Prisma.$ConfigBackupPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ConfigBackup that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConfigBackupFindFirstArgs} args - Arguments to find a ConfigBackup
+     * @example
+     * // Get one ConfigBackup
+     * const configBackup = await prisma.configBackup.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ConfigBackupFindFirstArgs>(args?: SelectSubset<T, ConfigBackupFindFirstArgs<ExtArgs>>): Prisma__ConfigBackupClient<$Result.GetResult<Prisma.$ConfigBackupPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ConfigBackup that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConfigBackupFindFirstOrThrowArgs} args - Arguments to find a ConfigBackup
+     * @example
+     * // Get one ConfigBackup
+     * const configBackup = await prisma.configBackup.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ConfigBackupFindFirstOrThrowArgs>(args?: SelectSubset<T, ConfigBackupFindFirstOrThrowArgs<ExtArgs>>): Prisma__ConfigBackupClient<$Result.GetResult<Prisma.$ConfigBackupPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ConfigBackups that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConfigBackupFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ConfigBackups
+     * const configBackups = await prisma.configBackup.findMany()
+     * 
+     * // Get first 10 ConfigBackups
+     * const configBackups = await prisma.configBackup.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const configBackupWithIdOnly = await prisma.configBackup.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ConfigBackupFindManyArgs>(args?: SelectSubset<T, ConfigBackupFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConfigBackupPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ConfigBackup.
+     * @param {ConfigBackupCreateArgs} args - Arguments to create a ConfigBackup.
+     * @example
+     * // Create one ConfigBackup
+     * const ConfigBackup = await prisma.configBackup.create({
+     *   data: {
+     *     // ... data to create a ConfigBackup
+     *   }
+     * })
+     * 
+     */
+    create<T extends ConfigBackupCreateArgs>(args: SelectSubset<T, ConfigBackupCreateArgs<ExtArgs>>): Prisma__ConfigBackupClient<$Result.GetResult<Prisma.$ConfigBackupPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ConfigBackups.
+     * @param {ConfigBackupCreateManyArgs} args - Arguments to create many ConfigBackups.
+     * @example
+     * // Create many ConfigBackups
+     * const configBackup = await prisma.configBackup.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ConfigBackupCreateManyArgs>(args?: SelectSubset<T, ConfigBackupCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ConfigBackups and returns the data saved in the database.
+     * @param {ConfigBackupCreateManyAndReturnArgs} args - Arguments to create many ConfigBackups.
+     * @example
+     * // Create many ConfigBackups
+     * const configBackup = await prisma.configBackup.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ConfigBackups and only return the `id`
+     * const configBackupWithIdOnly = await prisma.configBackup.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ConfigBackupCreateManyAndReturnArgs>(args?: SelectSubset<T, ConfigBackupCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConfigBackupPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ConfigBackup.
+     * @param {ConfigBackupDeleteArgs} args - Arguments to delete one ConfigBackup.
+     * @example
+     * // Delete one ConfigBackup
+     * const ConfigBackup = await prisma.configBackup.delete({
+     *   where: {
+     *     // ... filter to delete one ConfigBackup
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ConfigBackupDeleteArgs>(args: SelectSubset<T, ConfigBackupDeleteArgs<ExtArgs>>): Prisma__ConfigBackupClient<$Result.GetResult<Prisma.$ConfigBackupPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ConfigBackup.
+     * @param {ConfigBackupUpdateArgs} args - Arguments to update one ConfigBackup.
+     * @example
+     * // Update one ConfigBackup
+     * const configBackup = await prisma.configBackup.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ConfigBackupUpdateArgs>(args: SelectSubset<T, ConfigBackupUpdateArgs<ExtArgs>>): Prisma__ConfigBackupClient<$Result.GetResult<Prisma.$ConfigBackupPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ConfigBackups.
+     * @param {ConfigBackupDeleteManyArgs} args - Arguments to filter ConfigBackups to delete.
+     * @example
+     * // Delete a few ConfigBackups
+     * const { count } = await prisma.configBackup.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ConfigBackupDeleteManyArgs>(args?: SelectSubset<T, ConfigBackupDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ConfigBackups.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConfigBackupUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ConfigBackups
+     * const configBackup = await prisma.configBackup.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ConfigBackupUpdateManyArgs>(args: SelectSubset<T, ConfigBackupUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ConfigBackup.
+     * @param {ConfigBackupUpsertArgs} args - Arguments to update or create a ConfigBackup.
+     * @example
+     * // Update or create a ConfigBackup
+     * const configBackup = await prisma.configBackup.upsert({
+     *   create: {
+     *     // ... data to create a ConfigBackup
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ConfigBackup we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ConfigBackupUpsertArgs>(args: SelectSubset<T, ConfigBackupUpsertArgs<ExtArgs>>): Prisma__ConfigBackupClient<$Result.GetResult<Prisma.$ConfigBackupPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ConfigBackups.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConfigBackupCountArgs} args - Arguments to filter ConfigBackups to count.
+     * @example
+     * // Count the number of ConfigBackups
+     * const count = await prisma.configBackup.count({
+     *   where: {
+     *     // ... the filter for the ConfigBackups we want to count
+     *   }
+     * })
+    **/
+    count<T extends ConfigBackupCountArgs>(
+      args?: Subset<T, ConfigBackupCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ConfigBackupCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ConfigBackup.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConfigBackupAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ConfigBackupAggregateArgs>(args: Subset<T, ConfigBackupAggregateArgs>): Prisma.PrismaPromise<GetConfigBackupAggregateType<T>>
+
+    /**
+     * Group by ConfigBackup.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConfigBackupGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ConfigBackupGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ConfigBackupGroupByArgs['orderBy'] }
+        : { orderBy?: ConfigBackupGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ConfigBackupGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetConfigBackupGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ConfigBackup model
+   */
+  readonly fields: ConfigBackupFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ConfigBackup.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ConfigBackupClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ConfigBackup model
+   */ 
+  interface ConfigBackupFieldRefs {
+    readonly id: FieldRef<"ConfigBackup", 'String'>
+    readonly label: FieldRef<"ConfigBackup", 'String'>
+    readonly description: FieldRef<"ConfigBackup", 'String'>
+    readonly backupType: FieldRef<"ConfigBackup", 'String'>
+    readonly database: FieldRef<"ConfigBackup", 'String'>
+    readonly status: FieldRef<"ConfigBackup", 'String'>
+    readonly filePath: FieldRef<"ConfigBackup", 'String'>
+    readonly fileSize: FieldRef<"ConfigBackup", 'Int'>
+    readonly checksum: FieldRef<"ConfigBackup", 'String'>
+    readonly createdBy: FieldRef<"ConfigBackup", 'String'>
+    readonly restoredAt: FieldRef<"ConfigBackup", 'DateTime'>
+    readonly restoredBy: FieldRef<"ConfigBackup", 'String'>
+    readonly createdAt: FieldRef<"ConfigBackup", 'DateTime'>
+    readonly updatedAt: FieldRef<"ConfigBackup", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ConfigBackup findUnique
+   */
+  export type ConfigBackupFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConfigBackup
+     */
+    select?: ConfigBackupSelect<ExtArgs> | null
+    /**
+     * Filter, which ConfigBackup to fetch.
+     */
+    where: ConfigBackupWhereUniqueInput
+  }
+
+  /**
+   * ConfigBackup findUniqueOrThrow
+   */
+  export type ConfigBackupFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConfigBackup
+     */
+    select?: ConfigBackupSelect<ExtArgs> | null
+    /**
+     * Filter, which ConfigBackup to fetch.
+     */
+    where: ConfigBackupWhereUniqueInput
+  }
+
+  /**
+   * ConfigBackup findFirst
+   */
+  export type ConfigBackupFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConfigBackup
+     */
+    select?: ConfigBackupSelect<ExtArgs> | null
+    /**
+     * Filter, which ConfigBackup to fetch.
+     */
+    where?: ConfigBackupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConfigBackups to fetch.
+     */
+    orderBy?: ConfigBackupOrderByWithRelationInput | ConfigBackupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ConfigBackups.
+     */
+    cursor?: ConfigBackupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConfigBackups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConfigBackups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ConfigBackups.
+     */
+    distinct?: ConfigBackupScalarFieldEnum | ConfigBackupScalarFieldEnum[]
+  }
+
+  /**
+   * ConfigBackup findFirstOrThrow
+   */
+  export type ConfigBackupFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConfigBackup
+     */
+    select?: ConfigBackupSelect<ExtArgs> | null
+    /**
+     * Filter, which ConfigBackup to fetch.
+     */
+    where?: ConfigBackupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConfigBackups to fetch.
+     */
+    orderBy?: ConfigBackupOrderByWithRelationInput | ConfigBackupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ConfigBackups.
+     */
+    cursor?: ConfigBackupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConfigBackups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConfigBackups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ConfigBackups.
+     */
+    distinct?: ConfigBackupScalarFieldEnum | ConfigBackupScalarFieldEnum[]
+  }
+
+  /**
+   * ConfigBackup findMany
+   */
+  export type ConfigBackupFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConfigBackup
+     */
+    select?: ConfigBackupSelect<ExtArgs> | null
+    /**
+     * Filter, which ConfigBackups to fetch.
+     */
+    where?: ConfigBackupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConfigBackups to fetch.
+     */
+    orderBy?: ConfigBackupOrderByWithRelationInput | ConfigBackupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ConfigBackups.
+     */
+    cursor?: ConfigBackupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConfigBackups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConfigBackups.
+     */
+    skip?: number
+    distinct?: ConfigBackupScalarFieldEnum | ConfigBackupScalarFieldEnum[]
+  }
+
+  /**
+   * ConfigBackup create
+   */
+  export type ConfigBackupCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConfigBackup
+     */
+    select?: ConfigBackupSelect<ExtArgs> | null
+    /**
+     * The data needed to create a ConfigBackup.
+     */
+    data: XOR<ConfigBackupCreateInput, ConfigBackupUncheckedCreateInput>
+  }
+
+  /**
+   * ConfigBackup createMany
+   */
+  export type ConfigBackupCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ConfigBackups.
+     */
+    data: ConfigBackupCreateManyInput | ConfigBackupCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ConfigBackup createManyAndReturn
+   */
+  export type ConfigBackupCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConfigBackup
+     */
+    select?: ConfigBackupSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ConfigBackups.
+     */
+    data: ConfigBackupCreateManyInput | ConfigBackupCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ConfigBackup update
+   */
+  export type ConfigBackupUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConfigBackup
+     */
+    select?: ConfigBackupSelect<ExtArgs> | null
+    /**
+     * The data needed to update a ConfigBackup.
+     */
+    data: XOR<ConfigBackupUpdateInput, ConfigBackupUncheckedUpdateInput>
+    /**
+     * Choose, which ConfigBackup to update.
+     */
+    where: ConfigBackupWhereUniqueInput
+  }
+
+  /**
+   * ConfigBackup updateMany
+   */
+  export type ConfigBackupUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ConfigBackups.
+     */
+    data: XOR<ConfigBackupUpdateManyMutationInput, ConfigBackupUncheckedUpdateManyInput>
+    /**
+     * Filter which ConfigBackups to update
+     */
+    where?: ConfigBackupWhereInput
+  }
+
+  /**
+   * ConfigBackup upsert
+   */
+  export type ConfigBackupUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConfigBackup
+     */
+    select?: ConfigBackupSelect<ExtArgs> | null
+    /**
+     * The filter to search for the ConfigBackup to update in case it exists.
+     */
+    where: ConfigBackupWhereUniqueInput
+    /**
+     * In case the ConfigBackup found by the `where` argument doesn't exist, create a new ConfigBackup with this data.
+     */
+    create: XOR<ConfigBackupCreateInput, ConfigBackupUncheckedCreateInput>
+    /**
+     * In case the ConfigBackup was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ConfigBackupUpdateInput, ConfigBackupUncheckedUpdateInput>
+  }
+
+  /**
+   * ConfigBackup delete
+   */
+  export type ConfigBackupDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConfigBackup
+     */
+    select?: ConfigBackupSelect<ExtArgs> | null
+    /**
+     * Filter which ConfigBackup to delete.
+     */
+    where: ConfigBackupWhereUniqueInput
+  }
+
+  /**
+   * ConfigBackup deleteMany
+   */
+  export type ConfigBackupDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ConfigBackups to delete
+     */
+    where?: ConfigBackupWhereInput
+  }
+
+  /**
+   * ConfigBackup without action
+   */
+  export type ConfigBackupDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConfigBackup
+     */
+    select?: ConfigBackupSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -15930,6 +17036,26 @@ export namespace Prisma {
   };
 
   export type IPSWalletScalarFieldEnum = (typeof IPSWalletScalarFieldEnum)[keyof typeof IPSWalletScalarFieldEnum]
+
+
+  export const ConfigBackupScalarFieldEnum: {
+    id: 'id',
+    label: 'label',
+    description: 'description',
+    backupType: 'backupType',
+    database: 'database',
+    status: 'status',
+    filePath: 'filePath',
+    fileSize: 'fileSize',
+    checksum: 'checksum',
+    createdBy: 'createdBy',
+    restoredAt: 'restoredAt',
+    restoredBy: 'restoredBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ConfigBackupScalarFieldEnum = (typeof ConfigBackupScalarFieldEnum)[keyof typeof ConfigBackupScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -17003,6 +18129,105 @@ export namespace Prisma {
     branchCode?: StringWithAggregatesFilter<"IPSWallet"> | string
   }
 
+  export type ConfigBackupWhereInput = {
+    AND?: ConfigBackupWhereInput | ConfigBackupWhereInput[]
+    OR?: ConfigBackupWhereInput[]
+    NOT?: ConfigBackupWhereInput | ConfigBackupWhereInput[]
+    id?: StringFilter<"ConfigBackup"> | string
+    label?: StringFilter<"ConfigBackup"> | string
+    description?: StringNullableFilter<"ConfigBackup"> | string | null
+    backupType?: StringFilter<"ConfigBackup"> | string
+    database?: StringFilter<"ConfigBackup"> | string
+    status?: StringFilter<"ConfigBackup"> | string
+    filePath?: StringNullableFilter<"ConfigBackup"> | string | null
+    fileSize?: IntNullableFilter<"ConfigBackup"> | number | null
+    checksum?: StringNullableFilter<"ConfigBackup"> | string | null
+    createdBy?: StringFilter<"ConfigBackup"> | string
+    restoredAt?: DateTimeNullableFilter<"ConfigBackup"> | Date | string | null
+    restoredBy?: StringNullableFilter<"ConfigBackup"> | string | null
+    createdAt?: DateTimeFilter<"ConfigBackup"> | Date | string
+    updatedAt?: DateTimeFilter<"ConfigBackup"> | Date | string
+  }
+
+  export type ConfigBackupOrderByWithRelationInput = {
+    id?: SortOrder
+    label?: SortOrder
+    description?: SortOrderInput | SortOrder
+    backupType?: SortOrder
+    database?: SortOrder
+    status?: SortOrder
+    filePath?: SortOrderInput | SortOrder
+    fileSize?: SortOrderInput | SortOrder
+    checksum?: SortOrderInput | SortOrder
+    createdBy?: SortOrder
+    restoredAt?: SortOrderInput | SortOrder
+    restoredBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ConfigBackupWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ConfigBackupWhereInput | ConfigBackupWhereInput[]
+    OR?: ConfigBackupWhereInput[]
+    NOT?: ConfigBackupWhereInput | ConfigBackupWhereInput[]
+    label?: StringFilter<"ConfigBackup"> | string
+    description?: StringNullableFilter<"ConfigBackup"> | string | null
+    backupType?: StringFilter<"ConfigBackup"> | string
+    database?: StringFilter<"ConfigBackup"> | string
+    status?: StringFilter<"ConfigBackup"> | string
+    filePath?: StringNullableFilter<"ConfigBackup"> | string | null
+    fileSize?: IntNullableFilter<"ConfigBackup"> | number | null
+    checksum?: StringNullableFilter<"ConfigBackup"> | string | null
+    createdBy?: StringFilter<"ConfigBackup"> | string
+    restoredAt?: DateTimeNullableFilter<"ConfigBackup"> | Date | string | null
+    restoredBy?: StringNullableFilter<"ConfigBackup"> | string | null
+    createdAt?: DateTimeFilter<"ConfigBackup"> | Date | string
+    updatedAt?: DateTimeFilter<"ConfigBackup"> | Date | string
+  }, "id">
+
+  export type ConfigBackupOrderByWithAggregationInput = {
+    id?: SortOrder
+    label?: SortOrder
+    description?: SortOrderInput | SortOrder
+    backupType?: SortOrder
+    database?: SortOrder
+    status?: SortOrder
+    filePath?: SortOrderInput | SortOrder
+    fileSize?: SortOrderInput | SortOrder
+    checksum?: SortOrderInput | SortOrder
+    createdBy?: SortOrder
+    restoredAt?: SortOrderInput | SortOrder
+    restoredBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ConfigBackupCountOrderByAggregateInput
+    _avg?: ConfigBackupAvgOrderByAggregateInput
+    _max?: ConfigBackupMaxOrderByAggregateInput
+    _min?: ConfigBackupMinOrderByAggregateInput
+    _sum?: ConfigBackupSumOrderByAggregateInput
+  }
+
+  export type ConfigBackupScalarWhereWithAggregatesInput = {
+    AND?: ConfigBackupScalarWhereWithAggregatesInput | ConfigBackupScalarWhereWithAggregatesInput[]
+    OR?: ConfigBackupScalarWhereWithAggregatesInput[]
+    NOT?: ConfigBackupScalarWhereWithAggregatesInput | ConfigBackupScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ConfigBackup"> | string
+    label?: StringWithAggregatesFilter<"ConfigBackup"> | string
+    description?: StringNullableWithAggregatesFilter<"ConfigBackup"> | string | null
+    backupType?: StringWithAggregatesFilter<"ConfigBackup"> | string
+    database?: StringWithAggregatesFilter<"ConfigBackup"> | string
+    status?: StringWithAggregatesFilter<"ConfigBackup"> | string
+    filePath?: StringNullableWithAggregatesFilter<"ConfigBackup"> | string | null
+    fileSize?: IntNullableWithAggregatesFilter<"ConfigBackup"> | number | null
+    checksum?: StringNullableWithAggregatesFilter<"ConfigBackup"> | string | null
+    createdBy?: StringWithAggregatesFilter<"ConfigBackup"> | string
+    restoredAt?: DateTimeNullableWithAggregatesFilter<"ConfigBackup"> | Date | string | null
+    restoredBy?: StringNullableWithAggregatesFilter<"ConfigBackup"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ConfigBackup"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ConfigBackup"> | Date | string
+  }
+
   export type UserCreateInput = {
     employeeId: string
     name: string
@@ -18055,6 +19280,125 @@ export namespace Prisma {
     branchCode?: StringFieldUpdateOperationsInput | string
   }
 
+  export type ConfigBackupCreateInput = {
+    id?: string
+    label: string
+    description?: string | null
+    backupType?: string
+    database?: string
+    status?: string
+    filePath?: string | null
+    fileSize?: number | null
+    checksum?: string | null
+    createdBy: string
+    restoredAt?: Date | string | null
+    restoredBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ConfigBackupUncheckedCreateInput = {
+    id?: string
+    label: string
+    description?: string | null
+    backupType?: string
+    database?: string
+    status?: string
+    filePath?: string | null
+    fileSize?: number | null
+    checksum?: string | null
+    createdBy: string
+    restoredAt?: Date | string | null
+    restoredBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ConfigBackupUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    backupType?: StringFieldUpdateOperationsInput | string
+    database?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    filePath?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    checksum?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    restoredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    restoredBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConfigBackupUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    backupType?: StringFieldUpdateOperationsInput | string
+    database?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    filePath?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    checksum?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    restoredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    restoredBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConfigBackupCreateManyInput = {
+    id?: string
+    label: string
+    description?: string | null
+    backupType?: string
+    database?: string
+    status?: string
+    filePath?: string | null
+    fileSize?: number | null
+    checksum?: string | null
+    createdBy: string
+    restoredAt?: Date | string | null
+    restoredBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ConfigBackupUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    backupType?: StringFieldUpdateOperationsInput | string
+    database?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    filePath?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    checksum?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    restoredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    restoredBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConfigBackupUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    label?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    backupType?: StringFieldUpdateOperationsInput | string
+    database?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    filePath?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    checksum?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    restoredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    restoredBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -18872,6 +20216,92 @@ export namespace Prisma {
     rank?: SortOrder
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type ConfigBackupCountOrderByAggregateInput = {
+    id?: SortOrder
+    label?: SortOrder
+    description?: SortOrder
+    backupType?: SortOrder
+    database?: SortOrder
+    status?: SortOrder
+    filePath?: SortOrder
+    fileSize?: SortOrder
+    checksum?: SortOrder
+    createdBy?: SortOrder
+    restoredAt?: SortOrder
+    restoredBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ConfigBackupAvgOrderByAggregateInput = {
+    fileSize?: SortOrder
+  }
+
+  export type ConfigBackupMaxOrderByAggregateInput = {
+    id?: SortOrder
+    label?: SortOrder
+    description?: SortOrder
+    backupType?: SortOrder
+    database?: SortOrder
+    status?: SortOrder
+    filePath?: SortOrder
+    fileSize?: SortOrder
+    checksum?: SortOrder
+    createdBy?: SortOrder
+    restoredAt?: SortOrder
+    restoredBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ConfigBackupMinOrderByAggregateInput = {
+    id?: SortOrder
+    label?: SortOrder
+    description?: SortOrder
+    backupType?: SortOrder
+    database?: SortOrder
+    status?: SortOrder
+    filePath?: SortOrder
+    fileSize?: SortOrder
+    checksum?: SortOrder
+    createdBy?: SortOrder
+    restoredAt?: SortOrder
+    restoredBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ConfigBackupSumOrderByAggregateInput = {
+    fileSize?: SortOrder
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
   export type PasswordHistoryCreateNestedManyWithoutUserInput = {
     create?: XOR<PasswordHistoryCreateWithoutUserInput, PasswordHistoryUncheckedCreateWithoutUserInput> | PasswordHistoryCreateWithoutUserInput[] | PasswordHistoryUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PasswordHistoryCreateOrConnectWithoutUserInput | PasswordHistoryCreateOrConnectWithoutUserInput[]
@@ -19141,6 +20571,14 @@ export namespace Prisma {
     push?: string | string[]
   }
 
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type NestedIntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -19329,6 +20767,33 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type PasswordHistoryCreateWithoutUserInput = {
@@ -20017,6 +21482,10 @@ export namespace Prisma {
      * @deprecated Use IPSWalletDefaultArgs instead
      */
     export type IPSWalletArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = IPSWalletDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ConfigBackupDefaultArgs instead
+     */
+    export type ConfigBackupArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ConfigBackupDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

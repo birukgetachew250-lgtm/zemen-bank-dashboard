@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from 'react';
-import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Lock, ShieldCheck, KeyRound } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
@@ -126,76 +126,129 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <Card className="max-w-md">
-      <CardHeader>
-        <CardTitle>Change Password</CardTitle>
-        <CardDescription>
-          Your new password must be at least 12 characters and include uppercase, lowercase, a digit, and a special character.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            <FormField
-              control={form.control}
-              name="currentPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Current Password</FormLabel>
-                  <FormControl>
-                    <Input id="current-password" type="password" autoComplete="current-password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="newPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>New Password</FormLabel>
-                  <FormControl>
-                    <Input id="new-password" type="password" autoComplete="new-password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                  <PasswordStrengthChecklist password={newPasswordValue} />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm New Password</FormLabel>
-                  <FormControl>
-                    <Input id="confirm-password" type="password" autoComplete="new-password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <div className="max-w-5xl mx-auto space-y-6 animate-fade-up">
+      {/* Header */}
+      <div className="relative overflow-hidden rounded-3xl p-8"
+        style={{ background: 'linear-gradient(135deg, hsl(233,55%,52%) 0%, hsl(233,55%,32%) 100%)' }}>
+        <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" />
+        <div className="relative flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center ring-1 ring-white/20">
+            <Lock className="h-7 w-7 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-white tracking-tight">Change Password</h1>
+            <p className="text-white/70 text-sm mt-1">Update your account credentials to maintain strict security.</p>
+          </div>
+        </div>
+      </div>
 
-            {apiErrors.length > 0 && (
-              <ul className="rounded-md border border-destructive/40 bg-destructive/5 p-3 space-y-1">
-                {apiErrors.map((err, i) => (
-                  <li key={i} className="flex items-start gap-1.5 text-xs text-destructive">
-                    <XCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    {err}
-                  </li>
-                ))}
-              </ul>
-            )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Side: Form */}
+        <div className="lg:col-span-2">
+          <Card className="glass-card h-full">
+            <CardHeader className="pb-4 border-b">
+              <CardTitle>Update Credentials</CardTitle>
+              <CardDescription>
+                Ensure your new password meets all the strict security policies of Zemen Bank.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-lg">
+                  <FormField
+                    control={form.control}
+                    name="currentPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Current Password</FormLabel>
+                        <FormControl>
+                          <Input id="current-password" type="password" autoComplete="current-password" {...field} className="rounded-xl" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="newPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>New Password</FormLabel>
+                        <FormControl>
+                          <Input id="new-password" type="password" autoComplete="new-password" {...field} className="rounded-xl" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirm New Password</FormLabel>
+                        <FormControl>
+                          <Input id="confirm-password" type="password" autoComplete="new-password" {...field} className="rounded-xl" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-            <Button id="change-password-submit" type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Change Password
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+                  {apiErrors.length > 0 && (
+                    <ul className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 space-y-2">
+                      {apiErrors.map((err, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-destructive">
+                          <XCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                          {err}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <Button id="change-password-submit" type="submit" disabled={isLoading} className="rounded-xl w-full sm:w-auto px-8 bg-blue-600 hover:bg-blue-700 text-white">
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save New Password
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Side: Security Checklist */}
+        <div>
+          <Card className="glass-card bg-slate-50/50 h-full">
+            <CardHeader className="pb-3 border-b">
+              <CardTitle className="text-base flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-green-600" />
+                Security Requirements
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-5">
+              <p className="text-sm text-muted-foreground mb-4">
+                To protect your Zemen Bank administrative access, your password must meet the following complexity rules:
+              </p>
+              <PasswordStrengthChecklist password={newPasswordValue} />
+              
+              <div className="mt-8 p-4 rounded-xl bg-blue-50 border border-blue-100 flex gap-3">
+                <div className="bg-blue-100 rounded-full p-2 h-fit flex-shrink-0">
+                  <KeyRound className="h-4 w-4 text-blue-700" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-blue-900">Security Tip</h4>
+                  <p className="text-xs text-blue-700 mt-1 leading-relaxed">
+                    Avoid using easily guessable words. A phrase made of multiple unrelated words with numbers and symbols is highly secure.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }
 

@@ -120,13 +120,18 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-6">
+      <div className="relative overflow-hidden rounded-2xl p-6 mb-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(220, 80%, 40%) 0%, hsl(220, 80%, 20%) 100%)' }}>
+        <h1 className="text-3xl font-bold text-white relative z-10">General Settings</h1>
+        <p className="text-white/80 mt-2 relative z-10">Manage general application and appearance settings.</p>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      </div>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <Card>
+                <Card className="glass-card animate-fade-up" style={{ animationDelay: '0.1s' }}>
                     <CardHeader>
-                        <CardTitle>General Settings</CardTitle>
-                        <CardDescription>Manage general application and appearance settings.</CardDescription>
+                        <CardTitle>Appearance & Behavior</CardTitle>
+                        <CardDescription>Configure how the dashboard looks and behaves.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-8">
                         <FormField

@@ -21,7 +21,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 
 const schema = z.object({
-  account_number: z.string().min(1, 'Account number is required'),
+  cif_number: z.string().min(1, 'CIF Number is required'),
   reason: z.string().min(10, 'Please provide a reason (min 10 characters)'),
 });
 
@@ -47,14 +47,14 @@ export default function UnlockCustomerPage() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { account_number: '', reason: '' },
+    defaultValues: { cif_number: '', reason: '' },
   });
 
-  const accountNumber = form.watch('account_number');
+  const cifNumber = form.watch('cif_number');
 
   const handleSearch = async () => {
-    if (!accountNumber.trim()) {
-      setSearchError('Please enter an account number');
+    if (!cifNumber.trim()) {
+      setSearchError('Please enter a CIF Number');
       return;
     }
     setSearchError('');
@@ -73,7 +73,7 @@ export default function UnlockCustomerPage() {
         status: 'Locked',
       });
     } catch {
-      setSearchError('Customer not found for this account number');
+      setSearchError('Customer not found for this CIF Number');
     } finally {
       setSearching(false);
     }
@@ -128,17 +128,18 @@ export default function UnlockCustomerPage() {
 
   return (
     <div className="space-y-6 animate-fade-up max-w-3xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Unlock Customer</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+      <div className="relative overflow-hidden rounded-2xl p-6 mb-6" style={{ background: 'linear-gradient(135deg, hsl(200, 90%, 40%) 0%, hsl(200, 90%, 25%) 100%)' }}>
+        <h1 className="text-3xl font-bold text-white relative z-10">Unlock Customer</h1>
+        <p className="text-white/80 mt-2 relative z-10">
           Submit an unlock request for a locked customer account. Checker approval is required.
         </p>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
       </div>
 
-      <Card className="rounded-2xl border-slate-200/80 shadow-sm">
+      <Card className="glass-card rounded-2xl border-slate-200/80 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-base">Step 1: Find Customer by Account Number</CardTitle>
-          <CardDescription>Enter the account number to locate the customer</CardDescription>
+          <CardTitle className="text-base">Step 1: Find Customer by CIF Number</CardTitle>
+          <CardDescription>Enter the CIF Number to locate the customer</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -147,13 +148,13 @@ export default function UnlockCustomerPage() {
               <div className="flex gap-3 items-end">
                 <FormField
                   control={form.control}
-                  name="account_number"
+                  name="cif_number"
                   render={({ field }) => (
                     <FormItem className="flex-1">
-                      <FormLabel>Account Number</FormLabel>
+                      <FormLabel>CIF Number</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Enter customer account number"
+                          placeholder="Enter CIF Number"
                           {...field}
                           className="rounded-xl"
                         />

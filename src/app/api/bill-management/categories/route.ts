@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import crypto from 'crypto';
 import { requirePermission } from '@/lib/auth-utils';
+
+export const dynamic = 'force-dynamic';
+
 import { PERMISSIONS } from '@/lib/permissions';
 
 const SCHEMA = "APP_CONTROL_MODULE";

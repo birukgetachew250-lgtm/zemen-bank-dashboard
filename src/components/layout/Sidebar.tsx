@@ -30,18 +30,19 @@ function hasAccessToAnyChild(item: MenuItem, userPermissions: string[]): boolean
 
 /* ─── Section accent colors by top-level label ─── */
 const sectionAccents: Record<string, string> = {
-  'Dashboard':         'text-rose-400',
-  'Overview':          'text-amber-400',
-  'Banking Users':     'text-sky-400',
-  'Administration':    'text-violet-400',
-  'App Control':       'text-teal-400',
-  'Oversight':         'text-orange-400',
-  'System Monitoring': 'text-green-400',
-  'Reporting':         'text-blue-400',
-  'Integrations':      'text-cyan-400',
-  'Security & Access': 'text-pink-400',
-  'WSO2 Integration':  'text-indigo-400',
-  'Settings':          'text-slate-400',
+  'Dashboard':            'text-rose-400',
+  'Overview':             'text-amber-400',
+  'Banking Users':        'text-sky-400',
+  'Administration':       'text-violet-400',
+  'App Control':          'text-teal-400',
+  'Oversight':            'text-orange-400',
+  'System Monitoring':    'text-green-400',
+  'Reporting':            'text-blue-400',
+  'Integrations':         'text-cyan-400',
+  'Security & Access':    'text-pink-400',
+  'WSO2 Integration':     'text-indigo-400',
+  'Settings':             'text-slate-400',
+  'Online Onboarding':    'text-emerald-400',
 };
 
 function getAccentColor(label: string): string {
@@ -82,9 +83,9 @@ function SidebarNavItem({
 
     const isChildActive = accessibleChildren.some(
       child =>
-        (child.href && pathname.startsWith(child.href)) ||
+        (child.href && (pathname === child.href || pathname.startsWith(child.href + '/'))) ||
         (child.children &&
-          child.children.some(sub => sub.href && pathname.startsWith(sub.href)))
+          child.children.some(sub => sub.href && (pathname === sub.href || pathname.startsWith(sub.href + '/'))))
     );
 
     return (
@@ -146,7 +147,7 @@ function SidebarNavItem({
     );
   }
 
-  const isActive = pathname === item.href || (item.href && item.href !== '/dashboard' && pathname.startsWith(item.href));
+  const isActive = pathname === item.href;
 
   return (
     <Link

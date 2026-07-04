@@ -10,8 +10,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Poppins', 'sans-serif'],
-        headline: ['Poppins', 'sans-serif'],
+        sans: ['Outfit', 'system-ui', 'sans-serif'],
+        body: ['Outfit', 'system-ui', 'sans-serif'],
+        headline: ['Outfit', 'system-ui', 'sans-serif'],
+        display: ['"Flying Bubble"', 'system-ui', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
