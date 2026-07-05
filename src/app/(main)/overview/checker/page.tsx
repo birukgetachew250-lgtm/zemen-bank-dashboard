@@ -73,42 +73,7 @@ function timeAgo(iso: string): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-/* ── Mock data ── */
-const MOCK: CheckerRequest[] = [
-  {
-    id: '1', type: 'new-customer',    cif: '1001234', customerName: 'Abebe Bekele',  branchCode: '302',
-    submittedAt: new Date(Date.now() - 3600000).toISOString(), status: 'PENDING',
-    submittedBy: 'maker1@zemen.com',
-    documents: [{ name: 'ID_Document.pdf', url: '#', type: 'application/pdf', size: 204800 }],
-  },
-  {
-    id: '2', type: 'pin-reset',        cif: '1005678', customerName: 'Tigist Alemu', branchCode: '302',
-    submittedAt: new Date(Date.now() - 7200000).toISOString(), status: 'PENDING',
-    submittedBy: 'maker1@zemen.com',
-    documents: [{ name: 'Request_Form.jpg', url: '#', type: 'image/jpeg', size: 102400 }],
-  },
-  {
-    id: '3', type: 'suspend-customer', cif: '1003456', customerName: 'Sara Tesfaye', branchCode: '301',
-    submittedAt: new Date(Date.now() - 172800000).toISOString(),
-    resolvedAt: new Date(Date.now() - 86400000).toISOString(),
-    status: 'REJECTED', submittedBy: 'maker2@zemen.com', rejectionReason: 'Incomplete documentation',
-  },
-  {
-    id: '4', type: 'link-account',     cif: '1009012', customerName: 'Dawit Haile',  branchCode: '305',
-    submittedAt: new Date(Date.now() - 259200000).toISOString(),
-    resolvedAt: new Date(Date.now() - 172800000).toISOString(),
-    status: 'CANCELLED', submittedBy: 'maker1@zemen.com',
-  },
-  {
-    id: '5', type: 'unlock-customer',  cif: '1007890', customerName: 'Yonas Girma',  branchCode: '302',
-    submittedAt: new Date(Date.now() - 3000000).toISOString(), status: 'PENDING',
-    submittedBy: 'maker2@zemen.com',
-    documents: [
-      { name: 'Customer_Letter.pdf', url: '#', type: 'application/pdf', size: 512000 },
-      { name: 'Signature.png', url: '#', type: 'image/png', size: 51200 },
-    ],
-  },
-];
+
 
 function RequestsTable({ data, loading }: { data: CheckerRequest[]; loading: boolean }) {
   const [selected, setSelected] = useState<CheckerRequest | null>(null);
@@ -255,11 +220,23 @@ export default function CheckerDashboardPage() {
   const [requests, setRequests] = useState<CheckerRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setRequests(MOCK);
+  const loadRequests = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/approvals/request?role=checker', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      setRequests(data);
+    } catch {
+      console.error('Failed to load checker requests');
+    } finally {
       setLoading(false);
-    }, 800);
+    }
+  };
+
+  useEffect(() => {
+    loadRequests();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const pending   = requests.filter(r => r.status === 'PENDING');

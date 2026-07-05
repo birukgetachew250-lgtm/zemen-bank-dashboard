@@ -23,6 +23,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { FileUpload, type UploadedFile } from '@/components/ui/FileUpload';
+import { Separator } from '@/components/ui/separator';
+
 
 
 interface Account {
@@ -58,6 +61,8 @@ export default function LinkAccountPage() {
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [selection, setSelection] = useState<Record<string, boolean>>({});
+  const [documents, setDocuments] = useState<UploadedFile[]>([]);
+
 
   const router = useRouter();
   const { toast } = useToast();
@@ -78,6 +83,8 @@ export default function LinkAccountPage() {
         console.log("Fetched Accounts Data:", accData); // <-- Added for debugging
         setAccounts(accData);
         setSelection({});
+      setDocuments([]);
+
       } catch (error: any) {
         toast({ variant: 'destructive', title: 'Could not fetch accounts', description: error.message });
       } finally {
@@ -138,7 +145,9 @@ export default function LinkAccountPage() {
                     cif: customer.cifNumber,
                     customerName: customer.name,
                     linkedAccounts: selectedAccounts,
+                    documents: documents.map(d => ({ name: d.name, url: d.url, type: d.type, size: d.size })),
                 }
+
             }),
         });
 
@@ -155,6 +164,8 @@ export default function LinkAccountPage() {
         setAccounts([]);
         setSelection({});
         setCifNumber('');
+        setDocuments([]);
+
 
     } catch (error: any) {
        toast({ variant: "destructive", title: 'Submission Failed', description: error.message });
@@ -252,9 +263,21 @@ export default function LinkAccountPage() {
                 </Alert>
               )}
             </CardContent>
+            <CardContent className="pt-0 space-y-3">
+              <Separator />
+              <h3 className="text-sm font-semibold">Supporting Documents</h3>
+              <FileUpload
+                value={documents}
+                onChange={setDocuments}
+                label="Supporting Documents"
+                required
+                maxFiles={5}
+                maxSizeMB={10}
+              />
+            </CardContent>
             <CardFooter className="flex justify-end">
-              <Button onClick={handleSubmitForApproval} disabled={selectedAccounts.length === 0 || isSubmitting}>
-                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Link className="mr-2 h-4 w-4" />}
+              <Button onClick={handleSubmitForApproval} disabled={selectedAccounts.length === 0 || isSubmitting} className="rounded-xl gap-2">
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link className="h-4 w-4" />}
                 Request Link for {selectedAccounts.length} Account(s)
               </Button>
             </CardFooter>

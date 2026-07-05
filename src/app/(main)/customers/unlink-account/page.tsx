@@ -19,6 +19,9 @@ import { CustomerDetails } from '@/components/customers/CustomerDetailsCard';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { FileUpload, type UploadedFile } from '@/components/ui/FileUpload';
+import { Separator } from '@/components/ui/separator';
+
 
 interface LinkedAccount {
   id: string;
@@ -35,7 +38,9 @@ export default function UnlinkAccountPage() {
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
   const [accounts, setAccounts] = useState<LinkedAccount[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
+  const [documents, setDocuments] = useState<UploadedFile[]>([]);
   const router = useRouter();
+
   const { toast } = useToast();
 
   const handleSearch = async () => {
@@ -47,6 +52,8 @@ export default function UnlinkAccountPage() {
     setCustomer(null);
     setAccounts([]);
     setSelectedAccount(null);
+    setDocuments([]);
+
     try {
       const custRes = await fetch(`/api/customers/${cifNumber}`);
       if (!custRes.ok) throw new Error('Customer not found');
@@ -77,7 +84,11 @@ export default function UnlinkAccountPage() {
                 type: 'unlink-account', 
                 customerName: customer.name, 
                 customerPhone: customer.phoneNumber,
-                details: { accountNumber: selectedAccount }
+                details: { 
+                  accountNumber: selectedAccount,
+                  documents: documents.map(d => ({ name: d.name, url: d.url, type: d.type, size: d.size })),
+                }
+
             }),
         });
 
@@ -95,6 +106,8 @@ export default function UnlinkAccountPage() {
         setAccounts([]);
         setSelectedAccount(null);
         setCifNumber('');
+        setDocuments([]);
+
 
     } catch (error: any) {
        toast({ variant: "destructive", title: 'Submission Failed', description: error.message });
@@ -168,10 +181,20 @@ export default function UnlinkAccountPage() {
                   <AlertDescription>No active linked accounts were found for this customer to unlink.</AlertDescription>
                 </Alert>
               )}
+              <Separator />
+              <h3 className="text-sm font-semibold">Supporting Documents</h3>
+              <FileUpload
+                value={documents}
+                onChange={setDocuments}
+                label="Supporting Documents"
+                required
+                maxFiles={5}
+                maxSizeMB={10}
+              />
             </CardContent>
             <CardFooter className="flex justify-end">
-              <Button onClick={handleUnlinkRequest} disabled={!selectedAccount || isSubmitting}>
-                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Unlink className="mr-2 h-4 w-4" />}
+              <Button onClick={handleUnlinkRequest} disabled={!selectedAccount || isSubmitting} className="rounded-xl gap-2">
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Unlink className="h-4 w-4" />}
                 Request Unlink
               </Button>
             </CardFooter>

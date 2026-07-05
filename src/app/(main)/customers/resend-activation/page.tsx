@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { CustomerDetails } from "@/components/customers/CustomerDetailsCard";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { FileUpload, type UploadedFile } from "@/components/ui/FileUpload";
+import { Separator } from "@/components/ui/separator";
 
 function InfoItem({ label, value, className }: { label: string; value: React.ReactNode; className?: string }) {
   return (
@@ -45,6 +47,7 @@ export default function ResendActivationCodePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
+  const [documents, setDocuments] = useState<UploadedFile[]>([]);
   const { toast } = useToast();
 
   const handleSearch = async () => {
@@ -59,6 +62,7 @@ export default function ResendActivationCodePage() {
 
     setIsLoading(true);
     setCustomer(null);
+    setDocuments([]);
 
     try {
       const response = await fetch(`/api/customers/${cifNumber}`);
@@ -81,6 +85,10 @@ export default function ResendActivationCodePage() {
 
   const handleAction = async () => {
     if (!customer) return;
+    if (documents.length === 0) {
+      toast({ variant: "destructive", title: "Documents required", description: "Please upload at least one supporting document." });
+      return;
+    }
 
     setIsActionLoading(true);
     try {
@@ -94,6 +102,7 @@ export default function ResendActivationCodePage() {
           customerPhone: customer.phoneNumber,
           details: {
             reason: "Resend activation code due to previous SMS delivery failure",
+            documents: documents.map(d => ({ name: d.name, url: d.url, type: d.type, size: d.size })),
           },
         }),
       });
@@ -110,6 +119,7 @@ export default function ResendActivationCodePage() {
 
       setCustomer(null);
       setCifNumber("");
+      setDocuments([]);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -163,11 +173,11 @@ export default function ResendActivationCodePage() {
       )}
 
       {customer && (
-        <Card className="max-w-2xl mx-auto animate-in fade-in-50">
+        <Card className="animate-in fade-in-50">
           <CardHeader>
             <CardTitle>Customer Details</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-4">
+          <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <InfoItem label="Name" value={customer.name} />
               <InfoItem label="CIF Number" value={customer.cifNumber} />
@@ -189,10 +199,21 @@ export default function ResendActivationCodePage() {
                 }
               />
             </div>
+
+            <Separator />
+            <h3 className="text-sm font-semibold">Supporting Documents</h3>
+            <FileUpload
+              value={documents}
+              onChange={setDocuments}
+              label="Supporting Documents"
+              required
+              maxFiles={5}
+              maxSizeMB={10}
+            />
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button onClick={handleAction} disabled={isActionDisabled}>
-              {isActionLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Smartphone className="mr-2 h-4 w-4" />}
+            <Button onClick={handleAction} disabled={isActionDisabled} className="rounded-xl gap-2">
+              {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Smartphone className="h-4 w-4" />}
               Request Resend Activation Code
             </Button>
           </CardFooter>

@@ -61,19 +61,22 @@ export default function UnlockCustomerPage() {
     setSearching(true);
     setCustomer(null);
     try {
-      // TODO: replace with real API call
-      await new Promise(r => setTimeout(r, 800));
-      // Mock result
+      const res = await fetch(`/api/customers/${cifNumber.trim()}`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Customer not found');
+      }
+      const data = await res.json();
       setCustomer({
-        cif: '1007890',
-        full_name: 'Yonas Girma',
-        mobile_number: '+251 91 234 5678',
-        email_id: 'yonas.girma@example.com',
-        branch: 'Bole Branch (302)',
-        status: 'Locked',
+        cif: data.cifNumber,
+        full_name: data.name,
+        mobile_number: data.phoneNumber,
+        email_id: data.email,
+        branch: data.branchCode || '',
+        status: data.status,
       });
-    } catch {
-      setSearchError('Customer not found for this CIF Number');
+    } catch (e: any) {
+      setSearchError(e.message || 'Customer not found for this CIF Number');
     } finally {
       setSearching(false);
     }
@@ -91,9 +94,24 @@ export default function UnlockCustomerPage() {
 
     setSubmitting(true);
     try {
-      // TODO: call POST /api/customers/unlock-request
-      // Body: { cif: customer.cif, account_number: values.account_number, reason: values.reason, documents }
-      await new Promise(r => setTimeout(r, 1200));
+      const response = await fetch('/api/approvals/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cif: customer.cif,
+          type: 'unlock-customer',
+          customerName: customer.full_name,
+          customerPhone: customer.mobile_number,
+          details: {
+            reason: values.reason,
+            documents: documents.map(d => ({ name: d.name, url: d.url, type: d.type, size: d.size })),
+          },
+        }),
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'Submission failed');
+      }
       setSubmitted(true);
       toast({ title: 'Request submitted', description: `Unlock request for ${customer.full_name} has been submitted for approval.` });
     } catch (err: any) {

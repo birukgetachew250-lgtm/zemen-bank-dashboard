@@ -5,6 +5,70 @@ import crypto from 'crypto';
 import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET(req: Request) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const role = searchParams.get('role'); // 'maker' | 'checker'
+    const status = searchParams.get('status'); // 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | null
+
+    try {
+        const where: any = {};
+
+        if (role === 'maker') {
+            // Maker sees only their own requests
+            where.requestedByEmail = session.user.email;
+        }
+
+        if (status) {
+            where.status = status;
+        }
+
+        const records = await db.pendingApproval.findMany({
+            where,
+            orderBy: { requestedAt: 'desc' },
+            take: 100,
+        });
+
+        // Parse the details JSON to extract cif, branchCode, documents etc.
+        const mapped = records.map((r: any) => {
+            let parsedDetails: any = {};
+            try {
+                if (r.details) parsedDetails = JSON.parse(r.details);
+            } catch {}
+
+            return {
+                id: String(r.id),
+                type: r.type,
+                cif: parsedDetails?.cif || parsedDetails?.requestContext?.cif || r.customerName,
+                customerName: r.customerName,
+                customerPhone: r.customerPhone,
+                branchCode: parsedDetails?.requestContext?.requesterBranch || null,
+                submittedBy: r.requestedByEmail,
+                submittedAt: r.requestedAt,
+                // normalize to uppercase so frontend filters (PENDING, APPROVED etc) work regardless of DB casing
+                status: (r.status || 'pending').toUpperCase() as 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED',
+                documents: parsedDetails?.documents || [],
+                details: parsedDetails,
+            };
+        });
+
+        return NextResponse.json(mapped);
+    } catch (error: any) {
+        console.error('Failed to fetch approvals:', error);
+        return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+
 
 const buildApprovalDetails = ({
     cif,
@@ -33,6 +97,7 @@ const typeToActionMap: Record<string, ActivityLogAction> = {
     'updated-customer': 'CUSTOMER_UPDATE_REQUESTED',
     'suspend-customer': 'CUSTOMER_SUSPEND_REQUESTED',
     'unsuspend-customer': 'CUSTOMER_UNSUSPEND_REQUESTED',
+    'unlock-customer': 'CUSTOMER_UNSUSPEND_REQUESTED',
     'resend-activation-code': 'CUSTOMER_RESEND_ACTIVATION_REQUESTED',
     'pin-reset': 'PIN_RESET_REQUESTED',
     'customer-account': 'ACCOUNT_LINK_REQUESTED',

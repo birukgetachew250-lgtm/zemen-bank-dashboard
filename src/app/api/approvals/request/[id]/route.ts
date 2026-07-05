@@ -1,13 +1,13 @@
 
-'use server';
-
 import { NextResponse } from 'next/server';
 import { requireAuthenticatedSession } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * DELETE /api/approvals/request/[id]
- * Allows a Maker Admin to cancel their own pending request before checker approval.
+ * Allows a Maker to cancel their own pending request before checker approval.
  */
 export async function DELETE(
   req: Request,
@@ -16,16 +16,14 @@ export async function DELETE(
   const session = await requireAuthenticatedSession();
   if (session instanceof NextResponse) return session;
 
-  const requestId = params.id;
-  const userId = (session as any).user?.id || (session as any).userId;
+  const requestId = parseInt(params.id, 10);
 
-  if (!requestId) {
-    return NextResponse.json({ message: 'Request ID is required' }, { status: 400 });
+  if (isNaN(requestId)) {
+    return NextResponse.json({ message: 'Invalid Request ID' }, { status: 400 });
   }
 
   try {
-    // Find the request in the database
-    const existingRequest = await (db as any).approvalRequest?.findUnique?.({
+    const existingRequest = await db.pendingApproval.findUnique({
       where: { id: requestId },
     });
 
@@ -33,7 +31,7 @@ export async function DELETE(
       return NextResponse.json({ message: 'Request not found' }, { status: 404 });
     }
 
-    // Only the original maker can cancel; only PENDING requests can be cancelled
+    // Only PENDING requests can be cancelled
     if (existingRequest.status !== 'PENDING') {
       return NextResponse.json(
         { message: `Cannot cancel a request with status: ${existingRequest.status}` },
@@ -41,7 +39,9 @@ export async function DELETE(
       );
     }
 
-    if (existingRequest.requestedById && existingRequest.requestedById !== userId) {
+    // Only the original maker can cancel their own request
+    const sessionEmail = (session as any).user?.email;
+    if (existingRequest.requestedByEmail && existingRequest.requestedByEmail !== sessionEmail) {
       return NextResponse.json(
         { message: 'You can only cancel your own pending requests' },
         { status: 403 }
@@ -49,14 +49,9 @@ export async function DELETE(
     }
 
     // Update status to CANCELLED
-    await (db as any).approvalRequest?.update?.({
+    await db.pendingApproval.update({
       where: { id: requestId },
-      data: {
-        status: 'CANCELLED',
-        resolvedAt: new Date(),
-        resolvedBy: userId,
-        rejectionReason: 'Cancelled by maker before approval',
-      },
+      data: { status: 'CANCELLED' },
     });
 
     return NextResponse.json({ message: 'Request cancelled successfully' });

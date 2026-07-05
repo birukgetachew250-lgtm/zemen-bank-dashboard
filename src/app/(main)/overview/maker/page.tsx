@@ -60,14 +60,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-/* ── Mock data (replace with real API call) ── */
-const MOCK_REQUESTS: PendingRequest[] = [
-  { id: '1', type: 'new-customer',     cif: '1001234', customerName: 'Abebe Bekele',   branchCode: '302', submittedAt: new Date(Date.now() - 3600000).toISOString(),  status: 'PENDING',   submittedBy: 'maker@zemen.com' },
-  { id: '2', type: 'pin-reset',         cif: '1005678', customerName: 'Tigist Alemu',  branchCode: '302', submittedAt: new Date(Date.now() - 7200000).toISOString(),  status: 'PENDING',   submittedBy: 'maker@zemen.com' },
-  { id: '3', type: 'link-account',      cif: '1009012', customerName: 'Dawit Haile',   branchCode: '305', submittedAt: new Date(Date.now() - 86400000).toISOString(), status: 'APPROVED',  submittedBy: 'maker@zemen.com' },
-  { id: '4', type: 'suspend-customer',  cif: '1003456', customerName: 'Sara Tesfaye',  branchCode: '301', submittedAt: new Date(Date.now() - 172800000).toISOString(),status: 'PENDING',   submittedBy: 'maker@zemen.com' },
-  { id: '5', type: 'unlock-customer',   cif: '1007890', customerName: 'Yonas Girma',   branchCode: '302', submittedAt: new Date(Date.now() - 3000000).toISOString(),  status: 'PENDING',   submittedBy: 'maker@zemen.com' },
-];
+
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -85,13 +78,26 @@ export default function MakerDashboardPage() {
   const [typeFilter, setTypeFilter] = useState('all');
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Simulate fetch
-    setTimeout(() => {
-      setRequests(MOCK_REQUESTS);
+  const loadRequests = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/approvals/request?role=maker', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      setRequests(data);
+    } catch {
+      toast({ variant: 'destructive', title: 'Failed to load requests' });
+    } finally {
       setLoading(false);
-    }, 800);
+    }
+  };
+
+  useEffect(() => {
+    loadRequests();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+
 
   const pending   = requests.filter(r => r.status === 'PENDING');
   const today     = requests.filter(r => new Date(r.submittedAt).toDateString() === new Date().toDateString());
@@ -108,8 +114,9 @@ export default function MakerDashboardPage() {
 
   const handleCancel = async (req: PendingRequest) => {
     try {
-      // TODO: call DELETE /api/requests/:id
-      setRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: 'CANCELLED' } : r));
+      const res = await fetch(`/api/approvals/request/${req.id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to cancel');
+      await loadRequests();
       toast({ title: 'Request cancelled', description: `${REQUEST_TYPE_LABELS[req.type] || req.type} for CIF ${req.cif} has been cancelled.` });
     } catch {
       toast({ variant: 'destructive', title: 'Failed to cancel request' });
@@ -205,7 +212,7 @@ export default function MakerDashboardPage() {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={() => { setLoading(true); setTimeout(() => setLoading(false), 600); }}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={loadRequests}>
                 <RefreshCw className="h-3.5 w-3.5" />
               </Button>
             </div>

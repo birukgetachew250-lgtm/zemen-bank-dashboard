@@ -16,7 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { CustomerDetails } from "@/components/customers/CustomerDetailsCard";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { FileUpload, type UploadedFile } from "@/components/ui/FileUpload";
+import { Separator } from "@/components/ui/separator";
 
 function InfoItem({ label, value, className }: { label: string, value: React.ReactNode, className?: string }) {
     return (
@@ -43,21 +44,17 @@ export default function RequestPinResetPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
+  const [documents, setDocuments] = useState<UploadedFile[]>([]);
   const { toast } = useToast();
-  const router = useRouter();
-
 
   const handleSearch = async () => {
     if (!cifNumber) {
-        toast({
-            variant: "destructive",
-            title: "CIF number required",
-            description: "Please enter a CIF number to search.",
-        });
+        toast({ variant: "destructive", title: "CIF number required", description: "Please enter a CIF number to search." });
         return;
     }
     setIsLoading(true);
     setCustomer(null);
+    setDocuments([]);
     try {
         const response = await fetch(`/api/customers/${cifNumber}`);
         if (!response.ok) {
@@ -67,11 +64,7 @@ export default function RequestPinResetPage() {
         const data = await response.json();
         setCustomer(data);
     } catch (error: any) {
-        toast({
-            variant: "destructive",
-            title: "Search Failed",
-            description: error.message,
-        });
+        toast({ variant: "destructive", title: "Search Failed", description: error.message });
     } finally {
         setIsLoading(false);
     }
@@ -79,30 +72,36 @@ export default function RequestPinResetPage() {
   
   const handleAction = async () => {
     if (!customer) return;
+    if (documents.length === 0) {
+      toast({ variant: "destructive", title: "Documents required", description: "Please upload at least one supporting document." });
+      return;
+    }
 
     setIsActionLoading(true);
-     try {
+    try {
         const response = await fetch('/api/approvals/request', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cif: customer.cifNumber, type: 'pin-reset', customerName: customer.name, customerPhone: customer.phoneNumber }),
+            body: JSON.stringify({ 
+              cif: customer.cifNumber, 
+              type: 'pin-reset', 
+              customerName: customer.name, 
+              customerPhone: customer.phoneNumber,
+              details: {
+                documents: documents.map(d => ({ name: d.name, url: d.url, type: d.type, size: d.size })),
+              },
+            }),
         });
         if (!response.ok) {
              const error = await response.json();
             throw new Error(error.message || `Failed to request PIN reset`);
         }
-        toast({
-          title: "Request Submitted",
-          description: `PIN reset for ${customer.name} has been submitted for approval.`
-        });
+        toast({ title: "Request Submitted", description: `PIN reset for ${customer.name} has been submitted for approval.` });
         setCustomer(null);
         setCifNumber("");
+        setDocuments([]);
     } catch (error: any) {
-        toast({
-            variant: "destructive",
-            title: `Request Failed`,
-            description: error.message,
-        });
+        toast({ variant: "destructive", title: `Request Failed`, description: error.message });
     } finally {
         setIsActionLoading(false);
     }
@@ -150,11 +149,11 @@ export default function RequestPinResetPage() {
         )}
 
         {customer && (
-            <Card className="max-w-2xl mx-auto animate-in fade-in-50">
+            <Card className="animate-in fade-in-50">
                 <CardHeader>
                     <CardTitle>Customer Details</CardTitle>
                 </CardHeader>
-                <CardContent className="grid gap-4">
+                <CardContent className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
                         <InfoItem label="Name" value={customer.name} />
                         <InfoItem label="CIF Number" value={customer.cifNumber} />
@@ -172,10 +171,20 @@ export default function RequestPinResetPage() {
                             </Badge>
                         } />
                     </div>
+                    <Separator />
+                    <h3 className="text-sm font-semibold">Supporting Documents</h3>
+                    <FileUpload
+                      value={documents}
+                      onChange={setDocuments}
+                      label="Supporting Documents"
+                      required
+                      maxFiles={5}
+                      maxSizeMB={10}
+                    />
                 </CardContent>
                 <CardFooter className="flex justify-end">
-                    <Button onClick={handleAction} disabled={isActionDisabled}>
-                        {isActionLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
+                    <Button onClick={handleAction} disabled={isActionDisabled} className="rounded-xl gap-2">
+                        {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
                         Request PIN Reset
                     </Button>
                 </CardFooter>

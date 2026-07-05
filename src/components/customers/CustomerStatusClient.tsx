@@ -18,6 +18,9 @@ import type { CustomerDetails } from "@/components/customers/CustomerDetailsCard
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { FileUpload, type UploadedFile } from "@/components/ui/FileUpload";
+import { Separator } from "@/components/ui/separator";
+
 
 interface CustomerStatusClientProps {
     action: 'Suspend' | 'Unsuspend' | 'Unblock';
@@ -48,7 +51,9 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
+  const [documents, setDocuments] = useState<UploadedFile[]>([]);
   const { toast } = useToast();
+
   const router = useRouter();
 
   const buttonLabel = `Request ${action}`;
@@ -67,6 +72,8 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
     }
     setIsLoading(true);
     setCustomer(null);
+    setDocuments([]);
+
     try {
         const response = await fetch(`/api/customers/${cifNumber}`);
         if (!response.ok) {
@@ -98,8 +105,12 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
                 cif: customer.cifNumber, 
                 type: approvalType, 
                 customerName: customer.name, 
-                customerPhone: customer.phoneNumber 
+                customerPhone: customer.phoneNumber,
+                details: {
+                  documents: documents.map(d => ({ name: d.name, url: d.url, type: d.type, size: d.size })),
+                },
             }),
+
         });
         if (!response.ok) {
              const error = await response.json();
@@ -217,6 +228,16 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
                             </AlertDescription>
                         </Alert>
                     )}
+                    <Separator />
+                    <h3 className="text-sm font-semibold">Supporting Documents</h3>
+                    <FileUpload
+                        value={documents}
+                        onChange={setDocuments}
+                        label="Supporting Documents"
+                        required
+                        maxFiles={5}
+                        maxSizeMB={10}
+                    />
                 </CardContent>
                 <CardFooter className="flex justify-end">
                     <Button onClick={handleAction} disabled={isActionDisabled} variant={buttonVariant}>
