@@ -6,7 +6,7 @@ import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions } from '@/lib/auth-options';
 
 export const dynamic = 'force-dynamic';
 
