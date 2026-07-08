@@ -2,7 +2,6 @@
 'use server';
 
 import oracledb from 'oracledb';
-import { db } from '@/lib/db';
 
 // Force CLOBs to be fetched as strings to avoid Lob objects/circular structures
 if (typeof oracledb !== 'undefined' && oracledb.CLOB) {
@@ -101,17 +100,6 @@ export async function executeQuery(connectionString: string | undefined, query: 
 
         console.log(`[Oracle DB] Execution result:`, { rowsAffected: result.rowsAffected, rowCount: sanitizedRows.length });
 
-        if (isDML) {
-            await db.systemActivityLog.create({
-                data: {
-                    userEmail: 'system',
-                    action: 'ORACLE_DML',
-                    status: 'Success',
-                    details: `rowsAffected=${result.rowsAffected || 0} elapsedMs=${Date.now() - startedAt} query=${query.slice(0, 500)}`,
-                },
-            });
-        }
-
         return {
           rows: sanitizedRows,
           rowsAffected: result.rowsAffected,
@@ -119,18 +107,6 @@ export async function executeQuery(connectionString: string | undefined, query: 
         };
     } catch (err) {
         console.error("Oracle DB query failed:", err);
-
-        if (isDML) {
-            await db.systemActivityLog.create({
-                data: {
-                    userEmail: 'system',
-                    action: 'ORACLE_DML',
-                    status: 'Failure',
-                    details: `elapsedMs=${Date.now() - startedAt} error=${(err as any)?.message || 'Unknown error'} query=${query.slice(0, 500)}`,
-                },
-            });
-        }
-
         throw err;
     } finally {
         if (connection) {

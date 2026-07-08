@@ -87,7 +87,10 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Your account is locked due to multiple failed login attempts.');
           }
 
-          if (user.password !== credentials.password) {
+          const bcrypt = require('bcryptjs');
+          const isPasswordValid = bcrypt.compareSync(credentials.password, user.password);
+
+          if (!isPasswordValid) {
             // increment failed attempts
             try {
               await db.user.update({
