@@ -67,7 +67,8 @@ async function getOAuthToken(): Promise<string> {
 
   const parsed = safeParseJson(rawText);
   if (!parsed.ok) {
-    throw new Error(`OAuth2 token response is not valid JSON. Parse error: "${parsed.error}". Raw body: ${rawText.slice(0, 300)}`);
+    const errMsg = (parsed as any).error;
+    throw new Error(`OAuth2 token response is not valid JSON. Parse error: "${errMsg}". Raw body: ${rawText.slice(0, 300)}`);
   }
 
   const json  = parsed.data;
@@ -98,7 +99,8 @@ async function fetchCustomerDetail(customerNumber: string, branchCode: string): 
   const payload = {
     branchCode,
     channel: 'INTERNET',
-    customerNumber,
+    accountNumber: customerNumber,
+    customerNumber: customerNumber,
     requestId,
     userId: 'DASH_USER',
   };
@@ -128,20 +130,21 @@ async function fetchCustomerDetail(customerNumber: string, branchCode: string): 
 
   const parsed = safeParseJson(rawText);
   if (!parsed.ok) {
-    throw new Error(`Customer detail response is not valid JSON. Parse error: "${parsed.error}". Raw body: ${rawText.slice(0, 300)}`);
+    const errMsg = (parsed as any).error;
+    throw new Error(`Customer detail response is not valid JSON. Parse error: "${errMsg}". Raw body: ${rawText.slice(0, 300)}`);
   }
 
   const json = parsed.data;
 
   // Unauthorized → clear token cache
-  if (res.status === 401 || json.status === 'Unauthorized') {
+  if (res.status === 401 || json.status === 'Unauthorized' || json.errorCode === '401') {
     console.warn('[find-customer][API] Unauthorized — clearing token cache');
     cachedToken = null;
     tokenExpiresAt = 0;
     throw new Error(`Unauthorized: ${json.message || 'Access denied by upstream service'}`);
   }
 
-  if (json.status === 'Failed' || !res.ok) {
+  if (json.status === 'Failed' || json.status === 'System Error' || !res.ok) {
     throw new Error(json.message || `Upstream API error [${res.status}]: ${JSON.stringify(json)}`);
   }
 
@@ -169,46 +172,71 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'Branch code and customer ID are required' }, { status: 400 });
   }
 
-  // ── 1. Check if already registered in Oracle User Module ──────────────────
+  // ── 1. Fetch from Flexcube REST API ──────────────────────────────────────
+  let apiResponse;
+  let customerId = customer_id;
   try {
-    const checkUserQuery = `SELECT COUNT(*) as "count" FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :cif`;
-    const checkUserResult: any = await executeQuery(
-      process.env.USER_MODULE_DB_CONNECTION_STRING,
-      checkUserQuery,
-      [customer_id]
-    );
-    if (checkUserResult.rows && checkUserResult.rows[0]?.count > 0) {
-      return NextResponse.json(
-        { message: 'Customer with this CIF is already registered for mobile banking.' },
-        { status: 409 }
-      );
+    apiResponse = await fetchCustomerDetail(customer_id, branch_code);
+    
+    // Update customerId from response if available
+    const data = apiResponse?.data?.accountDetail || apiResponse?.data || apiResponse;
+    if (data.customerNumber || data.customer_number) {
+        customerId = data.customerNumber || data.customer_number;
     }
-  } catch (dbError: any) {
-    console.warn('[find-customer] DB check failed (non-fatal):', dbError.message);
+    
+  } catch (error: any) {
+    console.error('[find-customer] ===== ERROR =====');
+    console.error('[find-customer] Message:', error.message);
+    console.error('[find-customer] Stack:', error.stack);
+
+    const message = error.message || 'Failed to fetch customer details';
+
+    if (message.toLowerCase().includes('unauthorized')) {
+      return NextResponse.json({ message }, { status: 401 });
+    }
+
+    return NextResponse.json({ message }, { status: 502 });
   }
 
-  // ── 2. Fetch from Flexcube REST API ──────────────────────────────────────
-  try {
-    const apiResponse = await fetchCustomerDetail(customer_id, branch_code);
+  // ── 2. Check if already registered in Oracle User Module ──────────────────
+  if (customerId) {
+    try {
+      const checkUserQuery = `SELECT COUNT(*) as "count" FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :cif`;
+      const checkUserResult: any = await executeQuery(
+        process.env.USER_MODULE_DB_CONNECTION_STRING,
+        checkUserQuery,
+        [customerId]
+      );
+      if (checkUserResult.rows && checkUserResult.rows[0]?.count > 0) {
+        return NextResponse.json(
+          { message: 'Customer with this CIF is already registered for mobile banking.' },
+          { status: 409 }
+        );
+      }
+    } catch (dbError: any) {
+      console.warn('[find-customer] DB check failed (non-fatal):', dbError.message);
+    }
+  }
 
-    // Map the API response to the shape the UI expects.
-    // Adjust field names below to match the actual response from your endpoint.
-    const data = apiResponse?.data || apiResponse;
+  // ── 3. Map Response ──────────────────────────────────────────────────────────
+  try {
+    const data = apiResponse?.data?.accountDetail || apiResponse?.data || apiResponse;
 
     return NextResponse.json({
-      full_name:          data.fullName         || data.full_name         || data.customerName   || '',
-      cif_creation_date:  data.cifCreationDate   || data.cif_creation_date || '',
-      customer_number:    data.customerNumber    || data.customer_number   || customer_id,
-      date_of_birth:      data.dateOfBirth       || data.date_of_birth     || '',
-      gender:             data.gender            || '',
-      email_id:           data.emailId           || data.email_id          || data.email          || '',
-      mobile_number:      data.mobileNumber      || data.mobile_number     || data.phone          || '',
-      address_line_1:     data.addressLine1      || data.address_line_1    || data.addressLine_1  || '',
-      address_line_2:     data.addressLine2      || data.address_line_2    || data.addressLine_2  || '',
-      address_line_3:     data.addressLine3      || data.address_line_3    || data.addressLine_3  || '',
-      address_line_4:     data.addressLine4      || data.address_line_4    || data.addressLine_4  || '',
-      country:            data.country           || '',
-      branch:             data.branch            || data.branchCode        || branch_code,
+      full_name:          data.accountHolder    || data.customerName   || '',
+      cif_creation_date:  data.accountOpenedDate || '',
+      customer_number:    data.customerNumber   || customerId,
+      date_of_birth:      data.dateOfBirth      || '',
+      gender:             data.gender           || '',
+      email_id:           data.emailId          || '',
+      mobile_number:      data.mobileNumber     || '',
+      address_line_1:     data.addressLine1     || data.accountDescription || '',
+      address_line_2:     data.addressLine2     || '',
+      address_line_3:     data.addressLine3     || '',
+      address_line_4:     data.addressLine4     || '',
+      country:            data.country          || '',
+      branch:             data.branchCode       || branch_code,
+      account_number:     apiResponse?.data?.accountNumber || '',
     });
 
   } catch (error: any) {

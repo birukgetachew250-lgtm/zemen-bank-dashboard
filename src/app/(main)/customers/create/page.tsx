@@ -78,10 +78,17 @@ export default function CreateCustomerPage() {
             body: JSON.stringify(values),
         });
 
-        const result = await response.json();
+        let result;
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            result = await response.json();
+        } else {
+            const rawText = await response.text();
+            throw new Error(`Server returned non-JSON response (${response.status}): ${rawText.slice(0, 100)}`);
+        }
 
         if (!response.ok) {
-            throw new Error(result.message || 'Failed to fetch customer details');
+            throw new Error(result?.message || `Failed to fetch customer details (${response.status})`);
         }
 
         if (result) {
