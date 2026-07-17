@@ -73,7 +73,7 @@ export default function LinkAccountPage() {
       
       setIsLoading(true);
       try {
-        const accRes = await fetch(`/api/onboarding/find-accounts`, {
+        const accRes = await fetch(`/api/online-linking/find-accounts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cif: customer.cifNumber, branch_code: customer.branchCode || '103' })
