@@ -1,5 +1,3 @@
-'use server';
-
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/oracle-db';
 import { requirePermission } from '@/lib/auth-utils';
