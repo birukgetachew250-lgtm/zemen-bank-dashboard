@@ -1,295 +1,197 @@
 'use server';
 
 import { NextResponse } from 'next/server';
-import * as grpc from '@grpc/grpc-js';
-import * as protoLoader from '@grpc/proto-loader';
-import path from 'path';
-import * as protobuf from 'protobufjs';
 import crypto from 'crypto';
 import { executeQuery } from '@/lib/oracle-db';
 import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
 
-const mockAccounts = [
-  { custacno: "1031110048533015", branch_code: "103", ccy: "ETB", account_type: "S", acclassdesc: "Personal Saving - Private and Individual", status: "Active" },
-  { custacno: "1031110048533016", branch_code: "103", ccy: "ETB", account_type: "C", acclassdesc: "Personal Current - Private and Individual", status: "Active" },
-  { custacno: "1031110048533017", branch_code: "101", ccy: "USD", account_type: "S", acclassdesc: "Personal Domiciliary Saving", status: "Dormant" },
-  { custacno: "1031110048533018", branch_code: "103", ccy: "ETB", account_type: "S", acclassdesc: "Personal Saving - Joint", status: "Inactive" },
-];
+export const dynamic = 'force-dynamic';
 
-const GRPC_SERVER_ADDRESS = process.env.FLEX_GRPC_URL || 'localhost:8081';
-const PROTO_DIR = path.join(process.cwd(), 'src/lib/grpc/protos');
+// ─── OAuth2 Token Cache ────────────────────────────────────────────────────────
+let cachedToken: string | null = null;
+let tokenExpiresAt: number = 0;
 
-// Module-level variables
-let client: any = null;
-let root: protobuf.Root | null = null;
-let AccountListRequestType: protobuf.Type | null = null;
-let AnyType: protobuf.Type | null = null;
-let ServiceRequestType: protobuf.Type | null = null;
-let AccountListResponseType: protobuf.Type | null = null;
+async function getOAuthToken(): Promise<string> {
+  const now = Date.now();
 
-(async () => {
-  try {
-    console.log('[find-accounts] Loading protos and initializing gRPC client...');
-
-    // Load for @grpc/grpc-js client
-    const packageDef = protoLoader.loadSync(
-      [
-        path.join(PROTO_DIR, 'common.proto'),
-        path.join(PROTO_DIR, 'accountlist.proto')
-      ],
-      {
-        keepCase: true,
-        longs: String,
-        enums: String,
-        defaults: true,
-        oneofs: true,
-        includeDirs: [PROTO_DIR]
-      }
-    );
-
-    const grpcObj = grpc.loadPackageDefinition(packageDef) as any;
-    
-    client = new grpcObj.accountlist.AccountListService(
-      GRPC_SERVER_ADDRESS,
-      grpc.credentials.createInsecure()
-    );
-
-    // Load for protobufjs message creation
-    root = await protobuf.load([
-      path.join(PROTO_DIR, 'common.proto'),
-      path.join(PROTO_DIR, 'accountlist.proto')
-    ]);
-
-    AccountListRequestType = root.lookupType('accountlist.AccountListRequest');
-    AnyType = root.lookupType('google.protobuf.Any');
-    ServiceRequestType = root.lookupType('common.ServiceRequest');
-    AccountListResponseType = root.lookupType('accountlist.AccountListResponse');
-
-    if (!AccountListRequestType || !AnyType || !ServiceRequestType || !AccountListResponseType) {
-      throw new Error('One or more protobuf types not found in proto files');
-    }
-
-    console.log('[find-accounts] gRPC client & protobuf types initialized successfully.');
-  } catch (error) {
-    console.error('[find-accounts] Initialization failed:', error);
+  // Return cached token if still valid (with 30s buffer)
+  if (cachedToken && now < tokenExpiresAt - 30_000) {
+    return cachedToken;
   }
-})();
 
-function promisifyCall<TRequest, TResponse>(methodName: string, request: TRequest): Promise<TResponse> {
-  return new Promise((resolve, reject) => {
-    if (!client) return reject(new Error("gRPC client not initialized"));
-    console.log(`[find-accounts] Making gRPC call to method: ${methodName}`);
+  const tokenUrl = process.env.FLEX_OAUTH_TOKEN_URL;
+  const clientId = process.env.FLEX_OAUTH_CLIENT_ID;
+  const clientSecret = process.env.FLEX_OAUTH_CLIENT_SECRET;
+  const grantType = process.env.FLEX_OAUTH_GRANT_TYPE || 'client_credentials';
 
-    const deadline = new Date();
-    deadline.setSeconds(deadline.getSeconds() + 60);
+  if (!tokenUrl || !clientId || !clientSecret) {
+    throw new Error('OAuth2 credentials are not configured. Check FLEX_OAUTH_TOKEN_URL, FLEX_OAUTH_CLIENT_ID, FLEX_OAUTH_CLIENT_SECRET in .env');
+  }
 
-    client[methodName](request, { deadline }, (err: any, res: TResponse) => {
-      if (err) {
-        console.error(`[find-accounts] gRPC call failed:`, err);
-        return reject(err);
-      }
-      console.log(`[find-accounts] gRPC call successful.`);
-      resolve(res);
-    });
+  const body = new URLSearchParams();
+  body.append('client_id', clientId);
+  body.append('client_secret', clientSecret);
+  body.append('grant_type', grantType);
+
+  const res = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+    // NOTE: NODE_TLS_REJECT_UNAUTHORIZED=0 is already set in .env for self-signed certs
   });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`OAuth2 token request failed: ${res.status} ${res.statusText} — ${text}`);
+  }
+
+  const json = await res.json();
+  const token: string = json.token || json.access_token;
+
+  if (!token) {
+    throw new Error(`OAuth2 response did not contain a token. Response: ${JSON.stringify(json)}`);
+  }
+
+  // Cache for 1 hour by default (adjust if the token endpoint returns expiry)
+  cachedToken = token;
+  tokenExpiresAt = now + (json.expires_in ? json.expires_in * 1000 : 3_600_000);
+
+  return token;
 }
 
+// ─── Account List REST Fetch ───────────────────────────────────────────────────
+async function fetchCustomerAccounts(
+  customerNumber: string,
+  branchCode: string,
+  channel: string,
+  userId: string,
+  requestId: string
+): Promise<any> {
+  const apiUrl = process.env.FLEX_ACCOUNT_LIST_URL;
+
+  if (!apiUrl) {
+    throw new Error('FLEX_ACCOUNT_LIST_URL is not configured in .env');
+  }
+
+  const token = await getOAuthToken();
+
+  const payload = {
+    branchCode,
+    channel,
+    customerNumber,
+    requestId,
+    userId,
+  };
+
+  const res = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const json = await res.json();
+
+  // Handle Unauthorized
+  if (res.status === 401 || json.status === 'Unauthorized') {
+    // Invalidate cache so next call re-fetches token
+    cachedToken = null;
+    tokenExpiresAt = 0;
+    throw new Error(`Unauthorized: ${json.message || 'Access denied by upstream service'}`);
+  }
+
+  // Handle explicit failure status
+  if (json.status === 'Failed' || !res.ok) {
+    throw new Error(json.message || `Upstream API error: ${res.status}`);
+  }
+
+  return json;
+}
+
+// ─── POST Handler ─────────────────────────────────────────────────────────────
 export async function POST(req: Request) {
   const session = await requirePermission(PERMISSIONS.CUSTOMERS_READ);
   if (session instanceof NextResponse) return session;
 
-  console.log('===== DEBUG 2025-01-22 A - NEW CODE VERSION STARTED =====');
-  console.log('If you see this line, the updated file is active');
-
-  console.log(`\n--- [find-accounts] Received POST request to ${req.url} ---`);
   const body = await req.json();
-  const { cif, branch_code } = body;
-
-  console.log('[find-accounts] Request Body:', JSON.stringify(body, null, 2));
+  const { cif, branch_code, channel, userId } = body;
 
   if (!cif || !branch_code) {
-    console.error('[find-accounts] Validation Error: CIF and branch code required.');
-    return NextResponse.json({ message: 'CIF and branch code are required' }, { status: 400 });
-  }
-
-  // Wait for gRPC init (this is the key fix)
-  try {
-    console.log('[find-accounts] Waiting for gRPC initialization...');
-    await initializeGrpc();
-    console.log('[find-accounts] Initialization complete - types are ready');
-  } catch (initError) {
-    console.error('[find-accounts] gRPC init failed during request:', initError);
-    return NextResponse.json({ message: 'gRPC service initialization failed' }, { status: 500 });
-  }
-
-  // Now it's safe to check
-  if (!client || !root || !ServiceRequestType || !AnyType || !AccountListRequestType || !AccountListResponseType) {
-    console.error('[find-accounts] Types still not ready after await');
-    return NextResponse.json({ message: 'gRPC types not ready' }, { status: 500 });
+    return NextResponse.json(
+      { message: 'CIF (customerNumber) and branch_code are required' },
+      { status: 400 }
+    );
   }
 
   try {
-    console.log(`[find-accounts] Fetching linked accounts for CIF: ${cif}`);
-    const linkedAccountsQuery = `SELECT "HashedAccountNumber" FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :cif AND "Status" = 'Active'`;
-    const linkedResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, linkedAccountsQuery, [cif]);
-    const linkedAccountHashes = new Set((linkedResult.rows || []).map((row: any) => row.HashedAccountNumber));
-    console.log(`[find-accounts] Found ${linkedAccountHashes.size} linked accounts.`);
+    // ── 1. Fetch already-linked accounts from User Module Oracle DB ──────────
+    let linkedAccountHashes = new Set<string>();
+    try {
+      const linkedAccountsQuery = `SELECT "HashedAccountNumber" FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :cif AND "Status" = 'Active'`;
+      const linkedResult: any = await executeQuery(
+        process.env.USER_MODULE_DB_CONNECTION_STRING,
+        linkedAccountsQuery,
+        [cif]
+      );
+      linkedAccountHashes = new Set(
+        (linkedResult.rows || []).map((row: any) => row.HashedAccountNumber)
+      );
+    } catch (dbErr) {
+      // Non-fatal: continue without linked account info
+      console.warn('[find-accounts] Could not fetch linked accounts from User Module:', dbErr);
+    }
 
-    // ─────────────────────────────────────────────────────────────
-    // Proper protobuf construction (camelCase fields)
-    // ─────────────────────────────────────────────────────────────
+    // ── 2. Fetch accounts from Flexcube via OAuth2-authenticated REST ────────
+    const requestId = `DASH-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 
-    console.log('===== DEBUG B1 - Types check =====');
-    console.log('AccountListRequestType name:', AccountListRequestType.name);
-    console.log('AccountListRequestType fullName:', AccountListRequestType.fullName);
-
-    console.log('===== DEBUG INPUT VALUES =====', {
-      branch_code,
+    const apiResponse = await fetchCustomerAccounts(
       cif,
-      typeof_branch_code: typeof branch_code,
-      typeof_cif: typeof cif
-    });
+      branch_code,
+      channel || 'INTERNET',
+      userId || 'DASH_USER',
+      requestId
+    );
 
-    // Use camelCase (protobufjs dynamic mode prefers this)
-    const innerPayload = AccountListRequestType.create({
-      branchCode: branch_code || "",
-      customerId: cif || ""
-    });
-    console.log('===== DEBUG B2 - innerPayload created =====', JSON.stringify(innerPayload, null, 2));
+    const customerAccounts: any[] = apiResponse?.data?.customerAccount || [];
 
-    const innerBuffer = AccountListRequestType.encode(innerPayload).finish();
-    console.log('===== DEBUG B3 - innerBuffer length =====', innerBuffer.length);
-
-    if (innerBuffer.length === 0) {
-      console.log('===== CRITICAL: innerBuffer is empty =====');
-      console.log('Proto expected fields: branchCode, customerId (camelCase)');
-      throw new Error('innerBuffer is empty - encoding failed');
+    if (!customerAccounts.length) {
+      return NextResponse.json(
+        { message: `No accounts found for customer ${cif}` },
+        { status: 404 }
+      );
     }
 
-    console.log('===== DEBUG B3 - innerBuffer base64 preview =====', Buffer.from(innerBuffer).toString('base64').substring(0, 60) + '...');
-
-    const anyPayload = AnyType.create() as any;
-    anyPayload.type_url = 'type.googleapis.com/accountlist.AccountListRequest';
-    anyPayload.value = innerBuffer;
-
-    console.log('===== DEBUG B4 - anyPayload.value length =====', anyPayload.value?.length ?? 0);
-
-    if (!anyPayload.value || anyPayload.value.length === 0) {
-      console.log('===== CRITICAL: anyPayload.value is empty after set =====');
-      throw new Error('Failed to set Any.value');
-    }
-
-    const serviceRequestPayload = ServiceRequestType.create({
-      data: anyPayload,
-      request_id: `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-      source_system: 'MOBILE',
-      channel: 'mobile',
-      user_id: 'DASH_USER'
-    }) as any;
-
-    const sentBuffer = ServiceRequestType.encode(serviceRequestPayload).finish();
-    console.log('===== DEBUG B5 - Final sent length =====', sentBuffer.length);
-    console.log('===== DEBUG B6 - Final sent base64 preview =====', Buffer.from(sentBuffer).toString('base64').substring(0, 100) + '...');
-
-    const grpcResponse = await promisifyCall<any, any>('QueryCustomerAccountList', serviceRequestPayload);
-    if (!grpcResponse || (grpcResponse.code !== '0' && grpcResponse.code !== '00')) {
-      const errorMessage = grpcResponse?.message || 'Upstream service failure.';
-      console.error('[gRPC Failed]:', errorMessage, 'Response:', JSON.stringify(grpcResponse));
-      throw new Error(errorMessage);
-    }
-
-    console.log('[find-accounts] gRPC success. Decoding response...');
-
-    const dataValue = grpcResponse.data?.value;
-    if (!dataValue) {
-      throw new Error("Response successful but no data returned.");
-    }
-
-    const buffer = Buffer.isBuffer(dataValue) ? dataValue : Buffer.from(dataValue);
-    const decodedResponse = AccountListResponseType.decode(buffer);
-    const responseObject = AccountListResponseType.toObject(decodedResponse, { arrays: true });
-
-    const accounts = responseObject.accounts || [];
-    console.log(`[find-accounts] Decoded ${accounts.length} accounts.`);
-
-    const transformedAccounts = accounts.map((acc: any) => {
-      const hashed = crypto.createHash('sha256').update(acc.custacno).digest('hex');
+    // ── 3. Transform + flag already-linked accounts ──────────────────────────
+    const transformed = customerAccounts.map((acc: any) => {
+      const accountNum = acc.accountNumber?.toString() || '';
+      const hashed = crypto.createHash('sha256').update(accountNum).digest('hex');
       return {
-        custacno: acc.custacno || "",
-        branch_code: acc.branchCode || "",
-        ccy: acc.ccy || "",
-        account_type: acc.accountType || "",
-        acclassdesc: acc.acclassdesc || "",
-        status: "Active",
-        isAlreadyLinked: linkedAccountHashes.has(hashed)
+        custacno: accountNum,
+        branch_code: acc.branchCode?.toString() || '',
+        ccy: acc.currency || '',
+        account_type: acc.accountType || '',
+        acclassdesc: acc.accClassDesc || acc.accountDesc || '',
+        status: 'Active',
+        currentBalance: acc.currentBalance ?? null,
+        customerName: acc.customerName || '',
+        isAlreadyLinked: linkedAccountHashes.has(hashed),
       };
     });
 
-    console.log('[find-accounts] Sending transformed accounts.');
-    return NextResponse.json(transformedAccounts);
-    
+    return NextResponse.json(transformed);
+
   } catch (error: any) {
-    console.error('[find-accounts] Critical error:', error);
+    console.error('[find-accounts] Error:', error);
 
-    if (cif === '0048533') {
-      console.warn('[find-accounts] Using mock data for CIF 0048533.');
-      return NextResponse.json(mockAccounts.map(acc => ({...acc, isAlreadyLinked: acc.custacno === '1031110048533015'})));
+    const message = error.message || 'Failed to fetch customer accounts';
+
+    if (message.toLowerCase().includes('unauthorized')) {
+      return NextResponse.json({ message }, { status: 401 });
     }
 
-    const errorMessage = error.details || error.message || 'Failed to fetch accounts.';
-    return NextResponse.json({ message: `Failed to fetch accounts. ${errorMessage}` }, { status: 502 });
+    return NextResponse.json({ message }, { status: 502 });
   }
-}
-// Single promise to ensure init only once
-let initPromise: Promise<void> | null = null;
-
-async function initializeGrpc() {
-  if (initPromise) return initPromise;
-
-  initPromise = (async () => {
-    try {
-      console.log('[INIT] Loading protos and initializing gRPC client...');
-
-      // Load ONLY accountlist.proto (it imports common.proto)
-      const packageDef = protoLoader.loadSync(
-        path.join(PROTO_DIR, 'accountlist.proto'),
-        {
-          keepCase: true,
-          longs: String,
-          enums: String,
-          defaults: true,
-          oneofs: true,
-          includeDirs: [PROTO_DIR]
-        }
-      );
-
-      const grpcObj = grpc.loadPackageDefinition(packageDef) as any;
-      
-      client = new grpcObj.accountlist.AccountListService(
-        GRPC_SERVER_ADDRESS,
-        grpc.credentials.createInsecure()
-      );
-
-      // protobufjs load (only accountlist.proto)
-      root = await protobuf.load(path.join(PROTO_DIR, 'accountlist.proto'));
-
-      AccountListRequestType = root.lookupType('accountlist.AccountListRequest');
-      AnyType = root.lookupType('google.protobuf.Any');
-      ServiceRequestType = root.lookupType('common.ServiceRequest');
-      AccountListResponseType = root.lookupType('accountlist.AccountListResponse');
-
-      if (!AccountListRequestType || !AnyType || !ServiceRequestType || !AccountListResponseType) {
-        throw new Error('One or more protobuf types not found');
-      }
-
-      console.log('[INIT] gRPC client & protobuf types initialized successfully.');
-      console.log('[INIT] AccountListRequestType fullName:', AccountListRequestType.fullName);
-    } catch (error) {
-      console.error('[INIT] Initialization failed:', error);
-      throw error;
-    }
-  })();
-
-  return initPromise;
 }
