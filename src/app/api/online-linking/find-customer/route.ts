@@ -96,11 +96,11 @@ async function fetchCustomerDetail(customerNumber: string, branchCode: string): 
   const requestId = `DASH-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
   const payload = {
     branchCode,
-    channel: 'INTERNET',
+    channel: process.env.FLEX_API_CHANNEL || 'WEB',
     accountNumber: customerNumber,
     customerNumber: customerNumber,
     requestId,
-    userId: 'DASH_USER',
+    userId: process.env.FLEX_API_USER_ID || 'DASH_USER',
   };
 
   console.log('[find-customer][API] Calling:', apiUrl);

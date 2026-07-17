@@ -216,8 +216,8 @@ export async function POST(req: Request) {
     const apiResponse = await fetchCustomerAccounts(
       cif,
       branch_code,
-      channel || 'INTERNET',
-      userId || 'DASH_USER',
+      channel || process.env.FLEX_API_CHANNEL || 'WEB',
+      userId || process.env.FLEX_API_USER_ID || 'DASH_USER',
       requestId
     );
 
