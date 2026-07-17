@@ -72,7 +72,7 @@ export default function CreateCustomerPage() {
     setIsLoading(true);
     setCustomer(null);
     try {
-        const response = await fetch('/api/onboarding/find-customer', {
+        const response = await fetch('/api/online-linking/find-customer', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(values),
