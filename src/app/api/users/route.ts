@@ -85,10 +85,13 @@ export async function POST(req: Request) {
             }
         }
 
-        // In a real app, hash this password before saving
+        // Hash this password before saving
+        const bcrypt = require('bcryptjs');
+        const hashedPassword = bcrypt.hashSync(password, 10);
+
         const newUser = await db.user.create({
             data: {
-                employeeId, name, email, password, role, branch, department,
+                employeeId, name, email, password: hashedPassword, role, branch, department,
                 status: 'PasswordChangeRequired',
             }
         });

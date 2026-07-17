@@ -111,7 +111,8 @@ export async function POST(req: Request) {
                 // Shuffle
                 newPassword = newPassword.split('').sort(() => crypto.randomInt(3) - 1).join('');
 
-                data.password = newPassword;
+                const bcrypt = require('bcryptjs');
+                data.password = bcrypt.hashSync(newPassword, 10);
                 data.status = 'PasswordChangeRequired';
                 // ── SECURITY: NEVER return the generated password in the API response.
                 // Send it ONLY to the target user's registered email address.
