@@ -136,6 +136,12 @@ function makeModel<T extends object>(entityName: string) {
       return r.save(merged);
     },
 
+    async updateMany(args: { where: Record<string, any>; data: Partial<T> }): Promise<{ count: number }> {
+      const r = await repo();
+      const result = await r.update(mapWhere(args.where) as any, args.data as any);
+      return { count: result.affected ?? 0 };
+    },
+
     async delete(args: { where: Record<string, any> }): Promise<T> {
       const r = await repo();
       const existing = await r.findOne({ where: mapWhere(args.where) });
@@ -175,7 +181,7 @@ function makeModel<T extends object>(entityName: string) {
 
 // ─── Audit middleware ─────────────────────────────────────────────────────────
 
-const MUTATION_OPS = new Set(['create', 'update', 'delete', 'deleteMany', 'upsert']);
+const MUTATION_OPS = new Set(['create', 'update', 'updateMany', 'delete', 'deleteMany', 'upsert']);
 
 function withAudit<M extends ReturnType<typeof makeModel>>(model: M, modelName: string): M {
   const wrapped: any = {};
