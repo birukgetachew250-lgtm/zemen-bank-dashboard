@@ -74,15 +74,6 @@ function OverviewContent() {
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
 
-  const form = useForm<OverviewFormValues>({
-    resolver: zodResolver(overviewFormSchema),
-    defaultValues: {
-      mainAuthMethod: 'SMSOTP',
-      twoFactorAuthMethod: 'GAUTH',
-      channel: 'Mobile App',
-    },
-  });
-
   const customerString = searchParams.get('customer');
   const accountsString = searchParams.get('accounts');
 
@@ -100,6 +91,30 @@ function OverviewContent() {
       return { customer: null, accounts: [] };
     }
   }, [customerString, accountsString]);
+
+  const hasEmail = customer?.email_id && customer.email_id.trim() !== '';
+  const hasPhone = customer?.mobile_number && customer.mobile_number.trim() !== '';
+
+  const form = useForm<OverviewFormValues>({
+    resolver: zodResolver(overviewFormSchema),
+    defaultValues: {
+      mainAuthMethod: hasPhone ? 'SMSOTP' : (hasEmail ? 'EMAILOTP' : 'SQ'),
+      twoFactorAuthMethod: hasEmail ? 'GAUTH' : 'None',
+      channel: 'Mobile App',
+    },
+  });
+
+  useEffect(() => {
+    if (customer) {
+      const hasEmail = customer.email_id && customer.email_id.trim() !== '';
+      const hasPhone = customer.mobile_number && customer.mobile_number.trim() !== '';
+      form.reset({
+        mainAuthMethod: hasPhone ? 'SMSOTP' : (hasEmail ? 'EMAILOTP' : 'SQ'),
+        twoFactorAuthMethod: hasEmail ? 'GAUTH' : 'None',
+        channel: 'Mobile App',
+      });
+    }
+  }, [customer, form]);
 
   if (!customer || accounts.length === 0) {
     return (
@@ -223,18 +238,23 @@ function OverviewContent() {
                               render={({ field }) => (
                                   <FormItem>
                                   <FormLabel>Main Authentication Method</FormLabel>
-                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                       <FormControl>
                                       <SelectTrigger>
                                           <SelectValue placeholder="Select a main auth method" />
                                       </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                      {authMethods.map(method => (
-                                          <SelectItem key={method.value} value={method.value}>
-                                          {method.label}
-                                          </SelectItem>
-                                      ))}
+                                      {authMethods.map(method => {
+                                          const isMail = method.value === 'EMAILOTP' || method.value === 'GAUTH';
+                                          const isSms = method.value === 'SMSOTP';
+                                          const isDisabled = (isMail && !hasEmail) || (isSms && !hasPhone);
+                                          return (
+                                              <SelectItem key={method.value} value={method.value} disabled={isDisabled}>
+                                              {method.label}
+                                              </SelectItem>
+                                          );
+                                      })}
                                       </SelectContent>
                                   </Select>
                                   <FormMessage />
@@ -247,18 +267,23 @@ function OverviewContent() {
                               render={({ field }) => (
                                   <FormItem>
                                   <FormLabel>Two-Factor (2FA) Method</FormLabel>
-                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                       <FormControl>
                                       <SelectTrigger>
                                           <SelectValue placeholder="Select a 2FA method" />
                                       </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                      {twoFactorMethods.map(method => (
-                                          <SelectItem key={method.value} value={method.value}>
-                                          {method.label}
-                                          </SelectItem>
-                                      ))}
+                                      {twoFactorMethods.map(method => {
+                                          const isMail = method.value === 'EMAILOTP' || method.value === 'GAUTH';
+                                          const isSms = method.value === 'SMSOTP';
+                                          const isDisabled = (isMail && !hasEmail) || (isSms && !hasPhone);
+                                          return (
+                                              <SelectItem key={method.value} value={method.value} disabled={isDisabled}>
+                                              {method.label}
+                                              </SelectItem>
+                                          );
+                                      })}
                                       </SelectContent>
                                   </Select>
                                   <FormMessage />

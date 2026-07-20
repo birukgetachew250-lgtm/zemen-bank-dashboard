@@ -32,7 +32,7 @@ export async function DELETE(
     }
 
     // Only PENDING requests can be cancelled
-    if (existingRequest.status !== 'PENDING') {
+    if (existingRequest.status?.toUpperCase() !== 'PENDING') {
       return NextResponse.json(
         { message: `Cannot cancel a request with status: ${existingRequest.status}` },
         { status: 409 }
@@ -48,10 +48,10 @@ export async function DELETE(
       );
     }
 
-    // Update status to CANCELLED
+    // Update status to cancelled
     await db.pendingApproval.update({
       where: { id: requestId },
-      data: { status: 'CANCELLED' },
+      data: { status: 'cancelled' },
     });
 
     return NextResponse.json({ message: 'Request cancelled successfully' });

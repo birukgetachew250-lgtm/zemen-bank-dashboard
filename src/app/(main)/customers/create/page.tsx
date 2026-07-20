@@ -177,8 +177,30 @@ export default function CreateCustomerPage() {
                 <h3 className="text-lg font-semibold text-foreground">Customer Verification</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 rounded-lg border p-6">
                     <InfoItem icon={<User />} label="Full Name" value={customer.full_name} />
-                    <InfoItem icon={<Phone />} label="Phone Number" value={customer.mobile_number} />
-                    <InfoItem icon={<Mail />} label="Email Address" value={customer.email_id} />
+                    <div className="flex items-start gap-3">
+                        <div className="w-5 h-5 text-muted-foreground mt-1.5"><Phone className="h-4 w-4" /></div>
+                        <div className="flex-grow">
+                            <p className="text-xs text-muted-foreground">Phone Number</p>
+                            <Input
+                                value={customer.mobile_number || ''}
+                                onChange={(e) => setCustomer({ ...customer, mobile_number: e.target.value })}
+                                className="h-8 text-xs px-2 mt-1 rounded-lg"
+                                placeholder="Enter phone number"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <div className="w-5 h-5 text-muted-foreground mt-1.5"><Mail className="h-4 w-4" /></div>
+                        <div className="flex-grow">
+                            <p className="text-xs text-muted-foreground">Email Address</p>
+                            <Input
+                                value={customer.email_id || ''}
+                                onChange={(e) => setCustomer({ ...customer, email_id: e.target.value })}
+                                className="h-8 text-xs px-2 mt-1 rounded-lg"
+                                placeholder="Enter email address"
+                            />
+                        </div>
+                    </div>
                     <InfoItem icon={<User />} label="Gender" value={customer.gender} />
                     <InfoItem icon={<Fingerprint />} label="Date of Birth" value={new Date(customer.date_of_birth).toLocaleDateString()} />
                     <InfoItem icon={<Building />} label="Home Branch" value={customer.branch} />
