@@ -118,7 +118,7 @@ function getRoleLabel(permissions: string[]): { label: string; color: string } {
 
 /* ─── Approval type icons ─── */
 function getApprovalIcon(type: string) {
-  if (type.includes('new')) return <CheckCircle2 className="h-3 w-3 text-green-500" />;
+  if (type.includes('new')) return <CheckCircle className="h-3 w-3 text-green-500" />;
   if (type.includes('suspend') || type.includes('block')) return <AlertTriangle className="h-3 w-3 text-amber-500" />;
   return <Clock className="h-3 w-3 text-blue-500" />;
 }
