@@ -65,19 +65,27 @@ function SelectAccountsContent() {
         }
 
         try {
-            const response = await fetch('/api/onboarding/find-accounts', {
+            const response = await fetch('/api/online-linking/find-accounts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     cif: customer.customer_number,
-                    branch_code: customer.branch_code || '103' // Fallback branch code
+                    branch_code: customer.branch || customer.branch_code || '103'
                 }),
             });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to fetch accounts.');
+
+            let data;
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                data = await response.json();
+            } else {
+                const rawText = await response.text();
+                throw new Error(`Server returned non-JSON response (${response.status}): ${rawText.slice(0, 100)}`);
             }
-            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data?.message || `Failed to fetch accounts (${response.status})`);
+            }
             setAccounts(data.map((acc: any) => ({ ...acc, included: acc.status?.toLowerCase() === 'active' })));
         } catch (error: any) {
             toast({
