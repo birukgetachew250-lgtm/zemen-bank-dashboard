@@ -43,7 +43,9 @@ export async function POST(req: Request) {
         }
 
         // ── 2. Verify current password ────────────────────────────────────────
-        if (user.password !== currentPassword) {
+        const bcrypt = require('bcryptjs');
+        const isPasswordValid = bcrypt.compareSync(currentPassword, user.password);
+        if (!isPasswordValid) {
             // Rate limiting: count recent password-change failures
             try {
                 const now = new Date();
@@ -189,10 +191,11 @@ export async function POST(req: Request) {
         await recordPasswordHistory(user.id, user.password);
 
         // ── 7. Update password ─────────────────────────────────────────────────
+        const newHashedPassword = bcrypt.hashSync(newPassword, 10);
         await db.user.update({
             where: { email: session.user.email as string },
             data: {
-                password: newPassword,
+                password: newHashedPassword,
                 status: 'Active',
                 failedLoginAttempts: 0,
                 passwordChangedAt: new Date(),

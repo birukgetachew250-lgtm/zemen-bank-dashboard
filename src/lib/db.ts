@@ -46,10 +46,31 @@ function normalizeBooleans<T extends object>(obj: T): T {
   return result as T;
 }
 
+import { MoreThanOrEqual, LessThanOrEqual, MoreThan, LessThan, In } from 'typeorm';
+
 /** Map Prisma-style `where` to TypeORM `FindOptionsWhere` */
 function mapWhere(where: Record<string, any>): FindOptionsWhere<any> {
-  // TypeORM accepts the same shape for simple equality conditions
-  return where as FindOptionsWhere<any>;
+  const mapped: any = {};
+  for (const [key, val] of Object.entries(where)) {
+    if (val && typeof val === 'object' && !Array.isArray(val) && !(val instanceof Date)) {
+      if ('gte' in val) {
+        mapped[key] = MoreThanOrEqual(val.gte);
+      } else if ('gt' in val) {
+        mapped[key] = MoreThan(val.gt);
+      } else if ('lte' in val) {
+        mapped[key] = LessThanOrEqual(val.lte);
+      } else if ('lt' in val) {
+        mapped[key] = LessThan(val.lt);
+      } else if ('in' in val) {
+        mapped[key] = In(val.in);
+      } else {
+        mapped[key] = val;
+      }
+    } else {
+      mapped[key] = val;
+    }
+  }
+  return mapped;
 }
 
 /** Build a generic repository-backed model accessor */

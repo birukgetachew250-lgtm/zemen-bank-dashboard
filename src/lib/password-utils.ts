@@ -67,7 +67,14 @@ export async function checkPasswordHistory(
       take: depth,
       select: { password: true },
     });
-    return history.some((entry: { password: string }) => entry.password === newPassword);
+    const bcrypt = require('bcryptjs');
+    return history.some((entry: { password: string }) => {
+      try {
+        return bcrypt.compareSync(newPassword, entry.password);
+      } catch {
+        return entry.password === newPassword;
+      }
+    });
   } catch (e) {
     console.error('[password-utils] Failed to check password history:', e);
     return false;
