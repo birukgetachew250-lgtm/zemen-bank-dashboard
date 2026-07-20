@@ -177,26 +177,26 @@ export default function CreateCustomerPage() {
                 <h3 className="text-lg font-semibold text-foreground">Customer Verification</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 rounded-lg border p-6">
                     <InfoItem icon={<User />} label="Full Name" value={customer.full_name} />
-                    <div className="flex items-start gap-3">
-                        <div className="w-5 h-5 text-muted-foreground mt-1.5"><Phone className="h-4 w-4" /></div>
+                    <div className="flex items-start gap-3 group">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mt-1 transition-colors group-hover:bg-primary group-hover:text-primary-foreground"><Phone className="h-4 w-4" /></div>
                         <div className="flex-grow">
-                            <p className="text-xs text-muted-foreground">Phone Number</p>
+                            <label className="text-sm font-medium text-foreground mb-1 block">Phone Number</label>
                             <Input
                                 value={customer.mobile_number || ''}
                                 onChange={(e) => setCustomer({ ...customer, mobile_number: e.target.value })}
-                                className="h-8 text-xs px-2 mt-1 rounded-lg"
+                                className="h-10 text-sm px-3 rounded-xl border-muted bg-background/50 hover:bg-accent/50 transition-all focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary shadow-sm"
                                 placeholder="Enter phone number"
                             />
                         </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                        <div className="w-5 h-5 text-muted-foreground mt-1.5"><Mail className="h-4 w-4" /></div>
+                    <div className="flex items-start gap-3 group">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mt-1 transition-colors group-hover:bg-primary group-hover:text-primary-foreground"><Mail className="h-4 w-4" /></div>
                         <div className="flex-grow">
-                            <p className="text-xs text-muted-foreground">Email Address</p>
+                            <label className="text-sm font-medium text-foreground mb-1 block">Email Address</label>
                             <Input
                                 value={customer.email_id || ''}
                                 onChange={(e) => setCustomer({ ...customer, email_id: e.target.value })}
-                                className="h-8 text-xs px-2 mt-1 rounded-lg"
+                                className="h-10 text-sm px-3 rounded-xl border-muted bg-background/50 hover:bg-accent/50 transition-all focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary shadow-sm"
                                 placeholder="Enter email address"
                             />
                         </div>
