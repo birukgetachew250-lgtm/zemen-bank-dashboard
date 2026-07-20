@@ -219,22 +219,24 @@ export async function POST(req: Request) {
   // ── 3. Map Response ──────────────────────────────────────────────────────────
   try {
     const data = apiResponse?.data?.accountDetail || apiResponse?.data || apiResponse;
+    const personal = data?.personalDetail || {};
+    const address = personal?.address || {};
 
     return NextResponse.json({
-      full_name:          data.accountHolder    || data.customerName   || '',
+      full_name:          personal.fullName || data.accountHolder || data.customerName || '',
       cif_creation_date:  data.accountOpenedDate || '',
-      customer_number:    data.customerNumber   || customerId,
-      date_of_birth:      data.dateOfBirth      || '',
-      gender:             data.gender           || '',
-      email_id:           data.emailId          || '',
-      mobile_number:      data.mobileNumber     || '',
-      address_line_1:     data.addressLine1     || data.accountDescription || '',
-      address_line_2:     data.addressLine2     || '',
-      address_line_3:     data.addressLine3     || '',
-      address_line_4:     data.addressLine4     || '',
-      country:            data.country          || '',
-      branch:             data.branchCode       || branch_code,
-      account_number:     apiResponse?.data?.accountNumber || '',
+      customer_number:    data.customerNumber || customerId,
+      date_of_birth:      personal.dateOfBirth || data.dateOfBirth || '',
+      gender:             personal.gender || data.gender || '',
+      email_id:           personal.email || data.emailId || '',
+      mobile_number:      personal.phoneNumber || data.mobileNumber || '',
+      address_line_1:     address.city || data.addressLine1 || data.accountDescription || '',
+      address_line_2:     address.subcity || data.addressLine2 || '',
+      address_line_3:     data.addressLine3 || '',
+      address_line_4:     data.addressLine4 || '',
+      country:            personal.nationality || data.country || '',
+      branch:             data.branchCode || branch_code,
+      account_number:     data.accountNumber || '',
     });
 
   } catch (error: any) {
