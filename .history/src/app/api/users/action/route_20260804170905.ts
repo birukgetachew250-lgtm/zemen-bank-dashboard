@@ -117,7 +117,7 @@ export async function POST(req: Request) {
                 // ── SECURITY: NEVER return the generated password in the API response.
                 // Send it ONLY to the target user's registered email address.
                 try {
-                    const loginUrl =  process.env.NEXT_PUBLIC_APP_URL || 'https://superappadmin.zemenbank.et';
+                    const loginUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://superappadmin.zemenbank.et';
                     const emailBody = `
                         <html><body style="font-family: sans-serif; line-height: 1.6;">
                         <h2>Password Reset — Zemen Admin Center</h2>

@@ -105,7 +105,7 @@ export async function POST(req: Request) {
         });
 
         // Send welcome email with temporary password
-        const loginUrl =  process.env.NEXT_PUBLIC_APP_URL || 'https://superappadmin.zemenbank.et';
+        const loginUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://superappadmin.zemenbank.et';
         const emailBody = generateWelcomeEmail(name, email, password, loginUrl);
         const emailResult = await sendEmail(email, 'Your Zemen Admin Center Account', emailBody);
 
