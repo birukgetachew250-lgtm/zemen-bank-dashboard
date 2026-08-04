@@ -1,208 +1,271 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { UserPlus, Search, Loader2, Clock, CheckCircle, XCircle, Eye, Users, AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  ScanFace, Clock, CheckCircle2, XCircle, Eye,
+  Search, ChevronLeft, ChevronRight, RefreshCw,
+  Users, ShieldCheck, AlertTriangle,
+} from 'lucide-react';
+import LinkingDetailModal from '@/components/online-linking/LinkingDetailModal';
 
-interface Application {
-  id: string;
-  fullName: string;
-  phone: string;
-  nationalId: string | null;
-  homeBranch: string;
-  status: string;
-  faydaVerified: boolean;
-  livenessCheckPassed: boolean;
-  submittedAt: string;
-  reviews: { action: string; reviewedAt: string }[];
+interface Stats {
+  total: number;
+  Pending: number;
+  Reviewed: number;
+  Approved: number;
+  Rejected: number;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any; bg: string }> = {
-  Pending:     { label: 'Pending',      color: 'text-amber-700',  icon: Clock,        bg: 'bg-amber-50 border-amber-200' },
-  UnderReview: { label: 'Under Review', color: 'text-blue-700',   icon: Eye,          bg: 'bg-blue-50 border-blue-200' },
-  Approved:    { label: 'Approved',     color: 'text-green-700',  icon: CheckCircle,  bg: 'bg-green-50 border-green-200' },
-  Rejected:    { label: 'Rejected',     color: 'text-red-700',    icon: XCircle,      bg: 'bg-red-50 border-red-200' },
+interface LinkingRow {
+  Id: string;
+  Cif: string;
+  FullName: string;
+  Phone: string;
+  HomeBranch: string;
+  AccountNumber: string;
+  Status: string;
+  SubmittedAt: string;
+  FaydaVerified: number;
+  LivenessCheckPassed: number;
+}
+
+const STATUS_TABS = ['All', 'Pending', 'Reviewed', 'Approved', 'Rejected'] as const;
+
+const statusStyles: Record<string, string> = {
+  Pending:  'bg-amber-500/15 text-amber-400 border-amber-500/20',
+  Reviewed: 'bg-sky-500/15 text-sky-400 border-sky-500/20',
+  Approved: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
+  Rejected: 'bg-red-500/15 text-red-400 border-red-500/20',
 };
 
-function maskId(id: string | null) {
-  if (!id) return '—';
-  return id.length > 6 ? id.slice(0, 3) + '•••' + id.slice(-3) : '•••';
-}
+export default function OnlineLinkingOverviewPage() {
+  const [stats, setStats]         = useState<Stats | null>(null);
+  const [rows, setRows]           = useState<LinkingRow[]>([]);
+  const [total, setTotal]         = useState(0);
+  const [page, setPage]           = useState(1);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [search, setSearch]       = useState('');
+  const [loading, setLoading]     = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState('');
 
-function timeAgo(date: string) {
-  const diff = Date.now() - new Date(date).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
+  const limit = 15;
 
-export default function OnlineOnboardingPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { toast } = useToast();
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch('/api/online-linking/stats');
+      if (res.ok) setStats(await res.json());
+    } catch {}
+  }, []);
 
-  const [apps, setApps] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  
-  const statusParam = searchParams.get('status');
-  const [statusFilter, setStatusFilter] = useState(statusParam || 'All');
-  
-  useEffect(() => {
-    setStatusFilter(statusParam || 'All');
-  }, [statusParam]);
-
-  const fetchApps = useCallback(async () => {
+  const fetchRows = useCallback(async () => {
     setLoading(true);
     try {
-      const url = statusFilter !== 'All' ? `/api/online-linking/applications?status=${statusFilter}` : '/api/online-linking/applications';
-      const res = await fetch(url, { cache: 'no-store' });
-      if (res.ok) setApps(await res.json());
-    } catch {
-      toast({ title: 'Error', description: 'Failed to load applications', variant: 'destructive' });
-    } finally {
+      const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+      if (statusFilter) params.set('status', statusFilter);
+      if (search) params.set('search', search);
+      const res = await fetch(`/api/online-linking?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setRows(data.data || []);
+        setTotal(data.total || 0);
+      }
+    } catch {} finally {
       setLoading(false);
     }
-  }, [statusFilter, toast]);
+  }, [page, statusFilter, search]);
 
-  useEffect(() => { fetchApps(); }, [fetchApps]);
+  useEffect(() => { fetchStats(); }, [fetchStats]);
+  useEffect(() => { fetchRows(); }, [fetchRows]);
 
-  const filtered = useMemo(() => {
-    if (!search) return apps;
-    const t = search.toLowerCase();
-    return apps.filter(a => a.fullName.toLowerCase().includes(t) || a.phone.includes(t) || (a.nationalId || '').includes(t));
-  }, [apps, search]);
+  const refresh = () => { fetchStats(); fetchRows(); };
 
-  const stats = useMemo(() => ({
-    total: apps.length,
-    pending: apps.filter(a => a.status === 'Pending').length,
-    underReview: apps.filter(a => a.status === 'UnderReview').length,
-    approved: apps.filter(a => a.status === 'Approved').length,
-    rejected: apps.filter(a => a.status === 'Rejected').length,
-  }), [apps]);
+  const statCards = [
+    { label: 'Total Requests', value: stats?.total ?? 0,    icon: Users,          gradient: 'from-violet-500 to-purple-600' },
+    { label: 'Pending',        value: stats?.Pending ?? 0,  icon: Clock,          gradient: 'from-amber-500 to-orange-600' },
+    { label: 'Reviewed',       value: stats?.Reviewed ?? 0, icon: ShieldCheck,    gradient: 'from-sky-500 to-blue-600' },
+    { label: 'Approved',       value: stats?.Approved ?? 0, icon: CheckCircle2,   gradient: 'from-emerald-500 to-green-600' },
+    { label: 'Rejected',       value: stats?.Rejected ?? 0, icon: AlertTriangle,  gradient: 'from-red-500 to-rose-600' },
+  ];
+
+  const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return (
-    <div className="space-y-6 animate-fade-up">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl p-6"
-        style={{ background: 'linear-gradient(135deg, hsl(158,64%,35%) 0%, hsl(158,64%,25%) 100%)' }}>
-        <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" />
-        <div className="absolute right-8 bottom-0 w-32 h-32 rounded-full bg-white/5 blur-2xl" />
-        <div className="relative flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center ring-1 ring-white/20">
-            <UserPlus className="h-6 w-6 text-white" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500/20 to-violet-500/20 border border-white/10 flex items-center justify-center">
+            <ScanFace size={24} className="text-sky-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Online Linking</h1>
-            <p className="text-white/70 text-sm mt-0.5">Review and approve mobile account linking applications</p>
+            <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-outfit)' }}>
+              Online Linking
+            </h1>
+            <p className="text-sm text-white/40">Digital self-onboarding requests overview</p>
           </div>
         </div>
-        <div className="relative mt-4 grid grid-cols-5 gap-3">
-          {[
-            { label: 'Total', value: stats.total, color: 'text-white' },
-            { label: 'Pending', value: stats.pending, color: 'text-amber-300' },
-            { label: 'Under Review', value: stats.underReview, color: 'text-blue-300' },
-            { label: 'Approved', value: stats.approved, color: 'text-green-300' },
-            { label: 'Rejected', value: stats.rejected, color: 'text-red-300' },
-          ].map(s => (
-            <div key={s.label} className="bg-white/10 rounded-xl px-3 py-2.5 backdrop-blur-sm">
-              <p className={cn('text-xl font-bold', s.color)}>{s.value}</p>
-              <p className="text-xs text-white/50 mt-0.5">{s.label}</p>
+        <button
+          onClick={refresh}
+          className="flex items-center gap-2 px-4 py-2 text-sm text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+        >
+          <RefreshCw size={14} />
+          Refresh
+        </button>
+      </div>
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        {statCards.map((card) => (
+          <div
+            key={card.label}
+            className="relative bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 overflow-hidden group hover:border-white/10 transition-all"
+          >
+            <div className={`absolute -top-6 -right-6 w-20 h-20 rounded-full bg-gradient-to-br ${card.gradient} opacity-10 blur-xl group-hover:opacity-20 transition-opacity`} />
+            <div className="relative">
+              <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center mb-3 shadow-lg`}>
+                <card.icon size={16} className="text-white" />
+              </div>
+              <p className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-outfit)' }}>
+                {card.value}
+              </p>
+              <p className="text-xs text-white/40 mt-0.5">{card.label}</p>
             </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        {/* Status Tabs */}
+        <div className="flex gap-1 bg-white/[0.03] border border-white/[0.06] rounded-xl p-1">
+          {STATUS_TABS.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => { setStatusFilter(tab === 'All' ? '' : tab); setPage(1); }}
+              className={`px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+                (tab === 'All' && !statusFilter) || tab === statusFilter
+                  ? 'bg-white/10 text-white shadow-sm'
+                  : 'text-white/40 hover:text-white/60'
+              }`}
+            >
+              {tab}
+            </button>
           ))}
         </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex items-center gap-3">
+        {/* Search */}
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-9 rounded-xl" placeholder="Search by name, phone, or ID..." value={search} onChange={e => setSearch(e.target.value)} />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Search by name, CIF, or phone…"
+            className="w-full pl-9 pr-4 py-2.5 text-sm bg-white/[0.04] border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/20"
+          />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-44 rounded-xl"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="All">All Statuses</SelectItem>
-            <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="UnderReview">Under Review</SelectItem>
-            <SelectItem value="Approved">Approved</SelectItem>
-            <SelectItem value="Rejected">Rejected</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
-      {/* Application cards */}
-      {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-20 text-muted-foreground">
-          <Users className="h-12 w-12 mx-auto mb-3 opacity-20" />
-          <p className="font-medium">{search ? 'No applications match your search' : 'No applications found'}</p>
-          <p className="text-sm mt-1">Applications submitted via the mobile app will appear here.</p>
+      {/* Table */}
+      <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/5">
+                {['Name', 'CIF', 'Phone', 'Branch', 'Account', 'Fayda', 'Liveness', 'Status', 'Submitted', ''].map((h) => (
+                  <th key={h} className="px-4 py-3 text-left text-[11px] text-white/30 uppercase tracking-wider font-medium">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={10} className="text-center py-16">
+                    <div className="w-6 h-6 border-2 border-sky-400/30 border-t-sky-400 rounded-full animate-spin mx-auto" />
+                  </td>
+                </tr>
+              ) : rows.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="text-center py-16 text-white/30 text-sm">
+                    No requests found
+                  </td>
+                </tr>
+              ) : (
+                rows.map((row) => (
+                  <tr
+                    key={row.Id}
+                    className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors cursor-pointer"
+                    onClick={() => { setSelectedId(row.Id); setModalOpen(true); }}
+                  >
+                    <td className="px-4 py-3.5 text-sm text-white/80 font-medium">{row.FullName}</td>
+                    <td className="px-4 py-3.5 text-sm text-white/50 font-mono">{row.Cif}</td>
+                    <td className="px-4 py-3.5 text-sm text-white/50">{row.Phone}</td>
+                    <td className="px-4 py-3.5 text-sm text-white/50">{row.HomeBranch}</td>
+                    <td className="px-4 py-3.5 text-sm text-white/50 font-mono">{row.AccountNumber || '—'}</td>
+                    <td className="px-4 py-3.5">
+                      <span className={`inline-block w-2 h-2 rounded-full ${row.FaydaVerified ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span className={`inline-block w-2 h-2 rounded-full ${row.LivenessCheckPassed ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span className={`px-2.5 py-1 rounded-full text-[11px] font-medium border ${statusStyles[row.Status] || 'bg-white/10 text-white/50 border-white/10'}`}>
+                        {row.Status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 text-xs text-white/30">
+                      {row.SubmittedAt ? new Date(row.SubmittedAt).toLocaleDateString() : '—'}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <button className="text-white/30 hover:text-sky-400 transition-colors">
+                        <Eye size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map(app => {
-            const cfg = STATUS_CONFIG[app.status] || STATUS_CONFIG.Pending;
-            const StatusIcon = cfg.icon;
-            return (
-              <div key={app.id}
-                className="group relative overflow-hidden rounded-2xl border bg-card transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
-                onClick={() => router.push(`/online-linking/${app.id}`)}>
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                  style={{ background: 'radial-gradient(ellipse at top right, hsl(158,64%,35%/0.05), transparent 70%)' }} />
-                <div className="p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-foreground truncate">{app.fullName}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{app.phone}</p>
-                    </div>
-                    <span className={cn('inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border ml-2', cfg.bg, cfg.color)}>
-                      <StatusIcon className="h-3 w-3" />
-                      {cfg.label}
-                    </span>
-                  </div>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">National ID</span>
-                      <code className="bg-muted px-1.5 py-0.5 rounded font-mono">{maskId(app.nationalId)}</code>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Home Branch</span>
-                      <span className="font-medium">{app.homeBranch}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Submitted</span>
-                      <span>{timeAgo(app.submittedAt)}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 mt-3 pt-3 border-t">
-                    <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full', app.faydaVerified ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500')}>
-                      {app.faydaVerified ? '✓ Fayda' : '○ Fayda'}
-                    </span>
-                    <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full', app.livenessCheckPassed ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500')}>
-                      {app.livenessCheckPassed ? '✓ Liveness' : '○ Liveness'}
-                    </span>
-                  </div>
-                </div>
-                <div className="border-t px-5 py-2.5 bg-muted/20 flex justify-end">
-                  <Button variant="ghost" size="sm" className="text-xs h-7 rounded-lg gap-1">
-                    <Eye className="h-3 w-3" /> Review
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-white/5">
+            <p className="text-xs text-white/30">
+              Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span className="text-xs text-white/40 px-3">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Detail Modal (view-only) */}
+      <LinkingDetailModal
+        requestId={selectedId}
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        mode="view"
+      />
     </div>
   );
 }

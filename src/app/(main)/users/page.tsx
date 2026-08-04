@@ -35,8 +35,8 @@ export default async function UsersPage() {
       { id: 4, name: 'Compliance Officer', description: 'Handles risk and compliance.'},
   ];
   
-  let usersData;
-  let rolesData;
+  let usersData: any[] = [];
+  let rolesData: any[] = [];
   
   try {
     usersData = await getSystemUsers();

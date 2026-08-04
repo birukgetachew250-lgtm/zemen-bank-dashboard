@@ -63,10 +63,10 @@ async function getPermissionsData() {
           ...role,
           description: parsed.main || '',
           permissions: parsed.permissions || []
-        };
+        } as any;
       } catch (e) {
         // If parsing fails, it's just a simple description with no permissions
-        return { ...role, description: role.description, permissions: [] };
+        return { ...role, description: role.description, permissions: [] } as any;
       }
     });
 

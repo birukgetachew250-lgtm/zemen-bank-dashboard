@@ -62,7 +62,7 @@ async function getRoleData(id?: string) {
             // It's just a plain string, do nothing
         }
         
-        const roleWithPermissions = {
+        const roleWithPermissions: any = {
             ...role,
             description: mainDescription,
             permissions: rolePermissions

@@ -124,7 +124,7 @@ export async function DELETE(
             userEmail: session.user?.email || 'system',
             action: 'ROLE_DELETED',
             status: 'Success',
-            details: `Deleted role: ${role.name}`,
+            details: `Deleted role: ${(role as any).name}`,
             ipAddress: typeof ip === 'string' ? ip : undefined,
         });
 

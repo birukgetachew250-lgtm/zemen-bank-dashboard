@@ -65,7 +65,9 @@ import {
   LayoutList,
   FileCheck2,
   XCircle,
-  CheckCircle,
+  ScanFace,
+  CheckCircle2,
+  ClockIcon,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -258,6 +260,15 @@ export const menu: MenuItem[] = [
           { icon: Mail, label: "Authentications", href: "/otp" },
         ],
       },
+      {
+        label: "Online Linking",
+        icon: ScanFace,
+        children: [
+          { icon: LayoutDashboard, label: "Overview",       href: "/online-linking" },
+          { icon: ClockIcon,       label: "Review Queue",   href: "/online-linking/review" },
+          { icon: CheckCircle2,    label: "Approval Queue", href: "/online-linking/approve" },
+        ],
+      },
     ]
   },
   {
@@ -319,16 +330,6 @@ export const menu: MenuItem[] = [
       { icon: KeyRound, label: "OAuth Credentials", href: "/wso2/oauth-credentials" },
       { icon: Activity, label: "Request Logs", href: "/wso2/request-logs" },
     ]
-  },
-  {
-    icon: Link,
-    label: "Online Linking",
-    href: "/online-linking",
-    children: [
-      { icon: LayoutGrid, label: "Overview", href: "/online-linking/overview" },
-      { icon: ClipboardList, label: "Applications", href: "/online-linking" },
-      { icon: CheckCircle, label: "Approve", href: "/online-linking?status=Verified" },
-    ],
   },
   { 
     icon: Settings, 

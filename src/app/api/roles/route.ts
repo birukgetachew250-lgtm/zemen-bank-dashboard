@@ -18,7 +18,7 @@ export async function GET(req: Request) {
 
         const rolesWithCounts = await Promise.all(roles.map(async (role) => {
             const userCount = await db.user.count({
-                where: { role: role.name },
+                where: { role: (role as any).name },
             });
             return { ...role, userCount };
         }));

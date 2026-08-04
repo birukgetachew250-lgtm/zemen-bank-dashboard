@@ -63,6 +63,14 @@ export const PERMISSIONS = {
   CHARGES_MANAGE: 'charges:manage',
   /** View and manage transaction limit rules */
   LIMITS_MANAGE: 'limits:manage',
+
+  // ─── Online Linking (Digital Self-Onboarding) ────────────────────────────────
+  /** View the online linking overview dashboard and all request statuses */
+  ONLINE_LINKING_READ: 'online-linking:read',
+  /** Review pending online linking requests (step 1) */
+  ONLINE_LINKING_REVIEW: 'online-linking:review',
+  /** Approve or reject reviewed online linking requests (step 2) */
+  ONLINE_LINKING_APPROVE: 'online-linking:approve',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
