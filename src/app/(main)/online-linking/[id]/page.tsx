@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   User, Shield, Film, History, CheckCircle2, XCircle,
@@ -55,9 +55,8 @@ interface LinkingDetail {
   }>;
 }
 
-export default function OnlineLinkingDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  const requestId = resolvedParams.id;
+export default function OnlineLinkingDetailPage({ params }: { params: { id: string } }) {
+  const requestId = params.id;
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get('mode') || 'view';
