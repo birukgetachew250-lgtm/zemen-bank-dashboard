@@ -1,19 +1,15 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import {
-  Clock, Eye, Search, RefreshCw, ScanFace, CheckCircle2, XCircle,
+  Clock, Search, RefreshCw, ScanFace, CheckCircle2, XCircle, ArrowRight
 } from 'lucide-react';
-import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription
-} from "@/components/ui/card";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import LinkingDetailModal from '@/components/online-linking/LinkingDetailModal';
 
 interface LinkingRow {
   Id: string;
@@ -30,13 +26,12 @@ interface LinkingRow {
 }
 
 export default function OnlineLinkingReviewPage() {
+  const router = useRouter();
   const [rows, setRows]           = useState<LinkingRow[]>([]);
   const [total, setTotal]         = useState(0);
   const [page, setPage]           = useState(1);
   const [search, setSearch]       = useState('');
   const [loading, setLoading]     = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState('');
 
   const limit = 15;
 
@@ -65,65 +60,74 @@ export default function OnlineLinkingReviewPage() {
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return (
-    <div className="w-full h-full p-4 md:p-8 pt-6 space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="w-full h-full p-4 md:p-8 pt-6 space-y-6 bg-muted/5">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Review Queue</h2>
-          <p className="text-muted-foreground mt-1">Pending requests awaiting your review &middot; Step 1 of 2</p>
+          <div className="flex items-center gap-3">
+             <div className="p-2.5 bg-amber-500/10 rounded-xl">
+               <Clock className="w-6 h-6 text-amber-500" />
+             </div>
+             <h2 className="text-3xl font-bold tracking-tight">Review Queue</h2>
+          </div>
+          <p className="text-muted-foreground mt-2">Pending requests awaiting your review &middot; Step 1 of 2</p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant="secondary" className="px-3 py-1 text-sm">
-            {total} pending
+          <Badge variant="outline" className="px-3 py-1.5 text-sm bg-background shadow-sm">
+            <span className="font-bold mr-1">{total}</span> pending
           </Badge>
-          <Button variant="outline" onClick={() => fetchRows()} className="gap-2">
+          <Button variant="outline" onClick={() => fetchRows()} className="gap-2 shadow-sm rounded-lg h-10">
             <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <ScanFace className="w-5 h-5 text-amber-500" />
-            <CardDescription className="text-sm">
-              Review all customer information, verification data, images, and liveness video before submitting your review. Downloads are disabled for privacy.
-            </CardDescription>
-          </div>
-          <div className="pt-4 max-w-sm relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, CIF, or phone..."
-              className="pl-8"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            />
+      <Card className="shadow-md border-muted/50 overflow-hidden">
+        <CardHeader className="bg-muted/10 border-b border-border/50 pb-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 text-muted-foreground max-w-lg">
+              <ScanFace className="w-5 h-5 text-primary shrink-0" />
+              <CardDescription className="text-sm">
+                Review all customer information, verification data, images, and liveness video before submitting your review. Downloads are disabled for privacy.
+              </CardDescription>
+            </div>
+            <div className="relative w-full md:max-w-sm shrink-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, CIF, or phone..."
+                className="pl-9 bg-background shadow-sm rounded-full"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              />
+            </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>CIF</TableHead>
-                <TableHead>Branch</TableHead>
-                <TableHead>Account</TableHead>
-                <TableHead>Verification</TableHead>
-                <TableHead>Submitted</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+            <TableHeader className="bg-muted/5">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="pl-6 font-semibold">Name</TableHead>
+                <TableHead className="font-semibold">CIF</TableHead>
+                <TableHead className="font-semibold">Branch</TableHead>
+                <TableHead className="font-semibold">Verification</TableHead>
+                <TableHead className="font-semibold">Submitted</TableHead>
+                <TableHead className="text-right pr-6 font-semibold">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                    Loading requests...
+                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                     <div className="flex items-center justify-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      <span>Loading pending requests...</span>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                    No pending requests to review.
+                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                    No pending requests to review!
                   </TableCell>
                 </TableRow>
               ) : (
@@ -131,11 +135,10 @@ export default function OnlineLinkingReviewPage() {
                   const scoreNum = Number(row.SimilarityScore ?? 0);
                   const scorePct = (scoreNum > 1 ? scoreNum : scoreNum * 100).toFixed(1);
                   return (
-                    <TableRow key={row.Id}>
-                      <TableCell className="font-medium">{row.FullName}</TableCell>
-                      <TableCell>{row.Cif}</TableCell>
+                    <TableRow key={row.Id} className="group hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => router.push(`/online-linking/${row.Id}?mode=review`)}>
+                      <TableCell className="pl-6 font-medium">{row.FullName}</TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-sm">{row.Cif || '—'}</TableCell>
                       <TableCell>{row.HomeBranch}</TableCell>
-                      <TableCell>{row.AccountNumber || '—'}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2 text-xs">
                           {row.FaydaVerified ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-red-500" />} Fayda
@@ -145,11 +148,10 @@ export default function OnlineLinkingReviewPage() {
                           <span className="font-medium">{scorePct}%</span> Match
                         </div>
                       </TableCell>
-                      <TableCell>{row.SubmittedAt ? new Date(row.SubmittedAt).toLocaleDateString() : '—'}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="outline" size="sm" onClick={() => { setSelectedId(row.Id); setModalOpen(true); }}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Review
+                      <TableCell className="text-muted-foreground text-sm">{row.SubmittedAt ? new Date(row.SubmittedAt).toLocaleDateString() : '—'}</TableCell>
+                      <TableCell className="text-right pr-6">
+                        <Button variant="outline" size="sm" className="shadow-sm bg-background group-hover:bg-primary group-hover:text-primary-foreground transition-colors" onClick={(e) => { e.stopPropagation(); router.push(`/online-linking/${row.Id}?mode=review`); }}>
+                          Review <ArrowRight className="h-4 w-4 ml-1.5" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -159,16 +161,16 @@ export default function OnlineLinkingReviewPage() {
             </TableBody>
           </Table>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
+          {totalPages > 0 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t bg-muted/5">
               <div className="text-sm text-muted-foreground">
-                Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total}
+                Showing <span className="font-medium text-foreground">{(page - 1) * limit + (rows.length > 0 ? 1 : 0)}</span> to <span className="font-medium text-foreground">{Math.min(page * limit, total)}</span> of <span className="font-medium text-foreground">{total}</span>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)} className="shadow-sm">
                   Previous
                 </Button>
-                <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
+                <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="shadow-sm">
                   Next
                 </Button>
               </div>
@@ -176,14 +178,6 @@ export default function OnlineLinkingReviewPage() {
           )}
         </CardContent>
       </Card>
-
-      <LinkingDetailModal
-        requestId={selectedId}
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        mode="review"
-        onActionComplete={() => fetchRows()}
-      />
     </div>
   );
 }

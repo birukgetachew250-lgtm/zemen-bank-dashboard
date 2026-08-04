@@ -1,20 +1,17 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   ScanFace, Clock, CheckCircle2, XCircle, Eye,
   Search, RefreshCw, Users, ShieldCheck, AlertTriangle,
+  ArrowRight
 } from 'lucide-react';
-import {
-  Card, CardContent, CardHeader, CardTitle,
-} from "@/components/ui/card";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import LinkingDetailModal from '@/components/online-linking/LinkingDetailModal';
 
 interface Stats {
   total: number;
@@ -40,6 +37,7 @@ interface LinkingRow {
 const STATUS_TABS = ['All', 'Pending', 'Reviewed', 'Approved', 'Rejected'] as const;
 
 export default function OnlineLinkingOverviewPage() {
+  const router = useRouter();
   const [stats, setStats]         = useState<Stats | null>(null);
   const [rows, setRows]           = useState<LinkingRow[]>([]);
   const [total, setTotal]         = useState(0);
@@ -47,8 +45,6 @@ export default function OnlineLinkingOverviewPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch]       = useState('');
   const [loading, setLoading]     = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState('');
 
   const limit = 15;
 
@@ -80,140 +76,123 @@ export default function OnlineLinkingOverviewPage() {
   useEffect(() => { fetchRows(); }, [fetchRows]);
 
   const refresh = () => { fetchStats(); fetchRows(); };
-
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return (
-    <div className="w-full h-full space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <ScanFace className="w-6 h-6 text-primary" />
-          <h2 className="text-3xl font-bold tracking-tight">Online Linking</h2>
+    <div className="w-full h-full space-y-6 p-4 md:p-8 pt-6 bg-muted/5">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-primary/10 rounded-xl">
+              <ScanFace className="w-6 h-6 text-primary" />
+            </div>
+            <h2 className="text-3xl font-bold tracking-tight">Online Linking</h2>
+          </div>
+          <p className="text-muted-foreground mt-2">Comprehensive overview of digital self-onboarding requests.</p>
         </div>
-        <Button variant="outline" onClick={refresh} className="gap-2">
+        <Button variant="outline" onClick={refresh} className="gap-2 shadow-sm rounded-lg h-10">
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          Refresh Data
         </Button>
       </div>
-      <p className="text-muted-foreground">Digital self-onboarding requests overview</p>
 
-      {/* Stat Cards */}
+      {/* Stat Cards - Premium Grid Layout */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.total ?? 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.Pending ?? 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Reviewed</CardTitle>
-            <ShieldCheck className="h-4 w-4 text-sky-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.Reviewed ?? 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approved</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.Approved ?? 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Rejected</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.Rejected ?? 0}</div>
-          </CardContent>
-        </Card>
+        {[
+          { label: 'Total Requests', icon: Users, val: stats?.total ?? 0, color: 'text-muted-foreground' },
+          { label: 'Pending', icon: Clock, val: stats?.Pending ?? 0, color: 'text-amber-500' },
+          { label: 'Reviewed', icon: ShieldCheck, val: stats?.Reviewed ?? 0, color: 'text-sky-500' },
+          { label: 'Approved', icon: CheckCircle2, val: stats?.Approved ?? 0, color: 'text-emerald-500' },
+          { label: 'Rejected', icon: AlertTriangle, val: stats?.Rejected ?? 0, color: 'text-red-500' },
+        ].map((s, i) => (
+          <Card key={i} className="shadow-sm border-muted/50 hover:shadow-md transition-shadow">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">{s.label}</p>
+                <div className="text-3xl font-bold">{s.val}</div>
+              </div>
+              <div className={`p-3 bg-muted/30 rounded-xl ${s.color}`}>
+                <s.icon className="h-5 w-5" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <Card>
-        <CardHeader>
+      {/* Main Table Card */}
+      <Card className="shadow-md border-muted/50 overflow-hidden">
+        <CardHeader className="bg-muted/10 border-b border-border/50 pb-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex gap-2 w-full sm:w-auto overflow-x-auto">
+            <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
               {STATUS_TABS.map((tab) => (
                 <Button
                   key={tab}
                   variant={(tab === 'All' && !statusFilter) || tab === statusFilter ? "default" : "outline"}
                   onClick={() => { setStatusFilter(tab === 'All' ? '' : tab); setPage(1); }}
                   size="sm"
+                  className="rounded-full shadow-sm"
                 >
                   {tab}
                 </Button>
               ))}
             </div>
             <div className="relative w-full sm:max-w-sm">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search requests..."
-                className="pl-8"
+                className="pl-9 bg-background shadow-sm rounded-full"
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               />
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>CIF</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Branch</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Submitted</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+            <TableHeader className="bg-muted/5">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="pl-6 font-semibold">Name</TableHead>
+                <TableHead className="font-semibold">CIF</TableHead>
+                <TableHead className="font-semibold">Phone</TableHead>
+                <TableHead className="font-semibold">Branch</TableHead>
+                <TableHead className="font-semibold">Status</TableHead>
+                <TableHead className="font-semibold">Submitted</TableHead>
+                <TableHead className="text-right pr-6 font-semibold">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                    Loading requests...
+                  <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      <span>Loading requests...</span>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                    No requests found.
+                  <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                    No requests found matching your criteria.
                   </TableCell>
                 </TableRow>
               ) : (
                 rows.map((row) => (
-                  <TableRow key={row.Id}>
-                    <TableCell className="font-medium">{row.FullName}</TableCell>
-                    <TableCell>{row.Cif}</TableCell>
+                  <TableRow key={row.Id} className="group hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => router.push(`/online-linking/${row.Id}?mode=view`)}>
+                    <TableCell className="pl-6 font-medium">{row.FullName}</TableCell>
+                    <TableCell className="text-muted-foreground font-mono text-sm">{row.Cif || '—'}</TableCell>
                     <TableCell>{row.Phone}</TableCell>
                     <TableCell>{row.HomeBranch}</TableCell>
                     <TableCell>
-                      <Badge variant={row.Status === 'Approved' ? 'default' : row.Status === 'Rejected' ? 'destructive' : 'secondary'}>
+                      <Badge variant={row.Status === 'Approved' ? 'default' : row.Status === 'Rejected' ? 'destructive' : row.Status === 'Reviewed' ? 'secondary' : 'outline'} className="shadow-sm">
                         {row.Status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{row.SubmittedAt ? new Date(row.SubmittedAt).toLocaleDateString() : '—'}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => { setSelectedId(row.Id); setModalOpen(true); }}>
-                        <Eye className="h-4 w-4" />
+                    <TableCell className="text-muted-foreground text-sm">{row.SubmittedAt ? new Date(row.SubmittedAt).toLocaleDateString() : '—'}</TableCell>
+                    <TableCell className="text-right pr-6">
+                      <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); router.push(`/online-linking/${row.Id}?mode=view`); }}>
+                        <ArrowRight className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -222,16 +201,16 @@ export default function OnlineLinkingOverviewPage() {
             </TableBody>
           </Table>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
+          {totalPages > 0 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t bg-muted/5">
               <div className="text-sm text-muted-foreground">
-                Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total}
+                Showing <span className="font-medium text-foreground">{(page - 1) * limit + (rows.length > 0 ? 1 : 0)}</span> to <span className="font-medium text-foreground">{Math.min(page * limit, total)}</span> of <span className="font-medium text-foreground">{total}</span>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)} className="shadow-sm">
                   Previous
                 </Button>
-                <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
+                <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="shadow-sm">
                   Next
                 </Button>
               </div>
@@ -239,13 +218,6 @@ export default function OnlineLinkingOverviewPage() {
           )}
         </CardContent>
       </Card>
-
-      <LinkingDetailModal
-        requestId={selectedId}
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        mode="view"
-      />
     </div>
   );
 }
