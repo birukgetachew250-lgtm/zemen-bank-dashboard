@@ -13,12 +13,11 @@ export default function SimilarityGauge({ score, size = 140, label = 'Similarity
   const pct = score > 1 ? score : score * 100;
   const normalizedPct = Math.min(100, Math.max(0, pct));
 
-  // Color gradient: red → yellow → green
+  // Color gradient: red → amber → green
   const getColor = (p: number) => {
-    if (p >= 80) return 'hsl(142, 70%, 50%)';
-    if (p >= 60) return 'hsl(48, 90%, 55%)';
-    if (p >= 40) return 'hsl(30, 90%, 55%)';
-    return 'hsl(0, 75%, 55%)';
+    if (p >= 80) return 'hsl(var(--success, 142 70% 50%))'; // using standard success color if available or raw hsl
+    if (p >= 60) return 'hsl(var(--warning, 48 90% 55%))';
+    return 'hsl(var(--destructive, 0 75% 55%))';
   };
 
   const color = getColor(normalizedPct);
@@ -36,7 +35,7 @@ export default function SimilarityGauge({ score, size = 140, label = 'Similarity
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.08)"
+            className="stroke-muted"
             strokeWidth={8}
           />
           {/* Progress arc */}
@@ -52,7 +51,6 @@ export default function SimilarityGauge({ score, size = 140, label = 'Similarity
             strokeDashoffset={dashOffset}
             style={{
               transition: 'stroke-dashoffset 1.2s ease-out, stroke 0.6s ease',
-              filter: `drop-shadow(0 0 6px ${color})`,
             }}
           />
         </svg>
@@ -60,13 +58,13 @@ export default function SimilarityGauge({ score, size = 140, label = 'Similarity
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span
             className="font-bold tabular-nums"
-            style={{ fontSize: size * 0.22, color, fontFamily: 'var(--font-outfit)' }}
+            style={{ fontSize: size * 0.22, color }}
           >
             {normalizedPct.toFixed(1)}%
           </span>
         </div>
       </div>
-      <span className="text-xs text-white/50 uppercase tracking-wider">{label}</span>
+      <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">{label}</span>
     </div>
   );
 }

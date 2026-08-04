@@ -260,16 +260,16 @@ export const menu: MenuItem[] = [
           { icon: Mail, label: "Authentications", href: "/otp" },
         ],
       },
-      {
-        label: "Online Linking",
-        icon: ScanFace,
-        children: [
-          { icon: LayoutDashboard, label: "Overview",       href: "/online-linking" },
-          { icon: ClockIcon,       label: "Review Queue",   href: "/online-linking/review" },
-          { icon: CheckCircle2,    label: "Approval Queue", href: "/online-linking/approve" },
-        ],
-      },
     ]
+  },
+  {
+    label: "Online Linking",
+    icon: ScanFace,
+    children: [
+      { icon: LayoutDashboard, label: "Overview",       href: "/online-linking" },
+      { icon: ClockIcon,       label: "Review Queue",   href: "/online-linking/review" },
+      { icon: CheckCircle2,    label: "Approval Queue", href: "/online-linking/approve" },
+    ],
   },
   {
     label: "System Monitoring",

@@ -2,9 +2,17 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  CheckCircle2, Eye, Search, RefreshCw, ChevronLeft, ChevronRight,
-  ScanFace, ShieldCheck, XCircle, UserCheck,
+  CheckCircle2, Search, RefreshCw, ShieldCheck, XCircle, UserCheck,
 } from 'lucide-react';
+import {
+  Card, CardContent, CardHeader, CardTitle, CardDescription
+} from "@/components/ui/card";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import LinkingDetailModal from '@/components/online-linking/LinkingDetailModal';
 
 interface LinkingRow {
@@ -59,162 +67,119 @@ export default function OnlineLinkingApprovePage() {
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-green-500/20 border border-white/10 flex items-center justify-center">
-            <ShieldCheck size={24} className="text-emerald-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-outfit)' }}>
-              Approval Queue
-            </h1>
-            <p className="text-sm text-white/40">
-              Reviewed requests awaiting final approval · Step 2 of 2
-            </p>
-          </div>
+    <div className="w-full h-full p-4 md:p-8 pt-6 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Approval Queue</h2>
+          <p className="text-muted-foreground mt-1">Reviewed requests awaiting final approval &middot; Step 2 of 2</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-sky-500/15 text-sky-400 border border-sky-500/20">
+          <Badge variant="secondary" className="px-3 py-1 text-sm">
             {total} awaiting approval
-          </span>
-          <button
-            onClick={() => fetchRows()}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
-          >
-            <RefreshCw size={14} />
+          </Badge>
+          <Button variant="outline" onClick={() => fetchRows()} className="gap-2">
+            <RefreshCw className="h-4 w-4" />
             Refresh
-          </button>
+          </Button>
         </div>
       </div>
 
-      {/* Info Banner */}
-      <div className="bg-gradient-to-r from-emerald-500/5 to-green-500/5 border border-emerald-500/10 rounded-xl px-5 py-3 flex items-center gap-3">
-        <UserCheck size={18} className="text-emerald-400 shrink-0" />
-        <p className="text-sm text-white/50">
-          These requests have been reviewed by a colleague. Approve to execute account linking, or reject with a reason.
-          <span className="text-emerald-400"> You cannot approve a request you reviewed yourself.</span>
-        </p>
-      </div>
-
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          placeholder="Search by name, CIF, or phone…"
-          className="w-full pl-9 pr-4 py-2.5 text-sm bg-white/[0.04] border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/20"
-        />
-      </div>
-
-      {/* Table */}
-      <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/5">
-                {['Name', 'CIF', 'Phone', 'Branch', 'Account', 'Type', 'Fayda', 'Score', 'Reviewed At', 'Action'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-[11px] text-white/30 uppercase tracking-wider font-medium">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <UserCheck className="w-5 h-5 text-emerald-500" />
+            <CardDescription className="text-sm">
+              These requests have been reviewed by a colleague. Approve to execute account linking, or reject with a reason. You cannot approve a request you reviewed yourself.
+            </CardDescription>
+          </div>
+          <div className="pt-4 max-w-sm relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, CIF, or phone..."
+              className="pl-8"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>CIF</TableHead>
+                <TableHead>Branch</TableHead>
+                <TableHead>Account</TableHead>
+                <TableHead>Verification</TableHead>
+                <TableHead>Reviewed</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading ? (
-                <tr>
-                  <td colSpan={10} className="text-center py-16">
-                    <div className="w-6 h-6 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin mx-auto" />
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                    Loading requests...
+                  </TableCell>
+                </TableRow>
               ) : rows.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="text-center py-16">
-                    <div className="flex flex-col items-center gap-3 text-white/30">
-                      <CheckCircle2 size={40} className="opacity-30" />
-                      <p className="text-sm">No reviewed requests awaiting approval</p>
-                      <p className="text-xs text-white/20">Requests need to be reviewed first before appearing here.</p>
-                    </div>
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                    No reviewed requests awaiting approval.
+                  </TableCell>
+                </TableRow>
               ) : (
                 rows.map((row) => {
                   const scoreNum = Number(row.SimilarityScore ?? 0);
                   const scorePct = (scoreNum > 1 ? scoreNum : scoreNum * 100).toFixed(1);
-                  const scoreColor = Number(scorePct) >= 80 ? 'text-emerald-400' : Number(scorePct) >= 60 ? 'text-amber-400' : 'text-red-400';
 
                   return (
-                    <tr
-                      key={row.Id}
-                      className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
-                    >
-                      <td className="px-4 py-3.5 text-sm text-white/80 font-medium">{row.FullName}</td>
-                      <td className="px-4 py-3.5 text-sm text-white/50 font-mono">{row.Cif}</td>
-                      <td className="px-4 py-3.5 text-sm text-white/50">{row.Phone}</td>
-                      <td className="px-4 py-3.5 text-sm text-white/50">{row.HomeBranch}</td>
-                      <td className="px-4 py-3.5 text-sm text-white/50 font-mono">{row.AccountNumber || '—'}</td>
-                      <td className="px-4 py-3.5 text-sm text-white/50">{row.AccountType || '—'}</td>
-                      <td className="px-4 py-3.5">
-                        <span className={`inline-flex items-center gap-1 text-xs ${row.FaydaVerified ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {row.FaydaVerified ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span className={`text-sm font-medium tabular-nums ${scoreColor}`} style={{ fontFamily: 'var(--font-outfit)' }}>
-                          {scorePct}%
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 text-xs text-white/30">
-                        {row.ReviewedAt ? new Date(row.ReviewedAt).toLocaleDateString() : '—'}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <button
-                          onClick={() => { setSelectedId(row.Id); setModalOpen(true); }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-emerald-500/20 to-green-500/20 text-emerald-400 border border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-all"
-                        >
-                          <ShieldCheck size={12} />
+                    <TableRow key={row.Id}>
+                      <TableCell className="font-medium">{row.FullName}</TableCell>
+                      <TableCell>{row.Cif}</TableCell>
+                      <TableCell>{row.HomeBranch}</TableCell>
+                      <TableCell>{row.AccountNumber || '—'}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 text-xs">
+                          {row.FaydaVerified ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-red-500" />} Fayda
+                          <span className="text-muted-foreground mx-1">|</span>
+                          {row.LivenessCheckPassed ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-red-500" />} Live
+                          <span className="text-muted-foreground mx-1">|</span>
+                          <span className="font-medium">{scorePct}%</span> Match
+                        </div>
+                      </TableCell>
+                      <TableCell>{row.ReviewedAt ? new Date(row.ReviewedAt).toLocaleDateString() : '—'}</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="default" size="sm" onClick={() => { setSelectedId(row.Id); setModalOpen(true); }}>
+                          <ShieldCheck className="h-4 w-4 mr-2" />
                           Approve
-                        </button>
-                      </td>
-                    </tr>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
                   );
                 })
               )}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-white/5">
-            <p className="text-xs text-white/30">
-              Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}
-            </p>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/5 disabled:opacity-30"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <span className="text-xs text-white/40 px-3">Page {page} of {totalPages}</span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/5 disabled:opacity-30"
-              >
-                <ChevronRight size={16} />
-              </button>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+                  Previous
+                </Button>
+                <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
+                  Next
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Approve Modal */}
       <LinkingDetailModal
         requestId={selectedId}
         isOpen={modalOpen}

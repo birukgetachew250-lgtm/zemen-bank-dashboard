@@ -79,9 +79,11 @@ export async function GET(req: Request) {
       ${where}
     `;
 
+    const { rowLimit, rowOffset, ...countBinds } = binds;
+
     const [listResult, countResult] = await Promise.all([
       executeQuery(DB, listQuery, binds),
-      executeQuery(DB, countQuery, { ...binds, rowLimit: undefined, rowOffset: undefined }),
+      executeQuery(DB, countQuery, countBinds),
     ]);
 
     return NextResponse.json({
