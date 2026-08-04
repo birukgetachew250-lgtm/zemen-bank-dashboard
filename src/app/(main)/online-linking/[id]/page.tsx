@@ -333,6 +333,21 @@ export default function OnlineLinkingDetailPage({ params }: { params: { id: stri
                   </div>
                 </div>
               )}
+
+              {detail.FaydaData && (
+                <div className="mt-8">
+                  <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <ScanFaceIcon size={16} className="text-primary" /> Fayda Response Data
+                  </h3>
+                  <div className="border rounded-xl p-5 bg-muted/20 shadow-sm">
+                    <pre className="text-xs overflow-x-auto whitespace-pre-wrap max-h-60 text-muted-foreground font-mono">
+                      {typeof detail.FaydaData === 'string'
+                        ? detail.FaydaData
+                        : JSON.stringify(detail.FaydaData, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
