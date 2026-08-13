@@ -92,22 +92,33 @@ export const menu: MenuItem[] = [
     label: "Banking Users",
     icon: Briefcase,
     children: [
-       {
-        label: "Customers",
+      {
+        label: "Customer Records",
         icon: Users,
-        href: "/customers",
         children: [
           { icon: Users, label: "Create Customer", href: "/customers/create" },
           { icon: Users, label: "Existing Customers", href: "/customers" },
+        ]
+      },
+      {
+        label: "Account Management",
+        icon: Link,
+        children: [
           { icon: Link, label: "Link Account", href: "/customers/link-account" },
           { icon: Unlink, label: "Unlink Account", href: "/customers/unlink-account" },
+        ]
+      },
+      {
+        label: "Security Actions",
+        icon: Shield,
+        children: [
           { icon: Ban, label: "Suspend Customer", href: "/customers/suspend-customer" },
           { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/unsuspend-customer" },
           { icon: LockOpen, label: "Unlock Customer", href: "/customers/unlock-customer" },
           { icon: Smartphone, label: "Resend Activation Code", href: "/customers/resend-activation" },
           { icon: KeyRound, label: "Pin Reset", href: "/customers/request-pin-reset" },
-        ],
-      },
+        ]
+      }
     ]
   },
   {
@@ -221,14 +232,25 @@ export const menu: MenuItem[] = [
     icon: Eye,
     children: [
       {
-        label: "Approvals",
-        icon: CheckSquare,
-        href: "/customers/approve-new",
+        label: "Customer Records",
+        icon: Users,
         children: [
           { icon: Users, label: "New Customer", href: "/customers/approve-new" },
           { icon: Users, label: "Update Customer", href: "/customers/approve-updated" },
+        ]
+      },
+      {
+        label: "Account Links",
+        icon: Link,
+        children: [
           { icon: Link, label: "Link Account", href: "/customers/approve-accounts" },
           { icon: Unlink, label: "Unlink Account", href: "/customers/approve-unlink" },
+        ]
+      },
+      {
+        label: "Security & Access",
+        icon: ShieldCheck,
+        children: [
           { icon: UserX, label: "Suspend Customer", href: "/customers/approve-suspension" },
           { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/approve-unblocked" },
           { icon: LockOpen, label: "Unlock Customer", href: "/customers/approve-unlock" },
