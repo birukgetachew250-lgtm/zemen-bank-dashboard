@@ -32,17 +32,19 @@ function hasAccessToAnyChild(item: MenuItem, userPermissions: string[]): boolean
 const sectionAccents: Record<string, string> = {
   'Dashboard':            'text-rose-400',
   'Overview':             'text-amber-400',
-  'Banking Users':        'text-sky-400',
+  'Customer Records':     'text-sky-400',
+  'Account Management':   'text-cyan-400',
+  'Customer Security':    'text-indigo-400',
+  'Online Linking':       'text-fuchsia-400',
   'Administration':       'text-violet-400',
   'App Control':          'text-teal-400',
   'Oversight':            'text-orange-400',
   'System Monitoring':    'text-green-400',
   'Reporting':            'text-blue-400',
-  'Integrations':         'text-cyan-400',
+  'Integrations':         'text-emerald-400',
   'Security & Access':    'text-pink-400',
-  'WSO2 Integration':     'text-indigo-400',
+  'WSO2 Integration':     'text-indigo-300',
   'Settings':             'text-slate-400',
-  'Online Onboarding':    'text-emerald-400',
 };
 
 function getAccentColor(label: string): string {
