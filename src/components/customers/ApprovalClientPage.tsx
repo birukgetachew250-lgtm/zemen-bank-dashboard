@@ -18,7 +18,10 @@ import { Skeleton } from "../ui/skeleton";
 import { Card, CardContent } from "../ui/card";
 import { Loader2, Info, User, Phone, Mail, Fingerprint, Shield, Smartphone, Star, Landmark, ArrowRight, FileText } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import { useRouter } from "next/navigation";interface Approval {
+import { useRouter } from "next/navigation";
+import { toTitleCase } from "@/lib/utils";
+
+interface Approval {
   id: string;
   customerName: string;
   customerPhone: string;
