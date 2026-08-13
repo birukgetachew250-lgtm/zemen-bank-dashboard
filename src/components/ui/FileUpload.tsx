@@ -92,7 +92,6 @@ export function FileUpload({
         setUploading(prev => ({ ...prev, [file.name]: 0 }));
 
         try {
-        try {
           const formData = new FormData();
           formData.append('file', file);
 
