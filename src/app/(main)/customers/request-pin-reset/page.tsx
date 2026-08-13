@@ -87,9 +87,8 @@ export default function RequestPinResetPage() {
               type: 'pin-reset', 
               customerName: customer.name, 
               customerPhone: customer.phoneNumber,
-              details: {
-                documents: documents.map(d => ({ name: d.name, url: d.url, type: d.type, size: d.size })),
-              },
+              details: {},
+              attachmentUrl: documents.length > 0 ? documents[0].url : undefined,
             }),
         });
         if (!response.ok) {

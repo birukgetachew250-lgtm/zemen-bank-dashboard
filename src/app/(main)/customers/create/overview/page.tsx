@@ -36,8 +36,8 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { FileUpload, type UploadedFile } from '@/components/ui/FileUpload';
 
 const authMethods = [
   { value: 'SMSOTP', label: 'SMS OTP' },
@@ -73,6 +73,7 @@ function OverviewContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
+  const [attachment, setAttachment] = useState<UploadedFile[]>([]);
 
   const customerString = searchParams.get('customer');
   const accountsString = searchParams.get('accounts');
@@ -144,6 +145,7 @@ function OverviewContent() {
             twoFactorAuthMethod: data.twoFactorAuthMethod,
             channel: data.channel,
           },
+          attachmentUrl: attachment.length > 0 ? attachment[0].url : undefined,
         }),
       });
 
@@ -291,6 +293,19 @@ function OverviewContent() {
                               )}
                           />
                       </div>
+                  </div>
+              </div>
+              <Separator />
+              <div>
+                  <h3 className="font-semibold text-lg mb-2">Supporting Documents</h3>
+                  <div className="p-4 border rounded-lg">
+                      <FileUpload
+                          value={attachment}
+                          onChange={setAttachment}
+                          maxFiles={1}
+                          maxSizeMB={5}
+                          label="Maker Attachment (Optional)"
+                      />
                   </div>
               </div>
             </CardContent>

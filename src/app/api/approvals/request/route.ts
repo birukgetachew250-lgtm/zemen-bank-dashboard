@@ -115,7 +115,7 @@ export async function POST(req: Request) {
 
     try {
         body = await req.json();
-        const { cif, type, customerName, customerPhone, details } = body;
+        const { cif, type, customerName, customerPhone, details, attachmentUrl } = body;
 
         if (!cif || !type) {
             return NextResponse.json({ message: 'CIF and approval type are required' }, { status: 400 });
@@ -159,6 +159,7 @@ export async function POST(req: Request) {
                 customerPhone: customerPhone, 
                 details: finalDetails,
                 requestedByEmail: session.user?.email || null,
+                attachmentUrl: attachmentUrl || null,
             }
         });
 

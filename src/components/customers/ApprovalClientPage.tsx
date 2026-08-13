@@ -29,8 +29,9 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, toTitleCase } from "@/lib/utils";
 import { DocumentViewer, type DocumentMeta } from "../ui/DocumentViewer";
+import { Textarea } from "../ui/textarea";
 
 
 
@@ -41,6 +42,8 @@ interface Approval {
   requestedAt: string;
   details: string;
   documents?: DocumentMeta[];
+  attachmentUrl?: string;
+  checkerRemarks?: string;
 }
 
 interface ApprovalClientPageProps {
@@ -77,6 +80,7 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
   const [searchTerm, setSearchTerm] = useState("");
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
   const [selectedApproval, setSelectedApproval] = useState<Approval | null>(null);
+  const [checkerRemarks, setCheckerRemarks] = useState("");
   const { toast } = useToast();
 
   const fetchApprovals = async () => {
@@ -109,7 +113,7 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
       const response = await fetch('/api/approvals/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ approvalId: id, action }),
+        body: JSON.stringify({ approvalId: id, action, checkerRemarks }),
       });
       const result = await response.json();
       if (response.ok) {
@@ -194,7 +198,7 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
                 ) : filteredApprovals.length > 0 ? (
                   filteredApprovals.map((approval) => (
                     <TableRow key={approval.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => setSelectedApproval(approval)}>
-                      <TableCell className="font-medium">{approval.customerName}</TableCell>
+                      <TableCell className="font-medium">{toTitleCase(approval.customerName)}</TableCell>
                       <TableCell>{approval.customerPhone}</TableCell>
                       <TableCell>{format(parseISO(approval.requestedAt), 'dd MMM yyyy, h:mm a')}</TableCell>
                       <TableCell className="text-right">
@@ -215,7 +219,12 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
         </CardContent>
       </Card>
       
-      <Dialog open={!!selectedApproval} onOpenChange={(isOpen) => !isOpen && setSelectedApproval(null)}>
+      <Dialog open={!!selectedApproval} onOpenChange={(isOpen) => {
+          if (!isOpen) {
+              setSelectedApproval(null);
+              setCheckerRemarks("");
+          }
+      }}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Review {pageTitle}</DialogTitle>
@@ -311,6 +320,27 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
                 <DocumentViewer documents={selectedApproval.documents} />
               </div>
             )}
+            
+            {/* ── Maker Attachment ── */}
+            {selectedApproval?.attachmentUrl && (
+              <div className="pt-4">
+                <h3 className="font-semibold text-lg mb-2">Maker Attachment</h3>
+                <a href={selectedApproval.attachmentUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                  View Attached File
+                </a>
+              </div>
+            )}
+
+            {/* ── Checker Remarks ── */}
+            <div className="pt-4">
+                <h3 className="font-semibold text-lg mb-2">Remarks</h3>
+                <Textarea
+                    placeholder="Add remarks here (optional)..."
+                    value={checkerRemarks}
+                    onChange={(e) => setCheckerRemarks(e.target.value)}
+                    className="w-full"
+                />
+            </div>
 
           <DialogFooter>
             <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>

@@ -92,40 +92,66 @@ export function FileUpload({
         setUploading(prev => ({ ...prev, [file.name]: 0 }));
 
         try {
-          // Simulate upload with progress
-          await new Promise<void>(resolve => {
-            let progress = 0;
-            const interval = setInterval(() => {
-              progress += Math.random() * 30 + 10;
-              if (progress >= 100) {
-                progress = 100;
-                clearInterval(interval);
-                setUploading(prev => {
-                  const next = { ...prev };
-                  delete next[file.name];
-                  return next;
-                });
-                resolve();
-              } else {
-                setUploading(prev => ({ ...prev, [file.name]: Math.floor(progress) }));
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const xhr = new XMLHttpRequest();
+          
+          const uploadPromise = new Promise<string>((resolve, reject) => {
+            xhr.upload.addEventListener('progress', (event) => {
+              if (event.lengthComputable) {
+                const progress = Math.round((event.loaded / event.total) * 100);
+                setUploading(prev => ({ ...prev, [file.name]: progress }));
               }
-            }, 150);
+            });
+
+            xhr.addEventListener('load', () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                  const response = JSON.parse(xhr.responseText);
+                  if (response.success && response.url) {
+                    resolve(response.url);
+                  } else {
+                    reject(new Error(response.error || 'Upload failed'));
+                  }
+                } catch (e) {
+                  reject(new Error('Invalid response'));
+                }
+              } else {
+                reject(new Error('Upload failed'));
+              }
+            });
+
+            xhr.addEventListener('error', () => reject(new Error('Network error')));
+            xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
+
+            xhr.open('POST', '/api/upload');
+            xhr.send(formData);
           });
 
-          // In production: upload to Firebase Storage and get URL
-          // const storageRef = ref(storage, `documents/${Date.now()}_${file.name}`);
-          // const snapshot = await uploadBytes(storageRef, file);
-          // const url = await getDownloadURL(snapshot.ref);
+          const url = await uploadPromise;
+
+          setUploading(prev => {
+            const next = { ...prev };
+            delete next[file.name];
+            return next;
+          });
 
           newFiles.push({
             name: file.name,
             size: file.size,
             type: file.type,
-            url: localUrl, // Replace with Firebase URL in production
+            url,
             localUrl,
           });
-        } catch {
-          setErrors(prev => [...prev, `Failed to upload ${file.name}`]);
+        } catch (e: any) {
+          setUploading(prev => {
+            const next = { ...prev };
+            delete next[file.name];
+            return next;
+          });
+          setErrors(prev => [...prev, `Failed to upload ${file.name}: ${e.message}`]);
         }
       }
 

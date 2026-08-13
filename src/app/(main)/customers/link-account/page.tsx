@@ -145,9 +145,8 @@ export default function LinkAccountPage() {
                     cif: customer.cifNumber,
                     customerName: customer.name,
                     linkedAccounts: selectedAccounts,
-                    documents: documents.map(d => ({ name: d.name, url: d.url, type: d.type, size: d.size })),
-                }
-
+                },
+                attachmentUrl: documents.length > 0 ? documents[0].url : undefined,
             }),
         });
 

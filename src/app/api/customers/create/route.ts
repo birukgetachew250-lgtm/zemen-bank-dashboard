@@ -23,7 +23,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Requester account not found' }, { status: 403 });
         }
 
-        const { customer, accounts, onboardingData } = await req.json();
+        const { customer, accounts, onboardingData, attachmentUrl } = await req.json();
 
         if (!customer || !customer.customer_number || !accounts || !onboardingData) {
             return NextResponse.json({ message: 'Incomplete customer, account, or onboarding data' }, { status: 400 });
@@ -65,6 +65,7 @@ export async function POST(req: Request) {
                 customerPhone: customer.mobile_number,
                 details: JSON.stringify(detailsForApproval),
                 status: 'pending',
+                attachmentUrl: attachmentUrl || null,
             }
         });
 

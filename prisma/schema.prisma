@@ -79,6 +79,8 @@ model PendingApproval {
   details           String?
   status            String   @default("pending") // pending, approved, rejected
   requestedByEmail  String?  // maker: who submitted this request
+  attachmentUrl     String?  // URL or path to the uploaded maker attachment
+  checkerRemarks    String?  // Remarks provided by the checker upon approval/rejection
 }
 
 model Transaction {

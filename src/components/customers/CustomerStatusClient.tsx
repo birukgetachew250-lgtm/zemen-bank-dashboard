@@ -109,6 +109,7 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
                 details: {
                   documents: documents.map(d => ({ name: d.name, url: d.url, type: d.type, size: d.size })),
                 },
+                attachmentUrl: documents.length > 0 ? documents[0].url : undefined,
             }),
 
         });
