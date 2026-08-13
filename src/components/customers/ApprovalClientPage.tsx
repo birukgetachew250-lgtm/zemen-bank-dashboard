@@ -16,7 +16,7 @@ import { format, parseISO } from 'date-fns';
 import { Input } from "../ui/input";
 import { Skeleton } from "../ui/skeleton";
 import { Card, CardContent } from "../ui/card";
-import { Loader2, Info, User, Phone, Mail, Fingerprint, Shield, Smartphone, Star, Landmark, ArrowRight, FileText } from "lucide-react";
+import { Loader2, Info, User, Phone, Mail, Fingerprint, Shield, Smartphone, Star, Landmark, ArrowRight, FileText, Search } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { useRouter } from "next/navigation";
 import { toTitleCase } from "@/lib/utils";
@@ -78,42 +78,45 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
   
 
   return (
-    <>
-      <div className="relative overflow-hidden rounded-2xl p-6 mb-6 animate-fade-up bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
-        <h1 className="text-3xl font-bold text-white relative z-10">{pageTitle}</h1>
-        <p className="text-white/80 mt-2 relative z-10">Review and manage pending approval requests.</p>
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+  return (
+    <div className="space-y-6 animate-fade-up">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">{pageTitle}</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Review and manage pending approval requests.
+        </p>
       </div>
 
-      <Card className="glass-card animate-fade-up" style={{ animationDelay: '0.1s' }}>
-        <CardContent className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Pending Requests</h2>
-            <Input 
-              placeholder="Search by name or phone..."
-              className="max-w-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="rounded-md border">
-            <Table className="font-body">
-              <TableHeader className="bg-sidebar-bg/5 dark:bg-sidebar-bg/20">
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Request Date</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-48 max-w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input 
+            placeholder="Search by name or phone..."
+            className="pl-8 h-8 text-sm rounded-xl"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-slate-200/80">
+        <Table className="font-body">
+          <TableHeader>
+            <TableRow className="bg-muted/30">
+              <TableHead className="text-xs font-semibold uppercase tracking-wider pl-4">Name</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider">Phone</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider">Request Date</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-right pr-4">Action</TableHead>
+            </TableRow>
+          </TableHeader>
               <TableBody>
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell className="pl-4"><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                      <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+                      <TableCell className="text-right pr-4"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
                     </TableRow>
                   ))
                 ) : filteredApprovals.length > 0 ? (
@@ -124,11 +127,11 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
                       style={{ animationDelay: `${i * 0.05}s`, opacity: 0, animationFillMode: 'forwards' }}
                       onClick={() => router.push(`/approvals/${approvalType}/${approval.id}`)}
                     >
-                      <TableCell className="font-medium">{toTitleCase(approval.customerName)}</TableCell>
-                      <TableCell>{approval.customerPhone}</TableCell>
-                      <TableCell>{format(parseISO(approval.requestedAt), 'dd MMM yyyy, h:mm a')}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="outline" size="sm">Review</Button>
+                      <TableCell className="pl-4 font-medium py-3 text-sm">{toTitleCase(approval.customerName)}</TableCell>
+                      <TableCell className="py-3 text-sm">{approval.customerPhone}</TableCell>
+                      <TableCell className="py-3 text-sm">{format(parseISO(approval.requestedAt), 'dd MMM yyyy, h:mm a')}</TableCell>
+                      <TableCell className="text-right py-3 pr-4">
+                        <Button variant="outline" size="sm" className="h-8 rounded-xl text-xs">Review</Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -141,9 +144,7 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
                 )}
               </TableBody>
             </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </>
+      </div>
+    </div>
   );
 }

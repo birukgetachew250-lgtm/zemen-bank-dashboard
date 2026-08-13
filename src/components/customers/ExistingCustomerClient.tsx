@@ -53,10 +53,11 @@ export function ExistingCustomerClient() {
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-2xl p-6 mb-6 animate-fade-up max-w-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
-        <h1 className="text-3xl font-bold text-white relative z-10">Customer Search</h1>
-        <p className="text-white/80 mt-2 relative z-10">Find and manage customer profiles by CIF or phone number.</p>
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      <div className="mb-6 animate-fade-up">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Customer Search</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Find and manage customer profiles by CIF or phone number.
+        </p>
       </div>
 
       <Card className="max-w-2xl glass-card animate-fade-up" style={{ animationDelay: '0.1s' }}>

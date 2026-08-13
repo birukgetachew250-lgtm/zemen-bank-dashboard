@@ -120,10 +120,11 @@ export default function CreateCustomerPage() {
 
   return (
     <div className="w-full flex flex-col gap-6 max-w-3xl">
-      <div className="relative overflow-hidden rounded-2xl p-6 animate-fade-up bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
-        <h1 className="text-3xl font-bold text-white relative z-10">Onboard New Customer</h1>
-        <p className="text-white/80 mt-2 relative z-10">Register a new customer for Mobile Banking.</p>
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      <div className="mb-6 animate-fade-up">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Onboard New Customer</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Register a new customer for Mobile Banking.
+        </p>
       </div>
 
       <Card className="flex-grow flex flex-col glass-card animate-fade-up" style={{ animationDelay: '0.1s' }}>

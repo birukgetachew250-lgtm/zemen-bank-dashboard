@@ -146,19 +146,16 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
 
     return (
         <div className="w-full max-w-4xl space-y-6 animate-fade-up">
-            <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
-                <div className="relative z-10 flex items-center gap-4">
-                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => router.back()}>
+            <div className="mb-6">
+                <div className="flex items-center gap-4">
+                    <Button variant="outline" size="icon" className="hover:bg-muted" onClick={() => router.back()}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div>
-                        <h1 className="text-3xl font-bold text-white">Edit Customer Profile</h1>
-                        <p className="text-white/80 mt-1">
-                            {customer.name} (CIF: {customer.cifNumber})
-                        </p>
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Edit Customer Profile</h1>
+                        <p className="text-muted-foreground text-sm mt-1">Modify details for {customer.full_name}</p>
                     </div>
                 </div>
-                <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
             </div>
 
             <Card className="glass-card shadow-sm border-slate-200/80 rounded-2xl">
