@@ -133,7 +133,7 @@ export const menu: MenuItem[] = [
     ]
   },
   {
-    label: "Security & Access",
+    label: "Customer Security",
     icon: Shield,
     children: [
       {
