@@ -89,34 +89,74 @@ export const menu: MenuItem[] = [
     ],
   },
   {
-    label: "Banking Users",
-    icon: Briefcase,
+    label: "Customer Records",
+    icon: Users,
     children: [
       {
-        label: "Customer Records",
-        icon: Users,
+        label: "Maker",
+        icon: ClipboardList,
         children: [
           { icon: Users, label: "Create Customer", href: "/customers/create" },
           { icon: Users, label: "Existing Customers", href: "/customers" },
         ]
       },
       {
-        label: "Account Management",
-        icon: Link,
+        label: "Checker",
+        icon: CheckSquare,
+        children: [
+          { icon: Users, label: "New Customer", href: "/customers/approve-new" },
+          { icon: Users, label: "Update Customer", href: "/customers/approve-updated" },
+        ]
+      }
+    ]
+  },
+  {
+    label: "Account Management",
+    icon: Link,
+    children: [
+      {
+        label: "Maker",
+        icon: ClipboardList,
         children: [
           { icon: Link, label: "Link Account", href: "/customers/link-account" },
           { icon: Unlink, label: "Unlink Account", href: "/customers/unlink-account" },
         ]
       },
       {
-        label: "Security Actions",
-        icon: Shield,
+        label: "Checker",
+        icon: CheckSquare,
+        children: [
+          { icon: Link, label: "Link Account", href: "/customers/approve-accounts" },
+          { icon: Unlink, label: "Unlink Account", href: "/customers/approve-unlink" },
+        ]
+      }
+    ]
+  },
+  {
+    label: "Security & Access",
+    icon: Shield,
+    children: [
+      {
+        label: "Maker",
+        icon: ClipboardList,
         children: [
           { icon: Ban, label: "Suspend Customer", href: "/customers/suspend-customer" },
           { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/unsuspend-customer" },
           { icon: LockOpen, label: "Unlock Customer", href: "/customers/unlock-customer" },
           { icon: Smartphone, label: "Resend Activation Code", href: "/customers/resend-activation" },
           { icon: KeyRound, label: "Pin Reset", href: "/customers/request-pin-reset" },
+        ]
+      },
+      {
+        label: "Checker",
+        icon: CheckSquare,
+        children: [
+          { icon: UserX, label: "Suspend Customer", href: "/customers/approve-suspension" },
+          { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/approve-unblocked" },
+          { icon: LockOpen, label: "Unlock Customer", href: "/customers/approve-unlock" },
+          { icon: Smartphone, label: "Resend Activation Code", href: "/customers/approve-resend-activation" },
+          { icon: KeyRound, label: "Pin Reset", href: "/customers/approve-pin-reset" },
+          { icon: ShieldCheck, label: "Security Reset", href: "/customers/approve-security" },
         ]
       }
     ]
@@ -231,34 +271,6 @@ export const menu: MenuItem[] = [
     label: "Oversight",
     icon: Eye,
     children: [
-      {
-        label: "Customer Records",
-        icon: Users,
-        children: [
-          { icon: Users, label: "New Customer", href: "/customers/approve-new" },
-          { icon: Users, label: "Update Customer", href: "/customers/approve-updated" },
-        ]
-      },
-      {
-        label: "Account Links",
-        icon: Link,
-        children: [
-          { icon: Link, label: "Link Account", href: "/customers/approve-accounts" },
-          { icon: Unlink, label: "Unlink Account", href: "/customers/approve-unlink" },
-        ]
-      },
-      {
-        label: "Security & Access",
-        icon: ShieldCheck,
-        children: [
-          { icon: UserX, label: "Suspend Customer", href: "/customers/approve-suspension" },
-          { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/approve-unblocked" },
-          { icon: LockOpen, label: "Unlock Customer", href: "/customers/approve-unlock" },
-          { icon: Smartphone, label: "Resend Activation Code", href: "/customers/approve-resend-activation" },
-          { icon: KeyRound, label: "Pin Reset", href: "/customers/approve-pin-reset" },
-          { icon: ShieldCheck, label: "Security Reset", href: "/customers/approve-security" },
-        ]
-      },
       {
         label: "Risk & Compliance",
         icon: ShieldAlert,
