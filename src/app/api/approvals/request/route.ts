@@ -58,6 +58,7 @@ export async function GET(req: Request) {
                 status: (r.status || 'pending').toUpperCase() as 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED',
                 documents: parsedDetails?.documents || [],
                 details: parsedDetails,
+                attachmentUrl: r.attachmentUrl || null,
             };
         });
 

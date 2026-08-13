@@ -314,10 +314,10 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
             )}
 
             {/* ── Supporting Documents ── */}
-            {selectedApproval?.documents && selectedApproval.documents.length > 0 && (
+            {parsedDetails?.documents && parsedDetails.documents.length > 0 && (
               <div className="pt-2">
                 <Separator className="mb-4" />
-                <DocumentViewer documents={selectedApproval.documents} />
+                <DocumentViewer documents={parsedDetails.documents} />
               </div>
             )}
             
