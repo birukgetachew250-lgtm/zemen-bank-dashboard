@@ -146,7 +146,7 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
 
     return (
         <div className="w-full max-w-4xl space-y-6 animate-fade-up">
-            <div className="relative overflow-hidden rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, hsl(200, 90%, 40%) 0%, hsl(200, 90%, 25%) 100%)' }}>
+            <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
                 <div className="relative z-10 flex items-center gap-4">
                     <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => router.back()}>
                         <ArrowLeft className="h-5 w-5" />

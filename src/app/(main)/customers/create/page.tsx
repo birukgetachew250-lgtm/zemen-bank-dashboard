@@ -120,7 +120,7 @@ export default function CreateCustomerPage() {
 
   return (
     <div className="w-full flex flex-col gap-6 max-w-3xl">
-      <div className="relative overflow-hidden rounded-2xl p-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(200, 90%, 40%) 0%, hsl(200, 90%, 25%) 100%)' }}>
+      <div className="relative overflow-hidden rounded-2xl p-6 animate-fade-up bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
         <h1 className="text-3xl font-bold text-white relative z-10">Onboard New Customer</h1>
         <p className="text-white/80 mt-2 relative z-10">Register a new customer for Mobile Banking.</p>
         <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>

@@ -146,7 +146,7 @@ export default function UnlockCustomerPage() {
 
   return (
     <div className="space-y-6 animate-fade-up max-w-3xl">
-      <div className="relative overflow-hidden rounded-2xl p-6 mb-6" style={{ background: 'linear-gradient(135deg, hsl(200, 90%, 40%) 0%, hsl(200, 90%, 25%) 100%)' }}>
+      <div className="relative overflow-hidden rounded-2xl p-6 mb-6 bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
         <h1 className="text-3xl font-bold text-white relative z-10">Unlock Customer</h1>
         <p className="text-white/80 mt-2 relative z-10">
           Submit an unlock request for a locked customer account. Checker approval is required.

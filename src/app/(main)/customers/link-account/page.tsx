@@ -175,7 +175,7 @@ export default function LinkAccountPage() {
 
   return (
     <div className="space-y-6 animate-fade-up max-w-4xl">
-      <div className="relative overflow-hidden rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, hsl(200, 90%, 40%) 0%, hsl(200, 90%, 25%) 100%)' }}>
+      <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
         <h1 className="text-3xl font-bold text-white relative z-10">Link New Account(s)</h1>
         <p className="text-white/80 mt-2 relative z-10">
           Search for a customer by CIF, then select accounts to link.

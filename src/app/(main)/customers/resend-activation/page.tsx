@@ -135,7 +135,7 @@ export default function ResendActivationCodePage() {
 
   return (
     <div className="w-full space-y-6 animate-fade-up max-w-2xl">
-      <div className="relative overflow-hidden rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, hsl(200, 90%, 40%) 0%, hsl(200, 90%, 25%) 100%)' }}>
+      <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
         <h1 className="text-3xl font-bold text-white relative z-10">Resend Activation Code</h1>
         <p className="text-white/80 mt-2 relative z-10">
           Enter a CIF number to find a customer and submit an activation-code resend request for approval.
