@@ -96,8 +96,8 @@ export const menu: MenuItem[] = [
         label: "Maker",
         icon: ClipboardList,
         children: [
-          { icon: Users, label: "Create Customer", href: "/customers/create" },
-          { icon: Users, label: "Existing Customers", href: "/customers" },
+          { icon: Users, label: "New Customer", href: "/customers/create" },
+          { icon: Users, label: "Update Customer", href: "/customers" },
         ]
       },
       {

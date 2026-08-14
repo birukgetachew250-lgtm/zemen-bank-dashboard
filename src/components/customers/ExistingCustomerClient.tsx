@@ -53,8 +53,8 @@ export function ExistingCustomerClient() {
 
   return (
     <>
-      <div className="mb-6 animate-fade-up">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Customer Search</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Update Customer</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Find and manage customer profiles by CIF or phone number.
         </p>

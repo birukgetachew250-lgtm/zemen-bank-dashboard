@@ -1,4 +1,5 @@
 'use client';
+import { MakerMiniHistory } from "@/components/customers/MakerMiniHistory";
 
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';

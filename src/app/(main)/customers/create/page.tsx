@@ -121,7 +121,7 @@ export default function CreateCustomerPage() {
   return (
     <div className="w-full flex flex-col gap-6 max-w-3xl">
       <div className="mb-6 animate-fade-up">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Onboard New Customer</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">New Customer</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Register a new customer for Mobile Banking.
         </p>
