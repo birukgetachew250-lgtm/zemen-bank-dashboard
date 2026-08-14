@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { MakerMiniHistory } from "@/components/customers/MakerMiniHistory";
 import {
   Card,
   CardContent,
@@ -157,6 +158,7 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
                     </div>
                 </div>
             </div>
+            <MakerMiniHistory approvalType="updated-customer" />
 
             <Card className="glass-card shadow-sm border-slate-200/80 rounded-2xl">
                 <CardHeader>

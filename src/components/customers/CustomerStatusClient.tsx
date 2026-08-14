@@ -1,5 +1,5 @@
 
-'use client';
+import { MakerMiniHistory } from "@/components/customers/MakerMiniHistory";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -166,6 +166,7 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
                 Enter a CIF number to find a customer and submit a request to {action.toLowerCase()} their app access.
             </p>
         </div>
+        <MakerMiniHistory approvalType={action === 'Suspend' ? 'suspend-customer' : 'unsuspend-customer'} />
 
         <Card className="glass-card shadow-sm border-slate-200/80 rounded-2xl">
             <CardHeader>

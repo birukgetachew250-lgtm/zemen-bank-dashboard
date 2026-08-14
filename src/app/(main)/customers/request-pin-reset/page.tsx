@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from "react";
 import {
@@ -116,6 +115,7 @@ export default function RequestPinResetPage() {
                 Enter a CIF number to find a customer and submit a PIN reset request for approval.
             </p>
         </div>
+        <MakerMiniHistory approvalType="pin-reset" />
 
         <Card className="glass-card shadow-sm border-slate-200/80 rounded-2xl">
             <CardHeader>

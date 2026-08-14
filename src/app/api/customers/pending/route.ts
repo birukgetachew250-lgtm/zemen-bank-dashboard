@@ -37,11 +37,15 @@ export async function GET(req: Request) {
             return NextResponse.json({ message: 'User account not found' }, { status: 403 });
         }
 
+        const statusParam = searchParams.get('status') || 'pending';
+
+        const whereClause: any = { type: type };
+        if (statusParam !== 'all') {
+            whereClause.status = statusParam;
+        }
+
         const rows = await db.pendingApproval.findMany({
-            where: { 
-                type: type,
-                status: 'pending'
-            },
+            where: whereClause,
             orderBy: { requestedAt: 'desc' }
         });
 

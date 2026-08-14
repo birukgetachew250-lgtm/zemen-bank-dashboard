@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -6,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { MakerMiniHistory } from "@/components/customers/MakerMiniHistory";
 
 import { Button } from '@/components/ui/button';
 import {
@@ -126,6 +126,8 @@ export default function CreateCustomerPage() {
           Register a new customer for Mobile Banking.
         </p>
       </div>
+
+      <MakerMiniHistory approvalType="new-customer" />
 
       <Card className="flex-grow flex flex-col glass-card animate-fade-up" style={{ animationDelay: '0.1s' }}>
         <CardHeader>

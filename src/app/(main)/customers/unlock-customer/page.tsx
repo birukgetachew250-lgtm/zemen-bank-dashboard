@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -152,6 +151,7 @@ export default function UnlockCustomerPage() {
           Submit an unlock request for a locked customer account. Checker approval is required.
         </p>
       </div>
+      <MakerMiniHistory approvalType="unlock-customer" />
 
       <Card className="glass-card rounded-2xl border-slate-200/80 shadow-sm">
         <CardHeader>

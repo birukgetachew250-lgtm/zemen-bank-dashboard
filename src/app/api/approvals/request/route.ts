@@ -23,6 +23,8 @@ export async function GET(req: Request) {
     try {
         const where: any = {};
 
+        const type = searchParams.get('type');
+
         if (role === 'maker') {
             // Maker sees only their own requests
             where.requestedByEmail = session.user.email;
@@ -30,6 +32,10 @@ export async function GET(req: Request) {
 
         if (status) {
             where.status = status;
+        }
+
+        if (type) {
+            where.type = type;
         }
 
         const records = await db.pendingApproval.findMany({

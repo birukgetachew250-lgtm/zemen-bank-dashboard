@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -123,6 +122,7 @@ export default function UnlinkAccountPage() {
           Search for a customer by CIF, then select an account to request unlinking.
         </p>
       </div>
+      <MakerMiniHistory approvalType="unlink-account" />
 
       <Card className="glass-card shadow-sm border-slate-200/80 rounded-2xl">
         <CardHeader>

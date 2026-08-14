@@ -141,6 +141,7 @@ export default function ResendActivationCodePage() {
           Enter a CIF number to find a customer and submit an activation-code resend request for approval.
         </p>
       </div>
+      <MakerMiniHistory approvalType="resend-activation-code" />
 
       <Card className="glass-card shadow-sm border-slate-200/80 rounded-2xl">
         <CardHeader>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -181,6 +180,7 @@ export default function LinkAccountPage() {
           Search for a customer by CIF, then select accounts to link.
         </p>
       </div>
+      <MakerMiniHistory approvalType="customer-account" />
 
       <Card className="glass-card shadow-sm border-slate-200/80 rounded-2xl">
         <CardHeader>
