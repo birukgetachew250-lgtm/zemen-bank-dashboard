@@ -78,7 +78,6 @@ export function ApprovalClientPage({ approvalType, pageTitle }: ApprovalClientPa
   
 
   return (
-  return (
     <div className="space-y-6 animate-fade-up">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">{pageTitle}</h1>
