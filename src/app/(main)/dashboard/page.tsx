@@ -16,10 +16,10 @@ async function getCustomerStats() {
     const [totalResult, activeResult, inactiveDormantResult, linkedAccountsResult, registeredResult] =
       await Promise.all([
         executeQuery(connectionString, `SELECT COUNT(*) AS "count" FROM "USER_MODULE"."AppUsers"`),
-        executeQuery(connectionString, `SELECT COUNT(*) AS "count" FROM "USER_MODULE"."AppUsers" WHERE "Status" = 'Active'`),
-        executeQuery(connectionString, `SELECT COUNT(*) AS "count" FROM "USER_MODULE"."AppUsers" WHERE "Status" IN ('Inactive', 'Dormant')`),
+        executeQuery(connectionString, `SELECT COUNT(*) AS "count" FROM "USER_MODULE"."AppUsers" WHERE "MobileStatus" = 'Active'`),
+        executeQuery(connectionString, `SELECT COUNT(*) AS "count" FROM "USER_MODULE"."AppUsers" WHERE "MobileStatus" IN ('InActive', 'Suspended')`),
         executeQuery(connectionString, `SELECT COUNT(*) AS "count" FROM "USER_MODULE"."Accounts" WHERE "Status" = 'Active'`),
-        executeQuery(connectionString, `SELECT COUNT(*) AS "count" FROM "USER_MODULE"."AppUsers" WHERE "Status" = 'Registered'`),
+        executeQuery(connectionString, `SELECT COUNT(*) AS "count" FROM "USER_MODULE"."AppUsers" WHERE "MobileStatus" = 'Registered'`),
       ]);
 
     const getCount = (result: any): number => {
