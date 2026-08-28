@@ -19,20 +19,8 @@ const fallbackCorporates = [
 ];
 
 async function getCorporates(): Promise<Corporate[]> {
-  if (!process.env.DATABASE_URL) {
-    console.warn("DATABASE_URL not set, returning fallback corporates.");
-    return fallbackCorporates;
-  }
-  try {
-    const data = await db.corporate.findMany({
-        orderBy: { name: 'asc' }
-    });
-    return data;
-  } catch (e) {
-    console.error("Failed to fetch corporates from DB:", e);
-    // Return fallback data on error to prevent build failure
-    return fallbackCorporates;
-  }
+  // Corporate model is not yet defined in Prisma schema
+  return fallbackCorporates;
 }
 
 

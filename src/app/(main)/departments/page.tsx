@@ -20,7 +20,7 @@ async function getDepartments(): Promise<Department[]> {
     return data.map(d => ({
         ...d,
         createdAt: d.createdAt.toISOString(),
-        branchName: d.branch.name
+        branchName: d.branch?.name || 'Unknown Branch'
     }));
   } catch(e) {
     console.error("Failed to fetch departments from DB:", e);
