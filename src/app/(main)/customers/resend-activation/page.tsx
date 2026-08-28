@@ -184,20 +184,20 @@ export default function ResendActivationCodePage() {
               <InfoItem label="CIF Number" value={customer.cifNumber} />
               <InfoItem label="Phone Number" value={customer.phoneNumber} />
               <InfoItem label="Email" value={customer.email} />
-              <InfoItem
-                label="Status"
+              <InfoItem 
+                label="Mobile Status" 
                 value={
-                  <Badge
-                    variant={getStatusVariant(customer.status)}
+                  <Badge 
+                    variant={getStatusVariant(customer.mobileStatus)}
                     className={cn({
-                      "bg-green-100 text-green-800 border-green-200": customer.status === "Active",
-                      "bg-red-100 text-red-800 border-red-200": customer.status === "Block" || customer.status === "Inactive",
-                      "bg-yellow-100 text-yellow-800 border-yellow-200": customer.status === "Pending" || customer.status === "Dormant",
+                      "bg-green-100 text-green-800 border-green-200": customer.mobileStatus === "Active",
+                      "bg-red-100 text-red-800 border-red-200": customer.mobileStatus === "Suspended" || customer.mobileStatus === "InActive",
+                      "bg-yellow-100 text-yellow-800 border-yellow-200": customer.mobileStatus === "Pending" || customer.mobileStatus === "Dormant",
                     })}
                   >
-                    {customer.status}
+                    {customer.mobileStatus}
                   </Badge>
-                }
+                } 
               />
             </div>
 

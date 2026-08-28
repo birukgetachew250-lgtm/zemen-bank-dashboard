@@ -30,7 +30,7 @@ export async function GET(req: Request) {
     const result: any = await executeQuery(
       process.env.USER_MODULE_DB_CONNECTION_STRING,
       `SELECT u."Id", u."CIFNumber", u."FirstName", u."SecondName", u."LastName",
-              u."Email", u."PhoneNumber", u."Status", u."BranchName", u."BranchCode",
+              u."Email", u."PhoneNumber", u."MobileStatus", u."UssdStatus", u."BranchName", u."BranchCode",
               u."InsertDate", u."Nationality", u."AddressLine1", u."AddressLine2",
               u."SignUpMainAuth", u."SignUp2FA", u."Channel",
               a."AccountNumber"
@@ -65,7 +65,8 @@ export async function GET(req: Request) {
       nationality:    user.Nationality,
       branchName:     user.BranchName,
       branchCode:     user.BranchCode,
-      status:         user.Status,
+      mobileStatus:   user.MobileStatus,
+      ussdStatus:     user.UssdStatus,
       insertDate:     user.InsertDate?.toISOString?.() ?? '',
       signUpMainAuth: user.SignUpMainAuth,
       signUp2FA:      user.SignUp2FA,
@@ -89,7 +90,8 @@ export async function GET(req: Request) {
         nationality:   'Ethiopian',
         branchName:    'Arada',
         branchCode:    '103',
-        status:        'Active',
+        mobileStatus:  'Active',
+        ussdStatus:    'Pending',
         insertDate:    new Date().toISOString(),
         signUpMainAuth:'SMSOTP',
         signUp2FA:     'GAUTH',

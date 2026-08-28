@@ -23,16 +23,17 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileUpload, type UploadedFile } from "@/components/ui/FileUpload";
 
-const authMethods = [
+const mainAuthMethods = [
   { value: 'SMSOTP', label: 'SMS OTP' },
-  { value: 'GAUTH', label: 'Google Authenticator' },
-  { value: 'SQ', label: 'Security Question' },
   { value: 'EMAILOTP', label: 'Email OTP' },
 ];
 
 const twoFactorMethods = [
-    ...authMethods,
-    { value: 'None', label: 'None'},
+  { value: 'SMSOTP', label: 'SMS OTP' },
+  { value: 'GAUTH', label: 'Google Authenticator' },
+  { value: 'SQ', label: 'Security Question' },
+  { value: 'EMAILOTP', label: 'Email OTP' },
+  { value: 'None', label: 'None'},
 ];
 
 const channelOptions = [
@@ -42,7 +43,7 @@ const channelOptions = [
 ];
 
 const editProfileSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().or(z.literal('')).optional().nullable(),
   phoneNumber: z.string().min(1, 'Phone number is required.'),
   signUpMainAuth: z.string().min(1, 'Primary authentication method is required.'),
   signUp2FA: z.string(),
@@ -176,7 +177,7 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
                                         name="email"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Email Address</FormLabel>
+                                                <FormLabel>Email Address (Optional)</FormLabel>
                                                 <FormControl>
                                                     <Input type="email" {...field} className="rounded-xl" />
                                                 </FormControl>
@@ -189,7 +190,7 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
                                         name="phoneNumber"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Phone Number</FormLabel>
+                                                <FormLabel>Phone Number <span className="text-destructive">*</span></FormLabel>
                                                 <FormControl>
                                                     <Input {...field} className="rounded-xl" />
                                                 </FormControl>
@@ -237,7 +238,7 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
                                                     </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                    {authMethods.map(method => (
+                                                    {mainAuthMethods.map(method => (
                                                         <SelectItem key={method.value} value={method.value}>
                                                         {method.label}
                                                         </SelectItem>

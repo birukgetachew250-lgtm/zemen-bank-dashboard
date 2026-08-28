@@ -139,19 +139,19 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
 
   const isActionDisabled = !customer || 
                          isActionLoading ||
-                         customer.status === 'Pending' ||
-                         (action === 'Suspend' && customer.status === 'Block') ||
-                         ((action === 'Unsuspend' || action === 'Unblock') && customer.status === 'Active');
+                         customer.mobileStatus === 'Pending' ||
+                         (action === 'Suspend' && (customer.mobileStatus === 'Suspended' || customer.mobileStatus === 'InActive')) ||
+                         ((action === 'Unsuspend' || action === 'Unblock') && customer.mobileStatus === 'Active');
                          
   const getAlertMessage = () => {
     if (!customer) return null;
-    if (customer.status === 'Pending') {
+    if (customer.mobileStatus === 'Pending') {
         return `This customer's registration is still pending approval. Their status cannot be changed.`;
     }
-    if (action === 'Suspend' && customer.status === 'Block') {
-        return 'This customer is already suspended.';
+    if (action === 'Suspend' && (customer.mobileStatus === 'Suspended' || customer.mobileStatus === 'InActive')) {
+        return 'This customer is already suspended or inactive.';
     }
-    if ((action === 'Unsuspend' || action === 'Unblock') && customer.status === 'Active') {
+    if ((action === 'Unsuspend' || action === 'Unblock') && customer.mobileStatus === 'Active') {
         return 'This customer is already active.';
     }
     return null;
@@ -209,15 +209,26 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
                         <InfoItem label="CIF Number" value={customer.cifNumber} />
                         <InfoItem label="Phone Number" value={customer.phoneNumber} />
                         <InfoItem label="Email" value={customer.email} />
-                        <InfoItem label="Status" value={
-                            <Badge variant={getStatusVariant(customer.status)}
+                        <InfoItem label="Mobile Status" value={
+                            <Badge variant={getStatusVariant(customer.mobileStatus)}
                                 className={cn({
-                                    'bg-green-100 text-green-800 border-green-200': customer.status === 'Active',
-                                    'bg-red-100 text-red-800 border-red-200': customer.status === 'Block' || customer.status === 'Inactive',
-                                    'bg-yellow-100 text-yellow-800 border-yellow-200': customer.status === 'Pending' || customer.status === 'Dormant',
+                                    'bg-green-100 text-green-800 border-green-200': customer.mobileStatus === 'Active',
+                                    'bg-red-100 text-red-800 border-red-200': customer.mobileStatus === 'Suspended' || customer.mobileStatus === 'InActive',
+                                    'bg-yellow-100 text-yellow-800 border-yellow-200': customer.mobileStatus === 'Pending' || customer.mobileStatus === 'Dormant',
                                 })}
                             >
-                                {customer.status}
+                                {customer.mobileStatus}
+                            </Badge>
+                        } />
+                        <InfoItem label="USSD Status" value={
+                            <Badge variant={getStatusVariant(customer.ussdStatus)}
+                                className={cn({
+                                    'bg-green-100 text-green-800 border-green-200': customer.ussdStatus === 'Active',
+                                    'bg-red-100 text-red-800 border-red-200': customer.ussdStatus === 'Suspended' || customer.ussdStatus === 'InActive',
+                                    'bg-yellow-100 text-yellow-800 border-yellow-200': customer.ussdStatus === 'Pending' || customer.ussdStatus === 'Dormant',
+                                })}
+                            >
+                                {customer.ussdStatus}
                             </Badge>
                         } />
                     </div>

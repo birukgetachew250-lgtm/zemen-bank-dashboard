@@ -39,16 +39,17 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { FileUpload, type UploadedFile } from '@/components/ui/FileUpload';
 
-const authMethods = [
+const mainAuthMethods = [
   { value: 'SMSOTP', label: 'SMS OTP' },
-  { value: 'GAUTH', label: 'Google Authenticator' },
-  { value: 'SQ', label: 'Security Question' },
   { value: 'EMAILOTP', label: 'Email OTP' },
 ];
 
 const twoFactorMethods = [
-    ...authMethods,
-    { value: 'None', label: 'None'},
+  { value: 'SMSOTP', label: 'SMS OTP' },
+  { value: 'GAUTH', label: 'Google Authenticator' },
+  { value: 'SQ', label: 'Security Question' },
+  { value: 'EMAILOTP', label: 'Email OTP' },
+  { value: 'None', label: 'None'},
 ];
 
 const channelOptions = [
@@ -99,19 +100,17 @@ function OverviewContent() {
   const form = useForm<OverviewFormValues>({
     resolver: zodResolver(overviewFormSchema),
     defaultValues: {
-      mainAuthMethod: hasPhone ? 'SMSOTP' : (hasEmail ? 'EMAILOTP' : 'SQ'),
-      twoFactorAuthMethod: hasEmail ? 'GAUTH' : 'None',
+      mainAuthMethod: 'SMSOTP',
+      twoFactorAuthMethod: 'None',
       channel: 'Mobile App',
     },
   });
 
   useEffect(() => {
     if (customer) {
-      const hasEmail = customer.email_id && customer.email_id.trim() !== '';
-      const hasPhone = customer.mobile_number && customer.mobile_number.trim() !== '';
       form.reset({
-        mainAuthMethod: hasPhone ? 'SMSOTP' : (hasEmail ? 'EMAILOTP' : 'SQ'),
-        twoFactorAuthMethod: hasEmail ? 'GAUTH' : 'None',
+        mainAuthMethod: 'SMSOTP',
+        twoFactorAuthMethod: 'None',
         channel: 'Mobile App',
       });
     }
@@ -247,7 +246,7 @@ function OverviewContent() {
                                       </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                      {authMethods.map(method => {
+                                      {mainAuthMethods.map(method => {
                                           const isMail = method.value === 'EMAILOTP' || method.value === 'GAUTH';
                                           const isSms = method.value === 'SMSOTP';
                                           const isDisabled = (isMail && !hasEmail) || (isSms && !hasPhone);

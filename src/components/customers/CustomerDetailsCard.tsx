@@ -26,7 +26,8 @@ export interface CustomerDetails {
     address: string;
     nationality: string;
     branchName: string;
-    status: string;
+    mobileStatus: string;
+    ussdStatus: string;
     insertDate: string;
 }
 
@@ -56,7 +57,8 @@ export function CustomerDetailsCard({ customer }: CustomerDetailsCardProps) {
             </CardHeader>
             <CardContent className="grid gap-6 p-6">
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <InfoItem label="Status" value={<Badge className="bg-green-100 text-green-800 border-green-200">{customer.status}</Badge>} />
+                <InfoItem label="Mobile Status" value={<Badge className="bg-green-100 text-green-800 border-green-200">{customer.mobileStatus}</Badge>} />
+                <InfoItem label="USSD Status" value={<Badge className="bg-blue-100 text-blue-800 border-blue-200">{customer.ussdStatus}</Badge>} />
                 <InfoItem label="Email Address" value={customer.email} />
                 <InfoItem label="Phone Number" value={customer.phoneNumber} />
                 <InfoItem label="Nationality" value={customer.nationality} />

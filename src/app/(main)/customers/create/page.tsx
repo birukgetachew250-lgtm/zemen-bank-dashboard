@@ -111,6 +111,14 @@ export default function CreateCustomerPage() {
   
   const handleNext = () => {
     if (customer) {
+        if (!customer.mobile_number || customer.mobile_number.trim() === '') {
+            toast({
+                variant: 'destructive',
+                title: 'Phone Number Required',
+                description: 'Please provide a valid phone number before proceeding.',
+            });
+            return;
+        }
         const params = new URLSearchParams({
             customer: JSON.stringify(customer)
         });
@@ -183,19 +191,20 @@ export default function CreateCustomerPage() {
                     <div className="flex items-start gap-3 group">
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mt-1 transition-colors group-hover:bg-primary group-hover:text-primary-foreground"><Phone className="h-4 w-4" /></div>
                         <div className="flex-grow">
-                            <label className="text-sm font-medium text-foreground mb-1 block">Phone Number</label>
+                            <label className="text-sm font-medium text-foreground mb-1 block">Phone Number <span className="text-destructive">*</span></label>
                             <Input
                                 value={customer.mobile_number || ''}
                                 onChange={(e) => setCustomer({ ...customer, mobile_number: e.target.value })}
                                 className="h-10 text-sm px-3 rounded-xl border-muted bg-background/50 hover:bg-accent/50 transition-all focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary shadow-sm"
                                 placeholder="Enter phone number"
+                                required
                             />
                         </div>
                     </div>
                     <div className="flex items-start gap-3 group">
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mt-1 transition-colors group-hover:bg-primary group-hover:text-primary-foreground"><Mail className="h-4 w-4" /></div>
                         <div className="flex-grow">
-                            <label className="text-sm font-medium text-foreground mb-1 block">Email Address</label>
+                            <label className="text-sm font-medium text-foreground mb-1 block">Email Address (Optional)</label>
                             <Input
                                 value={customer.email_id || ''}
                                 onChange={(e) => setCustomer({ ...customer, email_id: e.target.value })}
