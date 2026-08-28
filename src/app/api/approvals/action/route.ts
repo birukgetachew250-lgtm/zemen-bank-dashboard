@@ -354,7 +354,7 @@ export async function POST(req: Request) {
                 
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateQuery, updateBinds);
                 
-                await db.customer.updateMany({ where: { phone: changes.phoneNumber.old }, data: { phone: changes.phoneNumber.new, name: changes.email.new } });
+                await db.customer.updateMany({ where: { phone: changes.phoneNumber.old }, data: { phone: changes.phoneNumber.new } });
                 
                 successMessage = `Customer profile for CIF ${cif} has been updated.`;
                 break;
