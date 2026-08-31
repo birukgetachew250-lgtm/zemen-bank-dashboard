@@ -51,6 +51,13 @@ const editProfileSchema = z.object({
 }).refine(data => data.signUp2FA === 'None' || data.signUpMainAuth !== data.signUp2FA, {
     message: "Main auth and 2FA method cannot be the same.",
     path: ["signUp2FA"],
+}).refine(data => {
+    const hasEmail = data.email && data.email.trim() !== '';
+    const needsEmail = ['EMAILOTP', 'GAUTH'].includes(data.signUpMainAuth) || ['EMAILOTP', 'GAUTH'].includes(data.signUp2FA);
+    return !needsEmail || hasEmail;
+}, {
+    message: "An email address is required for Email OTP or Google Authenticator.",
+    path: ["email"]
 });
 
 type EditProfileFormValues = z.infer<typeof editProfileSchema>;
@@ -68,6 +75,11 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
     const form = useForm<EditProfileFormValues>({
       resolver: zodResolver(editProfileSchema),
     });
+
+    const emailValue = form.watch('email');
+    const hasEmail = !!emailValue && emailValue.trim() !== '';
+    const phoneValue = form.watch('phoneNumber');
+    const hasPhone = !!phoneValue && phoneValue.trim() !== '';
 
     useEffect(() => {
         async function fetchData() {
@@ -238,11 +250,15 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
                                                     </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                    {mainAuthMethods.map(method => (
-                                                        <SelectItem key={method.value} value={method.value}>
-                                                        {method.label}
-                                                        </SelectItem>
-                                                    ))}
+                                                    {mainAuthMethods.filter(m => hasEmail || (m.value !== 'EMAILOTP' && m.value !== 'GAUTH')).map(method => {
+                                                        const isSms = method.value === 'SMSOTP';
+                                                        const isDisabled = isSms && !hasPhone;
+                                                        return (
+                                                            <SelectItem key={method.value} value={method.value} disabled={isDisabled}>
+                                                            {method.label}
+                                                            </SelectItem>
+                                                        );
+                                                    })}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -262,11 +278,15 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
                                                     </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                      {twoFactorMethods.map(method => (
-                                                        <SelectItem key={method.value} value={method.value}>
-                                                          {method.label}
-                                                        </SelectItem>
-                                                      ))}
+                                                      {twoFactorMethods.filter(m => hasEmail || (m.value !== 'EMAILOTP' && m.value !== 'GAUTH')).map(method => {
+                                                          const isSms = method.value === 'SMSOTP';
+                                                          const isDisabled = isSms && !hasPhone;
+                                                          return (
+                                                              <SelectItem key={method.value} value={method.value} disabled={isDisabled}>
+                                                              {method.label}
+                                                              </SelectItem>
+                                                          );
+                                                      })}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />

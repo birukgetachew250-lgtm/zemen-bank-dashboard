@@ -246,10 +246,9 @@ function OverviewContent() {
                                       </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                      {mainAuthMethods.map(method => {
-                                          const isMail = method.value === 'EMAILOTP' || method.value === 'GAUTH';
+                                      {mainAuthMethods.filter(m => hasEmail || (m.value !== 'EMAILOTP' && m.value !== 'GAUTH')).map(method => {
                                           const isSms = method.value === 'SMSOTP';
-                                          const isDisabled = (isMail && !hasEmail) || (isSms && !hasPhone);
+                                          const isDisabled = isSms && !hasPhone;
                                           return (
                                               <SelectItem key={method.value} value={method.value} disabled={isDisabled}>
                                               {method.label}
@@ -275,10 +274,9 @@ function OverviewContent() {
                                       </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                      {twoFactorMethods.map(method => {
-                                          const isMail = method.value === 'EMAILOTP' || method.value === 'GAUTH';
+                                      {twoFactorMethods.filter(m => hasEmail || (m.value !== 'EMAILOTP' && m.value !== 'GAUTH')).map(method => {
                                           const isSms = method.value === 'SMSOTP';
-                                          const isDisabled = (isMail && !hasEmail) || (isSms && !hasPhone);
+                                          const isDisabled = isSms && !hasPhone;
                                           return (
                                               <SelectItem key={method.value} value={method.value} disabled={isDisabled}>
                                               {method.label}
