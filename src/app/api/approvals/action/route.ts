@@ -195,7 +195,7 @@ export async function POST(req: Request) {
             throw new Error(`Could not determine customer CIF for approval ID ${approvalId}. The request was cleared without action.`);
         }
             
-        const updateUserStatusQuery = `UPDATE "USER_MODULE"."AppUsers" SET "Status" = :status WHERE "CIFNumber" = :cif`;
+        const updateUserStatusQuery = `UPDATE "USER_MODULE"."AppUsers" SET "MobileStatus" = :status, "UssdStatus" = :status WHERE "CIFNumber" = :cif`;
         let successMessage = 'Request has been approved and actioned.';
         let responseData: any = { success: true };
 
@@ -252,7 +252,7 @@ export async function POST(req: Request) {
                 const phoneHash = hashSha256(normalizedPhone, 'Customer mobile number');
 
                 const appUserQuery = `
-                    INSERT INTO "USER_MODULE"."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","PhoneNumberHashed","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","Status","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:PhoneNumberHashed,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:Status,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
+                    INSERT INTO "USER_MODULE"."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","PhoneNumberHashed","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","MobileStatus","UssdStatus","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:PhoneNumberHashed,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:MobileStatus,:UssdStatus,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
                 
                 const appUserBinds = {
                     CIFNumber: customerData.customer_number,
@@ -269,7 +269,8 @@ export async function POST(req: Request) {
                     Nationality: customerData.country,
                     BranchCode: customerData.branch,
                     BranchName: customerData.branch,
-                    Status: 'Pending',
+                    MobileStatus: 'Pending',
+                    UssdStatus: 'Pending',
                     SignUp2FA: onboardingData.twoFactorAuthMethod,
                     SignUpMainAuth: onboardingData.mainAuthMethod,
                     Channel: onboardingData.channel,
@@ -313,7 +314,7 @@ export async function POST(req: Request) {
                 await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES ('${otpId}','${customerData.customer_number}','${codeHash}',NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`, {});
                 await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpUsers" ("UserId","Status","LockedUntil","InsertDate","UpdateDate","OtpCodeId") VALUES ('${customerData.customer_number}',0,NULL,SYSTIMESTAMP,SYSTIMESTAMP,'${otpId}')`, {});
                 
-                await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
+                await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Pending' } });
                 
                 const smsMessage = `Welcome to Zemen Mobile Banking. Your temporary password is ${tempPassword}. Get the app to start: App Store: https://apple.co/2ABCDEF, Play Store: https://bit.ly/2ABCDEF`;
                 const smsResult = await sendSms(approval.customerPhone, smsMessage);
