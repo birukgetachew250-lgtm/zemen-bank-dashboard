@@ -143,7 +143,7 @@ export const menu: MenuItem[] = [
           { icon: Ban, label: "Suspend Customer", href: "/customers/suspend-customer" },
           { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/unsuspend-customer" },
           { icon: LockOpen, label: "Unlock Customer", href: "/customers/unlock-customer" },
-          { icon: Smartphone, label: "Resend Activation Code", href: "/customers/resend-activation" },
+          { icon: Smartphone, label: "Send Activation", href: "/customers/resend-activation" },
           { icon: KeyRound, label: "Pin Reset", href: "/customers/request-pin-reset" },
         ]
       },
@@ -154,7 +154,7 @@ export const menu: MenuItem[] = [
           { icon: UserX, label: "Suspend Customer", href: "/customers/approve-suspension" },
           { icon: UserCheck, label: "Unsuspend Customer", href: "/customers/approve-unblocked" },
           { icon: LockOpen, label: "Unlock Customer", href: "/customers/approve-unlock" },
-          { icon: Smartphone, label: "Resend Activation Code", href: "/customers/approve-resend-activation" },
+          { icon: Smartphone, label: "Send Activation", href: "/customers/approve-resend-activation" },
           { icon: KeyRound, label: "Pin Reset", href: "/customers/approve-pin-reset" },
           { icon: ShieldCheck, label: "Security Reset", href: "/customers/approve-security" },
         ]

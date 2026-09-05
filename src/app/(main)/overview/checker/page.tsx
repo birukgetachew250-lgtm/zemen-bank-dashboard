@@ -44,7 +44,7 @@ const REQUEST_TYPE_LABELS: Record<string, string> = {
   'suspend-customer': 'Suspend Customer',
   'unsuspend-customer': 'Unsuspend Customer',
   'unlock-customer': 'Unlock Customer',
-  'resend-activation': 'Resend Activation',
+  'resend-activation': 'Send Activation',
   'pin-reset': 'PIN Reset',
   'security-reset': 'Security Reset',
 };

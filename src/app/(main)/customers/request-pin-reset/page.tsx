@@ -186,10 +186,7 @@ export default function RequestPinResetPage() {
                             <SelectContent>
                                 <SelectItem value="SMS">SMS Only</SelectItem>
                                 {(customer.email && customer.email.trim() !== "") && (
-                                    <>
-                                        <SelectItem value="Email">Email Only</SelectItem>
-                                        <SelectItem value="Both">Both SMS & Email</SelectItem>
-                                    </>
+                                    <SelectItem value="Email">Email Only</SelectItem>
                                 )}
                             </SelectContent>
                         </Select>

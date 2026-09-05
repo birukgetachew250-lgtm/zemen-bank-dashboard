@@ -141,12 +141,12 @@ export default function ResendActivationCodePage() {
 
   return (
     <div className="w-full space-y-6 animate-fade-up max-w-2xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Resend Activation Code</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Send Activation</h1>
+      </div>
+      <p className="text-muted-foreground text-sm mt-1">
           Enter a CIF number to find a customer and submit an activation-code resend request for approval.
         </p>
-      </div>
       <MakerMiniHistory approvalType="resend-activation-code" />
 
       <Card className="glass-card shadow-sm border-slate-200/80 rounded-2xl">
@@ -216,10 +216,7 @@ export default function ResendActivationCodePage() {
                     <SelectContent>
                         <SelectItem value="SMS">SMS Only</SelectItem>
                         {(customer.email && customer.email.trim() !== "") && (
-                            <>
-                                <SelectItem value="Email">Email Only</SelectItem>
-                                <SelectItem value="Both">Both SMS & Email</SelectItem>
-                            </>
+                            <SelectItem value="Email">Email Only</SelectItem>
                         )}
                     </SelectContent>
                 </Select>
@@ -237,9 +234,8 @@ export default function ResendActivationCodePage() {
             />
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button onClick={handleAction} disabled={isActionDisabled} className="rounded-xl gap-2">
-              {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Smartphone className="h-4 w-4" />}
-              Request Resend Activation Code
+            <Button disabled={isActionLoading} onClick={handleAction} className="w-full rounded-xl mt-4" size="lg">
+              {isActionLoading ? "Submitting..." : "Request Send Activation"}
             </Button>
           </CardFooter>
         </Card>

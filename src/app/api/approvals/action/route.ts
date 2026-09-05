@@ -322,25 +322,32 @@ export async function POST(req: Request) {
                 const emailMessage = `Welcome to Zemen Mobile Banking. Your temporary password is <b>${tempPassword}</b>. <br/><br/>Get the app to start: <br/>App Store: https://apple.co/2ABCDEF <br/>Play Store: https://bit.ly/2ABCDEF`;
                 
                 const deliveryChannel = onboardingData.deliveryChannel || 'SMS';
-                let deliverySuccess = false;
+                let smsSuccess = false;
+                let emailSuccess = false;
                 
                 if (deliveryChannel === 'SMS' || deliveryChannel === 'Both') {
+                    console.log(`[APPROVAL_ACTION] Attempting to send SMS to ${approval.customerPhone}`);
                     const smsResult = await sendSms(approval.customerPhone, smsMessage);
-                    if (smsResult.success) deliverySuccess = true;
+                    if (smsResult.success) smsSuccess = true;
+                    else console.warn(`[APPROVAL_ACTION] SMS failed: ${smsResult.message}`);
                 }
                 
                 if (deliveryChannel === 'Email' || deliveryChannel === 'Both') {
                     if (customerData.email_id && customerData.email_id.trim() !== '') {
+                        console.log(`[APPROVAL_ACTION] Attempting to send Email to ${customerData.email_id}`);
                         const emailResult = await sendEmail(customerData.email_id, emailSubject, emailMessage);
-                        if (emailResult.success) deliverySuccess = true;
+                        if (emailResult.success) emailSuccess = true;
+                        else console.warn(`[APPROVAL_ACTION] Email failed: ${emailResult.message}`);
+                    } else {
+                        console.warn(`[APPROVAL_ACTION] Email delivery requested but email_id is missing or empty`);
                     }
                 }
 
-                if (deliverySuccess) {
+                if (deliveryChannel === 'Both' ? (smsSuccess && emailSuccess) : (deliveryChannel === 'SMS' ? smsSuccess : emailSuccess)) {
                     successMessage = `New customer onboarded and welcome message sent via ${deliveryChannel}.`;
                 } else {
-                    console.warn(`Delivery failed for new customer ${approval.customerPhone}, but customer was created in DB.`);
-                    successMessage = `Customer was created successfully, but delivery via ${deliveryChannel} failed.`;
+                    console.warn(`[APPROVAL_ACTION] Delivery partially or fully failed. SMS Success: ${smsSuccess}, Email Success: ${emailSuccess}`);
+                    successMessage = `Customer was created successfully, but delivery via ${deliveryChannel} failed (SMS: ${smsSuccess}, Email: ${emailSuccess}).`;
                 }
                 
                 break;
@@ -387,36 +394,42 @@ export async function POST(req: Request) {
             case 'resend-activation-code':
                 const resendActivationCode = Math.floor(100000 + Math.random() * 900000).toString();
                 const resendCodeHash = crypto.createHash('sha256').update(resendActivationCode).digest('hex').toLowerCase();
-                const resendOtpId = crypto.randomUUID();
 
-                await executeQuery(
+                const otpUserResult: any = await executeQuery(
                     process.env.OTP_MODULE_DB_CONNECTION_STRING,
-                    `INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (:Id,:UserId,:CodeHash,NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`,
-                    {
-                        Id: resendOtpId,
-                        UserId: cif,
-                        CodeHash: resendCodeHash,
-                    }
-                );
-
-                const otpUserExistsResult: any = await executeQuery(
-                    process.env.OTP_MODULE_DB_CONNECTION_STRING,
-                    `SELECT COUNT(1) AS "CNT" FROM OTP_MODULE."OtpUsers" WHERE "UserId" = :userId`,
+                    `SELECT "OtpCodeId" FROM OTP_MODULE."OtpUsers" WHERE "UserId" = :userId`,
                     { userId: cif }
                 );
 
-                const otpUserExists = Number(otpUserExistsResult?.rows?.[0]?.CNT || 0) > 0;
+                const existingOtpCodeId = otpUserResult?.rows?.[0]?.OtpCodeId;
 
-                if (otpUserExists) {
+                if (existingOtpCodeId) {
                     await executeQuery(
                         process.env.OTP_MODULE_DB_CONNECTION_STRING,
-                        `UPDATE OTP_MODULE."OtpUsers" SET "Status" = 0, "LockedUntil" = NULL, "UpdateDate" = SYSTIMESTAMP, "OtpCodeId" = :otpCodeId WHERE "UserId" = :userId`,
+                        `UPDATE OTP_MODULE."OtpCodes" SET "CodeHash" = :CodeHash, "ExpiresAt" = SYSTIMESTAMP + INTERVAL '10' MINUTE, "UpdateDate" = SYSTIMESTAMP WHERE "Id" = :Id`,
                         {
-                            otpCodeId: resendOtpId,
-                            userId: cif,
+                            Id: existingOtpCodeId,
+                            CodeHash: resendCodeHash,
                         }
                     );
+                    
+                    await executeQuery(
+                        process.env.OTP_MODULE_DB_CONNECTION_STRING,
+                        `UPDATE OTP_MODULE."OtpUsers" SET "Status" = 0, "LockedUntil" = NULL, "UpdateDate" = SYSTIMESTAMP WHERE "UserId" = :userId`,
+                        { userId: cif }
+                    );
                 } else {
+                    const resendOtpId = crypto.randomUUID();
+                    await executeQuery(
+                        process.env.OTP_MODULE_DB_CONNECTION_STRING,
+                        `INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (:Id,:UserId,:CodeHash,NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`,
+                        {
+                            Id: resendOtpId,
+                            UserId: cif,
+                            CodeHash: resendCodeHash,
+                        }
+                    );
+                    
                     await executeQuery(
                         process.env.OTP_MODULE_DB_CONNECTION_STRING,
                         `INSERT INTO OTP_MODULE."OtpUsers" ("UserId","Status","LockedUntil","InsertDate","UpdateDate","OtpCodeId") VALUES (:userId,0,NULL,SYSTIMESTAMP,SYSTIMESTAMP,:otpCodeId)`,
@@ -439,25 +452,33 @@ export async function POST(req: Request) {
 
                 const resendDetails = JSON.parse(approval.details || '{}');
                 const resendDeliveryChannel = resendDetails.deliveryChannel || 'SMS';
-                let resendDeliverySuccess = false;
+                let resendSmsSuccess = false;
+                let resendEmailSuccess = false;
 
                 if (resendDeliveryChannel === 'SMS' || resendDeliveryChannel === 'Both') {
+                    console.log(`[APPROVAL_ACTION] Attempting to resend SMS to ${approval.customerPhone}`);
                     const resendSmsResult = await sendSms(approval.customerPhone, resendSmsMessage);
-                    if (resendSmsResult.success) resendDeliverySuccess = true;
+                    if (resendSmsResult.success) resendSmsSuccess = true;
+                    else console.warn(`[APPROVAL_ACTION] Resend SMS failed: ${resendSmsResult.message}`);
                 }
 
                 if (resendDeliveryChannel === 'Email' || resendDeliveryChannel === 'Both') {
                     const resendEmailAddress = resendDetails.email;
                     if (resendEmailAddress && resendEmailAddress.trim() !== '') {
+                        console.log(`[APPROVAL_ACTION] Attempting to resend Email to ${resendEmailAddress}`);
                         const emailResult = await sendEmail(resendEmailAddress, resendEmailSubject, resendEmailMessage);
-                        if (emailResult.success) resendDeliverySuccess = true;
+                        if (emailResult.success) resendEmailSuccess = true;
+                        else console.warn(`[APPROVAL_ACTION] Resend Email failed: ${emailResult.message}`);
+                    } else {
+                        console.warn(`[APPROVAL_ACTION] Resend Email delivery requested but email address is missing from details`);
                     }
                 }
 
-                if (resendDeliverySuccess) {
+                if (resendDeliveryChannel === 'Both' ? (resendSmsSuccess && resendEmailSuccess) : (resendDeliveryChannel === 'SMS' ? resendSmsSuccess : resendEmailSuccess)) {
                     successMessage = `Activation code has been resent successfully via ${resendDeliveryChannel}.`;
                 } else {
-                    successMessage = `Activation code was regenerated and saved, but delivery via ${resendDeliveryChannel} failed. Please retry or follow up manually.`;
+                    console.warn(`[APPROVAL_ACTION] Resend delivery partially or fully failed. SMS: ${resendSmsSuccess}, Email: ${resendEmailSuccess}`);
+                    successMessage = `Activation code was regenerated, but delivery via ${resendDeliveryChannel} failed (SMS: ${resendSmsSuccess}, Email: ${resendEmailSuccess}). Please retry or follow up manually.`;
                 }
                 break;
             case 'pin-reset':
@@ -490,26 +511,33 @@ export async function POST(req: Request) {
 
                 const pinResetDetails = JSON.parse(approval.details || '{}');
                 const pinResetDeliveryChannel = pinResetDetails.deliveryChannel || 'SMS';
-                let pinResetDeliverySuccess = false;
+                let pinResetSmsSuccess = false;
+                let pinResetEmailSuccess = false;
 
                 if (pinResetDeliveryChannel === 'SMS' || pinResetDeliveryChannel === 'Both') {
+                    console.log(`[APPROVAL_ACTION] Attempting to send PIN reset SMS to ${approval.customerPhone}`);
                     const pinResetSmsResult = await sendSms(approval.customerPhone, smsPinResetMessage);
-                    if (pinResetSmsResult.success) pinResetDeliverySuccess = true;
+                    if (pinResetSmsResult.success) pinResetSmsSuccess = true;
+                    else console.warn(`[APPROVAL_ACTION] PIN Reset SMS failed: ${pinResetSmsResult.message}`);
                 }
 
                 if (pinResetDeliveryChannel === 'Email' || pinResetDeliveryChannel === 'Both') {
                     const pinResetEmailAddress = pinResetDetails.email;
                     if (pinResetEmailAddress && pinResetEmailAddress.trim() !== '') {
+                        console.log(`[APPROVAL_ACTION] Attempting to send PIN reset Email to ${pinResetEmailAddress}`);
                         const emailResult = await sendEmail(pinResetEmailAddress, emailPinResetSubject, emailPinResetMessage);
-                        if (emailResult.success) pinResetDeliverySuccess = true;
+                        if (emailResult.success) pinResetEmailSuccess = true;
+                        else console.warn(`[APPROVAL_ACTION] PIN Reset Email failed: ${emailResult.message}`);
+                    } else {
+                        console.warn(`[APPROVAL_ACTION] PIN Reset Email delivery requested but email address is missing from details`);
                     }
                 }
 
-                if (pinResetDeliverySuccess) {
+                if (pinResetDeliveryChannel === 'Both' ? (pinResetSmsSuccess && pinResetEmailSuccess) : (pinResetDeliveryChannel === 'SMS' ? pinResetSmsSuccess : pinResetEmailSuccess)) {
                     successMessage = `PIN for customer ${approval.customerName} has been reset and sent via ${pinResetDeliveryChannel}.`;
                 } else {
-                    console.warn(`Delivery failed for PIN reset to ${approval.customerPhone}, but PIN was reset in DB.`);
-                    successMessage = `PIN reset was successful, but delivery via ${pinResetDeliveryChannel} failed. Please provide the new PIN to the customer manually.`;
+                    console.warn(`[APPROVAL_ACTION] Delivery failed for PIN reset to ${approval.customerPhone}. SMS: ${pinResetSmsSuccess}, Email: ${pinResetEmailSuccess}`);
+                    successMessage = `PIN reset was successful, but delivery via ${pinResetDeliveryChannel} failed (SMS: ${pinResetSmsSuccess}, Email: ${pinResetEmailSuccess}). Please provide the new PIN to the customer manually.`;
                 }
                 break;
             case 'customer-account':

@@ -61,7 +61,6 @@ const channelOptions = [
 const deliveryChannelOptions = [
   { value: 'SMS', label: 'SMS Only' },
   { value: 'Email', label: 'Email Only' },
-  { value: 'Both', label: 'Both SMS & Email' },
 ];
 
 const overviewFormSchema = z.object({

@@ -70,7 +70,7 @@ const pageTitles: Record<string, string> = {
   'suspend-customer': 'Approve Customer Suspension',
   'unsuspend-customer': 'Approve Unsuspend Customer',
   'unlock-customer': 'Approve Unlock Customer',
-  'resend-activation': 'Approve Resend Activation',
+  'resend-activation': 'Approve Send Activation',
   'pin-reset': 'Approve PIN Reset',
 };
 
