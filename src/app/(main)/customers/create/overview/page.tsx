@@ -58,10 +58,17 @@ const channelOptions = [
     { value: 'Both', label: 'Both' },
 ];
 
+const deliveryChannelOptions = [
+  { value: 'SMS', label: 'SMS Only' },
+  { value: 'Email', label: 'Email Only' },
+  { value: 'Both', label: 'Both SMS & Email' },
+];
+
 const overviewFormSchema = z.object({
   mainAuthMethod: z.string().min(1, 'Main authentication method is required.'),
   twoFactorAuthMethod: z.string(),
   channel: z.string().min(1, 'You need to select a channel.'),
+  deliveryChannel: z.string().min(1, 'Delivery channel is required.'),
 }).refine(data => data.twoFactorAuthMethod === 'None' || data.mainAuthMethod !== data.twoFactorAuthMethod, {
     message: "Main auth and 2FA method cannot be the same.",
     path: ["twoFactorAuthMethod"],
@@ -103,6 +110,7 @@ function OverviewContent() {
       mainAuthMethod: 'SMSOTP',
       twoFactorAuthMethod: 'None',
       channel: 'Mobile App',
+      deliveryChannel: 'SMS',
     },
   });
 
@@ -112,6 +120,7 @@ function OverviewContent() {
         mainAuthMethod: 'SMSOTP',
         twoFactorAuthMethod: 'None',
         channel: 'Mobile App',
+        deliveryChannel: 'SMS',
       });
     }
   }, [customer, form]);
@@ -143,6 +152,7 @@ function OverviewContent() {
             mainAuthMethod: data.mainAuthMethod, 
             twoFactorAuthMethod: data.twoFactorAuthMethod,
             channel: data.channel,
+            deliveryChannel: data.deliveryChannel,
           },
           attachmentUrl: attachment.length > 0 ? attachment[0].url : undefined,
         }),
@@ -221,6 +231,30 @@ function OverviewContent() {
                                           </FormControl>
                                           <SelectContent>
                                           {channelOptions.map(option => (
+                                              <SelectItem key={option.value} value={option.value}>
+                                              {option.label}
+                                              </SelectItem>
+                                          ))}
+                                          </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                          <FormField
+                              control={form.control}
+                              name="deliveryChannel"
+                              render={({ field }) => (
+                                  <FormItem>
+                                      <FormLabel>Temporary Password Delivery</FormLabel>
+                                      <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                                          <FormControl>
+                                          <SelectTrigger>
+                                              <SelectValue placeholder="Select a delivery channel" />
+                                          </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                          {deliveryChannelOptions.filter(m => hasEmail || m.value === 'SMS').map(option => (
                                               <SelectItem key={option.value} value={option.value}>
                                               {option.label}
                                               </SelectItem>

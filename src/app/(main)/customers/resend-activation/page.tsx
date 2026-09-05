@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { FileUpload, type UploadedFile } from "@/components/ui/FileUpload";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function InfoItem({ label, value, className }: { label: string; value: React.ReactNode; className?: string }) {
   return (
@@ -49,6 +50,7 @@ export default function ResendActivationCodePage() {
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
   const [documents, setDocuments] = useState<UploadedFile[]>([]);
+  const [deliveryChannel, setDeliveryChannel] = useState("SMS");
   const { toast } = useToast();
 
   const handleSearch = async () => {
@@ -64,6 +66,7 @@ export default function ResendActivationCodePage() {
     setIsLoading(true);
     setCustomer(null);
     setDocuments([]);
+    setDeliveryChannel("SMS");
 
     try {
       const response = await fetch(`/api/customers/${cifNumber}`);
@@ -103,6 +106,8 @@ export default function ResendActivationCodePage() {
           customerPhone: customer.phoneNumber,
           details: {
             reason: "Resend activation code due to previous SMS delivery failure",
+            deliveryChannel,
+            email: customer.email,
           },
           attachmentUrl: documents.length > 0 ? documents[0].url : undefined,
         }),
@@ -199,6 +204,25 @@ export default function ResendActivationCodePage() {
                   </Badge>
                 } 
               />
+            </div>
+
+            <Separator />
+            <h3 className="text-sm font-semibold">Delivery Channel</h3>
+            <div className="max-w-md">
+                <Select value={deliveryChannel} onValueChange={setDeliveryChannel}>
+                    <SelectTrigger className="rounded-xl">
+                        <SelectValue placeholder="Select delivery channel" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="SMS">SMS Only</SelectItem>
+                        {(customer.email && customer.email.trim() !== "") && (
+                            <>
+                                <SelectItem value="Email">Email Only</SelectItem>
+                                <SelectItem value="Both">Both SMS & Email</SelectItem>
+                            </>
+                        )}
+                    </SelectContent>
+                </Select>
             </div>
 
             <Separator />

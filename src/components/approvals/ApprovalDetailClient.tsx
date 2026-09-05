@@ -187,10 +187,11 @@ export function ApprovalDetailClient({ approval }: { approval: ApprovalData }) {
                   {approvalType === 'new-customer' && parsedDetails.onboardingData && (
                     <div>
                         <h3 className="font-semibold text-lg mb-4 text-primary">Security & Channel Preferences</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-5 border rounded-xl bg-muted/30">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-5 border rounded-xl bg-muted/30">
                             <InfoItem icon={<Shield />} label="Main Auth Method" value={parsedDetails.onboardingData.mainAuthMethod} />
                             <InfoItem icon={<Smartphone />} label="Channel Access" value={parsedDetails.onboardingData.channel} />
                             <InfoItem icon={<Star />} label="Two-Factor Method" value={parsedDetails.onboardingData.twoFactorAuthMethod} />
+                            <InfoItem icon={<Mail />} label="Password Delivery" value={parsedDetails.onboardingData.deliveryChannel || 'SMS'} />
                         </div>
                     </div>
                 )}
@@ -222,6 +223,15 @@ export function ApprovalDetailClient({ approval }: { approval: ApprovalData }) {
                         </div>
                     </div>
                   )}
+
+                {(approvalType === 'resend-activation-code' || approvalType === 'pin-reset') && parsedDetails.deliveryChannel && (
+                    <div>
+                        <h3 className="font-semibold text-lg mb-4 text-primary">Delivery Preferences</h3>
+                        <div className="p-5 border rounded-xl bg-muted/30">
+                          <InfoItem icon={<Mail />} label="Delivery Channel" value={parsedDetails.deliveryChannel} />
+                        </div>
+                    </div>
+                )}
 
               </div>
           )}

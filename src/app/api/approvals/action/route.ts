@@ -10,7 +10,8 @@ import { Prisma } from "@prisma/client";
 import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
-import { sendSms } from '@/services/sms-service';
+import { sendSms } from '@/lib/sms-service';
+import { sendEmail } from '@/services/email-service';
 
 const extractRequesterBranch = (details?: string | null): string | null => {
     if (!details) return null;
@@ -317,13 +318,30 @@ export async function POST(req: Request) {
                 await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Pending' } });
                 
                 const smsMessage = `Welcome to Zemen Mobile Banking. Your temporary password is ${tempPassword}. Get the app to start: App Store: https://apple.co/2ABCDEF, Play Store: https://bit.ly/2ABCDEF`;
-                const smsResult = await sendSms(approval.customerPhone, smsMessage);
+                const emailSubject = 'Welcome to Zemen Mobile Banking';
+                const emailMessage = `Welcome to Zemen Mobile Banking. Your temporary password is <b>${tempPassword}</b>. <br/><br/>Get the app to start: <br/>App Store: https://apple.co/2ABCDEF <br/>Play Store: https://bit.ly/2ABCDEF`;
+                
+                const deliveryChannel = onboardingData.deliveryChannel || 'SMS';
+                let deliverySuccess = false;
+                
+                if (deliveryChannel === 'SMS' || deliveryChannel === 'Both') {
+                    const smsResult = await sendSms(approval.customerPhone, smsMessage);
+                    if (smsResult.success) deliverySuccess = true;
+                }
+                
+                if (deliveryChannel === 'Email' || deliveryChannel === 'Both') {
+                    if (customerData.email_id && customerData.email_id.trim() !== '') {
+                        const emailResult = await sendEmail(customerData.email_id, emailSubject, emailMessage);
+                        if (emailResult.success) deliverySuccess = true;
+                    }
+                }
 
-                if (smsResult.success) {
-                    successMessage = 'New customer onboarded and welcome SMS with temporary password has been sent.';
+                if (deliverySuccess) {
+                    successMessage = `New customer onboarded and welcome message sent via ${deliveryChannel}.`;
                 } else {
-                    console.warn(`SMS sending failed for new customer ${approval.customerPhone}, but customer was created in DB.`);
-                    successMessage = `New customer onboarded, but the welcome SMS failed to send. Please follow up with the customer manually.`;
+                    console.warn(`Delivery failed for new customer ${approval.customerPhone}, but customer was created in DB.`);
+                    successMessage = `Customer was created successfully, but delivery via ${deliveryChannel} failed.`;
+                }
                 }
                 
                 break;
@@ -417,12 +435,30 @@ export async function POST(req: Request) {
                 );
 
                 const resendSmsMessage = `Welcome to Zemen Mobile Banking. Your temporary password is ${resendActivationCode}. Get the app to start: App Store: https://apple.co/2ABCDEF, Play Store: https://bit.ly/2ABCDEF`;
-                const resendSmsResult = await sendSms(approval.customerPhone, resendSmsMessage);
+                const resendEmailSubject = 'Zemen Mobile Banking - Activation Code';
+                const resendEmailMessage = `Welcome to Zemen Mobile Banking. Your temporary password is <b>${resendActivationCode}</b>. <br/><br/>Get the app to start: <br/>App Store: https://apple.co/2ABCDEF <br/>Play Store: https://bit.ly/2ABCDEF`;
 
-                if (resendSmsResult.success) {
-                    successMessage = `Activation code has been resent successfully to ${approval.customerPhone}.`;
+                const resendDetails = JSON.parse(approval.details || '{}');
+                const resendDeliveryChannel = resendDetails.deliveryChannel || 'SMS';
+                let resendDeliverySuccess = false;
+
+                if (resendDeliveryChannel === 'SMS' || resendDeliveryChannel === 'Both') {
+                    const resendSmsResult = await sendSms(approval.customerPhone, resendSmsMessage);
+                    if (resendSmsResult.success) resendDeliverySuccess = true;
+                }
+
+                if (resendDeliveryChannel === 'Email' || resendDeliveryChannel === 'Both') {
+                    const resendEmailAddress = resendDetails.email;
+                    if (resendEmailAddress && resendEmailAddress.trim() !== '') {
+                        const emailResult = await sendEmail(resendEmailAddress, resendEmailSubject, resendEmailMessage);
+                        if (emailResult.success) resendDeliverySuccess = true;
+                    }
+                }
+
+                if (resendDeliverySuccess) {
+                    successMessage = `Activation code has been resent successfully via ${resendDeliveryChannel}.`;
                 } else {
-                    successMessage = `Activation code was regenerated and saved, but SMS sending failed. Please retry or follow up manually.`;
+                    successMessage = `Activation code was regenerated and saved, but delivery via ${resendDeliveryChannel} failed. Please retry or follow up manually.`;
                 }
                 break;
             case 'pin-reset':
@@ -450,13 +486,31 @@ export async function POST(req: Request) {
                 });
                 
                 const smsPinResetMessage = `Your new temporary PIN for Zemen Mobile is: ${newPin}. Please change it after your next login.`;
-                const pinResetSmsResult = await sendSms(approval.customerPhone, smsPinResetMessage);
+                const emailPinResetSubject = 'Zemen Mobile Banking - PIN Reset';
+                const emailPinResetMessage = `Your new temporary PIN for Zemen Mobile is: <b>${newPin}</b>. <br/><br/>Please change it after your next login.`;
 
-                if (pinResetSmsResult.success) {
-                    successMessage = `PIN for customer ${approval.customerName} has been reset and sent via SMS.`;
+                const pinResetDetails = JSON.parse(approval.details || '{}');
+                const pinResetDeliveryChannel = pinResetDetails.deliveryChannel || 'SMS';
+                let pinResetDeliverySuccess = false;
+
+                if (pinResetDeliveryChannel === 'SMS' || pinResetDeliveryChannel === 'Both') {
+                    const pinResetSmsResult = await sendSms(approval.customerPhone, smsPinResetMessage);
+                    if (pinResetSmsResult.success) pinResetDeliverySuccess = true;
+                }
+
+                if (pinResetDeliveryChannel === 'Email' || pinResetDeliveryChannel === 'Both') {
+                    const pinResetEmailAddress = pinResetDetails.email;
+                    if (pinResetEmailAddress && pinResetEmailAddress.trim() !== '') {
+                        const emailResult = await sendEmail(pinResetEmailAddress, emailPinResetSubject, emailPinResetMessage);
+                        if (emailResult.success) pinResetDeliverySuccess = true;
+                    }
+                }
+
+                if (pinResetDeliverySuccess) {
+                    successMessage = `PIN for customer ${approval.customerName} has been reset and sent via ${pinResetDeliveryChannel}.`;
                 } else {
-                    console.warn(`SMS sending failed for PIN reset to ${approval.customerPhone}, but PIN was reset in DB.`);
-                    successMessage = `PIN reset was successful, but the SMS notification failed. Please provide the new PIN to the customer manually.`;
+                    console.warn(`Delivery failed for PIN reset to ${approval.customerPhone}, but PIN was reset in DB.`);
+                    successMessage = `PIN reset was successful, but delivery via ${pinResetDeliveryChannel} failed. Please provide the new PIN to the customer manually.`;
                 }
                 break;
             case 'customer-account':
