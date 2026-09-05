@@ -342,7 +342,6 @@ export async function POST(req: Request) {
                     console.warn(`Delivery failed for new customer ${approval.customerPhone}, but customer was created in DB.`);
                     successMessage = `Customer was created successfully, but delivery via ${deliveryChannel} failed.`;
                 }
-                }
                 
                 break;
             case 'updated-customer':
