@@ -50,7 +50,7 @@ export async function sendSms(recipientPhoneNumber: string, message: string): Pr
 
     const resultText = await response.text();
     
-    if (response.ok) {
+    if (response.ok && !resultText.includes('Failure instance') && !resultText.toLowerCase().includes('error')) {
       console.log(`SMS API SUCCESS for ${recipientPhoneNumber}: ${resultText}`);
       await logActivity({
             userEmail: 'system',
@@ -60,14 +60,19 @@ export async function sendSms(recipientPhoneNumber: string, message: string): Pr
         });
       return { success: true, message: "SMS sent successfully." };
     } else {
-      console.error(`SMS API FAILED with status ${response.status}. Content: ${resultText}`);
+      console.error(`SMS API FAILED (Status: ${response.status}). Content: ${resultText}`);
       await logActivity({
             userEmail: 'system',
             action: 'SMS_SENT',
             status: 'Failure',
             details: `Failed to send SMS to ${recipientPhoneNumber}. Status: ${response.status}, Response: ${resultText}`,
         });
-      return { success: false, message: `SMS gateway returned an error: ${response.statusText}` };
+      
+      const errorMessage = resultText.includes('Failure instance') 
+        ? "Internal Jasmin SMS Gateway Error (AMQP Failure)" 
+        : `SMS gateway returned an error: ${response.statusText || 'Unknown Error'}`;
+        
+      return { success: false, message: errorMessage };
     }
   } catch (error: any) {
     console.error(`Unexpected error during SMS sending to ${recipientPhoneNumber}`, error);
