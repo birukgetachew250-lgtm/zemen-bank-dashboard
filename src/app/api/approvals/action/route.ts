@@ -10,7 +10,7 @@ import { Prisma } from "@prisma/client";
 import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
-import { sendSms } from '@/lib/sms-service';
+import { sendSms } from '@/services/sms-service';
 import { sendEmail } from '@/services/email-service';
 
 const extractRequesterBranch = (details?: string | null): string | null => {
