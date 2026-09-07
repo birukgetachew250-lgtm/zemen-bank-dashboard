@@ -36,6 +36,7 @@ export async function POST(req: Request) {
       reqAccept: b.RequiresAcceptance ? 1 : 0, status: b.Status || 'Active',
       createdBy: session.user?.email || 'system', updatedBy: session.user?.email || 'system'
     });
+    await executeQuery(CS, 'COMMIT');
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "TermId"=:id`, { id });
     return NextResponse.json(r.rows[0], { status: 201 });
   } catch (error) {
@@ -58,6 +59,7 @@ export async function PUT(req: Request) {
     if (b.RequiresAcceptance !== undefined) { fields.push('"RequiresAcceptance"=:reqAccept'); binds.reqAccept = b.RequiresAcceptance ? 1 : 0; }
     fields.push('"LastUpdated"=CURRENT_TIMESTAMP'); fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = session.user?.email || 'system';
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "TermId"=:id`, binds);
+    await executeQuery(CS, 'COMMIT');
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "TermId"=:id`, { id: b.TermId });
     return NextResponse.json(r.rows[0]);
   } catch (error) {
@@ -74,6 +76,7 @@ export async function DELETE(req: Request) {
     const { TermId } = await req.json();
     if (!TermId) return NextResponse.json({ message: 'TermId required' }, { status: 400 });
     await executeQuery(CS, `DELETE FROM ${TABLE} WHERE "TermId"=:id`, { id: TermId });
+    await executeQuery(CS, 'COMMIT');
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Failed to delete terms condition:", error);

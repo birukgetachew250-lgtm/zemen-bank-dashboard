@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       catId: b.CategoryId || null, uniqueName: b.UniqueName || null, descr: b.Description || null,
       cam: b.RequiresCamera ? 1 : 0, loc: b.RequiresLocation ? 1 : 0, file: b.RequiresFileAccess ? 1 : 0
     });
+    await executeQuery(CS, 'COMMIT');
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "Id"=:id`, { id });
     return NextResponse.json(r.rows[0], { status: 201 });
   } catch (error) {
@@ -55,6 +56,7 @@ export async function PUT(req: Request) {
     for (const [col, bind] of Object.entries(boolMap)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col] ? 1 : 0; } }
     fields.push('"UpdatedAt"=CURRENT_TIMESTAMP');
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "Id"=:id`, binds);
+    await executeQuery(CS, 'COMMIT');
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "Id"=:id`, { id: b.Id });
     return NextResponse.json(r.rows[0]);
   } catch (error) {
@@ -71,6 +73,7 @@ export async function DELETE(req: Request) {
     const { Id } = await req.json();
     if (!Id) return NextResponse.json({ message: 'Id required' }, { status: 400 });
     await executeQuery(CS, `DELETE FROM ${TABLE} WHERE "Id"=:id`, { id: Id });
+    await executeQuery(CS, 'COMMIT');
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Failed to delete mini app:", error);

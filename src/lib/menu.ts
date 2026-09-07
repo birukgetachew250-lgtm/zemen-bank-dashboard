@@ -68,6 +68,7 @@ import {
   ScanFace,
   CheckCircle2,
   ClockIcon,
+  HelpCircle,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -258,6 +259,7 @@ export const menu: MenuItem[] = [
         label: "Content & Legal",
         icon: ScrollText,
         children: [
+          { icon: HelpCircle, label: "FAQ", href: "/app-control/faq" },
           { icon: Shield, label: "Privacy Policies", href: "/app-control/privacy-policies" },
           { icon: FileText, label: "Terms & Conditions", href: "/app-control/terms-conditions" },
           { icon: Megaphone, label: "Promo Ads", href: "/app-control/promo-ads" },

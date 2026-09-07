@@ -35,6 +35,7 @@ export async function POST(req: Request) {
       effDate: b.EffectiveDate ? new Date(b.EffectiveDate) : null, lastUpd: new Date(),
       status: b.Status || 'Active', createdBy: session.user?.email || 'system', updatedBy: session.user?.email || 'system'
     });
+    await executeQuery(CS, 'COMMIT');
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "PolicyId"=:id`, { id });
     return NextResponse.json(r.rows[0], { status: 201 });
   } catch (error) {
@@ -56,6 +57,7 @@ export async function PUT(req: Request) {
     if (b.EffectiveDate !== undefined) { fields.push('"EffectiveDate"=:effDate'); binds.effDate = b.EffectiveDate ? new Date(b.EffectiveDate) : null; }
     fields.push('"LastUpdated"=CURRENT_TIMESTAMP'); fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = session.user?.email || 'system';
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "PolicyId"=:id`, binds);
+    await executeQuery(CS, 'COMMIT');
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "PolicyId"=:id`, { id: b.PolicyId });
     return NextResponse.json(r.rows[0]);
   } catch (error) {
@@ -72,6 +74,7 @@ export async function DELETE(req: Request) {
     const { PolicyId } = await req.json();
     if (!PolicyId) return NextResponse.json({ message: 'PolicyId required' }, { status: 400 });
     await executeQuery(CS, `DELETE FROM ${TABLE} WHERE "PolicyId"=:id`, { id: PolicyId });
+    await executeQuery(CS, 'COMMIT');
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Failed to delete privacy policy:", error);

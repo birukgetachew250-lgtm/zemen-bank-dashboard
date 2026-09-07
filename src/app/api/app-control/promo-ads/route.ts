@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       startDate: b.StartDate ? new Date(b.StartDate) : null, endDate: b.EndDate ? new Date(b.EndDate) : null,
       status: b.Status || 'Active', createdBy: session.user?.email || 'system', updatedBy: session.user?.email || 'system'
     });
+    await executeQuery(CS, 'COMMIT');
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "Id"=:id`, { id });
     return NextResponse.json(r.rows[0], { status: 201 });
   } catch (error) {
@@ -55,6 +56,7 @@ export async function PUT(req: Request) {
     if (b.EndDate !== undefined) { fields.push('"EndDate"=:endDate'); binds.endDate = b.EndDate ? new Date(b.EndDate) : null; }
     fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = session.user?.email || 'system';
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "Id"=:id`, binds);
+    await executeQuery(CS, 'COMMIT');
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "Id"=:id`, { id: b.Id });
     return NextResponse.json(r.rows[0]);
   } catch (error) {
@@ -71,6 +73,7 @@ export async function DELETE(req: Request) {
     const { Id } = await req.json();
     if (!Id) return NextResponse.json({ message: 'Id required' }, { status: 400 });
     await executeQuery(CS, `DELETE FROM ${TABLE} WHERE "Id"=:id`, { id: Id });
+    await executeQuery(CS, 'COMMIT');
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Failed to delete promo ad:", error);
