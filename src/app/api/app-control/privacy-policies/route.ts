@@ -29,9 +29,9 @@ export async function POST(req: Request) {
   try {
     const b = await req.json();
     const id = crypto.randomUUID();
-    await executeQuery(CS, `INSERT INTO ${TABLE} ("PolicyId","SectionCode","SectionHeader","SectionSummary","SectionContent","IconName","DisplayOrder","Version","EffectiveDate","LastUpdated","Status","CreatedBy","UpdatedBy","CreatedAt","UpdatedAt") VALUES (:id,:code,:header,:summary,:content,:icon,:order,:ver,:effDate,:lastUpd,:status,:createdBy,:updatedBy,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
+    await executeQuery(CS, `INSERT INTO ${TABLE} ("PolicyId","SectionCode","SectionHeader","SectionSummary","SectionContent","IconName","DisplayOrder","Version","EffectiveDate","LastUpdated","Status","CreatedBy","UpdatedBy","CreatedAt","UpdatedAt") VALUES (:id,:code,:header,:summary,:content,:icon,:dispOrder,:ver,:effDate,:lastUpd,:status,:createdBy,:updatedBy,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
       id, code: b.SectionCode, header: b.SectionHeader, summary: b.SectionSummary || null, content: b.SectionContent,
-      icon: b.IconName || null, order: b.DisplayOrder || 0, ver: b.Version || null,
+      icon: b.IconName || null, dispOrder: b.DisplayOrder || 0, ver: b.Version || null,
       effDate: b.EffectiveDate ? new Date(b.EffectiveDate) : null, lastUpd: new Date(),
       status: b.Status || 'Active', createdBy: session.user?.email || 'system', updatedBy: session.user?.email || 'system'
     });
@@ -52,7 +52,7 @@ export async function PUT(req: Request) {
     const b = await req.json();
     if (!b.PolicyId) return NextResponse.json({ message: 'PolicyId required' }, { status: 400 });
     const fields: string[] = []; const binds: any = { id: b.PolicyId };
-    const map: Record<string, string> = { SectionCode:'code',SectionHeader:'header',SectionSummary:'summary',SectionContent:'content',IconName:'icon',DisplayOrder:'order',Version:'ver',Status:'status' };
+    const map: Record<string, string> = { SectionCode:'code',SectionHeader:'header',SectionSummary:'summary',SectionContent:'content',IconName:'icon',DisplayOrder:'dispOrder',Version:'ver',Status:'status' };
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
     if (b.EffectiveDate !== undefined) { fields.push('"EffectiveDate"=:effDate'); binds.effDate = b.EffectiveDate ? new Date(b.EffectiveDate) : null; }
     fields.push('"LastUpdated"=CURRENT_TIMESTAMP'); fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = session.user?.email || 'system';

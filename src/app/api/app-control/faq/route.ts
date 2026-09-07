@@ -28,9 +28,9 @@ export async function POST(req: Request) {
   try {
     const b = await req.json();
     const id = crypto.randomUUID();
-    await executeQuery(CS, `INSERT INTO ${TABLE} ("FaqId","Question","Answer","Category","DisplayOrder","Status","CreatedBy","UpdatedBy","CreatedAt","UpdatedAt") VALUES (:id,:question,:answer,:category,:order,:status,:createdBy,:updatedBy,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
+    await executeQuery(CS, `INSERT INTO ${TABLE} ("FaqId","Question","Answer","Category","DisplayOrder","Status","CreatedBy","UpdatedBy","CreatedAt","UpdatedAt") VALUES (:id,:question,:answer,:category,:dispOrder,:status,:createdBy,:updatedBy,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
       id, question: b.Question, answer: b.Answer, category: b.Category || 'General',
-      order: b.DisplayOrder || 0, status: b.Status || 'Active',
+      dispOrder: b.DisplayOrder || 0, status: b.Status || 'Active',
       createdBy: session.user?.email || 'system', updatedBy: session.user?.email || 'system'
     });
     await executeQuery(CS, 'COMMIT');
@@ -50,7 +50,7 @@ export async function PUT(req: Request) {
     const b = await req.json();
     if (!b.FaqId) return NextResponse.json({ message: 'FaqId required' }, { status: 400 });
     const fields: string[] = []; const binds: any = { id: b.FaqId };
-    const map: Record<string, string> = { Question:'question',Answer:'answer',Category:'category',DisplayOrder:'order',Status:'status' };
+    const map: Record<string, string> = { Question:'question',Answer:'answer',Category:'category',DisplayOrder:'dispOrder',Status:'status' };
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
     fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = session.user?.email || 'system';
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "FaqId"=:id`, binds);

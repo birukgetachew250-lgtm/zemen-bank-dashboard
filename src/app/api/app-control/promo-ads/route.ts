@@ -26,10 +26,10 @@ export async function POST(req: Request) {
   try {
     const b = await req.json();
     const id = crypto.randomUUID();
-    await executeQuery(CS, `INSERT INTO ${TABLE} ("Id","Title","Subtitle","PageNumber","Description","TargetUrl","ImageUrl","ThumbnailUrl","DisplayOrder","AdType","StartDate","EndDate","Status","CreatedBy","UpdatedBy","CreatedAt","UpdatedAt") VALUES (:id,:title,:subtitle,:page,:descr,:target,:image,:thumb,:order,:adType,:startDate,:endDate,:status,:createdBy,:updatedBy,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
+    await executeQuery(CS, `INSERT INTO ${TABLE} ("Id","Title","Subtitle","PageNumber","Description","TargetUrl","ImageUrl","ThumbnailUrl","DisplayOrder","AdType","StartDate","EndDate","Status","CreatedBy","UpdatedBy","CreatedAt","UpdatedAt") VALUES (:id,:title,:subtitle,:page,:descr,:target,:image,:thumb,:dispOrder,:adType,:startDate,:endDate,:status,:createdBy,:updatedBy,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
       id, title: b.Title, subtitle: b.Subtitle || null, page: b.PageNumber, descr: b.Description || null,
       target: b.TargetUrl || null, image: b.ImageUrl || null, thumb: b.ThumbnailUrl || null,
-      order: b.DisplayOrder || 0, adType: b.AdType || null,
+      dispOrder: b.DisplayOrder || 0, adType: b.AdType || null,
       startDate: b.StartDate ? new Date(b.StartDate) : null, endDate: b.EndDate ? new Date(b.EndDate) : null,
       status: b.Status || 'Active', createdBy: session.user?.email || 'system', updatedBy: session.user?.email || 'system'
     });
@@ -50,7 +50,7 @@ export async function PUT(req: Request) {
     const b = await req.json();
     if (!b.Id) return NextResponse.json({ message: 'Id required' }, { status: 400 });
     const fields: string[] = []; const binds: any = { id: b.Id };
-    const map: Record<string, string> = { Title:'title',Subtitle:'subtitle',PageNumber:'page',Description:'desc',TargetUrl:'target',ImageUrl:'image',ThumbnailUrl:'thumb',DisplayOrder:'order',AdType:'adType',Status:'status' };
+    const map: Record<string, string> = { Title:'title',Subtitle:'subtitle',PageNumber:'page',Description:'appDescr',TargetUrl:'target',ImageUrl:'image',ThumbnailUrl:'thumb',DisplayOrder:'dispOrder',AdType:'adType',Status:'status' };
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
     if (b.StartDate !== undefined) { fields.push('"StartDate"=:startDate'); binds.startDate = b.StartDate ? new Date(b.StartDate) : null; }
     if (b.EndDate !== undefined) { fields.push('"EndDate"=:endDate'); binds.endDate = b.EndDate ? new Date(b.EndDate) : null; }

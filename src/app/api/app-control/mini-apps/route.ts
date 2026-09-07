@@ -27,10 +27,10 @@ export async function POST(req: Request) {
   try {
     const b = await req.json();
     const id = crypto.randomUUID();
-    await executeQuery(CS, `INSERT INTO ${TABLE} ("Id","Name","Url","LogoUrl","Username","Password","EncryptionKey","HoldingAccount","Status","ThemeColor","Rank","CategoryId","UniqueName","Description","RequiresCamera","RequiresLocation","RequiresFileAccess","CreatedAt","UpdatedAt") VALUES (:id,:name,:url,:logo,:user,:pass,:encKey,:holdAcc,:status,:theme,:rank,:catId,:uniqueName,:descr,:cam,:loc,:file,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
-      id, name: b.Name, url: b.Url, logo: b.LogoUrl, user: b.Username, pass: b.Password, encKey: b.EncryptionKey,
+    await executeQuery(CS, `INSERT INTO ${TABLE} ("Id","Name","Url","LogoUrl","Username","Password","EncryptionKey","HoldingAccount","Status","ThemeColor","Rank","CategoryId","UniqueName","Description","RequiresCamera","RequiresLocation","RequiresFileAccess","CreatedAt","UpdatedAt") VALUES (:id,:name,:url,:logo,:appUser,:pass,:encKey,:holdAcc,:status,:theme,:rank,:catId,:uniqueName,:appDescr,:cam,:loc,:file,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
+      id, name: b.Name, url: b.Url, logo: b.LogoUrl, appUser: b.Username, pass: b.Password, encKey: b.EncryptionKey,
       holdAcc: b.HoldingAccount || '', status: b.Status || 'Active', theme: b.ThemeColor || '#808080', rank: b.Rank || 0,
-      catId: b.CategoryId || null, uniqueName: b.UniqueName || null, descr: b.Description || null,
+      catId: b.CategoryId || null, uniqueName: b.UniqueName || null, appDescr: b.Description || null,
       cam: b.RequiresCamera ? 1 : 0, loc: b.RequiresLocation ? 1 : 0, file: b.RequiresFileAccess ? 1 : 0
     });
     await executeQuery(CS, 'COMMIT');
@@ -50,7 +50,7 @@ export async function PUT(req: Request) {
     const b = await req.json();
     if (!b.Id) return NextResponse.json({ message: 'Id required' }, { status: 400 });
     const fields: string[] = []; const binds: any = { id: b.Id };
-    const map: Record<string, string> = { Name:'name',Url:'url',LogoUrl:'logo',Username:'user',Password:'pass',EncryptionKey:'encKey',HoldingAccount:'holdAcc',Status:'status',ThemeColor:'theme',Rank:'rank',CategoryId:'catId',UniqueName:'uniqueName',Description:'desc' };
+    const map: Record<string, string> = { Name:'name',Url:'url',LogoUrl:'logo',Username:'appUser',Password:'pass',EncryptionKey:'encKey',HoldingAccount:'holdAcc',Status:'status',ThemeColor:'theme',Rank:'rank',CategoryId:'catId',UniqueName:'uniqueName',Description:'appDescr' };
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
     const boolMap: Record<string, string> = { RequiresCamera:'cam',RequiresLocation:'loc',RequiresFileAccess:'file' };
     for (const [col, bind] of Object.entries(boolMap)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col] ? 1 : 0; } }
