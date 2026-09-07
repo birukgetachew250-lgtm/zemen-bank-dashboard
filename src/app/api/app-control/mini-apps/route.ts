@@ -27,11 +27,11 @@ export async function POST(req: Request) {
   try {
     const b = await req.json();
     const id = crypto.randomUUID();
-    await executeQuery(CS, `INSERT INTO ${TABLE} ("Id","Name","Url","LogoUrl","Username","Password","EncryptionKey","HoldingAccount","Status","ThemeColor","Rank","CategoryId","UniqueName","Description","RequiresCamera","RequiresLocation","RequiresFileAccess","CreatedAt","UpdatedAt") VALUES (:id,:name,:url,:logo,:appUser,:pass,:encKey,:holdAcc,:status,:theme,:rank,:catId,:uniqueName,:appDescr,:cam,:loc,:file,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
-      id, name: b.Name, url: b.Url, logo: b.LogoUrl, appUser: b.Username, pass: b.Password, encKey: b.EncryptionKey,
-      holdAcc: b.HoldingAccount || '', status: b.Status || 'Active', theme: b.ThemeColor || '#808080', rank: b.Rank || 0,
-      catId: b.CategoryId || null, uniqueName: b.UniqueName || null, appDescr: b.Description || null,
-      cam: b.RequiresCamera ? 1 : 0, loc: b.RequiresLocation ? 1 : 0, file: b.RequiresFileAccess ? 1 : 0
+    await executeQuery(CS, `INSERT INTO ${TABLE} ("Id","Name","Url","LogoUrl","Username","Password","EncryptionKey","HoldingAccount","Status","ThemeColor","Rank","CategoryId","UniqueName","Description","RequiresCamera","RequiresLocation","RequiresFileAccess","CreatedAt","UpdatedAt") VALUES (:id,:b_name,:b_url,:b_logo,:b_user,:b_pass,:b_encKey,:b_holdAcc,:b_status,:b_theme,:b_rank,:b_catId,:b_uniqueName,:b_desc,:b_cam,:b_loc,:b_file,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
+      id, b_name: b.Name, b_url: b.Url, b_logo: b.LogoUrl, b_user: b.Username, b_pass: b.Password, b_encKey: b.EncryptionKey,
+      b_holdAcc: b.HoldingAccount || '', b_status: b.Status || 'Active', b_theme: b.ThemeColor || '#808080', b_rank: b.Rank || 0,
+      b_catId: b.CategoryId || null, b_uniqueName: b.UniqueName || null, b_desc: b.Description || null,
+      b_cam: b.RequiresCamera ? 1 : 0, b_loc: b.RequiresLocation ? 1 : 0, b_file: b.RequiresFileAccess ? 1 : 0
     });
     await executeQuery(CS, 'COMMIT');
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "Id"=:id`, { id });
@@ -50,9 +50,9 @@ export async function PUT(req: Request) {
     const b = await req.json();
     if (!b.Id) return NextResponse.json({ message: 'Id required' }, { status: 400 });
     const fields: string[] = []; const binds: any = { id: b.Id };
-    const map: Record<string, string> = { Name:'name',Url:'url',LogoUrl:'logo',Username:'appUser',Password:'pass',EncryptionKey:'encKey',HoldingAccount:'holdAcc',Status:'status',ThemeColor:'theme',Rank:'rank',CategoryId:'catId',UniqueName:'uniqueName',Description:'appDescr' };
+    const map: Record<string, string> = { Name:'b_name',Url:'b_url',LogoUrl:'b_logo',Username:'b_user',Password:'b_pass',EncryptionKey:'b_encKey',HoldingAccount:'b_holdAcc',Status:'b_status',ThemeColor:'b_theme',Rank:'b_rank',CategoryId:'b_catId',UniqueName:'b_uniqueName',Description:'b_desc' };
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
-    const boolMap: Record<string, string> = { RequiresCamera:'cam',RequiresLocation:'loc',RequiresFileAccess:'file' };
+    const boolMap: Record<string, string> = { RequiresCamera:'b_cam',RequiresLocation:'b_loc',RequiresFileAccess:'b_file' };
     for (const [col, bind] of Object.entries(boolMap)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col] ? 1 : 0; } }
     fields.push('"UpdatedAt"=CURRENT_TIMESTAMP');
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "Id"=:id`, binds);

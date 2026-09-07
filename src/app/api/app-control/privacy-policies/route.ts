@@ -29,11 +29,11 @@ export async function POST(req: Request) {
   try {
     const b = await req.json();
     const id = crypto.randomUUID();
-    await executeQuery(CS, `INSERT INTO ${TABLE} ("PolicyId","SectionCode","SectionHeader","SectionSummary","SectionContent","IconName","DisplayOrder","Version","EffectiveDate","LastUpdated","Status","CreatedBy","UpdatedBy","CreatedAt","UpdatedAt") VALUES (:id,:code,:header,:summary,:content,:icon,:dispOrder,:ver,:effDate,:lastUpd,:status,:createdBy,:updatedBy,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
-      id, code: b.SectionCode, header: b.SectionHeader, summary: b.SectionSummary || null, content: b.SectionContent,
-      icon: b.IconName || null, dispOrder: b.DisplayOrder || 0, ver: b.Version || null,
-      effDate: b.EffectiveDate ? new Date(b.EffectiveDate) : null, lastUpd: new Date(),
-      status: b.Status || 'Active', createdBy: session.user?.email || 'system', updatedBy: session.user?.email || 'system'
+    await executeQuery(CS, `INSERT INTO ${TABLE} ("PolicyId","SectionCode","SectionHeader","SectionSummary","SectionContent","IconName","DisplayOrder","Version","EffectiveDate","LastUpdated","Status","CreatedBy","UpdatedBy","CreatedAt","UpdatedAt") VALUES (:id,:b_code,:b_header,:b_summary,:b_content,:b_icon,:b_order,:b_ver,:b_effDate,:b_lastUpd,:b_status,:b_createdBy,:b_updatedBy,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
+      id, b_code: b.SectionCode, b_header: b.SectionHeader, b_summary: b.SectionSummary || null, b_content: b.SectionContent,
+      b_icon: b.IconName || null, b_order: b.DisplayOrder || 0, b_ver: b.Version || null,
+      b_effDate: b.EffectiveDate ? new Date(b.EffectiveDate) : null, b_lastUpd: new Date(),
+      b_status: b.Status || 'Active', b_createdBy: session.user?.email || 'system', b_updatedBy: session.user?.email || 'system'
     });
     await executeQuery(CS, 'COMMIT');
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "PolicyId"=:id`, { id });
@@ -52,10 +52,10 @@ export async function PUT(req: Request) {
     const b = await req.json();
     if (!b.PolicyId) return NextResponse.json({ message: 'PolicyId required' }, { status: 400 });
     const fields: string[] = []; const binds: any = { id: b.PolicyId };
-    const map: Record<string, string> = { SectionCode:'code',SectionHeader:'header',SectionSummary:'summary',SectionContent:'content',IconName:'icon',DisplayOrder:'dispOrder',Version:'ver',Status:'status' };
+    const map: Record<string, string> = { SectionCode:'b_code',SectionHeader:'b_header',SectionSummary:'b_summary',SectionContent:'b_content',IconName:'b_icon',DisplayOrder:'b_order',Version:'b_ver',Status:'b_status' };
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
-    if (b.EffectiveDate !== undefined) { fields.push('"EffectiveDate"=:effDate'); binds.effDate = b.EffectiveDate ? new Date(b.EffectiveDate) : null; }
-    fields.push('"LastUpdated"=CURRENT_TIMESTAMP'); fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = session.user?.email || 'system';
+    if (b.EffectiveDate !== undefined) { fields.push('"EffectiveDate"=:b_effDate'); binds.b_effDate = b.EffectiveDate ? new Date(b.EffectiveDate) : null; }
+    fields.push('"LastUpdated"=CURRENT_TIMESTAMP'); fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:b_updBy'); binds.b_updBy = session.user?.email || 'system';
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "PolicyId"=:id`, binds);
     await executeQuery(CS, 'COMMIT');
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "PolicyId"=:id`, { id: b.PolicyId });

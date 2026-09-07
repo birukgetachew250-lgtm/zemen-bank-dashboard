@@ -28,10 +28,10 @@ export async function POST(req: Request) {
   try {
     const b = await req.json();
     const id = crypto.randomUUID();
-    await executeQuery(CS, `INSERT INTO ${TABLE} ("FaqId","Question","Answer","Category","DisplayOrder","Status","CreatedBy","UpdatedBy","CreatedAt","UpdatedAt") VALUES (:id,:question,:answer,:category,:dispOrder,:status,:createdBy,:updatedBy,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
-      id, question: b.Question, answer: b.Answer, category: b.Category || 'General',
-      dispOrder: b.DisplayOrder || 0, status: b.Status || 'Active',
-      createdBy: session.user?.email || 'system', updatedBy: session.user?.email || 'system'
+    await executeQuery(CS, `INSERT INTO ${TABLE} ("FaqId","Question","Answer","Category","DisplayOrder","Status","CreatedBy","UpdatedBy","CreatedAt","UpdatedAt") VALUES (:id,:b_question,:b_answer,:b_category,:b_order,:b_status,:b_createdBy,:b_updatedBy,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
+      id, b_question: b.Question, b_answer: b.Answer, b_category: b.Category || 'General',
+      b_order: b.DisplayOrder || 0, b_status: b.Status || 'Active',
+      b_createdBy: session.user?.email || 'system', b_updatedBy: session.user?.email || 'system'
     });
     await executeQuery(CS, 'COMMIT');
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "FaqId"=:id`, { id });
@@ -50,9 +50,9 @@ export async function PUT(req: Request) {
     const b = await req.json();
     if (!b.FaqId) return NextResponse.json({ message: 'FaqId required' }, { status: 400 });
     const fields: string[] = []; const binds: any = { id: b.FaqId };
-    const map: Record<string, string> = { Question:'question',Answer:'answer',Category:'category',DisplayOrder:'dispOrder',Status:'status' };
+    const map: Record<string, string> = { Question:'b_question',Answer:'b_answer',Category:'b_category',DisplayOrder:'b_order',Status:'b_status' };
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
-    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = session.user?.email || 'system';
+    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:b_updBy'); binds.b_updBy = session.user?.email || 'system';
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "FaqId"=:id`, binds);
     await executeQuery(CS, 'COMMIT');
     const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "FaqId"=:id`, { id: b.FaqId });
