@@ -1,15 +1,15 @@
-import { HelpCircle } from 'lucide-react';
+import FaqClient from '@/components/app-control/FaqClient';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
+import { redirect } from 'next/navigation';
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const session = await requirePermission(PERMISSIONS.APP_CONTROL_VIEW);
+  if (!session) redirect('/login');
+
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-2 mb-6">
-        <HelpCircle className="w-6 h-6 text-primary" />
-        <h1 className="text-2xl font-bold">FAQ Management</h1>
-      </div>
-      <div className="bg-white rounded-lg shadow p-6">
-        <p className="text-gray-500">The FAQ management interface is currently under construction. Please check back later to manage your FAQ items.</p>
-      </div>
+    <div className="p-6 h-full flex flex-col">
+      <FaqClient />
     </div>
   );
 }
