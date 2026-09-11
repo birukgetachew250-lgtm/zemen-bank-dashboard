@@ -49,7 +49,7 @@ export async function PUT(req: Request) {
     const b = await req.json();
     if (!b.Lid) return NextResponse.json({ message: 'Lid required' }, { status: 400 });
     const fields: string[] = []; const binds: any = { id: b.Lid };
-    const map: Record<string, string> = { PlaceName:'name',Latitude:'lat',Longitude:'lng',Location:'loc',Description:'desc',Type:'type',Status:'status',Rank:'rank' };
+    const map: Record<string, string> = { PlaceName:'name',Latitude:'lat',Longitude:'lng',Location:'loc',Description:'b_desc',Type:'type',Status:'status',Rank:'rank' };
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
     fields.push('"UpdatedAt"=CURRENT_TIMESTAMP');
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "Lid"=:id`, binds);

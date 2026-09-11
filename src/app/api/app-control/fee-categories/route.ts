@@ -46,12 +46,12 @@ export async function PUT(req: Request) {
   try {
     const b = await req.json();
     if (!b.CategoryId) return NextResponse.json({ message: 'CategoryId required' }, { status: 400 });
-    const fields: string[] = []; const binds: any = { id: b.CategoryId };
-    const map: Record<string, string> = { CategoryName:'name',CategoryCode:'code',Description:'desc',IconUrl:'icon',ColorHex:'color',Status:'status',Rank:'rank' };
+    const fields: string[] = []; const binds: any = { b_id: b.CategoryId };
+    const map: Record<string, string> = { CategoryName:'b_name',CategoryCode:'b_code',Description:'b_desc',IconUrl:'b_icon',ColorHex:'b_color',Status:'b_status',Rank:'b_rank' };
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
-    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = session.user?.email || 'system';
-    await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "CategoryId"=:id`, binds);
-    const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "CategoryId"=:id`, { id: b.CategoryId });
+    fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:b_updBy'); binds.b_updBy = session.user?.email || 'system';
+    await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "CategoryId"=:b_id`, binds);
+    const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "CategoryId"=:b_id`, { b_id: b.CategoryId });
     return NextResponse.json(r.rows[0]);
   } catch (error) {
     console.error("Failed to update fee category:", error);
@@ -66,10 +66,13 @@ export async function DELETE(req: Request) {
   try {
     const { CategoryId } = await req.json();
     if (!CategoryId) return NextResponse.json({ message: 'CategoryId required' }, { status: 400 });
-    await executeQuery(CS, `DELETE FROM ${TABLE} WHERE "CategoryId"=:id`, { id: CategoryId });
+    await executeQuery(CS, `DELETE FROM ${TABLE} WHERE "CategoryId"=:b_id`, { b_id: CategoryId });
     return new NextResponse(null, { status: 204 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to delete fee category:", error);
+    if (error.message && error.message.includes('ORA-02292')) {
+      return NextResponse.json({ message: "Cannot delete this category because it is still being used by one or more fee charges. Please reassign or delete the associated fee charges first." }, { status: 400 });
+    }
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }

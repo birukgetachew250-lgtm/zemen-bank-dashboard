@@ -26,10 +26,10 @@ export async function POST(req: Request) {
   try {
     const b = await req.json();
     const id = crypto.randomUUID();
-    await executeQuery(CS, `INSERT INTO ${TABLE} ("Id","Title","Subtitle","PageNumber","Description","TargetUrl","ImageUrl","ThumbnailUrl","DisplayOrder","AdType","StartDate","EndDate","Status","CreatedBy","UpdatedBy","CreatedAt","UpdatedAt") VALUES (:id,:b_title,:b_subtitle,:b_page,:b_desc,:b_target,:b_image,:b_thumb,:b_order,:b_adType,:b_startDate,:b_endDate,:b_status,:b_createdBy,:b_updatedBy,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
+    await executeQuery(CS, `INSERT INTO ${TABLE} ("Id","Title","Subtitle","PageNumber","Description","TargetUrl","ImageUrl","ThumbnailUrl","DisplayOrder","AdType","IsIFB","StartDate","EndDate","Status","CreatedBy","UpdatedBy","CreatedAt","UpdatedAt") VALUES (:id,:b_title,:b_subtitle,:b_page,:b_desc,:b_target,:b_image,:b_thumb,:b_order,:b_adType,:b_isIfb,:b_startDate,:b_endDate,:b_status,:b_createdBy,:b_updatedBy,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`, {
       id, b_title: b.Title, b_subtitle: b.Subtitle || null, b_page: b.PageNumber, b_desc: b.Description || null,
       b_target: b.TargetUrl || null, b_image: b.ImageUrl || null, b_thumb: b.ThumbnailUrl || null,
-      b_order: b.DisplayOrder || 0, b_adType: b.AdType || null,
+      b_order: b.DisplayOrder || 0, b_adType: b.AdType || null, b_isIfb: b.IsIFB ? 1 : 0,
       b_startDate: b.StartDate ? new Date(b.StartDate) : null, b_endDate: b.EndDate ? new Date(b.EndDate) : null,
       b_status: b.Status || 'Active', b_createdBy: session.user?.email || 'system', b_updatedBy: session.user?.email || 'system'
     });
@@ -52,6 +52,7 @@ export async function PUT(req: Request) {
     const fields: string[] = []; const binds: any = { id: b.Id };
     const map: Record<string, string> = { Title:'b_title',Subtitle:'b_subtitle',PageNumber:'b_page',Description:'b_desc',TargetUrl:'b_target',ImageUrl:'b_image',ThumbnailUrl:'b_thumb',DisplayOrder:'b_order',AdType:'b_adType',Status:'b_status' };
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
+    if (b.IsIFB !== undefined) { fields.push('"IsIFB"=:b_isIfb'); binds.b_isIfb = b.IsIFB ? 1 : 0; }
     if (b.StartDate !== undefined) { fields.push('"StartDate"=:b_startDate'); binds.b_startDate = b.StartDate ? new Date(b.StartDate) : null; }
     if (b.EndDate !== undefined) { fields.push('"EndDate"=:b_endDate'); binds.b_endDate = b.EndDate ? new Date(b.EndDate) : null; }
     fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:b_updatedBy'); binds.b_updatedBy = session.user?.email || 'system';

@@ -45,7 +45,7 @@ export async function PUT(req: Request) {
     const b = await req.json();
     if (!b.Id) return NextResponse.json({ message: 'Id required' }, { status: 400 });
     const fields: string[] = []; const binds: any = { id: b.Id };
-    const map: Record<string, string> = { Name:'name',IconName:'icon',ColorHex:'color',Description:'desc',Status:'status',Rank:'rank' };
+    const map: Record<string, string> = { Name:'name',IconName:'icon',ColorHex:'color',Description:'b_desc',Status:'status',Rank:'rank' };
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
     fields.push('"UpdatedAt"=CURRENT_TIMESTAMP');
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "Id"=:id`, binds);

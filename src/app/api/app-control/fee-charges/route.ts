@@ -57,7 +57,7 @@ export async function PUT(req: Request) {
     const fields: string[] = []; const binds: any = { id: b.FeeId };
     const map: Record<string, string> = {
       CategoryId:'catId',FeeName:'name',FeeCode:'code',TransactionType:'txnType',TransactionSubType:'txnSubType',
-      Description:'desc',FeeAmount:'amt',FeePercentage:'pct',MinFeeAmount:'minFee',MaxFeeAmount:'maxFee',
+      Description:'b_desc',FeeAmount:'amt',FeePercentage:'pct',MinFeeAmount:'minFee',MaxFeeAmount:'maxFee',
       MinTransactionAmount:'minTxn',MaxTransactionAmount:'maxTxn',Currency:'currency',FeeFrequency:'freq',
       VATPercentage:'vatPct',FreeTransactionsLimit:'freeTxnLimit',FreeTransactionsPeriod:'freeTxnPeriod',
       Notes:'notes',Status:'status',Rank:'rank'
