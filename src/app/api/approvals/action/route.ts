@@ -29,6 +29,7 @@ const approvalTypeToActionMap: Record<string, ActivityLogAction> = {
     'updated-customer': 'CUSTOMER_UPDATE_APPROVED',
     'suspend-customer': 'CUSTOMER_SUSPEND_APPROVED',
     'unsuspend-customer': 'CUSTOMER_UNSUSPEND_APPROVED',
+    'unlock-customer': 'CUSTOMER_UNSUSPEND_APPROVED',
     'resend-activation-code': 'CUSTOMER_RESEND_ACTIVATION_APPROVED',
     'pin-reset': 'PIN_RESET_APPROVED',
     'customer-account': 'ACCOUNT_LINK_APPROVED',
@@ -390,6 +391,46 @@ export async function POST(req: Request) {
             case 'unsuspend-customer':
                  await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Active', cif });
                  await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
+                break;
+            case 'unlock-customer':
+                const unlockSecurityQuery = `
+                    UPDATE "SECURITY_MODULE"."UserSecurities" 
+                    SET 
+                        "FailedAttempts" = 0,
+                        "LockoutCount" = 0,
+                        "IsLoggedIn" = 1,
+                        "LastLoginAttempt" = SYSTIMESTAMP,
+                        "IsLocked" = 0,
+                        "UnlockedTime" = SYSTIMESTAMP,
+                        "UpdateDate" = SYSTIMESTAMP,
+                        "UpdateUser" = 'system'
+                    WHERE "CIFNumber" = :cif`;
+                
+                try {
+                    await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, unlockSecurityQuery, { cif });
+                } catch (err: any) {
+                    if (err.message && err.message.includes("invalid identifier")) {
+                        // Fallback if LockoutCount doesn't exist in the database
+                        const unlockSecurityQueryFallback = `
+                            UPDATE "SECURITY_MODULE"."UserSecurities" 
+                            SET 
+                                "FailedAttempts" = 0,
+                                "IsLoggedIn" = 1,
+                                "LastLoginAttempt" = SYSTIMESTAMP,
+                                "IsLocked" = 0,
+                                "UnlockedTime" = SYSTIMESTAMP,
+                                "UpdateDate" = SYSTIMESTAMP,
+                                "UpdateUser" = 'system'
+                            WHERE "CIFNumber" = :cif`;
+                        await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, unlockSecurityQueryFallback, { cif });
+                    } else {
+                        throw err;
+                    }
+                }
+
+                await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Active', cif });
+                await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
+                successMessage = `Customer with CIF ${cif} has been unlocked successfully.`;
                 break;
             case 'resend-activation-code':
                 const resendActivationCode = Math.floor(100000 + Math.random() * 900000).toString();
