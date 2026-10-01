@@ -7,10 +7,11 @@ import { executeQuery } from '@/lib/oracle-db';
 import { encrypt } from '@/lib/crypto';
 import crypto from 'crypto';
 import { Prisma } from "@prisma/client";
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
+import { requirePermission } from '@/lib/auth-utils';
+import { PERMISSIONS } from '@/lib/permissions';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
 import { sendSms } from '@/services/sms-service';
+import { sendEmail } from '@/services/email-service';
 
 const extractRequesterBranch = (details?: string | null): string | null => {
     if (!details) return null;
@@ -28,6 +29,7 @@ const approvalTypeToActionMap: Record<string, ActivityLogAction> = {
     'updated-customer': 'CUSTOMER_UPDATE_APPROVED',
     'suspend-customer': 'CUSTOMER_SUSPEND_APPROVED',
     'unsuspend-customer': 'CUSTOMER_UNSUSPEND_APPROVED',
+    'unlock-customer': 'CUSTOMER_UNSUSPEND_APPROVED',
     'resend-activation-code': 'CUSTOMER_RESEND_ACTIVATION_APPROVED',
     'pin-reset': 'PIN_RESET_APPROVED',
     'customer-account': 'ACCOUNT_LINK_APPROVED',
@@ -84,6 +86,18 @@ const getLinkedAccountBranchCode = (account: any): string => {
     return account?.BRANCH_CODE || account?.branch_code || account?.branchCode || '';
 };
 
+const getLinkedAccountClass = (account: any): string => {
+    if (typeof account === 'string' || typeof account === 'number') return '';
+
+    return account?.ACCOUNT_CLASS || account?.account_class || account?.accountClass || '';
+};
+
+const getLinkedCustomerCategory = (account: any): string => {
+    if (typeof account === 'string' || typeof account === 'number') return '';
+
+    return account?.CUSTOMER_CATEGORY || account?.customer_category || account?.customerCategory || '';
+};
+
 const getCifFromApproval = async (approval: any) => {
     if (approval.details) {
         try {
@@ -109,7 +123,9 @@ const getCifFromApproval = async (approval: any) => {
 
 
 export async function POST(req: Request) {
-    const session = await getServerSession(authOptions);
+    const session = await requirePermission(PERMISSIONS.APPROVALS_ACTION);
+    if (session instanceof NextResponse) return session;
+
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
     let approvalId: number | undefined;
 
@@ -145,7 +161,25 @@ export async function POST(req: Request) {
         const isSuperAdmin = approver.role === 'Super Admin';
         const isSameBranch = Boolean(approver.branch && requesterBranch && approver.branch === requesterBranch);
 
+        // ── Maker-Checker: block self-approval for ALL roles ──────────────────
+        // The same user who submitted the request (maker) must not approve it (checker).
+        const makerEmail = (approval as any).requestedByEmail;
+        if (makerEmail && makerEmail === sessionEmail) {
+            await logActivity({
+                userEmail: sessionEmail,
+                action: 'REQUEST_REJECTED',
+                status: 'Failure',
+                details: `Self-approval attempt blocked for request ID ${approval.id} (type: ${approval.type}). Maker and checker must be different users.`,
+                ipAddress: typeof ip === 'string' ? ip : undefined,
+            });
+            return NextResponse.json({
+                message: 'Maker-Checker violation: you cannot approve a request that you submitted.',
+            }, { status: 403 });
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         if (!isSuperAdmin && !isSameBranch) {
+
             return NextResponse.json({
                 message: 'This request can only be actioned by users from the same branch as the requester.',
             }, { status: 403 });
@@ -175,7 +209,7 @@ export async function POST(req: Request) {
             throw new Error(`Could not determine customer CIF for approval ID ${approvalId}. The request was cleared without action.`);
         }
             
-        const updateUserStatusQuery = `UPDATE "USER_MODULE"."AppUsers" SET "Status" = :status WHERE "CIFNumber" = :cif`;
+        const updateUserStatusQuery = `UPDATE "USER_MODULE"."AppUsers" SET "MobileStatus" = :status, "UssdStatus" = :status WHERE "CIFNumber" = :cif`;
         let successMessage = 'Request has been approved and actioned.';
         let responseData: any = { success: true };
 
@@ -232,7 +266,7 @@ export async function POST(req: Request) {
                 const phoneHash = hashSha256(normalizedPhone, 'Customer mobile number');
 
                 const appUserQuery = `
-                    INSERT INTO "USER_MODULE"."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","PhoneNumberHashed","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","Status","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:PhoneNumberHashed,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:Status,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
+                    INSERT INTO "USER_MODULE"."AppUsers" ("Id","CIFNumber","FirstName","SecondName","LastName","Email","PhoneNumber","PhoneNumberHashed","AddressLine1","AddressLine2","AddressLine3","AddressLine4","Nationality","BranchCode","BranchName","MobileStatus","UssdStatus","SignUp2FA","SignUpMainAuth","InsertDate","UpdateDate","InsertUser","UpdateUser","Version", "Channel") VALUES (SYS_GUID(),:CIFNumber,:FirstName,:SecondName,:LastName,:Email,:PhoneNumber,:PhoneNumberHashed,:AddressLine1,:AddressLine2,:AddressLine3,:AddressLine4,:Nationality,:BranchCode,:BranchName,:MobileStatus,:UssdStatus,:SignUp2FA,:SignUpMainAuth,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID(), :Channel)`;
                 
                 const appUserBinds = {
                     CIFNumber: customerData.customer_number,
@@ -249,7 +283,8 @@ export async function POST(req: Request) {
                     Nationality: customerData.country,
                     BranchCode: customerData.branch,
                     BranchName: customerData.branch,
-                    Status: 'Pending',
+                    MobileStatus: 'Pending',
+                    UssdStatus: 'Pending',
                     SignUp2FA: onboardingData.twoFactorAuthMethod,
                     SignUpMainAuth: onboardingData.mainAuthMethod,
                     Channel: onboardingData.channel,
@@ -263,8 +298,10 @@ export async function POST(req: Request) {
                     const rawAccountType = getLinkedAccountType(acc);
                     const rawCurrency = getLinkedAccountCurrency(acc);
                     const rawBranchCode = getLinkedAccountBranchCode(acc);
+                    const rawAccountClass = getLinkedAccountClass(acc);
+                    const rawCustomerCategory = getLinkedCustomerCategory(acc);
 
-                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id","CIFNumber","AccountNumber","HashedAccountNumber","FirstName","SecondName","LastName","AccountType","Currency","Status","BranchCode","BranchName") VALUES (SYS_GUID(),:CIFNumber,:AccountNumber,:HashedAccountNumber,:FirstName,:SecondName,:LastName,:AccountType,:Currency,:Status,:BranchCode,:BranchName)`;
+                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id","CIFNumber","AccountNumber","HashedAccountNumber","FirstName","SecondName","LastName","AccountType","AccountClass","CustomerCategory","Currency","Status","BranchCode","BranchName") VALUES (SYS_GUID(),:CIFNumber,:AccountNumber,:HashedAccountNumber,:FirstName,:SecondName,:LastName,:AccountType,:AccountClass,:CustomerCategory,:Currency,:Status,:BranchCode,:BranchName)`;
                     
                     const accBinds = {
                         CIFNumber: customerData.customer_number,
@@ -274,6 +311,8 @@ export async function POST(req: Request) {
                         SecondName: encrypt(secondName)!,
                         LastName: encrypt(lastName)!,
                         AccountType: encrypt(String(rawAccountType))!,
+                        AccountClass: rawAccountClass || null,
+                        CustomerCategory: rawCustomerCategory || null,
                         Currency: encrypt(String(rawCurrency))!,
                         Status: 'Active',
                         BranchCode: rawBranchCode,
@@ -293,16 +332,39 @@ export async function POST(req: Request) {
                 await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES ('${otpId}','${customerData.customer_number}','${codeHash}',NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`, {});
                 await executeQuery(process.env.OTP_MODULE_DB_CONNECTION_STRING, `INSERT INTO OTP_MODULE."OtpUsers" ("UserId","Status","LockedUntil","InsertDate","UpdateDate","OtpCodeId") VALUES ('${customerData.customer_number}',0,NULL,SYSTIMESTAMP,SYSTIMESTAMP,'${otpId}')`, {});
                 
-                await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
+                await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Pending' } });
                 
                 const smsMessage = `Welcome to Zemen Mobile Banking. Your temporary password is ${tempPassword}. Get the app to start: App Store: https://apple.co/2ABCDEF, Play Store: https://bit.ly/2ABCDEF`;
-                const smsResult = await sendSms(approval.customerPhone, smsMessage);
+                const emailSubject = 'Welcome to Zemen Mobile Banking';
+                const emailMessage = `Welcome to Zemen Mobile Banking. Your temporary password is <b>${tempPassword}</b>. <br/><br/>Get the app to start: <br/>App Store: https://apple.co/2ABCDEF <br/>Play Store: https://bit.ly/2ABCDEF`;
+                
+                const deliveryChannel = onboardingData.deliveryChannel || 'SMS';
+                let smsSuccess = false;
+                let emailSuccess = false;
+                
+                if (deliveryChannel === 'SMS' || deliveryChannel === 'Both') {
+                    console.log(`[APPROVAL_ACTION] Attempting to send SMS to ${approval.customerPhone}`);
+                    const smsResult = await sendSms(approval.customerPhone, smsMessage);
+                    if (smsResult.success) smsSuccess = true;
+                    else console.warn(`[APPROVAL_ACTION] SMS failed: ${smsResult.message}`);
+                }
+                
+                if (deliveryChannel === 'Email' || deliveryChannel === 'Both') {
+                    if (customerData.email_id && customerData.email_id.trim() !== '') {
+                        console.log(`[APPROVAL_ACTION] Attempting to send Email to ${customerData.email_id}`);
+                        const emailResult = await sendEmail(customerData.email_id, emailSubject, emailMessage);
+                        if (emailResult.success) emailSuccess = true;
+                        else console.warn(`[APPROVAL_ACTION] Email failed: ${emailResult.message}`);
+                    } else {
+                        console.warn(`[APPROVAL_ACTION] Email delivery requested but email_id is missing or empty`);
+                    }
+                }
 
-                if (smsResult.success) {
-                    successMessage = 'New customer onboarded and welcome SMS with temporary password has been sent.';
+                if (deliveryChannel === 'Both' ? (smsSuccess && emailSuccess) : (deliveryChannel === 'SMS' ? smsSuccess : emailSuccess)) {
+                    successMessage = `New customer onboarded and welcome message sent via ${deliveryChannel}.`;
                 } else {
-                    console.warn(`SMS sending failed for new customer ${approval.customerPhone}, but customer was created in DB.`);
-                    successMessage = `New customer onboarded, but the welcome SMS failed to send. Please follow up with the customer manually.`;
+                    console.warn(`[APPROVAL_ACTION] Delivery partially or fully failed. SMS Success: ${smsSuccess}, Email Success: ${emailSuccess}`);
+                    successMessage = `Customer was created successfully, but delivery via ${deliveryChannel} failed (SMS: ${smsSuccess}, Email: ${emailSuccess}).`;
                 }
                 
                 break;
@@ -334,7 +396,7 @@ export async function POST(req: Request) {
                 
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateQuery, updateBinds);
                 
-                await db.customer.updateMany({ where: { phone: changes.phoneNumber.old }, data: { phone: changes.phoneNumber.new, name: changes.email.new } });
+                await db.customer.updateMany({ where: { phone: changes.phoneNumber.old }, data: { phone: changes.phoneNumber.new } });
                 
                 successMessage = `Customer profile for CIF ${cif} has been updated.`;
                 break;
@@ -346,39 +408,85 @@ export async function POST(req: Request) {
                  await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Active', cif });
                  await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
                 break;
+            case 'unlock-customer':
+                const unlockSecurityQuery = `
+                    UPDATE "SECURITY_MODULE"."UserSecurities" 
+                    SET 
+                        "FailedAttempts" = 0,
+                        "LockoutCount" = 0,
+                        "IsLoggedIn" = 1,
+                        "LastLoginAttempt" = SYSTIMESTAMP,
+                        "IsLocked" = 0,
+                        "UnlockedTime" = SYSTIMESTAMP,
+                        "UpdateDate" = SYSTIMESTAMP,
+                        "UpdateUser" = 'system'
+                    WHERE "CIFNumber" = :cif`;
+                
+                try {
+                    await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, unlockSecurityQuery, { cif });
+                } catch (err: any) {
+                    if (err.message && err.message.includes("invalid identifier")) {
+                        // Fallback if LockoutCount doesn't exist in the database
+                        const unlockSecurityQueryFallback = `
+                            UPDATE "SECURITY_MODULE"."UserSecurities" 
+                            SET 
+                                "FailedAttempts" = 0,
+                                "IsLoggedIn" = 1,
+                                "LastLoginAttempt" = SYSTIMESTAMP,
+                                "IsLocked" = 0,
+                                "UnlockedTime" = SYSTIMESTAMP,
+                                "UpdateDate" = SYSTIMESTAMP,
+                                "UpdateUser" = 'system'
+                            WHERE "CIFNumber" = :cif`;
+                        await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, unlockSecurityQueryFallback, { cif });
+                    } else {
+                        throw err;
+                    }
+                }
+
+                await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateUserStatusQuery, { status: 'Active', cif });
+                await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
+                successMessage = `Customer with CIF ${cif} has been unlocked successfully.`;
+                break;
             case 'resend-activation-code':
                 const resendActivationCode = Math.floor(100000 + Math.random() * 900000).toString();
                 const resendCodeHash = crypto.createHash('sha256').update(resendActivationCode).digest('hex').toLowerCase();
-                const resendOtpId = crypto.randomUUID();
 
-                await executeQuery(
+                const otpUserResult: any = await executeQuery(
                     process.env.OTP_MODULE_DB_CONNECTION_STRING,
-                    `INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (:Id,:UserId,:CodeHash,NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`,
-                    {
-                        Id: resendOtpId,
-                        UserId: cif,
-                        CodeHash: resendCodeHash,
-                    }
-                );
-
-                const otpUserExistsResult: any = await executeQuery(
-                    process.env.OTP_MODULE_DB_CONNECTION_STRING,
-                    `SELECT COUNT(1) AS "CNT" FROM OTP_MODULE."OtpUsers" WHERE "UserId" = :userId`,
+                    `SELECT "OtpCodeId" FROM OTP_MODULE."OtpUsers" WHERE "UserId" = :userId`,
                     { userId: cif }
                 );
 
-                const otpUserExists = Number(otpUserExistsResult?.rows?.[0]?.CNT || 0) > 0;
+                const existingOtpCodeId = otpUserResult?.rows?.[0]?.OtpCodeId;
 
-                if (otpUserExists) {
+                if (existingOtpCodeId) {
                     await executeQuery(
                         process.env.OTP_MODULE_DB_CONNECTION_STRING,
-                        `UPDATE OTP_MODULE."OtpUsers" SET "Status" = 0, "LockedUntil" = NULL, "UpdateDate" = SYSTIMESTAMP, "OtpCodeId" = :otpCodeId WHERE "UserId" = :userId`,
+                        `UPDATE OTP_MODULE."OtpCodes" SET "CodeHash" = :CodeHash, "ExpiresAt" = SYSTIMESTAMP + INTERVAL '10' MINUTE, "UpdateDate" = SYSTIMESTAMP WHERE "Id" = :Id`,
                         {
-                            otpCodeId: resendOtpId,
-                            userId: cif,
+                            Id: existingOtpCodeId,
+                            CodeHash: resendCodeHash,
                         }
                     );
+                    
+                    await executeQuery(
+                        process.env.OTP_MODULE_DB_CONNECTION_STRING,
+                        `UPDATE OTP_MODULE."OtpUsers" SET "Status" = 0, "LockedUntil" = NULL, "UpdateDate" = SYSTIMESTAMP WHERE "UserId" = :userId`,
+                        { userId: cif }
+                    );
                 } else {
+                    const resendOtpId = crypto.randomUUID();
+                    await executeQuery(
+                        process.env.OTP_MODULE_DB_CONNECTION_STRING,
+                        `INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (:Id,:UserId,:CodeHash,NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`,
+                        {
+                            Id: resendOtpId,
+                            UserId: cif,
+                            CodeHash: resendCodeHash,
+                        }
+                    );
+                    
                     await executeQuery(
                         process.env.OTP_MODULE_DB_CONNECTION_STRING,
                         `INSERT INTO OTP_MODULE."OtpUsers" ("UserId","Status","LockedUntil","InsertDate","UpdateDate","OtpCodeId") VALUES (:userId,0,NULL,SYSTIMESTAMP,SYSTIMESTAMP,:otpCodeId)`,
@@ -396,12 +504,38 @@ export async function POST(req: Request) {
                 );
 
                 const resendSmsMessage = `Welcome to Zemen Mobile Banking. Your temporary password is ${resendActivationCode}. Get the app to start: App Store: https://apple.co/2ABCDEF, Play Store: https://bit.ly/2ABCDEF`;
-                const resendSmsResult = await sendSms(approval.customerPhone, resendSmsMessage);
+                const resendEmailSubject = 'Zemen Mobile Banking - Activation Code';
+                const resendEmailMessage = `Welcome to Zemen Mobile Banking. Your temporary password is <b>${resendActivationCode}</b>. <br/><br/>Get the app to start: <br/>App Store: https://apple.co/2ABCDEF <br/>Play Store: https://bit.ly/2ABCDEF`;
 
-                if (resendSmsResult.success) {
-                    successMessage = `Activation code has been resent successfully to ${approval.customerPhone}.`;
+                const resendDetails = JSON.parse(approval.details || '{}');
+                const resendDeliveryChannel = resendDetails.deliveryChannel || 'SMS';
+                let resendSmsSuccess = false;
+                let resendEmailSuccess = false;
+
+                if (resendDeliveryChannel === 'SMS' || resendDeliveryChannel === 'Both') {
+                    console.log(`[APPROVAL_ACTION] Attempting to resend SMS to ${approval.customerPhone}`);
+                    const resendSmsResult = await sendSms(approval.customerPhone, resendSmsMessage);
+                    if (resendSmsResult.success) resendSmsSuccess = true;
+                    else console.warn(`[APPROVAL_ACTION] Resend SMS failed: ${resendSmsResult.message}`);
+                }
+
+                if (resendDeliveryChannel === 'Email' || resendDeliveryChannel === 'Both') {
+                    const resendEmailAddress = resendDetails.email;
+                    if (resendEmailAddress && resendEmailAddress.trim() !== '') {
+                        console.log(`[APPROVAL_ACTION] Attempting to resend Email to ${resendEmailAddress}`);
+                        const emailResult = await sendEmail(resendEmailAddress, resendEmailSubject, resendEmailMessage);
+                        if (emailResult.success) resendEmailSuccess = true;
+                        else console.warn(`[APPROVAL_ACTION] Resend Email failed: ${emailResult.message}`);
+                    } else {
+                        console.warn(`[APPROVAL_ACTION] Resend Email delivery requested but email address is missing from details`);
+                    }
+                }
+
+                if (resendDeliveryChannel === 'Both' ? (resendSmsSuccess && resendEmailSuccess) : (resendDeliveryChannel === 'SMS' ? resendSmsSuccess : resendEmailSuccess)) {
+                    successMessage = `Activation code has been resent successfully via ${resendDeliveryChannel}.`;
                 } else {
-                    successMessage = `Activation code was regenerated and saved, but SMS sending failed. Please retry or follow up manually.`;
+                    console.warn(`[APPROVAL_ACTION] Resend delivery partially or fully failed. SMS: ${resendSmsSuccess}, Email: ${resendEmailSuccess}`);
+                    successMessage = `Activation code was regenerated, but delivery via ${resendDeliveryChannel} failed (SMS: ${resendSmsSuccess}, Email: ${resendEmailSuccess}). Please retry or follow up manually.`;
                 }
                 break;
             case 'pin-reset':
@@ -429,13 +563,38 @@ export async function POST(req: Request) {
                 });
                 
                 const smsPinResetMessage = `Your new temporary PIN for Zemen Mobile is: ${newPin}. Please change it after your next login.`;
-                const pinResetSmsResult = await sendSms(approval.customerPhone, smsPinResetMessage);
+                const emailPinResetSubject = 'Zemen Mobile Banking - PIN Reset';
+                const emailPinResetMessage = `Your new temporary PIN for Zemen Mobile is: <b>${newPin}</b>. <br/><br/>Please change it after your next login.`;
 
-                if (pinResetSmsResult.success) {
-                    successMessage = `PIN for customer ${approval.customerName} has been reset and sent via SMS.`;
+                const pinResetDetails = JSON.parse(approval.details || '{}');
+                const pinResetDeliveryChannel = pinResetDetails.deliveryChannel || 'SMS';
+                let pinResetSmsSuccess = false;
+                let pinResetEmailSuccess = false;
+
+                if (pinResetDeliveryChannel === 'SMS' || pinResetDeliveryChannel === 'Both') {
+                    console.log(`[APPROVAL_ACTION] Attempting to send PIN reset SMS to ${approval.customerPhone}`);
+                    const pinResetSmsResult = await sendSms(approval.customerPhone, smsPinResetMessage);
+                    if (pinResetSmsResult.success) pinResetSmsSuccess = true;
+                    else console.warn(`[APPROVAL_ACTION] PIN Reset SMS failed: ${pinResetSmsResult.message}`);
+                }
+
+                if (pinResetDeliveryChannel === 'Email' || pinResetDeliveryChannel === 'Both') {
+                    const pinResetEmailAddress = pinResetDetails.email;
+                    if (pinResetEmailAddress && pinResetEmailAddress.trim() !== '') {
+                        console.log(`[APPROVAL_ACTION] Attempting to send PIN reset Email to ${pinResetEmailAddress}`);
+                        const emailResult = await sendEmail(pinResetEmailAddress, emailPinResetSubject, emailPinResetMessage);
+                        if (emailResult.success) pinResetEmailSuccess = true;
+                        else console.warn(`[APPROVAL_ACTION] PIN Reset Email failed: ${emailResult.message}`);
+                    } else {
+                        console.warn(`[APPROVAL_ACTION] PIN Reset Email delivery requested but email address is missing from details`);
+                    }
+                }
+
+                if (pinResetDeliveryChannel === 'Both' ? (pinResetSmsSuccess && pinResetEmailSuccess) : (pinResetDeliveryChannel === 'SMS' ? pinResetSmsSuccess : pinResetEmailSuccess)) {
+                    successMessage = `PIN for customer ${approval.customerName} has been reset and sent via ${pinResetDeliveryChannel}.`;
                 } else {
-                    console.warn(`SMS sending failed for PIN reset to ${approval.customerPhone}, but PIN was reset in DB.`);
-                    successMessage = `PIN reset was successful, but the SMS notification failed. Please provide the new PIN to the customer manually.`;
+                    console.warn(`[APPROVAL_ACTION] Delivery failed for PIN reset to ${approval.customerPhone}. SMS: ${pinResetSmsSuccess}, Email: ${pinResetEmailSuccess}`);
+                    successMessage = `PIN reset was successful, but delivery via ${pinResetDeliveryChannel} failed (SMS: ${pinResetSmsSuccess}, Email: ${pinResetEmailSuccess}). Please provide the new PIN to the customer manually.`;
                 }
                 break;
             case 'customer-account':
@@ -472,9 +631,11 @@ export async function POST(req: Request) {
                     const rawAccountType = getLinkedAccountType(acc);
                     const rawCurrency = getLinkedAccountCurrency(acc);
                     const rawBranchCode = getLinkedAccountBranchCode(acc);
+                    const rawAccountClass = getLinkedAccountClass(acc);
+                    const rawCustomerCategory = getLinkedCustomerCategory(acc);
 
-                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "Currency", "Status", "BranchCode", "BranchName") 
-                        VALUES (SYS_GUID(), :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :Currency, :Status, :BranchCode, :BranchName)`;
+                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "AccountClass", "CustomerCategory", "Currency", "Status", "BranchCode", "BranchName") 
+                        VALUES (SYS_GUID(), :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :AccountClass, :CustomerCategory, :Currency, :Status, :BranchCode, :BranchName)`;
                     
                     const accBinds = {
                         CIFNumber: linkDetails.cif || cif,
@@ -484,6 +645,8 @@ export async function POST(req: Request) {
                         SecondName: encrypt(linkSecondName)!,
                         LastName: encrypt(linkLastName)!,
                         AccountType: encrypt(String(rawAccountType))!,
+                        AccountClass: rawAccountClass || null,
+                        CustomerCategory: rawCustomerCategory || null,
                         Currency: encrypt(String(rawCurrency))!,
                         Status: 'Active',
                         BranchCode: rawBranchCode,

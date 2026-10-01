@@ -122,17 +122,12 @@ export async function POST(req: Request) {
       const acStatNoDR  = ynFlag(row.AC_STAT_NO_DR);
       const recStat     = recordStat(row.RECORD_STAT);
 
-      // acc_status blocking: only NORM is allowed for linking
-      const accStatus    = (row.ACC_STATUS || '').toString().trim().toUpperCase();
-      const isNormStatus = accStatus === 'NORM';
-
-      // Blocking: DECEASED, FROZEN, CLOSED, or non-NORM acc_status
-      const isBlocked = deceased === 'Y' || custFrozen === 'Y' || recStat === 'C' || !isNormStatus;
+      // Blocking: DECEASED, customer-level FROZEN, or account CLOSED
+      const isBlocked   = deceased === 'Y' || custFrozen === 'Y' || recStat === 'C';
       let blockReason: string | null = null;
       if (deceased === 'Y')        blockReason = 'Customer is deceased';
       else if (custFrozen === 'Y') blockReason = 'Customer account is frozen';
       else if (recStat === 'C')    blockReason = 'Account is closed';
-      else if (!isNormStatus)      blockReason = `Account status is ${accStatus || 'unknown'} (only NORM accounts can be linked)`;
 
       // Derive a display status compatible with existing frontend logic:
       //   Blocked → 'Blocked'  |  Dormant → 'Dormant'  |  else → 'Active'

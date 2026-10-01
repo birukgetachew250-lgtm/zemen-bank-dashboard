@@ -86,6 +86,18 @@ const getLinkedAccountBranchCode = (account: any): string => {
     return account?.BRANCH_CODE || account?.branch_code || account?.branchCode || '';
 };
 
+const getLinkedAccountClass = (account: any): string => {
+    if (typeof account === 'string' || typeof account === 'number') return '';
+
+    return account?.ACCOUNT_CLASS || account?.account_class || account?.accountClass || '';
+};
+
+const getLinkedCustomerCategory = (account: any): string => {
+    if (typeof account === 'string' || typeof account === 'number') return '';
+
+    return account?.CUSTOMER_CATEGORY || account?.customer_category || account?.customerCategory || '';
+};
+
 const getCifFromApproval = async (approval: any) => {
     if (approval.details) {
         try {
@@ -286,8 +298,10 @@ export async function POST(req: Request) {
                     const rawAccountType = getLinkedAccountType(acc);
                     const rawCurrency = getLinkedAccountCurrency(acc);
                     const rawBranchCode = getLinkedAccountBranchCode(acc);
+                    const rawAccountClass = getLinkedAccountClass(acc);
+                    const rawCustomerCategory = getLinkedCustomerCategory(acc);
 
-                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id","CIFNumber","AccountNumber","HashedAccountNumber","FirstName","SecondName","LastName","AccountType","Currency","Status","BranchCode","BranchName") VALUES (SYS_GUID(),:CIFNumber,:AccountNumber,:HashedAccountNumber,:FirstName,:SecondName,:LastName,:AccountType,:Currency,:Status,:BranchCode,:BranchName)`;
+                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id","CIFNumber","AccountNumber","HashedAccountNumber","FirstName","SecondName","LastName","AccountType","AccountClass","CustomerCategory","Currency","Status","BranchCode","BranchName") VALUES (SYS_GUID(),:CIFNumber,:AccountNumber,:HashedAccountNumber,:FirstName,:SecondName,:LastName,:AccountType,:AccountClass,:CustomerCategory,:Currency,:Status,:BranchCode,:BranchName)`;
                     
                     const accBinds = {
                         CIFNumber: customerData.customer_number,
@@ -297,6 +311,8 @@ export async function POST(req: Request) {
                         SecondName: encrypt(secondName)!,
                         LastName: encrypt(lastName)!,
                         AccountType: encrypt(String(rawAccountType))!,
+                        AccountClass: rawAccountClass || null,
+                        CustomerCategory: rawCustomerCategory || null,
                         Currency: encrypt(String(rawCurrency))!,
                         Status: 'Active',
                         BranchCode: rawBranchCode,
@@ -615,9 +631,11 @@ export async function POST(req: Request) {
                     const rawAccountType = getLinkedAccountType(acc);
                     const rawCurrency = getLinkedAccountCurrency(acc);
                     const rawBranchCode = getLinkedAccountBranchCode(acc);
+                    const rawAccountClass = getLinkedAccountClass(acc);
+                    const rawCustomerCategory = getLinkedCustomerCategory(acc);
 
-                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "Currency", "Status", "BranchCode", "BranchName") 
-                        VALUES (SYS_GUID(), :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :Currency, :Status, :BranchCode, :BranchName)`;
+                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "AccountClass", "CustomerCategory", "Currency", "Status", "BranchCode", "BranchName") 
+                        VALUES (SYS_GUID(), :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :AccountClass, :CustomerCategory, :Currency, :Status, :BranchCode, :BranchName)`;
                     
                     const accBinds = {
                         CIFNumber: linkDetails.cif || cif,
@@ -627,6 +645,8 @@ export async function POST(req: Request) {
                         SecondName: encrypt(linkSecondName)!,
                         LastName: encrypt(linkLastName)!,
                         AccountType: encrypt(String(rawAccountType))!,
+                        AccountClass: rawAccountClass || null,
+                        CustomerCategory: rawCustomerCategory || null,
                         Currency: encrypt(String(rawCurrency))!,
                         Status: 'Active',
                         BranchCode: rawBranchCode,
