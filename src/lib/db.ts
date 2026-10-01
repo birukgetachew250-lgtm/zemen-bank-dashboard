@@ -19,6 +19,9 @@ import { randomUUID } from 'crypto';
 let _ds: DataSource | null = null;
 
 async function getDS(): Promise<DataSource> {
+  const { ensureThickMode } = await import('./oracle-db');
+  await ensureThickMode(); // Guarantee Thick mode before TypeORM connects
+
   if (_ds && _ds.isInitialized) return _ds;
   if (_ds && !_ds.isInitialized) {
     _ds = await _ds.initialize();
