@@ -2,7 +2,28 @@
 'use server';
 
 import oracledb from 'oracledb';
-import { db } from '@/lib/db';
+
+// ─── Thick Mode Init ───────────────────────────────────────────────────────────
+// Required for Oracle DBs using legacy 10g password verifiers (NJS-116).
+// initOracleClient must be called ONCE before any connection, at module load.
+// It will silently no-op if called again (already initialized).
+// The libDir is optional — Oracle Client libs are auto-detected from standard
+// system paths (LD_LIBRARY_PATH, /etc/ld.so.conf.d/, etc.) if not specified.
+(function initThickMode() {
+    try {
+        oracledb.initOracleClient();
+        console.log('[Oracle DB] Thick mode enabled (Oracle Client libraries loaded)');
+    } catch (err: any) {
+        // If libs are not installed, log a warning but don't crash.
+        // Thin mode will be used — legacy verifier DBs will still fail.
+        if (err.message?.includes('NJS-077') || err.message?.includes('already been called')) {
+            // Already initialized — safe to ignore
+        } else {
+            console.warn('[Oracle DB] Could not enable Thick mode:', err.message);
+            console.warn('[Oracle DB] Install Oracle Instant Client to support legacy password verifiers.');
+        }
+    }
+})();
 
 // Force CLOBs to be fetched as strings to avoid Lob objects/circular structures
 if (typeof oracledb !== 'undefined' && oracledb.CLOB) {
@@ -101,17 +122,6 @@ export async function executeQuery(connectionString: string | undefined, query: 
 
         console.log(`[Oracle DB] Execution result:`, { rowsAffected: result.rowsAffected, rowCount: sanitizedRows.length });
 
-        if (isDML) {
-            await db.systemActivityLog.create({
-                data: {
-                    userEmail: 'system',
-                    action: 'ORACLE_DML',
-                    status: 'Success',
-                    details: `rowsAffected=${result.rowsAffected || 0} elapsedMs=${Date.now() - startedAt} query=${query.slice(0, 500)}`,
-                },
-            });
-        }
-
         return {
           rows: sanitizedRows,
           rowsAffected: result.rowsAffected,
@@ -119,18 +129,6 @@ export async function executeQuery(connectionString: string | undefined, query: 
         };
     } catch (err) {
         console.error("Oracle DB query failed:", err);
-
-        if (isDML) {
-            await db.systemActivityLog.create({
-                data: {
-                    userEmail: 'system',
-                    action: 'ORACLE_DML',
-                    status: 'Failure',
-                    details: `elapsedMs=${Date.now() - startedAt} error=${(err as any)?.message || 'Unknown error'} query=${query.slice(0, 500)}`,
-                },
-            });
-        }
-
         throw err;
     } finally {
         if (connection) {
