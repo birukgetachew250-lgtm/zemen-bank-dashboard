@@ -5,6 +5,7 @@
  * Uses TypeORM EntitySchema (no decorators needed — works with Next.js out of the box)
  */
 
+import './init-oracle'; // MUST BE FIRST
 import { DataSource, EntitySchema } from 'typeorm';
 
 // ─── Entity Schemas ──────────────────────────────────────────────────────────
