@@ -59,6 +59,23 @@ async function fetchAccountsFromFlexDB(cif: string): Promise<any[]> {
     WHERE sc.CUSTOMER_NO = :cif
   `;
 
+  console.log('====================================================');
+  console.log(`[find-accounts] CHECK 1: Is OracleDB currently in Thin mode? ${oracledb.thin}`);
+  console.log('====================================================');
+
+  try {
+    // Try to force Thick mode here if it hasn't been locked into Thin mode yet
+    oracledb.initOracleClient();
+    console.log('[find-accounts] Thick mode initialized locally within route!');
+  } catch (err: any) {
+    if (!err.message?.includes('NJS-077') && !err.message?.includes('already been called')) {
+      console.warn(`[find-accounts] Thick mode init failed or skipped: ${err.message}`);
+    }
+  }
+
+  console.log(`[find-accounts] CHECK 2: Is OracleDB currently in Thin mode? ${oracledb.thin}`);
+  console.log('====================================================');
+
   let connection;
   try {
     connection = await oracledb.getConnection({ user, password, connectString });
