@@ -61,6 +61,17 @@ async function fetchAccountsFromFlexDB(cif: string): Promise<any[]> {
 
   let connection;
   try {
+    try {
+      // Force Thick mode initialization right before connecting
+      oracledb.initOracleClient();
+      console.log('[find-accounts] Thick mode initialized successfully');
+    } catch (err: any) {
+      if (!err.message?.includes('NJS-077') && !err.message?.includes('already been called')) {
+        console.error('[find-accounts] FATAL: Failed to initialize Thick mode:', err);
+        throw new Error(`Oracle Instant Client is missing on the server. Thick mode is REQUIRED for this database. Error: ${err.message}`);
+      }
+    }
+
     connection = await oracledb.getConnection({ user, password, connectString });
     const result = await connection.execute(sql, { cif }, {
       outFormat: oracledb.OBJECT,
