@@ -123,6 +123,10 @@ export async function POST(req: Request) {
 
     // ── 2. Fetch accounts directly from FlexCube Oracle DB ────────────────────
     const rows = await fetchAccountsFromFlexDB(cif);
+    
+    console.log('================= RAW DB RESPONSE ==================');
+    console.log(JSON.stringify(rows, null, 2));
+    console.log('====================================================');
 
     if (!rows.length) {
       console.warn('[find-accounts] No accounts returned for CIF:', cif);
