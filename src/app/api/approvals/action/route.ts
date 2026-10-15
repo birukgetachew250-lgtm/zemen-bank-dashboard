@@ -146,7 +146,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Invalid input' }, { status: 400 });
         }
         
-        const approval = await db.pendingApproval.findUnique({ where: { id: approvalId } });
+        const approval: any = await db.pendingApproval.findUnique({ where: { id: approvalId } });
         
         if (!approval) {
              return NextResponse.json({ message: 'Approval not found' }, { status: 404 });
@@ -157,7 +157,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        const approver = await db.user.findUnique({
+        const approver: any = await db.user.findUnique({
             where: { email: sessionEmail },
             select: { role: true, branch: true },
         });
@@ -671,6 +671,84 @@ export async function POST(req: Request) {
                 const unlinkQuery = `UPDATE "USER_MODULE"."Accounts" SET "Status" = 'Unlinked' WHERE "HashedAccountNumber" = :hashedAccountNumber`;
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, unlinkQuery, { hashedAccountNumber });
                 successMessage = `Successfully unlinked account ${unlinkDetails.accountNumber}.`;
+                break;
+            case 'reset-security-questions':
+                // 1. Fetch available security questions from SECURITY_MODULE."SecurityQuestions"
+                const questionsResult: any = await executeQuery(
+                    process.env.SECURITY_MODULE_DB_CONNECTION_STRING,
+                    `SELECT "Id", "Question" FROM "SECURITY_MODULE"."SecurityQuestions"`,
+                    {}
+                );
+
+                const questions = questionsResult?.rows || [];
+                if (!questions.length) {
+                    throw new Error('No security questions found in SECURITY_MODULE."SecurityQuestions".');
+                }
+
+                // 2. Randomly select one security question
+                const selectedQuestion = questions[Math.floor(Math.random() * questions.length)];
+                const questionId = selectedQuestion.Id || selectedQuestion.ID;
+                const questionText = selectedQuestion.Question || selectedQuestion.QUESTION;
+
+                // 3. Generate a 10-character alphanumeric answer
+                const alphaNumericChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                let randomAnswer = '';
+                for (let i = 0; i < 10; i++) {
+                    randomAnswer += alphaNumericChars.charAt(Math.floor(Math.random() * alphaNumericChars.length));
+                }
+
+                // 4. Hash the answer using SHA-256 (same as HashedAccountNumber / hashSha256)
+                const hashedAnswer = crypto.createHash('sha256').update(randomAnswer).digest('hex');
+
+                // 5. Update SECURITY_MODULE."UserSecurities"
+                const updateSecurityQuestionQuery = `
+                    UPDATE "SECURITY_MODULE"."UserSecurities"
+                    SET 
+                        "SecurityQuestionId" = :questionId,
+                        "SecurityAnswer" = :securityAnswer,
+                        "UpdateDate" = SYSTIMESTAMP,
+                        "UpdateUser" = 'system'
+                    WHERE "CIFNumber" = :cif
+                `;
+
+                await executeQuery(process.env.SECURITY_MODULE_DB_CONNECTION_STRING, updateSecurityQuestionQuery, {
+                    questionId,
+                    securityAnswer: hashedAnswer,
+                    cif,
+                });
+
+                // 6. Deliver notification to customer via SMS and/or Email
+                const secResetDetails = JSON.parse(approval.details || '{}');
+                const secDeliveryChannel = secResetDetails.deliveryChannel || 'SMS';
+                const smsSecResetMessage = `Your Zemen Mobile security question has been reset.\nQuestion: ${questionText}\nTemporary Answer: ${randomAnswer}\nPlease update your security question and answer after login.`;
+                const emailSecResetSubject = 'Zemen Mobile Banking - Security Question Reset';
+                const emailSecResetMessage = `Your Zemen Mobile security question has been reset.<br/><br/><b>Question:</b> ${questionText}<br/><b>Temporary Answer:</b> <b style="font-family:monospace;font-size:1.1em;">${randomAnswer}</b><br/><br/>Please change your security question and answer after your next login.`;
+
+                let secResetSmsSuccess = false;
+                let secResetEmailSuccess = false;
+
+                if (secDeliveryChannel === 'SMS' || secDeliveryChannel === 'Both') {
+                    console.log(`[APPROVAL_ACTION] Sending security reset SMS to ${approval.customerPhone}`);
+                    const smsRes = await sendSms(approval.customerPhone, smsSecResetMessage);
+                    if (smsRes.success) secResetSmsSuccess = true;
+                    else console.warn(`[APPROVAL_ACTION] Security reset SMS failed: ${smsRes.message}`);
+                }
+
+                if (secDeliveryChannel === 'Email' || secDeliveryChannel === 'Both') {
+                    const secEmail = secResetDetails.email;
+                    if (secEmail && secEmail.trim()) {
+                        console.log(`[APPROVAL_ACTION] Sending security reset Email to ${secEmail}`);
+                        const emailRes = await sendEmail(secEmail, emailSecResetSubject, emailSecResetMessage);
+                        if (emailRes.success) secResetEmailSuccess = true;
+                        else console.warn(`[APPROVAL_ACTION] Security reset Email failed: ${emailRes.message}`);
+                    }
+                }
+
+                if (secDeliveryChannel === 'Both' ? (secResetSmsSuccess && secResetEmailSuccess) : (secDeliveryChannel === 'SMS' ? secResetSmsSuccess : secResetEmailSuccess)) {
+                    successMessage = `Security question for customer ${approval.customerName} has been reset and delivered via ${secDeliveryChannel}.`;
+                } else {
+                    successMessage = `Security question was reset in the database, but delivery via ${secDeliveryChannel} failed (SMS: ${secResetSmsSuccess}, Email: ${secResetEmailSuccess}). Please provide the credentials to the customer manually.`;
+                }
                 break;
         }
 

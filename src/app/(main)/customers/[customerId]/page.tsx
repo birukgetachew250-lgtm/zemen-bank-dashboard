@@ -269,7 +269,13 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
                 </div>
                 <Separator />
                 <div className="flex justify-start gap-2 flex-wrap">
-                    <Button variant="outline">Reset Security Questions</Button>
+                    <Button 
+                        variant="outline"
+                        onClick={() => router.push(`/customers/request-security-reset?cif=${customer.cifNumber || customerId}`)}
+                    >
+                        <Shield className="mr-2 h-4 w-4" />
+                        Reset Security Questions
+                    </Button>
                 </div>
             </CardContent>
           </Card>

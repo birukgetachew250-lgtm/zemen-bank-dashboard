@@ -146,6 +146,7 @@ export const menu: MenuItem[] = [
           { icon: LockOpen, label: "Unlock Customer", href: "/customers/unlock-customer" },
           { icon: Smartphone, label: "Send Activation", href: "/customers/resend-activation" },
           { icon: KeyRound, label: "Pin Reset", href: "/customers/request-pin-reset" },
+          { icon: ShieldAlert, label: "Security Reset", href: "/customers/request-security-reset" },
         ]
       },
       {
