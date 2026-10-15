@@ -4,6 +4,7 @@ import oracledb from 'oracledb';
 import { executeQuery } from '@/lib/oracle-db';
 import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
+import { getAccountClassDescription } from '@/lib/account-class-mapper';
 
 export const dynamic = 'force-dynamic';
 
@@ -187,7 +188,7 @@ export async function POST(req: Request) {
           ccy:                 row.CCY || '',
           account_type:        row.ACCOUNT_TYPE || '',
           account_class:       row.ACCOUNT_CLASS || '',
-          acclassdesc:         row.AC_DESC || '',
+          acclassdesc:         getAccountClassDescription(row.ACCOUNT_CLASS, row.AC_DESC || ''),
           customer_name:       row.CUSTOMER_NAME1 || '',
           customer_category:   row.CUSTOMER_CATEGORY || '',
           customer_type:       row.CUSTOMER_TYPE || '',

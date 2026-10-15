@@ -12,6 +12,7 @@ import { PERMISSIONS } from '@/lib/permissions';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
 import { sendSms } from '@/services/sms-service';
 import { sendEmail } from '@/services/email-service';
+import { getAccountClassDescription } from '@/lib/account-class-mapper';
 
 const extractRequesterBranch = (details?: string | null): string | null => {
     if (!details) return null;
@@ -71,7 +72,15 @@ const getLinkedAccountNumber = (account: any): string => {
 const getLinkedAccountType = (account: any): string => {
     if (typeof account === 'string' || typeof account === 'number') return 'Unknown';
 
-    return account?.ACCLASSDESC || account?.acclassdesc || account?.accountType || account?.account_type || 'Unknown';
+    const desc = account?.ACCLASSDESC || account?.acclassdesc || account?.accountType || account?.account_type;
+    if (desc && desc !== 'Unknown') return desc;
+
+    const accClass = getLinkedAccountClass(account);
+    if (accClass) {
+        return getAccountClassDescription(accClass, 'Unknown');
+    }
+
+    return 'Unknown';
 };
 
 const getLinkedAccountCurrency = (account: any): string => {
