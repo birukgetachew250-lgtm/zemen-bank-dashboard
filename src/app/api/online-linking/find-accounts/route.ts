@@ -53,9 +53,12 @@ async function fetchAccountsFromFlexDB(cif: string): Promise<any[]> {
       sca.ACCOUNT_TYPE,
       sca.CCY,
       sca.CUST_AC_NO,
-      sca.RECORD_STAT
+      sca.RECORD_STAT,
+      c.ACCOUNT_NUMBER   AS LOAN_ACCOUNT_NUMBER,
+      c.ACCOUNT_STATUS   AS LOAN_ACCOUNT_STATUS
     FROM FCUBSPRD.STTM_CUSTOMER sc
-    JOIN FCUBSPRD.STTM_CUST_ACCOUNT sca ON sc.CUSTOMER_NO = sca.CUST_NO
+    LEFT JOIN FCUBSPRD.STTM_CUST_ACCOUNT sca ON sc.CUSTOMER_NO = sca.CUST_NO
+    LEFT JOIN FCUBSPRD.SUPERAPP_CLTB_ACCOUNT_MASTER_VW c ON c.CUSTOMER_ID = sc.CUSTOMER_NO
     WHERE sc.CUSTOMER_NO = :cif
   `;
 
@@ -136,72 +139,142 @@ export async function POST(req: Request) {
       );
     }
 
-    // ── 3. Transform rows + apply null defaults + flag blocked accounts ────────
-    const transformed = rows.map((row: any) => {
-      const accountNum  = row.CUST_AC_NO?.toString() || '';
-      const hashed      = accountNum
-        ? crypto.createHash('sha256').update(accountNum).digest('hex')
-        : '';
+    // ── 3. Transform rows + apply null defaults + deduplicate accounts ────────
+    const seenCasaAccounts = new Set<string>();
+    const seenLoanAccounts = new Set<string>();
+    const transformed: any[] = [];
 
-      // Null-safe flags
-      const deceased    = ynFlag(row.CUST_DECEASED);
-      const custFrozen  = ynFlag(row.CUST_FROZEN);
-      const acStatNoCR  = ynFlag(row.AC_STAT_NO_CR);
-      const acStatBlock = ynFlag(row.AC_STAT_BLOCK);
-      const acStatDorm  = ynFlag(row.AC_STAT_DORMANT);
-      const acStatFrz   = ynFlag(row.AC_STAT_FROZEN);
-      const acStatNoDR  = ynFlag(row.AC_STAT_NO_DR);
-      const recStat     = recordStat(row.RECORD_STAT);
+    for (const row of rows) {
+      // Null-safe common customer flags
+      const deceased   = ynFlag(row.CUST_DECEASED);
+      const custFrozen = ynFlag(row.CUST_FROZEN);
 
-      // acc_status blocking: only NORM is allowed for linking
-      const accStatus    = (row.ACC_STATUS || '').toString().trim().toUpperCase();
-      const isNormStatus = accStatus === 'NORM';
+      // ── A. Standard CASA Account ──
+      const casaAccountNum = row.CUST_AC_NO?.toString().trim();
+      if (casaAccountNum && !seenCasaAccounts.has(casaAccountNum)) {
+        seenCasaAccounts.add(casaAccountNum);
 
-      // Blocking: DECEASED, FROZEN, CLOSED, or non-NORM acc_status
-      const isBlocked = deceased === 'Y' || custFrozen === 'Y' || recStat === 'C' || !isNormStatus;
-      let blockReason: string | null = null;
-      if (deceased === 'Y')        blockReason = 'Customer is deceased';
-      else if (custFrozen === 'Y') blockReason = 'Customer account is frozen';
-      else if (recStat === 'C')    blockReason = 'Account is closed';
-      else if (!isNormStatus)      blockReason = `Account status is ${accStatus || 'unknown'} (only NORM accounts can be linked)`;
+        const hashed      = crypto.createHash('sha256').update(casaAccountNum).digest('hex');
+        const acStatNoCR  = ynFlag(row.AC_STAT_NO_CR);
+        const acStatBlock = ynFlag(row.AC_STAT_BLOCK);
+        const acStatDorm  = ynFlag(row.AC_STAT_DORMANT);
+        const acStatFrz   = ynFlag(row.AC_STAT_FROZEN);
+        const acStatNoDR  = ynFlag(row.AC_STAT_NO_DR);
+        const recStat     = recordStat(row.RECORD_STAT);
 
-      // Derive a display status compatible with existing frontend logic:
-      //   Blocked → 'Blocked'  |  Dormant → 'Dormant'  |  else → 'Active'
-      let status: string;
-      if (isBlocked)              status = 'Blocked';
-      else if (acStatDorm === 'Y') status = 'Dormant';
-      else                        status = 'Active';
+        // acc_status blocking: only NORM is allowed for linking
+        const accStatus    = (row.ACC_STATUS || '').toString().trim().toUpperCase();
+        const isNormStatus = accStatus === 'NORM';
 
-      return {
-        custacno:          accountNum,
-        branch_code:       row.BRANCH_CODE?.toString() || '',
-        ccy:               row.CCY || '',
-        account_type:      row.ACCOUNT_TYPE || '',
-        account_class:     row.ACCOUNT_CLASS || '',
-        acclassdesc:       row.AC_DESC || '',
-        customer_name:     row.CUSTOMER_NAME1 || '',
-        customer_category: row.CUSTOMER_CATEGORY || '',
-        customer_type:     row.CUSTOMER_TYPE || '',
-        acc_status:        row.ACC_STATUS || '',
-        status,             // computed display status for frontend
-        record_stat:       recStat,
-        deceased,
-        cust_frozen:       custFrozen,
-        ac_stat_no_cr:     acStatNoCR,
-        ac_stat_block:     acStatBlock,
-        ac_stat_dormant:   acStatDorm,
-        ac_stat_frozen:    acStatFrz,
-        ac_stat_no_dr:     acStatNoDR,
-        isBlocked,
-        blockReason,
-        isAlreadyLinked:   linkedAccountHashes.has(hashed),
-      };
-    });
+        // Blocking: DECEASED, FROZEN, CLOSED, or non-NORM acc_status
+        const isBlocked = deceased === 'Y' || custFrozen === 'Y' || recStat === 'C' || !isNormStatus;
+        let blockReason: string | null = null;
+        if (deceased === 'Y')        blockReason = 'Customer is deceased';
+        else if (custFrozen === 'Y') blockReason = 'Customer account is frozen';
+        else if (recStat === 'C')    blockReason = 'Account is closed';
+        else if (!isNormStatus)      blockReason = `Account status is ${accStatus || 'unknown'} (only NORM accounts can be linked)`;
+
+        // Derive a display status compatible with existing frontend logic:
+        //   Blocked → 'Blocked'  |  Dormant → 'Dormant'  |  else → 'Active'
+        let status: string;
+        if (isBlocked)              status = 'Blocked';
+        else if (acStatDorm === 'Y') status = 'Dormant';
+        else                        status = 'Active';
+
+        transformed.push({
+          custacno:            casaAccountNum,
+          branch_code:         row.BRANCH_CODE?.toString() || '',
+          ccy:                 row.CCY || '',
+          account_type:        row.ACCOUNT_TYPE || '',
+          account_class:       row.ACCOUNT_CLASS || '',
+          acclassdesc:         row.AC_DESC || '',
+          customer_name:       row.CUSTOMER_NAME1 || '',
+          customer_category:   row.CUSTOMER_CATEGORY || '',
+          customer_type:       row.CUSTOMER_TYPE || '',
+          acc_status:          row.ACC_STATUS || '',
+          status,             // computed display status for frontend
+          record_stat:         recStat,
+          deceased,
+          cust_frozen:         custFrozen,
+          ac_stat_no_cr:       acStatNoCR,
+          ac_stat_block:       acStatBlock,
+          ac_stat_dormant:     acStatDorm,
+          ac_stat_frozen:      acStatFrz,
+          ac_stat_no_dr:       acStatNoDR,
+          isBlocked,
+          blockReason,
+          isAlreadyLinked:     linkedAccountHashes.has(hashed),
+          is_loan:             false,
+          loan_account_number: null,
+          loan_account_status: null,
+        });
+      }
+
+      // ── B. Loan Account from SUPERAPP_CLTB_ACCOUNT_MASTER_VW ──
+      const loanAccountNum = row.LOAN_ACCOUNT_NUMBER?.toString().trim();
+      if (loanAccountNum && !seenLoanAccounts.has(loanAccountNum)) {
+        seenLoanAccounts.add(loanAccountNum);
+
+        const hashed = crypto.createHash('sha256').update(loanAccountNum).digest('hex');
+        const loanStatusRaw = (row.LOAN_ACCOUNT_STATUS || '').toString().trim().toUpperCase();
+
+        // Active status in Flexcube CL is usually 'A', 'ACTIVE', 'NORM', or 'OPEN'
+        const isLoanActive = loanStatusRaw === 'A' || loanStatusRaw === 'ACTIVE' || loanStatusRaw === 'NORM' || loanStatusRaw === 'OPEN';
+        const isLoanClosed = loanStatusRaw === 'C' || loanStatusRaw === 'CLOSED' || loanStatusRaw === 'L' || loanStatusRaw === 'LIQUIDATED';
+
+        const isBlocked = deceased === 'Y' || custFrozen === 'Y' || isLoanClosed || (!isLoanActive && Boolean(loanStatusRaw));
+        let blockReason: string | null = null;
+        if (deceased === 'Y')             blockReason = 'Customer is deceased';
+        else if (custFrozen === 'Y')      blockReason = 'Customer account is frozen';
+        else if (isLoanClosed)           blockReason = `Loan account is closed/liquidated (${loanStatusRaw})`;
+        else if (!isLoanActive && loanStatusRaw) blockReason = `Loan status is ${loanStatusRaw}`;
+
+        let status: string;
+        if (isBlocked) status = 'Blocked';
+        else status = 'Active';
+
+        transformed.push({
+          custacno:            loanAccountNum,
+          branch_code:         row.BRANCH_CODE?.toString() || '',
+          ccy:                 row.CCY || 'ETB',
+          account_type:        'LOAN',
+          account_class:       'LOAN',
+          acclassdesc:         'Loan Account',
+          customer_name:       row.CUSTOMER_NAME1 || '',
+          customer_category:   row.CUSTOMER_CATEGORY || '',
+          customer_type:       row.CUSTOMER_TYPE || '',
+          acc_status:          loanStatusRaw || 'ACTIVE',
+          status,
+          record_stat:         isLoanClosed ? 'C' : 'O',
+          deceased,
+          cust_frozen:         custFrozen,
+          ac_stat_no_cr:       'N',
+          ac_stat_block:       'N',
+          ac_stat_dormant:     'N',
+          ac_stat_frozen:      'N',
+          ac_stat_no_dr:       'N',
+          isBlocked,
+          blockReason,
+          isAlreadyLinked:     linkedAccountHashes.has(hashed),
+          is_loan:             true,
+          loan_account_number: loanAccountNum,
+          loan_account_status: loanStatusRaw,
+        });
+      }
+    }
+
+    if (!transformed.length) {
+      console.warn('[find-accounts] No valid accounts found for CIF:', cif);
+      return NextResponse.json(
+        { message: `No accounts found for customer ${cif}` },
+        { status: 404 }
+      );
+    }
 
     console.log('====================================================');
     console.log(`[find-accounts] Returning ${transformed.length} accounts for CIF: ${cif}`);
     transformed.forEach(acc => {
-      console.log(`  - Account: ${acc.custacno} | Type: ${acc.account_type} | Status: ${acc.status} | Blocked: ${acc.isBlocked} | Reason: ${acc.blockReason || 'None'}`);
+      console.log(`  - Account: ${acc.custacno} | Type: ${acc.account_type} | IsLoan: ${acc.is_loan} | Status: ${acc.status} | Blocked: ${acc.isBlocked} | Reason: ${acc.blockReason || 'None'}`);
     });
     console.log('====================================================');
     
