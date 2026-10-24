@@ -59,8 +59,8 @@ async function fetchAccountsFromFlexDB(cif: string): Promise<any[]> {
       c.ACCOUNT_STATUS   AS LOAN_ACCOUNT_STATUS
     FROM FCUBSPRD.STTM_CUSTOMER sc
     LEFT JOIN FCUBSPRD.STTM_CUST_ACCOUNT sca ON sc.CUSTOMER_NO = sca.CUST_NO
-    LEFT JOIN FCUBSPRD.SUPERAPP_CLTB_ACCOUNT_MASTER_VW c ON c.CUSTOMER_ID = sc.CUSTOMER_NO
-    WHERE sc.CUSTOMER_NO = :cif AND c.ACCOUNT_STATUS = 'A'
+    LEFT JOIN FCUBSPRD.SUPERAPP_CLTB_ACCOUNT_MASTER_VW c ON c.CUSTOMER_ID = sc.CUSTOMER_NO AND c.ACCOUNT_STATUS = 'A'
+    WHERE sc.CUSTOMER_NO = :cif
   `;
 
   console.log('====================================================');
