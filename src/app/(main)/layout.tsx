@@ -3,6 +3,7 @@
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Watermark } from "@/components/layout/Watermark";
+import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from "lucide-react";
@@ -159,7 +160,8 @@ export default function MainLayout({
       <Sidebar userPermissions={userPermissions} />
       <div className="flex-1 flex min-h-screen flex-col">
         <Header user={user} userPermissions={userPermissions} />
-        <main className="relative flex-1 overflow-y-auto">
+        <main id="main-scroll" className="relative flex-1 overflow-y-auto">
+          <SmoothScroll wrapperId="main-scroll" />
           <Watermark />
           <div className="relative z-10 flex min-h-full flex-col p-4 md:p-6 lg:p-8">
             <div className="flex-1">{children}</div>

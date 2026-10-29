@@ -3,6 +3,7 @@ import { Users, UserX, UserCheck, AlertCircle, Link, Clock, CheckCircle } from '
 import { StatsCard, StatsCardSkeleton } from '@/components/dashboard/StatsCard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { executeQuery } from '@/lib/oracle-db';
+import { DashboardHero } from '@/components/dashboard/DashboardHero';
 
 async function getCustomerStats() {
   const connectionString = process.env.USER_MODULE_DB_CONNECTION_STRING;
@@ -62,6 +63,8 @@ export default async function DashboardPage() {
         </Alert>
       )}
 
+      <DashboardHero total={stats.total} active={stats.active} linked={stats.linkedAccounts} />
+
       {/* Customer Overview */}
       <div>
         <div className="mb-5">
@@ -91,7 +94,7 @@ export default async function DashboardPage() {
           <p className="text-sm text-muted-foreground mt-0.5">Requests awaiting action — see Overview for full details</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
+          <div data-reveal className="card-3d relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
             <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-amber-300 opacity-15 blur-2xl" />
             <div className="flex items-start justify-between mb-3">
               <div>
@@ -107,7 +110,7 @@ export default async function DashboardPage() {
               View Maker Dashboard →
             </a>
           </div>
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/60 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
+          <div data-reveal className="card-3d relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/60 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
             <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-blue-300 opacity-15 blur-2xl" />
             <div className="flex items-start justify-between mb-3">
               <div>

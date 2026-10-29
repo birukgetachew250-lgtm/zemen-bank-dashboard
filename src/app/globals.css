@@ -134,6 +134,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(60rem 30rem at 85% -10%, hsl(347 72% 44% / 0.07), transparent 60%),
+      radial-gradient(50rem 28rem at -5% 10%, hsl(233 55% 52% / 0.06), transparent 60%);
+    background-attachment: fixed;
+    scroll-behavior: smooth;
     font-family: 'Outfit', system-ui, -apple-system, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
@@ -228,3 +233,31 @@ aside ::-webkit-scrollbar-thumb:hover { background: hsl(347 72% 44% / 0.8); }
 .badge-rejected { @apply bg-red-50    text-red-700    border border-red-200; }
 .badge-cancelled{ @apply bg-slate-50  text-slate-600  border border-slate-200; }
 
+
+/* ── Sidebar aurora & motion ── */
+.sidebar-aurora {
+  background:
+    radial-gradient(120% 60% at 0% 0%, hsl(347 60% 14%) 0%, transparent 55%),
+    linear-gradient(180deg, hsl(222 50% 9%) 0%, hsl(225 55% 6%) 100%);
+}
+@keyframes aurora {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  50%      { transform: translate(40px, 30px) scale(1.15); }
+}
+.animate-aurora      { animation: aurora 12s ease-in-out infinite; }
+.animate-aurora-slow { animation: aurora 18s ease-in-out infinite reverse; }
+
+/* ── Gradient text + glass helpers ── */
+.text-gradient-brand {
+  background: linear-gradient(90deg, hsl(347 80% 50%), hsl(20 90% 55%), hsl(38 92% 55%));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.glass-dark {
+  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-aurora, .animate-aurora-slow { animation: none; }
+}

@@ -183,13 +183,15 @@ export function Header({ user, userPermissions }: { user: any; userPermissions: 
     <header
       className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 px-4 md:px-6"
       style={{
-        background: 'rgba(255,255,255,0.85)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: '1px solid hsl(220, 13%, 90%)',
-        boxShadow: '0 1px 0 0 rgba(34,47,90,0.05), 0 4px 16px 0 rgba(34,47,90,0.04)',
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.72))',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+        borderBottom: '1px solid rgba(226,232,240,0.7)',
+        boxShadow: '0 1px 0 0 rgba(255,255,255,0.8) inset, 0 8px 32px -12px rgba(34,47,90,0.12)',
       }}
     >
+      {/* Brand gradient hairline */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[hsl(347,72%,50%)]/50 to-transparent" />
       {/* ─── Left: Mobile menu + Breadcrumbs ─── */}
       <div className="flex items-center gap-3 min-w-0">
         {isMobile && (
