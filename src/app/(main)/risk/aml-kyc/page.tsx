@@ -1,7 +1,7 @@
-import { PageHeroBanner } from '@/components/layout/PageHeroBanner';
-import { ShieldCheck } from 'lucide-react';
 'use client';
 
+import { PageHeroBanner } from '@/components/layout/PageHeroBanner';
+import { ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
