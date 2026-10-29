@@ -1,3 +1,5 @@
+import { PageHeroBanner } from '@/components/layout/PageHeroBanner';
+import { ShieldAlert } from 'lucide-react';
 'use client';
 
 import { useState } from 'react';
@@ -70,11 +72,7 @@ export default function FraudMonitoringPage() {
 
   return (
     <div className="flex flex-col gap-6 h-full">
-      <div className="relative overflow-hidden rounded-2xl p-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(24, 90%, 50%) 0%, hsl(14, 90%, 40%) 100%)' }}>
-        <h1 className="text-3xl font-bold text-white relative z-10">Fraud Monitoring</h1>
-        <p className="text-white/80 mt-2 relative z-10">Real-time transaction monitoring and rules engine.</p>
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
-      </div>
+      <PageHeroBanner variant="amber" icon={<ShieldAlert className="h-7 w-7 text-amber-300" />} title="Fraud Monitoring" subtitle="Real-time transaction anomaly detection and customizable automated rules engine." />
 
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
             <Card className="glass-card animate-fade-up">

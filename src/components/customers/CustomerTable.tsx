@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
-import { Download } from "lucide-react";
+import { Download, Search } from "lucide-react";
 
 interface Customer {
   id: string;
@@ -70,12 +70,7 @@ export function CustomerTable({ title, customers, showExport = false }: Customer
         <CardHeader className="flex-row items-center justify-between">
             <CardTitle>{title}</CardTitle>
             <div className="flex items-center gap-2">
-              <Input 
-                  placeholder="Search by name or phone..."
-                  className="max-w-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <div className="relative w-72 max-w-full"><Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><Input placeholder="Search by name or phone..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
               {showExport && (
                 <Button variant="outline">
                   <Download className="mr-2" />
@@ -85,7 +80,7 @@ export function CustomerTable({ title, customers, showExport = false }: Customer
             </div>
         </CardHeader>
       <CardContent>
-        <div className="rounded-md border">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/60">
           <Table>
             <TableHeader>
               <TableRow>
@@ -103,7 +98,14 @@ export function CustomerTable({ title, customers, showExport = false }: Customer
                     onClick={() => handleRowClick(customer.id)}
                     className="cursor-pointer"
                   >
-                    <TableCell className="font-medium">{customer.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[hsl(347,72%,44%)] to-[hsl(233,55%,45%)] text-xs font-bold text-white shadow-sm">
+                          {customer.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+                        </div>
+                        <span className="text-slate-900">{customer.name}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>{customer.phone}</TableCell>
                     <TableCell>
                       <Badge 

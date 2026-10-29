@@ -129,7 +129,7 @@ export default function CreateCustomerPage() {
   return (
     <div className="w-full flex flex-col gap-6 max-w-3xl">
       <div className="mb-6 animate-fade-up">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">New Customer</h1>
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 relative pl-4 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-full before:bg-gradient-to-b before:from-[hsl(347,80%,50%)] before:to-[hsl(38,92%,55%)]">New Customer</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Register a new customer for Mobile Banking.
         </p>

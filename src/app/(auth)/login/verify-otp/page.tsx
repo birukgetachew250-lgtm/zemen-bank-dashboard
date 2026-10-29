@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MailCheck } from 'lucide-react';
+import { AuthShell } from '@/components/auth/AuthShell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSession } from 'next-auth/react';
 import { getSession } from 'next-auth/react';
@@ -95,51 +96,46 @@ function VerifyOtpPageContent() {
   }
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center text-center">
-            <Image src="/images/logo.png" alt="Zemen Bank" width={64} height={64} />
-          <h1 className="text-2xl font-bold mt-4">Two-Factor Authentication</h1>
-          <p className="text-muted-foreground">Enter the code sent to your email address.</p>
+    <AuthShell title="Two-factor verification" subtitle="Enter the 6-digit code we sent to confirm it's you.">
+      <div className="mb-5 flex items-center gap-3 rounded-2xl bg-emerald-50 p-3 ring-1 ring-emerald-200/70">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+          <MailCheck className="h-4 w-4" />
         </div>
-        
-        <Card>
-            <CardHeader>
-                <CardTitle>Verify Your Identity</CardTitle>
-                <CardDescription>A 6-digit verification code has been sent to {email}.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <FormField
-                    control={form.control}
-                    name="otp"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Verification Code</FormLabel>
-                        <FormControl>
-                            <Input
-                            placeholder="123456"
-                            {...field}
-                            />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Verify & Sign In
-                    </Button>
-                </form>
-                </Form>
-            </CardContent>
-        </Card>
+        <p className="min-w-0 text-xs text-emerald-900">
+          Code sent to <span className="font-semibold break-all">{email}</span>
+        </p>
       </div>
-    </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <FormField
+            control={form.control}
+            name="otp"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-slate-700">Verification Code</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="123456"
+                    inputMode="numeric"
+                    maxLength={6}
+                    autoComplete="one-time-code"
+                    className="h-14 text-center text-2xl font-semibold tracking-[0.6em] md:text-2xl"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" size="lg" className="h-12 w-full text-[15px] font-semibold" disabled={isLoading}>
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isLoading ? 'Verifying…' : 'Verify & Sign In'}
+          </Button>
+        </form>
+      </Form>
+    </AuthShell>
   );
 }
-
 export default function VerifyOtpPage() {
     return (
         <Suspense fallback={

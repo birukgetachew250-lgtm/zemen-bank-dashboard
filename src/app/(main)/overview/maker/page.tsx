@@ -127,7 +127,7 @@ export default function MakerDashboardPage() {
     <div className="space-y-6 animate-fade-up">
       {/* ── Page Header ── */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Maker Dashboard</h1>
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 relative pl-4 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-full before:bg-gradient-to-b before:from-[hsl(347,80%,50%)] before:to-[hsl(38,92%,55%)]">Maker Dashboard</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Track and manage your submitted requests. Cancel pending items before checker approval.
         </p>
@@ -160,7 +160,7 @@ export default function MakerDashboardPage() {
         ].map(card => (
           <div
             key={card.label}
-            className="relative overflow-hidden rounded-2xl bg-white border border-slate-200/80 p-5 transition-all hover:-translate-y-1 hover:shadow-lg"
+            data-reveal className="card-3d will-change-transform relative overflow-hidden rounded-2xl bg-white/90 border border-slate-200/70 p-5 backdrop-blur transition-shadow duration-300 hover:shadow-[0_22px_44px_-18px_rgba(190,24,60,0.28)]"
             style={{ boxShadow: '0 2px 8px rgba(34,47,90,0.06)' }}
           >
             <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full opacity-10 blur-2xl" style={{ background: card.color }} />
@@ -170,7 +170,7 @@ export default function MakerDashboardPage() {
                 {card.icon}
               </div>
             </div>
-            <p className="text-3xl font-extrabold text-foreground" style={{ fontFamily: "'Outfit', sans-serif" }}>
+            <p className="text-3xl font-extrabold tabular-nums tracking-tight bg-gradient-to-b from-slate-900 to-slate-600 bg-clip-text text-transparent" style={{ fontFamily: "'Outfit', sans-serif" }}>
               {loading ? <Skeleton className="h-8 w-12" /> : card.value}
             </p>
             <p className="text-xs text-muted-foreground mt-1">{card.desc}</p>

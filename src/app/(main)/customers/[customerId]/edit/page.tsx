@@ -166,7 +166,7 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Edit Customer Profile</h1>
+                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 relative pl-4 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-full before:bg-gradient-to-b before:from-[hsl(347,80%,50%)] before:to-[hsl(38,92%,55%)]">Edit Customer Profile</h1>
                         <p className="text-muted-foreground text-sm mt-1">Modify details for {customer.full_name}</p>
                     </div>
                 </div>

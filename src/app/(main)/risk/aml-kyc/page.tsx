@@ -1,3 +1,5 @@
+import { PageHeroBanner } from '@/components/layout/PageHeroBanner';
+import { ShieldCheck } from 'lucide-react';
 'use client';
 
 import { useState } from 'react';
@@ -38,11 +40,7 @@ const riskColors: Record<'Low' | 'Medium' | 'High', string> = {
 export default function AmlKycPage() {
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-2xl p-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(347,72%,44%) 0%, hsl(347,72%,24%) 100%)' }}>
-        <h1 className="text-3xl font-bold text-white relative z-10">AML & KYC Compliance</h1>
-        <p className="text-white/80 mt-2 relative z-10">Monitor customers with compliance flags and manage investigation cases.</p>
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
-      </div>
+      <PageHeroBanner variant="crimson" icon={<ShieldCheck className="h-7 w-7 text-rose-300" />} title="AML & KYC Compliance" subtitle="Monitor customer screening flags, track investigation cases, and generate NBE regulatory reports." />
       <Tabs defaultValue="dashboard">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="dashboard">Screening Dashboard &amp; Cases</TabsTrigger>

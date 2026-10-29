@@ -1,3 +1,4 @@
+import { PageHeroBanner } from '@/components/layout/PageHeroBanner';
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -77,40 +78,33 @@ export default function TransactionReportsPage() {
   return (
     <div className="space-y-6 animate-fade-up">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl p-6"
-        style={{ background: 'linear-gradient(135deg, hsl(233,55%,48%) 0%, hsl(233,55%,35%) 100%)' }}>
-        <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" />
-        <div className="relative flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center ring-1 ring-white/20">
-              <ArrowRightLeft className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-white">Transaction Reports</h1>
-                <DataSourceBadge isLive={isLive} />
-              </div>
-              <p className="text-white/60 text-sm mt-0.5">Detailed transaction history with filtering and CSV export</p>
-            </div>
-          </div>
+      {/* Header */}
+      <PageHeroBanner
+        variant="indigo"
+        icon={<ArrowRightLeft className="h-6 w-6 text-indigo-300" />}
+        title="Transaction Reports"
+        badge={<DataSourceBadge isLive={isLive} />}
+        subtitle="Detailed transaction history with filtering and CSV export"
+        actions={
           <Button onClick={exportCsv} className="bg-white/20 hover:bg-white/30 text-white border-white/30 border rounded-xl">
             <Download className="mr-2 h-4 w-4" /> Export CSV
           </Button>
-        </div>
-        <div className="relative mt-4 grid grid-cols-4 gap-3">
+        }
+      >
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { label: 'Total Transactions', value: filtered.length.toLocaleString() },
             { label: 'Total Volume', value: `ETB ${(totalVol / 1000).toFixed(1)}K` },
             { label: 'Success Rate', value: `${successRate}%` },
             { label: 'Period', value: period === '7d' ? 'Last 7 days' : period === '90d' ? 'Last 90 days' : 'Last 30 days' },
           ].map(s => (
-            <div key={s.label} className="bg-white/10 rounded-xl px-3 py-2.5 backdrop-blur-sm">
+            <div key={s.label} className="bg-white/10 rounded-xl px-3 py-2.5 backdrop-blur-sm border border-white/10">
               <p className="text-lg font-bold text-white">{s.value}</p>
-              <p className="text-xs text-white/50 mt-0.5">{s.label}</p>
+              <p className="text-xs text-white/60 mt-0.5">{s.label}</p>
             </div>
           ))}
         </div>
-      </div>
+      </PageHeroBanner>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">

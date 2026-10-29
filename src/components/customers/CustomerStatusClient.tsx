@@ -162,7 +162,7 @@ export function CustomerStatusClient({ action }: CustomerStatusClientProps) {
   return (
     <div className="space-y-6 animate-fade-up max-w-2xl">
         <div className="mb-6">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{action} Customer</h1>
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 relative pl-4 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-full before:bg-gradient-to-b before:from-[hsl(347,80%,50%)] before:to-[hsl(38,92%,55%)]">{action} Customer</h1>
             <p className="text-muted-foreground text-sm mt-1">
                 Enter a CIF number to find a customer and submit a request to {action.toLowerCase()} their app access.
             </p>

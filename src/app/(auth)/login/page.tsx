@@ -18,7 +18,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
+import { AuthShell } from '@/components/auth/AuthShell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { signIn, getSession } from 'next-auth/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -107,109 +108,95 @@ function LoginPageContent() {
   };
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center text-center">
-            <Image src="/images/logo.png" alt="Zemen Bank" width={64} height={64} />
-          <h1 className="text-2xl font-bold mt-4">Zemen Bank Admin Center</h1>
-          <p className="text-muted-foreground">Enter your credentials to access the dashboard</p>
-        </div>
-        
-        <Card>
-            <CardHeader>
-                <CardTitle>Secure Sign-In</CardTitle>
-            </CardHeader>
-            <CardContent>
-                {reason === 'session-timeout' && (
-                  <Alert variant="destructive" className="mb-4">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Session Expired</AlertTitle>
-                    <AlertDescription>
-                      Your session expired due to inactivity. Please sign in again.
-                    </AlertDescription>
-                  </Alert>
-                )}
-                {errorMessage && (
-                  <Alert variant="destructive" className="mb-4">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Login Error</AlertTitle>
-                    <AlertDescription>
-                      {errorMessage}
-                    </AlertDescription>
-                  </Alert>
-                )}
-                <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Email Address</FormLabel>
-                        <FormControl>
-                            <Input
-                            type="email"
-                            placeholder="admin@zemenbank.com"
-                            autoComplete="off"
-                            {...field}
-                            />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
+    <AuthShell title="Welcome back" subtitle="Sign in to the Zemen Bank Admin Center to continue.">
+      {reason === 'session-timeout' && (
+        <Alert variant="destructive" className="mb-4 rounded-xl">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Session Expired</AlertTitle>
+          <AlertDescription>
+            Your session expired due to inactivity. Please sign in again.
+          </AlertDescription>
+        </Alert>
+      )}
+      {errorMessage && (
+        <Alert variant="destructive" className="mb-4 rounded-xl">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Login Error</AlertTitle>
+          <AlertDescription>
+            {errorMessage}
+          </AlertDescription>
+        </Alert>
+      )}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-slate-700">Email Address</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Input
+                      type="email"
+                      placeholder="admin@zemenbank.com"
+                      autoComplete="off"
+                      className="pl-10"
+                      {...field}
                     />
-                    <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder="••••••••"
-                            autoComplete="off"
-                            {...field}
-                            />
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
-                                onClick={() => setShowPassword((prev) => !prev)}
-                            >
-                                {showPassword ? <EyeOff /> : <Eye />}
-                            </Button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-slate-700">Password</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      autoComplete="off"
+                      className="pl-10 pr-11"
+                      {...field}
                     />
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Sign In
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1.5 top-1/2 h-8 w-8 -translate-y-1/2 rounded-lg text-slate-400 hover:text-slate-700"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                    >
+                      {showPassword ? <EyeOff /> : <Eye />}
                     </Button>
-                </form>
-                </Form>
-            </CardContent>
-        </Card>
-        
-        <p className="text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Zemen Bank. All rights reserved.
-        </p>
-      </div>
-    </div>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" size="lg" className="h-12 w-full text-[15px] font-semibold" disabled={isLoading}>
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="order-last h-4 w-4" />}
+            {isLoading ? 'Signing in…' : 'Sign In'}
+          </Button>
+        </form>
+      </Form>
+    </AuthShell>
   );
 }
-
 // This is the default export which is a Server Component.
 export default function LoginPage() {
     return (
         // The Suspense boundary is necessary because LoginPageContent uses useSearchParams.
         <Suspense fallback={
-            <div className="flex h-screen w-full items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
+            <div className="flex h-screen w-full items-center justify-center bg-[hsl(225,55%,6%)] px-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         }>

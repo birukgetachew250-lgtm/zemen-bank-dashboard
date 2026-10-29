@@ -4,6 +4,7 @@ import { StatsCard, StatsCardSkeleton } from '@/components/dashboard/StatsCard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { executeQuery } from '@/lib/oracle-db';
 import { DashboardHero } from '@/components/dashboard/DashboardHero';
+import { QuickActions } from '@/components/dashboard/QuickActions';
 
 async function getCustomerStats() {
   const connectionString = process.env.USER_MODULE_DB_CONNECTION_STRING;
@@ -64,6 +65,8 @@ export default async function DashboardPage() {
       )}
 
       <DashboardHero total={stats.total} active={stats.active} linked={stats.linkedAccounts} />
+
+      <QuickActions />
 
       {/* Customer Overview */}
       <div>

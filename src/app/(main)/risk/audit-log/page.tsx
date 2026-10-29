@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, Shield } from "lucide-react";
+import { PageHeroBanner } from '@/components/layout/PageHeroBanner';
 import { DateRangePicker } from '@/components/transactions/DateRangePicker';
 import { format } from 'date-fns';
 
@@ -31,11 +32,7 @@ const mockAuditLogs: AuditLog[] = [
 export default function RiskAuditLogPage() {
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-2xl p-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(347,72%,44%) 0%, hsl(347,72%,24%) 100%)' }}>
-        <h1 className="text-3xl font-bold text-white relative z-10">Risk & Compliance Audit Log</h1>
-        <p className="text-white/80 mt-2 relative z-10">A tamper-proof log of all actions taken within the risk and compliance modules.</p>
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
-      </div>
+      <PageHeroBanner variant="crimson" icon={<Shield className="h-7 w-7 text-rose-300" />} title="Risk & Compliance Audit Log" subtitle="A tamper-proof audit trail of all operational actions taken across risk, compliance, and security modules." />
     <Card className="glass-card animate-fade-up">
       <CardHeader>
         <CardTitle>Audit Log</CardTitle>

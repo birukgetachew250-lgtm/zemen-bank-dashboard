@@ -147,7 +147,7 @@ export default function UnlockCustomerPage() {
   return (
     <div className="space-y-6 animate-fade-up max-w-3xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Unlock Customer</h1>
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 relative pl-4 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-full before:bg-gradient-to-b before:from-[hsl(347,80%,50%)] before:to-[hsl(38,92%,55%)]">Unlock Customer</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Submit an unlock request for a locked customer account. Checker approval is required.
         </p>

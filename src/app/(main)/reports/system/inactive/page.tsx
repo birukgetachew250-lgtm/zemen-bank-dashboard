@@ -49,7 +49,7 @@ export default async function InactiveCustomersReportPage() {
   return (
     <div className="w-full h-full flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Inactive & Dormant Customers Report</h1>
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 relative pl-4 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-full before:bg-gradient-to-b before:from-[hsl(347,80%,50%)] before:to-[hsl(38,92%,55%)]">Inactive & Dormant Customers Report</h1>
       </div>
       
       <Tabs defaultValue="mobile" className="w-full">

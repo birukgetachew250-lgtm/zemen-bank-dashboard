@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, LayoutGrid, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { PageHeroBanner } from '@/components/layout/PageHeroBanner';
 
 export default function OnlineLinkingOverview() {
   const { toast } = useToast();
@@ -35,19 +36,12 @@ export default function OnlineLinkingOverview() {
 
   return (
     <div className="space-y-6 animate-fade-up">
-      <div className="relative overflow-hidden rounded-2xl p-6"
-        style={{ background: 'linear-gradient(135deg, hsl(158,64%,35%) 0%, hsl(158,64%,25%) 100%)' }}>
-        <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" />
-        <div className="relative flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center ring-1 ring-white/20">
-            <LayoutGrid className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Online Linking Overview</h1>
-            <p className="text-white/70 text-sm mt-0.5">High-level reporting and statistics for account linking</p>
-          </div>
-        </div>
-      </div>
+      <PageHeroBanner
+        variant="emerald"
+        icon={<LayoutGrid className="h-7 w-7 text-emerald-300" />}
+        title="Online Linking Overview"
+        subtitle="High-level real-time reporting and portfolio statistics for mobile account linking applications."
+      />
 
       {loading ? (
         <div className="flex justify-center py-24"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>

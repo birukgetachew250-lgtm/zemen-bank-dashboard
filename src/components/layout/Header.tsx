@@ -4,6 +4,8 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { LogOut, Settings, User, Bell, ChevronRight, Menu as MenuIcon, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import { signOut } from 'next-auth/react';
+import { CommandPalette } from '@/components/layout/CommandPalette';
+import { Search } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -146,6 +148,7 @@ export function Header({ user, userPermissions }: { user: any; userPermissions: 
   const [notifCount, setNotifCount] = useState(0);
   const [notifItems, setNotifItems] = useState<any[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [cmdOpen, setCmdOpen] = useState(false);
 
   const breadcrumbs = buildBreadcrumbs(menu, pathname);
   const currentPage = breadcrumbs[breadcrumbs.length - 1];
@@ -203,8 +206,7 @@ export function Header({ user, userPermissions }: { user: any; userPermissions: 
             </SheetTrigger>
             <SheetContent
               side="left"
-              className="flex flex-col p-0"
-              style={{ background: 'hsl(222, 47%, 8%)', border: 'none' }}
+              className="sidebar-aurora flex flex-col p-0 border-0"
             >
               <SheetHeader
                 className="flex flex-row h-16 items-center gap-3 px-4"
@@ -410,6 +412,7 @@ export function Header({ user, userPermissions }: { user: any; userPermissions: 
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} />
     </header>
   );
 }

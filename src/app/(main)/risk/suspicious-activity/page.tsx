@@ -1,3 +1,5 @@
+import { PageHeroBanner } from '@/components/layout/PageHeroBanner';
+import { AlertTriangle } from 'lucide-react';
 'use client';
 
 import { useState } from 'react';
@@ -51,11 +53,7 @@ export default function SuspiciousActivityPage() {
 
   return (
     <div className="space-y-6 h-full">
-      <div className="relative overflow-hidden rounded-2xl p-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(347,72%,44%) 0%, hsl(347,72%,24%) 100%)' }}>
-        <h1 className="text-3xl font-bold text-white relative z-10">Suspicious Activity Alerts</h1>
-        <p className="text-white/80 mt-2 relative z-10">Centralized inbox for all fraud and AML alerts, prioritized for triage.</p>
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
-      </div>
+      <PageHeroBanner variant="crimson" icon={<AlertTriangle className="h-7 w-7 text-rose-300" />} title="Suspicious Activity Alerts" subtitle="Centralized triage inbox for real-time fraud detections and anti-money laundering alerts." />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
         <Card className="lg:col-span-2 flex flex-col glass-card animate-fade-up">
           <CardHeader>

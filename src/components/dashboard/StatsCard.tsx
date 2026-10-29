@@ -109,7 +109,7 @@ export function StatsCard({
         <div className="mb-2">
           <span
             ref={valueRef}
-            className="text-3xl font-extrabold text-foreground tracking-tight animate-count-up"
+            className="text-3xl font-extrabold tabular-nums tracking-tight bg-gradient-to-b from-slate-900 to-slate-600 bg-clip-text text-transparent tracking-tight animate-count-up"
             style={{ fontFamily: "'Outfit', sans-serif" }}
           >
             {typeof value === 'number' ? value.toLocaleString() : value}
