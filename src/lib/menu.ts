@@ -191,19 +191,20 @@ export const menu: MenuItem[] = [
     ],
   },
   {
+    label: "Bill Management",
+    icon: Receipt,
+    href: "/integrations/billers/providers",
+    children: [
+      { icon: LayoutGrid, label: "Categories", href: "/integrations/billers/categories" },
+      { icon: Layers,     label: "Subcategories", href: "/integrations/billers/subcategories" },
+      { icon: Building2,  label: "Providers", href: "/integrations/billers/providers" },
+      { icon: Plug,       label: "System Config", href: "/integrations/config" },
+    ],
+  },
+  {
     label: "Administration",
     icon: UserCog,
     children: [
-      {
-        label: "Bill Management",
-        icon: Receipt,
-        children: [
-          { icon: LayoutGrid, label: "Categories", href: "/integrations/billers/categories" },
-          { icon: Layers,     label: "Subcategories", href: "/integrations/billers/subcategories" },
-          { icon: Building2,  label: "Providers", href: "/integrations/billers/providers" },
-          { icon: Plug,       label: "System Config", href: "/integrations/config" },
-        ],
-      },
       {
         label: "Structure",
         icon: Building,

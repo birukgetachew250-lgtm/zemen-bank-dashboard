@@ -29,6 +29,7 @@ const LEGACY_LABEL_ALIASES: Record<string, string[]> = {
   'Mini Apps': ['App Control', '/app-control'],
   'IPS & Integrations': ['App Control', '/app-control', 'Integrations', 'IPS & Telecom'],
   'App Content & Config': ['App Control', '/app-control'],
+  'Bill Management': ['Administration', 'Bill Management'],
 };
 
 function stripQuery(href?: string): string {
@@ -73,6 +74,7 @@ const sectionAccents: Record<string, string> = {
   'Mini Apps':                 'text-teal-400',
   'IPS & Integrations':        'text-emerald-400',
   'App Content & Config':      'text-cyan-300',
+  'Bill Management':           'text-lime-400',
   'Administration':            'text-violet-400',
   'Oversight':                 'text-orange-400',
   'System Monitoring':         'text-green-400',

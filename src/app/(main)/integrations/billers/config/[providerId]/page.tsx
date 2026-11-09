@@ -57,32 +57,38 @@ export default function BillerConfigDashboardPage({ params }: { params: { provid
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/integrations/billers/providers`}><ArrowLeft className="h-5 w-5" /></Link>
-                    </Button>
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight font-headline">{provider.ProviderName}</h1>
-                        <p className="text-muted-foreground text-sm uppercase tracking-widest font-mono">{provider.ProviderCode}</p>
+        <div className="space-y-5">
+            <div
+                className="relative overflow-hidden rounded-3xl border border-white/10 p-5 md:p-6 text-white shadow-xl"
+                style={{ background: 'radial-gradient(80% 140% at 100% 0%, hsl(84 70% 35% / 0.55), transparent 60%), radial-gradient(70% 120% at 0% 100%, hsl(347 75% 38% / 0.5), transparent 60%), linear-gradient(135deg, hsl(222 50% 10%), hsl(220 55% 7%))' }}
+            >
+                <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-center gap-4">
+                        <Button variant="ghost" size="icon" asChild className="rounded-xl bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                            <Link href={`/integrations/billers/providers`}><ArrowLeft className="h-5 w-5" /></Link>
+                        </Button>
+                        <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-lime-300/90">Bill Provider Studio</p>
+                            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{provider.ProviderName}</h1>
+                            <p className="text-white/60 text-xs uppercase tracking-widest font-mono">{provider.ProviderCode}</p>
+                        </div>
                     </div>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={fetchData}><RefreshCw className="mr-2 h-4 w-4" /> Refresh</Button>
-                    <Button><Save className="mr-2 h-4 w-4" /> Save All Changes</Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" onClick={fetchData} className="rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"><RefreshCw className="mr-2 h-4 w-4" /> Refresh</Button>
+                        <Button className="rounded-xl bg-white text-slate-900 hover:bg-white/90"><Save className="mr-2 h-4 w-4" /> Save All Changes</Button>
+                    </div>
                 </div>
             </div>
 
             <Tabs defaultValue="fields" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
-                    <TabsTrigger value="fields"><Layout className="mr-2 h-4 w-4" /> Form Fields</TabsTrigger>
-                    <TabsTrigger value="steps"><ListTodo className="mr-2 h-4 w-4" /> Flow Steps</TabsTrigger>
-                    <TabsTrigger value="api"><Code className="mr-2 h-4 w-4" /> API Config</TabsTrigger>
-                    <TabsTrigger value="display"><FileJson className="mr-2 h-4 w-4" /> Display</TabsTrigger>
+                <TabsList className="h-auto w-full justify-start gap-1 rounded-2xl border border-border/70 bg-card/80 p-1.5 lg:w-auto">
+                    <TabsTrigger value="fields" className="rounded-xl px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Layout className="mr-2 h-4 w-4" /> Form Designer</TabsTrigger>
+                    <TabsTrigger value="steps" className="rounded-xl px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><ListTodo className="mr-2 h-4 w-4" /> Flow Steps</TabsTrigger>
+                    <TabsTrigger value="api" className="rounded-xl px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Code className="mr-2 h-4 w-4" /> API Config</TabsTrigger>
+                    <TabsTrigger value="display" className="rounded-xl px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><FileJson className="mr-2 h-4 w-4" /> Display</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="fields" className="mt-6">
+                <TabsContent value="fields" className="mt-5">
                     <SDUIFieldBuilder providerId={providerId} initialFields={config?.fields || []} />
                 </TabsContent>
 
