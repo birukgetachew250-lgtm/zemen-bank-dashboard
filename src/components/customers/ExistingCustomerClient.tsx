@@ -317,7 +317,7 @@ export function ExistingCustomerClient() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="h-11 rounded-xl border-white/15 bg-white/10 pl-10 text-white placeholder:text-white/45 focus-visible:ring-[hsl(347,78%,50%)]"
+                className="h-11 rounded-xl border-white/20 bg-slate-900/80 pl-10 text-white caret-white placeholder:text-white/50 focus-visible:bg-slate-900 focus-visible:text-white focus-visible:border-[hsl(347,78%,55%)] focus-visible:ring-[hsl(347,78%,50%/0.35)]"
               />
             </div>
             <div className="flex items-center gap-2">

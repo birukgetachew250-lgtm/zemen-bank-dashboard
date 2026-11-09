@@ -2,7 +2,7 @@ import { CustomerStatusClient } from "@/components/customers/CustomerStatusClien
 
 export default function UnsuspendCustomerPage() {
   return (
-    <div className="w-full space-y-8 animate-fade-up max-w-3xl">
+    <div className="w-full animate-fade-up">
       <CustomerStatusClient action="Unsuspend" />
     </div>
   );

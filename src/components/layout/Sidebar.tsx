@@ -19,17 +19,15 @@ import { ScrollArea } from '../ui/scroll-area';
 const LEGACY_LABEL_ALIASES: Record<string, string[]> = {
   'Dashboard & Tasks': ['Overview', 'Dashboard', '/dashboard'],
   'Dashboard Overview': ['Dashboard', '/dashboard'],
-  'Customer Management': ['Customer Records', '/customers'],
-  'App Migration': ['Customer Records', 'Customer Management', '/customers'],
-  'Customer Modifications': ['Maker', 'Checker'],
-  'Account Operations': ['Account Management', '/customers/link-account'],
-  'Account Status Controls': ['Maker', 'Checker'],
-  'Security & Access Control': ['Customer Security'],
-  'Device & Credential (Maker)': ['Maker', 'Device & Credential Requests (Maker)'],
-  'Security Approvals (Checker)': ['Checker', 'Security Verification (Checker)'],
+  'Customer Management': ['Customer Records', '/customers', 'Maker', 'Checker'],
+  'App Migration': ['Customer Records', 'Customer Management', '/customers', '/customers/migration'],
+  'Account Operations': ['Account Management', '/customers/link-account', 'Maker', 'Checker'],
+  'Customer Security': ['Customer Security', 'Security & Access Control'],
+  'Security Requests': ['Maker', 'Device & Credential (Maker)', 'Device & Credential Requests (Maker)'],
+  'Security Approvals': ['Checker', 'Security Approvals (Checker)', 'Security Verification (Checker)'],
   'Limits & Charges': ['Administration', '/limits', '/charges', 'App Control', '/app-control'],
   'Mini Apps': ['App Control', '/app-control'],
-  'IPS & Telecom': ['App Control', '/app-control', 'Integrations'],
+  'IPS & Integrations': ['App Control', '/app-control', 'Integrations', 'IPS & Telecom'],
   'App Content & Config': ['App Control', '/app-control'],
 };
 
@@ -68,11 +66,12 @@ function hasAccessToAnyChild(item: MenuItem, userPermissions: string[]): boolean
 const sectionAccents: Record<string, string> = {
   'Dashboard & Tasks':         'text-rose-400',
   'Customer Management':       'text-sky-400',
+  'App Migration':             'text-amber-300',
   'Account Operations':        'text-cyan-400',
-  'Security & Access Control': 'text-indigo-400',
+  'Customer Security':         'text-indigo-400',
   'Limits & Charges':          'text-amber-400',
   'Mini Apps':                 'text-teal-400',
-  'IPS & Telecom':             'text-emerald-400',
+  'IPS & Integrations':        'text-emerald-400',
   'App Content & Config':      'text-cyan-300',
   'Administration':            'text-violet-400',
   'Oversight':                 'text-orange-400',
@@ -143,11 +142,10 @@ function SidebarNavItem({
           <AccordionTrigger
             title={item.label}
             className={cn(
-              'group flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-all duration-200',
-              'text-sidebar-foreground/80 hover:text-sidebar-accent-foreground',
+              'group flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-all duration-200',
+              'text-sidebar-foreground/85 hover:text-sidebar-accent-foreground',
               'hover:bg-sidebar-accent/60 hover:no-underline',
-              depth === 0 && 'py-2.5',
-              depth > 0 && 'py-1.5 text-[12.5px]',
+              depth === 0 ? 'py-2.5 text-[14px] font-semibold' : 'py-2 text-[13.5px] font-medium',
               isChildActive && 'bg-sidebar-accent/40 text-sidebar-accent-foreground'
             )}
           >
@@ -165,15 +163,15 @@ function SidebarNavItem({
                 <Icon
                   className={cn(
                     'h-4 w-4 transition-all duration-200',
-                    depth === 0 ? accentClass : 'text-sidebar-foreground/60 group-hover:text-sidebar-foreground'
+                    depth === 0 ? accentClass : 'text-sidebar-foreground/65 group-hover:text-sidebar-foreground'
                   )}
                 />
               </div>
-              <span className="leading-snug line-clamp-2 break-words">{item.label}</span>
+              <span className="leading-snug truncate">{item.label}</span>
             </div>
           </AccordionTrigger>
-          <AccordionContent className={cn('pb-0', depth === 0 ? 'pl-2 pt-0.5' : 'pl-2 pt-0')}>
-            <div className="flex flex-col gap-0.5 border-l border-sidebar-border/50 ml-2.5 pl-2">
+          <AccordionContent className={cn('pb-0', depth === 0 ? 'pl-1.5 pt-0.5' : 'pl-1.5 pt-0')}>
+            <div className="flex flex-col gap-0.5 border-l border-sidebar-border/60 ml-2.5 pl-2">
               {accessibleChildren.map(child => (
                 <SidebarNavItem
                   key={child.href || child.label}
@@ -202,11 +200,11 @@ function SidebarNavItem({
       title={item.label}
       className={cn(
         'group relative flex items-center gap-2.5 rounded-xl px-2.5 transition-all duration-200',
-        depth === 0 ? 'py-2.5 text-sm font-medium' : 'py-1.5 text-[12.5px] font-normal',
+        depth === 0 ? 'py-2.5 text-[14px] font-semibold' : 'py-2 text-[13.5px] font-medium',
         isActive
-          ? [depth === 0 ? 'text-white font-semibold' : 'text-[hsl(347,90%,85%)] font-medium']
+          ? [depth === 0 ? 'text-white font-semibold' : 'text-[hsl(347,90%,88%)] font-semibold']
           : [
-              'text-sidebar-foreground/75 hover:text-white hover:translate-x-0.5',
+              'text-sidebar-foreground/80 hover:text-white hover:translate-x-0.5',
               'hover:bg-white/[0.06]',
             ]
       )}
@@ -241,11 +239,11 @@ function SidebarNavItem({
         <Icon
           className={cn(
             'h-4 w-4 transition-all duration-200',
-            isActive ? 'text-white' : depth === 0 ? accentClass : 'text-sidebar-foreground/55 group-hover:text-sidebar-foreground/90'
+            isActive ? 'text-white' : depth === 0 ? accentClass : 'text-sidebar-foreground/60 group-hover:text-sidebar-foreground/95'
           )}
         />
       </div>
-      <span className="relative z-10 leading-snug line-clamp-2 break-words">{item.label}</span>
+      <span className="relative z-10 leading-snug truncate">{item.label}</span>
     </Link>
   );
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { executeQuery } from '@/lib/oracle-db';
 import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
 import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
@@ -225,6 +226,23 @@ export async function POST(req: Request) {
         { message: 'Security Question Reset service has been removed.' },
         { status: 410 }
       );
+    }
+
+    // For resend-activation, ensure the customer already exists in USER_MODULE.AppUsers
+    if (type === 'resend-activation-code' || type === 'resend-activation') {
+      const existingAppUser: any = await executeQuery(
+        process.env.USER_MODULE_DB_CONNECTION_STRING,
+        `SELECT "Id", "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :cif`,
+        { cif: String(cif).trim() }
+      );
+      if (!existingAppUser?.rows || existingAppUser.rows.length === 0) {
+        return NextResponse.json(
+          {
+            message: `Customer (CIF: ${cif}) does not exist in SuperApp (AppUsers). Resend Activation is only available for existing registered customers.`,
+          },
+          { status: 404 }
+        );
+      }
     }
 
     const sessionEmail = session.user?.email as string;

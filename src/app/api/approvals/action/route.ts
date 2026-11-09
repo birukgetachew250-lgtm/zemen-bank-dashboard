@@ -482,58 +482,87 @@ export async function POST(req: Request) {
                 await db.customer.updateMany({ where: { phone: approval.customerPhone }, data: { status: 'Active' } });
                 successMessage = `Customer with CIF ${cif} has been unlocked successfully.`;
                 break;
+            case 'resend-activation':
             case 'resend-activation-code':
+                // 1. Verify the customer already exists in USER_MODULE.AppUsers (never insert new user or OTP records)
+                const existingCustomerCheck: any = await executeQuery(
+                    process.env.USER_MODULE_DB_CONNECTION_STRING,
+                    `SELECT "Id", "CIFNumber" FROM "USER_MODULE"."AppUsers" WHERE "CIFNumber" = :cif`,
+                    { cif }
+                );
+
+                if (!existingCustomerCheck?.rows || existingCustomerCheck.rows.length === 0) {
+                    throw new Error(`Customer with CIF ${cif} does not exist in USER_MODULE.AppUsers. Resend activation requires an existing registered customer.`);
+                }
+
                 const resendActivationCode = Math.floor(100000 + Math.random() * 900000).toString();
                 const resendCodeHash = crypto.createHash('sha256').update(resendActivationCode).digest('hex').toLowerCase();
 
+                // 2. Check existing OtpUsers record to find linked OtpCodeId
                 const otpUserResult: any = await executeQuery(
                     process.env.OTP_MODULE_DB_CONNECTION_STRING,
-                    `SELECT "OtpCodeId" FROM OTP_MODULE."OtpUsers" WHERE "UserId" = :userId`,
+                    `SELECT "OtpCodeId", "UserId" FROM OTP_MODULE."OtpUsers" WHERE "UserId" = :userId`,
                     { userId: cif }
                 );
 
-                const existingOtpCodeId = otpUserResult?.rows?.[0]?.OtpCodeId;
+                const otpUserRow = otpUserResult?.rows?.[0];
+                const existingOtpCodeId = otpUserRow?.OtpCodeId || otpUserRow?.OTPCODEID || null;
 
+                // 3. Only UPDATE existing OTP records in OTP_MODULE.OtpCodes and OTP_MODULE.OtpUsers (never INSERT)
                 if (existingOtpCodeId) {
                     await executeQuery(
                         process.env.OTP_MODULE_DB_CONNECTION_STRING,
-                        `UPDATE OTP_MODULE."OtpCodes" SET "CodeHash" = :CodeHash, "ExpiresAt" = SYSTIMESTAMP + INTERVAL '10' MINUTE, "UpdateDate" = SYSTIMESTAMP WHERE "Id" = :Id`,
+                        `UPDATE OTP_MODULE."OtpCodes" 
+                         SET "CodeHash" = :CodeHash, 
+                             "IsUsed" = 0, 
+                             "Attempts" = 0, 
+                             "ExpiresAt" = SYSTIMESTAMP + INTERVAL '10' MINUTE, 
+                             "UpdateDate" = SYSTIMESTAMP,
+                             "UpdateUser" = 'system'
+                         WHERE "Id" = :Id OR "UserId" = :UserId`,
                         {
                             Id: existingOtpCodeId,
-                            CodeHash: resendCodeHash,
-                        }
-                    );
-                    
-                    await executeQuery(
-                        process.env.OTP_MODULE_DB_CONNECTION_STRING,
-                        `UPDATE OTP_MODULE."OtpUsers" SET "Status" = 0, "LockedUntil" = NULL, "UpdateDate" = SYSTIMESTAMP WHERE "UserId" = :userId`,
-                        { userId: cif }
-                    );
-                } else {
-                    const resendOtpId = crypto.randomUUID();
-                    await executeQuery(
-                        process.env.OTP_MODULE_DB_CONNECTION_STRING,
-                        `INSERT INTO OTP_MODULE."OtpCodes" ("Id","UserId","CodeHash","Secret","OtpType","Purpose","IsUsed","Attempts","ExpiresAt","InsertDate","UpdateDate","InsertUser","UpdateUser","Version") VALUES (:Id,:UserId,:CodeHash,NULL,'SmsCode','LoginMFA',0,0,SYSTIMESTAMP + INTERVAL '10' MINUTE,SYSTIMESTAMP,SYSTIMESTAMP,'system','system',SYS_GUID())`,
-                        {
-                            Id: resendOtpId,
                             UserId: cif,
                             CodeHash: resendCodeHash,
                         }
                     );
-                    
+                } else {
                     await executeQuery(
                         process.env.OTP_MODULE_DB_CONNECTION_STRING,
-                        `INSERT INTO OTP_MODULE."OtpUsers" ("UserId","Status","LockedUntil","InsertDate","UpdateDate","OtpCodeId") VALUES (:userId,0,NULL,SYSTIMESTAMP,SYSTIMESTAMP,:otpCodeId)`,
+                        `UPDATE OTP_MODULE."OtpCodes" 
+                         SET "CodeHash" = :CodeHash, 
+                             "IsUsed" = 0, 
+                             "Attempts" = 0, 
+                             "ExpiresAt" = SYSTIMESTAMP + INTERVAL '10' MINUTE, 
+                             "UpdateDate" = SYSTIMESTAMP,
+                             "UpdateUser" = 'system'
+                         WHERE "UserId" = :UserId`,
                         {
-                            userId: cif,
-                            otpCodeId: resendOtpId,
+                            UserId: cif,
+                            CodeHash: resendCodeHash,
                         }
                     );
                 }
 
                 await executeQuery(
+                    process.env.OTP_MODULE_DB_CONNECTION_STRING,
+                    `UPDATE OTP_MODULE."OtpUsers" 
+                     SET "Status" = 0, 
+                         "LockedUntil" = NULL, 
+                         "UpdateDate" = SYSTIMESTAMP 
+                     WHERE "UserId" = :userId`,
+                    { userId: cif }
+                );
+
+                // 4. Update existing UserSecurities temporary password flags
+                await executeQuery(
                     process.env.SECURITY_MODULE_DB_CONNECTION_STRING,
-                    `UPDATE SECURITY_MODULE."UserSecurities" SET "OnTmpPassword" = 1, "IsActivationUsed" = 0, "ActivationExpiredAt" = SYSTIMESTAMP + 7, "UpdateDate" = SYSTIMESTAMP WHERE "CIFNumber" = :cif`,
+                    `UPDATE SECURITY_MODULE."UserSecurities" 
+                     SET "OnTmpPassword" = 1, 
+                         "IsActivationUsed" = 0, 
+                         "ActivationExpiredAt" = SYSTIMESTAMP + 7, 
+                         "UpdateDate" = SYSTIMESTAMP 
+                     WHERE "CIFNumber" = :cif`,
                     { cif }
                 );
 
