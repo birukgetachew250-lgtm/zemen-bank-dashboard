@@ -40,7 +40,6 @@ const ITEMS: PaletteItem[] = [
   { id: 'maker-q', label: 'Maker Dashboard', category: 'Navigation', href: '/overview/maker', icon: <ClipboardList className="h-4 w-4" />, keywords: ['maker', 'requests', 'my'] },
   { id: 'checker-q', label: 'Checker Dashboard', category: 'Navigation', href: '/overview/checker', icon: <FileCheck2 className="h-4 w-4" />, keywords: ['checker', 'pending', 'review'] },
   { id: 'customers', label: 'Customer Audit & Search', category: 'Navigation', href: '/customers/audit', icon: <Users className="h-4 w-4" />, keywords: ['cif', 'users', 'accounts'] },
-  { id: 'online-link', label: 'Online Linking Overview', category: 'Navigation', href: '/online-linking/overview', icon: <Link2 className="h-4 w-4" />, keywords: ['onboarding', 'linking'] },
   { id: 'reports', label: 'Transaction Reports', category: 'Navigation', href: '/reports/transactions', icon: <PieChart className="h-4 w-4" />, keywords: ['tx', 'volume', 'history'] },
   { id: 'risk-aml', label: 'AML & KYC Compliance', category: 'Navigation', href: '/risk/aml-kyc', icon: <ShieldCheck className="h-4 w-4" />, keywords: ['compliance', 'sanctions', 'aml'] },
   { id: 'settings', label: 'System Settings', category: 'Navigation', href: '/settings', icon: <Settings className="h-4 w-4" />, keywords: ['config', 'admin'] },
@@ -48,7 +47,6 @@ const ITEMS: PaletteItem[] = [
   // Maker
   { id: 'new-cust', label: 'Register New Customer', category: 'Maker Requests', href: '/customers/create', icon: <Users className="h-4 w-4 text-rose-500" />, keywords: ['onboard', 'create', 'maker'] },
   { id: 'link-acc', label: 'Link Account to CIF', category: 'Maker Requests', href: '/customers/link-account', icon: <Link2 className="h-4 w-4 text-indigo-500" />, keywords: ['casa', 'loan', 'link'] },
-  { id: 'sec-reset', label: 'Reset Security Questions', category: 'Maker Requests', href: '/customers/request-security-reset', icon: <ShieldAlert className="h-4 w-4 text-purple-500" />, keywords: ['security', 'questions', 'reset'] },
   { id: 'pin-reset', label: 'Request PIN Reset', category: 'Maker Requests', href: '/customers/request-pin-reset', icon: <KeyRound className="h-4 w-4 text-amber-500" />, keywords: ['pin', 'temporary'] },
   { id: 'act-resend', label: 'Resend Activation Code', category: 'Maker Requests', href: '/customers/resend-activation', icon: <Smartphone className="h-4 w-4 text-sky-500" />, keywords: ['activation', 'sms'] },
   { id: 'unlock-c', label: 'Unlock Customer Profile', category: 'Maker Requests', href: '/customers/unlock-customer', icon: <LockOpen className="h-4 w-4 text-emerald-500" />, keywords: ['unlock', 'locked', 'frozen'] },
@@ -56,7 +54,6 @@ const ITEMS: PaletteItem[] = [
   // Checker
   { id: 'appr-new', label: 'Approve New Customers', category: 'Checker Approvals', href: '/customers/approve-new', icon: <FileCheck2 className="h-4 w-4 text-amber-500" />, keywords: ['verify', 'checker'] },
   { id: 'appr-acc', label: 'Approve Account Linking', category: 'Checker Approvals', href: '/customers/approve-accounts', icon: <FileCheck2 className="h-4 w-4 text-emerald-500" />, keywords: ['checker', 'accounts'] },
-  { id: 'appr-sec', label: 'Approve Security Resets', category: 'Checker Approvals', href: '/customers/approve-security', icon: <FileCheck2 className="h-4 w-4 text-purple-500" />, keywords: ['security', 'checker'] },
   { id: 'appr-pin', label: 'Approve PIN Resets', category: 'Checker Approvals', href: '/customers/approve-pin-reset', icon: <FileCheck2 className="h-4 w-4 text-rose-500" />, keywords: ['pin', 'checker'] },
 ];
 

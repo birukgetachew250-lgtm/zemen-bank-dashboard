@@ -74,7 +74,6 @@ const sectionAccents: Record<string, string> = {
   'Mini Apps':                 'text-teal-400',
   'IPS & Telecom':             'text-emerald-400',
   'App Content & Config':      'text-cyan-300',
-  'Online Linking':            'text-fuchsia-400',
   'Administration':            'text-violet-400',
   'Oversight':                 'text-orange-400',
   'System Monitoring':         'text-green-400',
