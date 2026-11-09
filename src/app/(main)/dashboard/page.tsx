@@ -5,6 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { executeQuery } from '@/lib/oracle-db';
 import { DashboardHero } from '@/components/dashboard/DashboardHero';
 import { QuickActions } from '@/components/dashboard/QuickActions';
+import { CustomerFeedbackWidget } from '@/components/dashboard/CustomerFeedbackWidget';
 
 async function getCustomerStats() {
   const connectionString = process.env.USER_MODULE_DB_CONNECTION_STRING;
@@ -94,42 +95,47 @@ export default async function DashboardPage() {
       <div>
         <div className="mb-5">
           <h2 className="text-xl font-bold tracking-tight text-foreground">Pending Activity</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">Requests awaiting action — see Overview for full details</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Requests awaiting action — see Dashboard &amp; Tasks for full details</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div data-reveal className="card-3d relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
+          <div data-reveal className="card-3d relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 border border-amber-200/60 dark:border-amber-800/50 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
             <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-amber-300 opacity-15 blur-2xl" />
             <div className="flex items-start justify-between mb-3">
               <div>
-                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Maker Queue</p>
-                <p className="text-3xl font-extrabold text-amber-900 mt-1">—</p>
+                <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wider">My Requests (Maker Queue)</p>
+                <p className="text-3xl font-extrabold text-amber-900 dark:text-amber-100 mt-1">—</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-amber-600" />
+              <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-amber-600 dark:text-amber-300" />
               </div>
             </div>
-            <p className="text-xs text-amber-700">Your pending requests awaiting checker approval</p>
-            <a href="/overview/maker" className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 mt-3 hover:text-amber-900 transition-colors">
-              View Maker Dashboard →
+            <p className="text-xs text-amber-700 dark:text-amber-300/80">Your pending requests awaiting checker approval</p>
+            <a href="/overview/maker" className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-300 mt-3 hover:text-amber-900 dark:hover:text-amber-100 transition-colors">
+              View My Requests →
             </a>
           </div>
-          <div data-reveal className="card-3d relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/60 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
+          <div data-reveal className="card-3d relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/30 border border-blue-200/60 dark:border-blue-800/50 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
             <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-blue-300 opacity-15 blur-2xl" />
             <div className="flex items-start justify-between mb-3">
               <div>
-                <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider">Checker Queue</p>
-                <p className="text-3xl font-extrabold text-blue-900 mt-1">—</p>
+                <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider">Pending Approvals (Checker Queue)</p>
+                <p className="text-3xl font-extrabold text-blue-900 dark:text-blue-100 mt-1">—</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                <CheckCircle className="h-5 w-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
+                <CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-300" />
               </div>
             </div>
-            <p className="text-xs text-blue-700">Requests pending your approval as checker</p>
-            <a href="/overview/checker" className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 mt-3 hover:text-blue-900 transition-colors">
-              View Checker Dashboard →
+            <p className="text-xs text-blue-700 dark:text-blue-300/80">Requests pending your approval as checker</p>
+            <a href="/overview/checker" className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 dark:text-blue-300 mt-3 hover:text-blue-900 dark:hover:text-blue-100 transition-colors">
+              View Pending Approvals →
             </a>
           </div>
         </div>
+      </div>
+
+      {/* Customer Feedback Widget (DEVICE_CONTROL_MODULE.AppRatings) */}
+      <div>
+        <CustomerFeedbackWidget />
       </div>
     </div>
   );

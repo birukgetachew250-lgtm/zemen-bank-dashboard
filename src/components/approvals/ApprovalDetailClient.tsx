@@ -81,6 +81,14 @@ export function ApprovalDetailClient({ approval }: { approval: ApprovalData }) {
   const [checkerRemarks, setCheckerRemarks] = useState(approval.checkerRemarks || "");
 
   const handleAction = async (action: 'approve' | 'reject') => {
+    if (action === 'reject' && !checkerRemarks.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Rejection Reason Required",
+        description: "Please enter a mandatory rejection reason in Checker Remarks before rejecting this request.",
+      });
+      return;
+    }
     setActionLoading(true);
     try {
       const response = await fetch('/api/approvals/action', {

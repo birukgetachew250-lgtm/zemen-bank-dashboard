@@ -17,10 +17,25 @@ import { cn } from '@/lib/utils';
 import { menu, type MenuItem } from '@/lib/menu';
 import { ScrollArea } from '../ui/scroll-area';
 
+const LEGACY_LABEL_ALIASES: Record<string, string[]> = {
+  'Dashboard & Tasks': ['Overview', 'Dashboard', '/dashboard'],
+  'Dashboard Overview': ['Dashboard', '/dashboard'],
+  'Customer Management': ['Customer Records'],
+  'Customer Modifications': ['Maker', 'Checker'],
+  'Account Operations': ['Account Management'],
+  'Account Status Controls': ['Maker', 'Checker'],
+  'Security & Access Control': ['Customer Security'],
+  'Device & Credential Requests (Maker)': ['Maker'],
+  'Security Verification (Checker)': ['Checker'],
+};
+
 function hasPermission(userPermissions: string[], item: MenuItem): boolean {
   if (userPermissions.includes('all')) return true;
+  if (item.href === '/dashboard') return true;
   const permissionId = item.href || item.label;
-  return userPermissions.includes(permissionId);
+  if (userPermissions.includes(permissionId)) return true;
+  const aliases = LEGACY_LABEL_ALIASES[item.label] || [];
+  return aliases.some(alias => userPermissions.includes(alias));
 }
 
 function hasAccessToAnyChild(item: MenuItem, userPermissions: string[]): boolean {
@@ -32,21 +47,20 @@ function hasAccessToAnyChild(item: MenuItem, userPermissions: string[]): boolean
 
 /* ─── Section accent colors by top-level label ─── */
 const sectionAccents: Record<string, string> = {
-  'Dashboard':            'text-rose-400',
-  'Overview':             'text-amber-400',
-  'Customer Records':     'text-sky-400',
-  'Account Management':   'text-cyan-400',
-  'Customer Security':    'text-indigo-400',
-  'Online Linking':       'text-fuchsia-400',
-  'Administration':       'text-violet-400',
-  'App Control':          'text-teal-400',
-  'Oversight':            'text-orange-400',
-  'System Monitoring':    'text-green-400',
-  'Reporting':            'text-blue-400',
-  'Integrations':         'text-emerald-400',
-  'Security & Access':    'text-pink-400',
-  'WSO2 Integration':     'text-indigo-300',
-  'Settings':             'text-slate-400',
+  'Dashboard & Tasks':         'text-rose-400',
+  'Customer Management':       'text-sky-400',
+  'Account Operations':        'text-cyan-400',
+  'Security & Access Control': 'text-indigo-400',
+  'Online Linking':            'text-fuchsia-400',
+  'Administration':            'text-violet-400',
+  'App Control':               'text-teal-400',
+  'Oversight':                 'text-orange-400',
+  'System Monitoring':         'text-green-400',
+  'Reporting':                 'text-blue-400',
+  'Integrations':              'text-emerald-400',
+  'Security & Access':         'text-pink-400',
+  'WSO2 Integration':          'text-indigo-300',
+  'Settings':                  'text-slate-400',
 };
 
 function getAccentColor(label: string): string {

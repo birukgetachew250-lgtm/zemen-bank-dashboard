@@ -48,7 +48,11 @@
 
 @layer base {
   :root {
-    /* ── Core Palette ── */
+    /* ── Core Palette & Semantic Surface Tokens ── */
+    --bg-surface: hsl(0 0% 100%);
+    --text-primary: hsl(222 47% 11%);
+    --border-color: hsl(220 13% 90%);
+
     --background: 220 20% 97%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -93,6 +97,10 @@
   }
 
   .dark {
+    --bg-surface: hsl(222 47% 9%);
+    --text-primary: hsl(213 31% 94%);
+    --border-color: hsl(222 35% 18%);
+
     --background: 222 47% 6%;
     --foreground: 213 31% 92%;
     --card: 222 47% 8%;
@@ -104,12 +112,12 @@
     --secondary: 222 35% 14%;
     --secondary-foreground: 213 31% 92%;
     --muted: 222 35% 13%;
-    --muted-foreground: 215 16% 56%;
+    --muted-foreground: 215 16% 62%;
     --accent: 233 55% 58%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 222 35% 17%;
+    --border: 222 35% 18%;
     --input: 222 35% 16%;
     --ring: 347 72% 54%;
     --chart-1: 347 72% 54%;
@@ -207,8 +215,44 @@
   background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,255,255,0.68));
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
   box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 20px 44px -22px rgba(34, 47, 90, 0.22);
+}
+
+.dark .glass-card {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.72));
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 20px 44px -22px rgba(0, 0, 0, 0.65);
+}
+
+/* ── Dark Mode Global Coverage Overrides for Legacy Hard-Coded Classes ── */
+.dark .bg-white {
+  background-color: var(--bg-surface) !important;
+}
+.dark .bg-slate-50,
+.dark .bg-slate-50\/60,
+.dark .bg-slate-50\/70,
+.dark .bg-slate-100,
+.dark .bg-slate-100\/80 {
+  background-color: hsl(222 35% 12%) !important;
+}
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-slate-700 {
+  color: var(--text-primary) !important;
+}
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  color: hsl(215 16% 68%) !important;
+}
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-200\/70,
+.dark .border-slate-200\/80,
+.dark .border-slate-300 {
+  border-color: var(--border-color) !important;
 }
 
 /* ── Premium Scrollbar ── */
@@ -241,8 +285,11 @@ aside ::-webkit-scrollbar-thumb:hover { background: hsl(347 72% 44% / 0.8); }
 .badge-approved { --badge-dot: #10b981; --badge-ring: rgb(16 185 129 / .30); background: #ecfdf5; color: #047857; }
 .badge-rejected { --badge-dot: #f43f5e; --badge-ring: rgb(244 63 94 / .30);  background: #fff1f2; color: #be123c; }
 .badge-cancelled{ --badge-dot: #94a3b8; --badge-ring: rgb(148 163 184 / .35); background: #f8fafc; color: #475569; }
+.dark .badge-pending  { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+.dark .badge-approved { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+.dark .badge-rejected { background: rgba(244, 63, 94, 0.18);  color: #fda4af; }
+.dark .badge-cancelled{ background: rgba(148, 163, 184, 0.15); color: #cbd5e1; }
 @keyframes badge-pulse { 0%,100% { box-shadow: 0 0 0 0 rgb(245 158 11 / .55); } 50% { box-shadow: 0 0 0 5px rgb(245 158 11 / 0); } }
-
 
 /* ── Sidebar aurora & motion ── */
 .sidebar-aurora {

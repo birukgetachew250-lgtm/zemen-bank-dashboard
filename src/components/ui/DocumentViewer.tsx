@@ -13,6 +13,7 @@ export interface DocumentMeta {
   type?: string;  // mime type
   size?: number;
   uploadedAt?: string;
+  category?: string;
 }
 
 interface DocumentViewerProps {
@@ -89,7 +90,14 @@ export function DocumentViewer({ documents, className }: DocumentViewerProps) {
           >
             <div className="flex-shrink-0">{getDocIcon(doc.type)}</div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{doc.name}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium truncate text-foreground">{doc.name}</p>
+                {doc.category && (
+                  <span className="inline-flex items-center rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary shrink-0">
+                    {doc.category}
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-2 mt-0.5">
                 {doc.size && <span className="text-xs text-muted-foreground">{formatSize(doc.size)}</span>}
                 {doc.uploadedAt && (

@@ -139,11 +139,15 @@ export async function POST(req: Request) {
     let approvalId: number | undefined;
 
     try {
-        const { approvalId: id, action } = await req.json();
+        const { approvalId: id, action, checkerRemarks } = await req.json();
         approvalId = id;
 
         if (!approvalId || !action || !['approve', 'reject'].includes(action)) {
             return NextResponse.json({ message: 'Invalid input' }, { status: 400 });
+        }
+
+        if (action === 'reject' && (!checkerRemarks || !String(checkerRemarks).trim())) {
+            return NextResponse.json({ message: 'Rejection reason (checker remarks) is required when rejecting a request.' }, { status: 400 });
         }
         
         const approval: any = await db.pendingApproval.findUnique({ where: { id: approvalId } });
@@ -159,7 +163,7 @@ export async function POST(req: Request) {
 
         const approver: any = await db.user.findUnique({
             where: { email: sessionEmail },
-            select: { role: true, branch: true },
+            select: { name: true, role: true, branch: true },
         });
 
         if (!approver) {
@@ -197,12 +201,33 @@ export async function POST(req: Request) {
         const logDetails = `Request ID: ${approval.id}, Type: ${approval.type}, Customer: ${approval.customerName} (${approval.customerPhone})`;
 
         if (action === 'reject') {
-            await db.pendingApproval.delete({ where: { id: approvalId } });
-             await logActivity({
+            let parsedDetails: Record<string, any> = {};
+            try {
+                if (approval.details) parsedDetails = JSON.parse(approval.details);
+            } catch {}
+
+            const rejectedByLabel = approver.name ? `${approver.name} (${sessionEmail})` : sessionEmail;
+            const rejectedAtIso = new Date().toISOString();
+            const reasonText = String(checkerRemarks || '').trim();
+
+            parsedDetails.rejectedBy = rejectedByLabel;
+            parsedDetails.rejectedByEmail = sessionEmail;
+            parsedDetails.rejectedAt = rejectedAtIso;
+            parsedDetails.rejectionReason = reasonText;
+
+            await db.pendingApproval.update({
+                where: { id: approvalId },
+                data: {
+                    status: 'rejected',
+                    details: JSON.stringify(parsedDetails),
+                },
+            });
+
+            await logActivity({
                 userEmail: session?.user?.email || 'system',
                 action: 'REQUEST_REJECTED',
                 status: 'Success',
-                details: `Rejected: ${logDetails}`,
+                details: `Rejected: ${logDetails}. Reason: ${reasonText}`,
                 ipAddress: typeof ip === 'string' ? ip : undefined,
             });
             return NextResponse.json({ success: true, message: `Request has been rejected` });
@@ -752,7 +777,24 @@ export async function POST(req: Request) {
                 break;
         }
 
-        await db.pendingApproval.delete({ where: { id: approvalId } });
+        let parsedApprovedDetails: Record<string, any> = {};
+        try {
+            if (approval.details) parsedApprovedDetails = JSON.parse(approval.details);
+        } catch {}
+        parsedApprovedDetails.approvedBy = approver.name ? `${approver.name} (${sessionEmail})` : sessionEmail;
+        parsedApprovedDetails.approvedByEmail = sessionEmail;
+        parsedApprovedDetails.approvedAt = new Date().toISOString();
+        if (checkerRemarks) {
+            parsedApprovedDetails.checkerRemarks = String(checkerRemarks).trim();
+        }
+
+        await db.pendingApproval.update({
+            where: { id: approvalId },
+            data: {
+                status: 'approved',
+                details: JSON.stringify(parsedApprovedDetails),
+            },
+        });
         
         const logAction = approvalTypeToActionMap[approval.type];
         if (logAction) {
