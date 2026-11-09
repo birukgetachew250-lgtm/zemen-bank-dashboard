@@ -157,6 +157,23 @@ function OverviewContent() {
   const onSubmit = async (data: OverviewFormValues) => {
     setSubmitting(true);
     try {
+      // Pre-submission uniqueness check on Maker
+      const phoneCheckRes = await fetch('/api/customers/check-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: customer.mobile_number,
+          cif: customer.customer_number,
+        }),
+      });
+      const phoneCheckData = await phoneCheckRes.json();
+      if (phoneCheckData.exists) {
+        throw new Error(
+          phoneCheckData.message ||
+            'Phone number or CIF already exists. Phone number must be unique.'
+        );
+      }
+
       const response = await fetch('/api/customers/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

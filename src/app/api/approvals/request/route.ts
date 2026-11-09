@@ -8,9 +8,12 @@ import { authOptions } from '@/lib/auth-options';
 
 export const dynamic = 'force-dynamic';
 
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
 /**
  * Canonical DB type values and their accepted query parameter aliases
  * so both Maker and Checker queues filter consistently without desync.
+ * Note: reset-security-questions has been decommissioned and removed.
  */
 const TYPE_SYNONYMS: Record<string, string[]> = {
   'new-customer': ['new-customer'],
@@ -25,8 +28,6 @@ const TYPE_SYNONYMS: Record<string, string[]> = {
   'resend-activation-code': ['resend-activation-code', 'resend-activation'],
   'resend-activation': ['resend-activation-code', 'resend-activation'],
   'pin-reset': ['pin-reset'],
-  'reset-security-questions': ['reset-security-questions', 'security-reset'],
-  'security-reset': ['reset-security-questions', 'security-reset'],
 };
 
 export async function GET(req: Request) {
@@ -36,9 +37,10 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
-  const role = searchParams.get('role'); // 'maker' | 'checker'
+  const role = searchParams.get('role'); // 'maker' | 'checker' | 'all'
   const statusParam = searchParams.get('status')?.trim(); // 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'all' | null
   const typeParam = searchParams.get('type')?.trim();
+  const windowParam = searchParams.get('window')?.trim() || 'active'; // 'active' (default: pending <= 7d) | 'expired' (pending > 7d) | 'archive' | 'all'
 
   try {
     const where: any = {};
@@ -54,7 +56,7 @@ export async function GET(req: Request) {
     const records = await db.pendingApproval.findMany({
       where,
       orderBy: { requestedAt: 'desc' },
-      take: 200,
+      take: 500,
     });
 
     const allowedTypes =
@@ -62,15 +64,59 @@ export async function GET(req: Request) {
         ? TYPE_SYNONYMS[typeParam] || [typeParam]
         : null;
 
-    const filteredRecords = allowedTypes
-      ? records.filter((r: any) => allowedTypes.includes(r.type))
-      : records;
+    const nowMs = Date.now();
+
+    const filteredRecords = records.filter((r: any) => {
+      // Exclude decommissioned security question reset requests
+      if (
+        r.type === 'reset-security-questions' ||
+        r.type === 'security-reset'
+      ) {
+        return false;
+      }
+
+      if (allowedTypes && !allowedTypes.includes(r.type)) {
+        return false;
+      }
+
+      const statusUpper = String(r.status || 'pending').toUpperCase();
+      const requestedAtMs = r.requestedAt ? new Date(r.requestedAt).getTime() : nowMs;
+      const ageMs = nowMs - requestedAtMs;
+      const isOlderThanWeek = ageMs > SEVEN_DAYS_MS;
+
+      if (windowParam === 'expired') {
+        // Only unapproved (PENDING) requests older than 7 days
+        return statusUpper === 'PENDING' && isOlderThanWeek;
+      }
+
+      if (windowParam === 'archive' || windowParam === 'all') {
+        // Return all requests (both >7d unapproved and all historical statuses)
+        return true;
+      }
+
+      // Default 'active' window:
+      // Unapproved (PENDING) requests are only visible for 1 week (7 days).
+      // Approved, Rejected, and Cancelled requests remain visible in their respective tabs.
+      if (statusUpper === 'PENDING' && isOlderThanWeek) {
+        return false;
+      }
+      return true;
+    });
 
     const mapped = filteredRecords.map((r: any) => {
       let parsedDetails: any = {};
       try {
         if (r.details) parsedDetails = JSON.parse(r.details);
       } catch {}
+
+      const statusUpper = (r.status || 'pending').toUpperCase() as
+        | 'PENDING'
+        | 'APPROVED'
+        | 'REJECTED'
+        | 'CANCELLED';
+      const requestedAtMs = r.requestedAt ? new Date(r.requestedAt).getTime() : nowMs;
+      const isExpiredPending =
+        statusUpper === 'PENDING' && nowMs - requestedAtMs > SEVEN_DAYS_MS;
 
       return {
         id: String(r.id),
@@ -91,11 +137,8 @@ export async function GET(req: Request) {
           parsedDetails?.requestContext?.requesterEmail ||
           null,
         submittedAt: r.requestedAt,
-        status: (r.status || 'pending').toUpperCase() as
-          | 'PENDING'
-          | 'APPROVED'
-          | 'REJECTED'
-          | 'CANCELLED',
+        status: statusUpper,
+        isExpiredPending,
         rejectedBy:
           parsedDetails?.rejectedBy ||
           parsedDetails?.rejectedByEmail ||
@@ -157,7 +200,6 @@ const typeToActionMap: Record<string, ActivityLogAction> = {
   'pin-reset': 'PIN_RESET_REQUESTED',
   'customer-account': 'ACCOUNT_LINK_REQUESTED',
   'unlink-account': 'ACCOUNT_UNLINK_REQUESTED',
-  'reset-security-questions': 'SECURITY_RESET_REQUESTED',
 };
 
 export async function POST(req: Request) {
@@ -175,6 +217,13 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { message: 'CIF and approval type are required' },
         { status: 400 }
+      );
+    }
+
+    if (type === 'reset-security-questions' || type === 'security-reset') {
+      return NextResponse.json(
+        { message: 'Security Question Reset service has been removed.' },
+        { status: 410 }
       );
     }
 

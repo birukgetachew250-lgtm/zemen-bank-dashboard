@@ -19,6 +19,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Form,
   FormControl,
@@ -39,6 +41,9 @@ import {
   ArrowRight,
   ArrowLeft,
   CalendarDays,
+  Lock,
+  AlertTriangle,
+  CheckCircle2,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
@@ -69,6 +74,9 @@ type CustomerDetails = z.infer<typeof customerDetailsSchema>;
 
 export default function CreateCustomerPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingPhone, setIsCheckingPhone] = useState(false);
+  const [phoneConflictError, setPhoneConflictError] = useState<string | null>(null);
+  const [phoneVerifiedUnique, setPhoneVerifiedUnique] = useState(false);
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
   const [wizardStep, setWizardStep] = useState<WizardStepNumber>(1);
   const router = useRouter();
@@ -82,9 +90,45 @@ export default function CreateCustomerPage() {
     },
   });
 
+  const verifyPhoneUniqueness = async (
+    phoneNumber: string,
+    cif: string
+  ): Promise<boolean> => {
+    setIsCheckingPhone(true);
+    setPhoneConflictError(null);
+    setPhoneVerifiedUnique(false);
+    try {
+      const res = await fetch('/api/customers/check-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber, cif }),
+      });
+      const data = await res.json();
+      if (data.exists) {
+        setPhoneConflictError(
+          data.message || 'This phone number or CIF is already registered.'
+        );
+        toast({
+          variant: 'destructive',
+          title: 'Duplicate Phone / CIF Detected',
+          description: data.message,
+        });
+        return false;
+      }
+      setPhoneVerifiedUnique(true);
+      return true;
+    } catch {
+      return true;
+    } finally {
+      setIsCheckingPhone(false);
+    }
+  };
+
   async function onCifSubmit(values: z.infer<typeof cifSchema>) {
     setIsLoading(true);
     setCustomer(null);
+    setPhoneConflictError(null);
+    setPhoneVerifiedUnique(false);
     try {
       const response = await fetch('/api/online-linking/find-customer', {
         method: 'POST',
@@ -115,6 +159,10 @@ export default function CreateCustomerPage() {
           title: 'Customer Found',
           description: `Displaying identity details for ${result.full_name}.`,
         });
+
+        if (result.mobile_number) {
+          await verifyPhoneUniqueness(result.mobile_number, result.customer_number);
+        }
       }
     } catch (error: any) {
       toast({
@@ -127,16 +175,24 @@ export default function CreateCustomerPage() {
     }
   }
 
-  const handleProceedToAccounts = () => {
+  const handleProceedToAccounts = async () => {
     if (!customer) return;
     if (!customer.mobile_number || customer.mobile_number.trim() === '') {
       toast({
         variant: 'destructive',
         title: 'Phone Number Required',
-        description: 'Please provide a valid phone number before proceeding.',
+        description:
+          'This customer does not have a phone number configured in FlexCube Core Banking.',
       });
       return;
     }
+
+    const isUnique = await verifyPhoneUniqueness(
+      customer.mobile_number,
+      customer.customer_number
+    );
+    if (!isUnique) return;
+
     const params = new URLSearchParams({
       customer: JSON.stringify(customer),
     });
@@ -146,10 +202,10 @@ export default function CreateCustomerPage() {
   return (
     <OnboardingWizardLayout
       currentStep={wizardStep}
-      maxReachableStep={customer ? 2 : 1}
+      maxReachableStep={customer && !phoneConflictError ? 2 : 1}
       onStepClick={(s) => {
         if (s === 1) setWizardStep(1);
-        if (s === 2 && customer) setWizardStep(2);
+        if (s === 2 && customer && !phoneConflictError) setWizardStep(2);
       }}
       title="Register Customer (Maker)"
       description="Onboard a core banking customer to Zemen SuperApp & USSD banking."
@@ -208,6 +264,15 @@ export default function CreateCustomerPage() {
             {customer && (
               <div className="animate-in fade-in-50 space-y-6">
                 <Separator />
+
+                {phoneConflictError && (
+                  <Alert variant="destructive" className="rounded-xl">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Registration Blocked — Duplicate Phone or CIF</AlertTitle>
+                    <AlertDescription>{phoneConflictError}</AlertDescription>
+                  </Alert>
+                )}
+
                 <div>
                   <h3 className="text-base font-bold text-foreground">
                     Verified Core Banking Identity
@@ -229,9 +294,9 @@ export default function CreateCustomerPage() {
                     value={customer.customer_number}
                   />
                   <InfoItem
-                    icon={<User className="h-4 w-4" />}
-                    label="Gender"
-                    value={customer.gender || 'N/A'}
+                    icon={<Phone className="h-4 w-4" />}
+                    label="Core Banking Phone (Read-Only)"
+                    value={customer.mobile_number || 'Not Set'}
                   />
                   <InfoItem
                     icon={<CalendarDays className="h-4 w-4" />}
@@ -255,7 +320,12 @@ export default function CreateCustomerPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button onClick={() => setWizardStep(2)} className="gap-2">
+                  <Button
+                    onClick={() => setWizardStep(2)}
+                    disabled={Boolean(phoneConflictError) || isCheckingPhone}
+                    className="gap-2"
+                  >
+                    {isCheckingPhone && <Loader2 className="h-4 w-4 animate-spin" />}
                     Continue to Contact &amp; Address
                     <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -273,27 +343,46 @@ export default function CreateCustomerPage() {
               Step 2: Contact &amp; Address Verification
             </CardTitle>
             <CardDescription>
-              Verify and update the customer&apos;s primary mobile phone number, email address, and residential address for <span className="font-semibold text-foreground">{customer.full_name}</span>.
+              Review the customer&apos;s locked core banking mobile phone number, email address, and residential address for{' '}
+              <span className="font-semibold text-foreground">{customer.full_name}</span>.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {phoneConflictError && (
+              <Alert variant="destructive" className="rounded-xl">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Duplicate Phone Number Detected</AlertTitle>
+                <AlertDescription>{phoneConflictError}</AlertDescription>
+              </Alert>
+            )}
+
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div className="space-y-2">
-                <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                  <Phone className="h-4 w-4 text-primary" />
-                  Mobile Phone Number <span className="text-destructive">*</span>
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                    <Phone className="h-4 w-4 text-primary" />
+                    Mobile Phone Number <span className="text-destructive">*</span>
+                  </label>
+                  <Badge variant="outline" className="gap-1 text-[10px]">
+                    <Lock className="h-2.5 w-2.5" />
+                    Locked (Core Banking)
+                  </Badge>
+                </div>
                 <Input
                   value={customer.mobile_number || ''}
-                  onChange={(e) =>
-                    setCustomer({ ...customer, mobile_number: e.target.value })
-                  }
+                  readOnly
+                  disabled
+                  className="bg-muted/60 font-mono cursor-not-allowed opacity-90"
                   placeholder="+251911223344"
-                  required
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  Used for SMS OTP verification and USSD session binding.
-                </p>
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                  <span>Synced from FlexCube (editing is disabled).</span>
+                  {phoneVerifiedUnique && !phoneConflictError && (
+                    <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle2 className="h-3 w-3" /> Unique Phone Verified
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -346,7 +435,12 @@ export default function CreateCustomerPage() {
                 <ArrowLeft className="h-4 w-4" />
                 Back to Identity
               </Button>
-              <Button onClick={handleProceedToAccounts} className="gap-2">
+              <Button
+                onClick={handleProceedToAccounts}
+                disabled={Boolean(phoneConflictError) || isCheckingPhone}
+                className="gap-2"
+              >
+                {isCheckingPhone && <Loader2 className="h-4 w-4 animate-spin" />}
                 Next: Accounts &amp; Channels
                 <ArrowRight className="h-4 w-4" />
               </Button>

@@ -82,6 +82,7 @@ export const menu: MenuItem[] = [
       { icon: LayoutDashboard, label: "Dashboard Overview", href: "/dashboard" },
       { icon: ClipboardList,   label: "My Requests (Maker Queue)", href: "/overview/maker" },
       { icon: FileCheck2,      label: "Pending Approvals (Checker)", href: "/overview/checker" },
+      { icon: History,         label: "Archived & Old Requests", href: "/overview/archive" },
     ],
   },
   {
@@ -141,7 +142,6 @@ export const menu: MenuItem[] = [
           { icon: LockOpen,    label: "Unlock Customer", href: "/customers/unlock-customer" },
           { icon: Smartphone,  label: "Send Activation", href: "/customers/resend-activation" },
           { icon: KeyRound,    label: "PIN Reset", href: "/customers/request-pin-reset" },
-          { icon: ShieldAlert, label: "Security Reset", href: "/customers/request-security-reset" },
         ],
       },
       {
@@ -153,7 +153,6 @@ export const menu: MenuItem[] = [
           { icon: LockOpen,    label: "Unlock Customer", href: "/customers/approve-unlock" },
           { icon: Smartphone,  label: "Send Activation", href: "/customers/approve-resend-activation" },
           { icon: KeyRound,    label: "PIN Reset", href: "/customers/approve-pin-reset" },
-          { icon: ShieldCheck, label: "Security Reset", href: "/customers/approve-security" },
         ],
       },
     ],

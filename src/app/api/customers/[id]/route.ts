@@ -43,6 +43,35 @@ const getCustomerByCifOrId = async (identifier: string) => {
         const firstName = decrypt(user.FirstName);
         const lastName = decrypt(user.LastName);
 
+        const rawStatus = user.Status || user.MobileStatus || user.UssdStatus || 'Active';
+        const isSuspended =
+            String(user.Status || '').toLowerCase() === 'suspended' ||
+            String(user.MobileStatus || '').toLowerCase() === 'suspended' ||
+            String(user.UssdStatus || '').toLowerCase() === 'suspended';
+        const effectiveStatus = isSuspended ? 'Suspended' : rawStatus;
+
+        let securityStatus: string | null = null;
+        let isLocked = false;
+        let failedAttempts = 0;
+
+        if (process.env.SECURITY_MODULE_DB_CONNECTION_STRING && user.CIFNumber) {
+            try {
+                const secResult: any = await executeQuery(
+                    process.env.SECURITY_MODULE_DB_CONNECTION_STRING,
+                    `SELECT "Status", "IsLocked", "FailedAttempts" FROM "SECURITY_MODULE"."UserSecurities" WHERE "CIFNumber" = :cif`,
+                    { cif: user.CIFNumber }
+                );
+                if (secResult?.rows?.length > 0) {
+                    const secRow = secResult.rows[0];
+                    securityStatus = secRow.Status || null;
+                    isLocked = secRow.IsLocked === 1 || secRow.IsLocked === true || String(secRow.Status || '').toLowerCase() === 'locked';
+                    failedAttempts = Number(secRow.FailedAttempts || 0);
+                }
+            } catch {
+                // Non-blocking if SECURITY_MODULE is unreachable
+            }
+        }
+
         return {
             id: user.Id,
             cifNumber: user.CIFNumber,
@@ -55,9 +84,15 @@ const getCustomerByCifOrId = async (identifier: string) => {
             nationality: user.Nationality,
             branchName: user.BranchName,
             branchCode: user.BranchCode,
-            mobileStatus: user.MobileStatus,
-            ussdStatus: user.UssdStatus,
-            insertDate: user.InsertDate.toISOString(),
+            status: effectiveStatus,
+            appUserStatus: user.Status || effectiveStatus,
+            isSuspended,
+            mobileStatus: user.MobileStatus || 'Active',
+            ussdStatus: user.UssdStatus || 'Pending',
+            securityStatus,
+            isLocked,
+            failedAttempts,
+            insertDate: user.InsertDate ? new Date(user.InsertDate).toISOString() : new Date().toISOString(),
             signUpMainAuth: user.SignUpMainAuth,
             signUp2FA: user.SignUp2FA,
             channel: user.Channel,
@@ -78,8 +113,14 @@ const getCustomerByCifOrId = async (identifier: string) => {
                 nationality: 'Ethiopian',
                 branchName: 'Arada',
                 branchCode: '103',
+                status: 'Active',
+                appUserStatus: 'Active',
+                isSuspended: false,
                 mobileStatus: 'Active',
                 ussdStatus: 'Pending',
+                securityStatus: 'Active',
+                isLocked: false,
+                failedAttempts: 0,
                 insertDate: new Date().toISOString(),
                 signUpMainAuth: "SMSOTP",
                 signUp2FA: "GAUTH",

@@ -150,7 +150,7 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
     setIsSubmitting(true);
     const changes = {
       email: { old: customer.email, new: values.email },
-      phoneNumber: { old: customer.phoneNumber, new: values.phoneNumber },
+      phoneNumber: { old: customer.phoneNumber, new: customer.phoneNumber },
       signUpMainAuth: { old: customer.signUpMainAuth, new: values.signUpMainAuth },
       signUp2FA: { old: customer.signUp2FA, new: values.signUp2FA },
       channel: { old: customer.channel, new: values.channel },
@@ -287,7 +287,7 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
               <CardHeader>
                 <CardTitle>Step 2: Contact &amp; Address</CardTitle>
                 <CardDescription>
-                  Update customer mobile phone number and email address.
+                  Update customer email address. Phone number is locked to Core Banking records.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
@@ -298,11 +298,20 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          Phone Number <span className="text-destructive">*</span>
+                          Phone Number (Read-Only) <span className="text-destructive">*</span>
                         </FormLabel>
                         <FormControl>
-                          <Input {...field} value={field.value || ''} />
+                          <Input
+                            {...field}
+                            value={field.value || ''}
+                            readOnly
+                            disabled
+                            className="bg-muted/60 font-mono cursor-not-allowed opacity-90"
+                          />
                         </FormControl>
+                        <p className="text-[11px] text-muted-foreground">
+                          Phone number editing is disabled and synced with Core Banking.
+                        </p>
                         <FormMessage />
                       </FormItem>
                     )}

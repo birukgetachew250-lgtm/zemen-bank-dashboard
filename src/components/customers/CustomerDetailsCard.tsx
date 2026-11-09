@@ -20,6 +20,10 @@ import {
   Unlink,
   KeyRound,
   ArrowUpRight,
+  ShieldCheck,
+  ShieldAlert,
+  UserCheck,
+  UserX,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
@@ -36,6 +40,9 @@ export interface CustomerDetails {
   nationality: string;
   branchName: string;
   branchCode?: string;
+  status?: string;
+  appUserStatus?: string;
+  isSuspended?: boolean;
   mobileStatus: string;
   ussdStatus: string;
   insertDate: string;
@@ -94,6 +101,15 @@ export function CustomerDetailsCard({ customer }: CustomerDetailsCardProps) {
     .slice(0, 2)
     .toUpperCase();
 
+  const appUserStatus =
+    customer.status || customer.appUserStatus || customer.mobileStatus || 'Active';
+  const isSuspended =
+    Boolean(customer.isSuspended) ||
+    String(appUserStatus).toLowerCase() === 'suspended' ||
+    String(customer.mobileStatus || '').toLowerCase() === 'suspended' ||
+    String(customer.ussdStatus || '').toLowerCase() === 'suspended';
+  const displayAppUserStatus = isSuspended ? 'Suspended' : appUserStatus;
+
   return (
     <Card className="overflow-hidden border-border/80 p-0 shadow-lg hover:translate-y-0">
       {/* Banner */}
@@ -106,9 +122,25 @@ export function CustomerDetailsCard({ customer }: CustomerDetailsCardProps) {
       >
         <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-[hsl(347,90%,60%)] opacity-25 blur-3xl" />
         <div className="relative flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-white/80 ring-1 ring-white/15 backdrop-blur-md">
-            <Hash className="h-3.5 w-3.5 text-[hsl(38,92%,60%)]" /> CIF{' '}
-            <span className="font-mono text-sm font-bold text-white">{customer.cifNumber}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-white/80 ring-1 ring-white/15 backdrop-blur-md">
+              <Hash className="h-3.5 w-3.5 text-[hsl(38,92%,60%)]" /> CIF{' '}
+              <span className="font-mono text-sm font-bold text-white">{customer.cifNumber}</span>
+            </div>
+            <div
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ring-1 backdrop-blur-md ${
+                isSuspended
+                  ? 'bg-rose-500/25 text-rose-200 ring-rose-400/40'
+                  : 'bg-emerald-500/20 text-emerald-200 ring-emerald-400/35'
+              }`}
+            >
+              {isSuspended ? (
+                <ShieldAlert className="h-3.5 w-3.5 text-rose-300" />
+              ) : (
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
+              )}
+              AppUsers Status: {displayAppUserStatus}
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -145,6 +177,10 @@ export function CustomerDetailsCard({ customer }: CustomerDetailsCardProps) {
             </CardTitle>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                AppUser Status
+              </span>
+              <StatusPill value={displayAppUserStatus} />
+              <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 <Smartphone className="h-3 w-3" /> Mobile
               </span>
               <StatusPill value={customer.mobileStatus} />
@@ -158,6 +194,27 @@ export function CustomerDetailsCard({ customer }: CustomerDetailsCardProps) {
 
         {/* Quick Action Strip */}
         <div className="flex flex-wrap items-center gap-2 pb-1">
+          {isSuspended ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 rounded-xl border-emerald-500/30 text-xs text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300"
+              onClick={() => router.push('/customers/unsuspend-customer')}
+            >
+              <UserCheck className="h-3.5 w-3.5 text-emerald-500" />
+              Unsuspend
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 rounded-xl border-rose-500/30 text-xs text-rose-600 hover:bg-rose-500/10 dark:text-rose-400"
+              onClick={() => router.push('/customers/suspend-customer')}
+            >
+              <UserX className="h-3.5 w-3.5 text-rose-500" />
+              Suspend
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -192,6 +249,17 @@ export function CustomerDetailsCard({ customer }: CustomerDetailsCardProps) {
 
       <CardContent className="p-6">
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <InfoItem
+            icon={
+              isSuspended ? (
+                <ShieldAlert className="h-4 w-4 text-rose-500" />
+              ) : (
+                <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              )
+            }
+            label="AppUser Status (Suspended / Active)"
+            value={<StatusPill value={displayAppUserStatus} />}
+          />
           <InfoItem icon={<Mail className="h-4 w-4" />} label="Email Address" value={customer.email} />
           <InfoItem icon={<Phone className="h-4 w-4" />} label="Phone Number" value={customer.phoneNumber} />
           <InfoItem icon={<Globe2 className="h-4 w-4" />} label="Nationality" value={customer.nationality} />
@@ -201,7 +269,12 @@ export function CustomerDetailsCard({ customer }: CustomerDetailsCardProps) {
             label="Registration Date"
             value={customer.insertDate ? new Date(customer.insertDate).toLocaleDateString() : '—'}
           />
-          <InfoItem icon={<MapPin className="h-4 w-4" />} label="Full Address" value={customer.address} />
+          <InfoItem
+            icon={<MapPin className="h-4 w-4" />}
+            label="Full Address"
+            value={customer.address}
+            className="md:col-span-2 lg:col-span-3"
+          />
         </div>
       </CardContent>
     </Card>

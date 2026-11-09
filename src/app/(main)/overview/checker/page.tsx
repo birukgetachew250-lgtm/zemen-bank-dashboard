@@ -65,14 +65,12 @@ const REQUEST_TYPE_LABELS: Record<string, string> = {
   'unlock-customer': 'Unlock Customer',
   'resend-activation-code': 'Send Activation',
   'pin-reset': 'PIN Reset',
-  'reset-security-questions': 'Security Reset',
 };
 
 const TYPE_ALIASES: Record<string, string> = {
   'update-customer': 'updated-customer',
   'link-account': 'customer-account',
   'resend-activation': 'resend-activation-code',
-  'security-reset': 'reset-security-questions',
 };
 
 function getRequestTypeLabel(type: string): string {
@@ -349,13 +347,21 @@ export default function CheckerDashboardPage() {
   return (
     <div className="space-y-6 animate-fade-up">
       {/* ── Page Header ── */}
-      <div>
-        <h1 className="relative pl-4 text-2xl font-extrabold tracking-tight text-foreground before:absolute before:bottom-1.5 before:left-0 before:top-1.5 before:w-1 before:rounded-full before:bg-gradient-to-b before:from-[hsl(347,80%,50%)] before:to-[hsl(38,92%,55%)] md:text-3xl">
-          Pending Approvals (Checker Queue)
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Review and action Maker requests, inspect supporting KYC documents, and audit approval history.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="relative pl-4 text-2xl font-extrabold tracking-tight text-foreground before:absolute before:bottom-1.5 before:left-0 before:top-1.5 before:w-1 before:rounded-full before:bg-gradient-to-b before:from-[hsl(347,80%,50%)] before:to-[hsl(38,92%,55%)] md:text-3xl">
+            Pending Approvals (Checker Queue)
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Review active unapproved requests (last 7 days), inspect supporting KYC documents, and audit Rejected/Approved history.
+          </p>
+        </div>
+        <Button asChild variant="outline" size="sm" className="rounded-xl gap-1.5 text-xs">
+          <Link href="/overview/archive">
+            <Clock className="h-3.5 w-3.5 text-amber-500" />
+            Search Old &amp; Archived Requests (&gt;7 Days)
+          </Link>
+        </Button>
       </div>
 
       {/* ── Summary Cards ── */}

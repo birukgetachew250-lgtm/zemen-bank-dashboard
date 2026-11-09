@@ -1,13 +1,13 @@
-
 import { NextResponse } from 'next/server';
 import { requireAuthenticatedSession } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
+import { logActivity } from '@/lib/activity-log';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * DELETE /api/approvals/request/[id]
- * Allows a Maker to cancel their own pending request before checker approval.
+ * Allows a Maker (or Super Admin) to cancel any pending request before checker approval.
  */
 export async function DELETE(
   req: Request,
@@ -39,22 +39,56 @@ export async function DELETE(
       );
     }
 
-    // Only the original maker can cancel their own request
-    const sessionEmail = (session as any).user?.email;
-    if (existingRequest.requestedByEmail && existingRequest.requestedByEmail !== sessionEmail) {
+    const sessionEmail = String((session as any).user?.email || '')
+      .trim()
+      .toLowerCase();
+    const userRole = String((session as any).user?.role || '').trim();
+    const isSuperAdmin = userRole === 'Super Admin';
+
+    let parsedDetails: Record<string, any> = {};
+    try {
+      if (existingRequest.details) {
+        parsedDetails = JSON.parse(existingRequest.details);
+      }
+    } catch {}
+
+    const recordedOwner = String(
+      existingRequest.requestedByEmail ||
+        parsedDetails?.requestContext?.requesterEmail ||
+        ''
+    )
+      .trim()
+      .toLowerCase();
+
+    if (recordedOwner && recordedOwner !== sessionEmail && !isSuperAdmin) {
       return NextResponse.json(
-        { message: 'You can only cancel your own pending requests' },
+        { message: 'You can only cancel pending requests that you submitted.' },
         { status: 403 }
       );
     }
 
-    // Update status to cancelled
+    parsedDetails.cancelledBy = sessionEmail;
+    parsedDetails.cancelledAt = new Date().toISOString();
+
     await db.pendingApproval.update({
       where: { id: requestId },
-      data: { status: 'cancelled' },
+      data: {
+        status: 'cancelled',
+        details: JSON.stringify(parsedDetails),
+      },
     });
 
-    return NextResponse.json({ message: 'Request cancelled successfully' });
+    await logActivity({
+      userEmail: sessionEmail || 'system',
+      action: 'CUSTOMER_UPDATE_REQUESTED',
+      status: 'Success',
+      details: `Maker cancelled pending request ID ${requestId} (type: ${existingRequest.type}, customer: ${existingRequest.customerName}).`,
+    }).catch(() => {});
+
+    return NextResponse.json({
+      success: true,
+      message: 'Request cancelled successfully',
+    });
   } catch (e: any) {
     console.error('[CancelRequest] Error:', e);
     return NextResponse.json(

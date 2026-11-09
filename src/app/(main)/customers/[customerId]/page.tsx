@@ -48,6 +48,10 @@ import {
   Fingerprint,
   CheckCircle2,
   Tablet,
+  ShieldAlert,
+  UserCheck,
+  UserX,
+  Lock,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -94,6 +98,20 @@ const getStatusVariant = (status: string) => {
     default:
       return 'default';
   }
+};
+
+const getStatusBadgeClasses = (status?: string) => {
+  const s = (status || '').toLowerCase();
+  if (s === 'suspended' || s === 'inactive' || s === 'locked' || s === 'blocked') {
+    return 'border-rose-500/40 bg-rose-500/15 text-rose-700 dark:text-rose-300';
+  }
+  if (s === 'pending' || s === 'registered' || s === 'dormant') {
+    return 'border-amber-500/40 bg-amber-500/15 text-amber-700 dark:text-amber-300';
+  }
+  if (s === 'active') {
+    return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300';
+  }
+  return 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300';
 };
 
 function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
@@ -243,10 +261,46 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
   }
 
   const fullName = customer.name;
+  const appUserStatus =
+    customer.status ||
+    customer.appUserStatus ||
+    customer.mobileStatus ||
+    'Active';
+  const isSuspended =
+    Boolean(customer.isSuspended) ||
+    String(appUserStatus).toLowerCase() === 'suspended' ||
+    String(customer.mobileStatus || '').toLowerCase() === 'suspended' ||
+    String(customer.ussdStatus || '').toLowerCase() === 'suspended';
 
   return (
     <div className="w-full space-y-6">
-      <Card>
+      {isSuspended && (
+        <div className="flex flex-col justify-between gap-3 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 text-rose-800 dark:text-rose-200 sm:flex-row sm:items-center">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
+            <div>
+              <p className="text-sm font-bold">
+                Customer Account Suspended in AppUsers Table
+              </p>
+              <p className="text-xs opacity-90">
+                This customer profile (CIF: {customer.cifNumber}) currently has a{' '}
+                <span className="font-semibold underline">Suspended</span> status in{' '}
+                <code className="font-mono">USER_MODULE.AppUsers</code> (Mobile: {customer.mobileStatus || 'Suspended'}, USSD: {customer.ussdStatus || 'Suspended'}). App access and transactions are restricted until unsuspended.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="shrink-0 border-rose-500/40 bg-background text-rose-700 hover:bg-rose-500/20 dark:text-rose-300"
+            onClick={() => router.push('/customers/unsuspend-customer')}
+          >
+            <UserCheck className="mr-1.5 h-4 w-4" /> Request Unsuspend
+          </Button>
+        </div>
+      )}
+
+      <Card className={cn(isSuspended && 'border-rose-500/40')}>
         <CardHeader className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div className="flex items-center gap-4">
             <Avatar className="h-20 w-20">
@@ -259,13 +313,57 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
               </AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="font-headline text-3xl font-bold">{fullName}</CardTitle>
-              <CardDescription className="text-lg text-muted-foreground">
-                CIF: {customer.cifNumber}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <CardTitle className="font-headline text-3xl font-bold">{fullName}</CardTitle>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'px-3 py-1 text-xs font-bold uppercase tracking-wider',
+                    getStatusBadgeClasses(isSuspended ? 'Suspended' : appUserStatus)
+                  )}
+                >
+                  {isSuspended ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <UserX className="h-3.5 w-3.5" /> AppUser: Suspended
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5">
+                      <UserCheck className="h-3.5 w-3.5" /> AppUser: {appUserStatus}
+                    </span>
+                  )}
+                </Badge>
+                {customer.isLocked && (
+                  <Badge
+                    variant="outline"
+                    className="border-rose-500/40 bg-rose-500/15 px-2.5 py-1 text-xs font-bold text-rose-700 dark:text-rose-300"
+                  >
+                    <Lock className="mr-1 h-3 w-3" /> Security Locked
+                  </Badge>
+                )}
+              </div>
+              <CardDescription className="mt-1 text-lg text-muted-foreground">
+                CIF: <span className="font-mono font-semibold text-foreground">{customer.cifNumber}</span>
               </CardDescription>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {isSuspended ? (
+              <Button
+                variant="outline"
+                className="border-emerald-500/40 text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300"
+                onClick={() => router.push('/customers/unsuspend-customer')}
+              >
+                <UserCheck className="mr-2 h-4 w-4" /> Unsuspend Customer
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="border-rose-500/30 text-rose-600 hover:bg-rose-500/10 dark:text-rose-400"
+                onClick={() => router.push('/customers/suspend-customer')}
+              >
+                <UserX className="mr-2 h-4 w-4" /> Suspend Customer
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => router.push(`/customers/${customerId}/edit`)}
@@ -301,18 +399,38 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
             <CardContent className="grid gap-6 p-6">
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <InfoItem
-                  label="Mobile Status"
+                  label="AppUsers Account Status"
                   value={
-                    <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
-                      {customer.mobileStatus}
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'font-semibold',
+                        getStatusBadgeClasses(isSuspended ? 'Suspended' : appUserStatus)
+                      )}
+                    >
+                      {isSuspended ? 'Suspended' : appUserStatus}
+                    </Badge>
+                  }
+                />
+                <InfoItem
+                  label="Mobile Banking Status"
+                  value={
+                    <Badge
+                      variant="outline"
+                      className={cn('font-semibold', getStatusBadgeClasses(customer.mobileStatus))}
+                    >
+                      {customer.mobileStatus || '—'}
                     </Badge>
                   }
                 />
                 <InfoItem
                   label="USSD Status"
                   value={
-                    <Badge className="border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300">
-                      {customer.ussdStatus}
+                    <Badge
+                      variant="outline"
+                      className={cn('font-semibold', getStatusBadgeClasses(customer.ussdStatus))}
+                    >
+                      {customer.ussdStatus || '—'}
                     </Badge>
                   }
                 />
@@ -323,6 +441,10 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
                 <InfoItem
                   label="Registration Date"
                   value={new Date(customer.insertDate).toLocaleDateString()}
+                />
+                <InfoItem
+                  label="Enrolled Channel"
+                  value={<Badge variant="secondary">{customer.channel || 'Mobile'}</Badge>}
                 />
                 <InfoItem
                   label="Full Address"

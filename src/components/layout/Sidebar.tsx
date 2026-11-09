@@ -40,7 +40,7 @@ function stripQuery(href?: string): string {
 
 function hasPermission(userPermissions: string[], item: MenuItem): boolean {
   if (userPermissions.includes('all')) return true;
-  if (item.href === '/dashboard') return true;
+  if (item.href === '/dashboard' || item.href === '/overview/archive') return true;
   const cleanHref = stripQuery(item.href);
   if (cleanHref === '/customers/migration') {
     return (

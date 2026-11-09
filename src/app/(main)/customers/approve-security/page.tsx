@@ -1,9 +1,5 @@
-import { ApprovalClientPage } from "@/components/customers/ApprovalClientPage";
+import { redirect } from 'next/navigation';
 
 export default function ApproveSecurityPage() {
-  return (
-    <div className="w-full h-full">
-      <ApprovalClientPage approvalType="reset-security-questions" pageTitle="Approve Reset Security Questions" />
-    </div>
-  );
+  redirect('/overview/checker');
 }
