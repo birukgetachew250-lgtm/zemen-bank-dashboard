@@ -1,10 +1,9 @@
-
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
-import { type LucideIcon, ChevronRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { ShieldCheck, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRef, useCallback } from 'react';
 import {
@@ -20,20 +19,40 @@ import { ScrollArea } from '../ui/scroll-area';
 const LEGACY_LABEL_ALIASES: Record<string, string[]> = {
   'Dashboard & Tasks': ['Overview', 'Dashboard', '/dashboard'],
   'Dashboard Overview': ['Dashboard', '/dashboard'],
-  'Customer Management': ['Customer Records'],
+  'Customer Management': ['Customer Records', '/customers'],
+  'App Migration': ['Customer Records', 'Customer Management', '/customers'],
   'Customer Modifications': ['Maker', 'Checker'],
-  'Account Operations': ['Account Management'],
+  'Account Operations': ['Account Management', '/customers/link-account'],
   'Account Status Controls': ['Maker', 'Checker'],
   'Security & Access Control': ['Customer Security'],
-  'Device & Credential Requests (Maker)': ['Maker'],
-  'Security Verification (Checker)': ['Checker'],
+  'Device & Credential (Maker)': ['Maker', 'Device & Credential Requests (Maker)'],
+  'Security Approvals (Checker)': ['Checker', 'Security Verification (Checker)'],
+  'Limits & Charges': ['Administration', '/limits', '/charges', 'App Control', '/app-control'],
+  'Mini Apps': ['App Control', '/app-control'],
+  'IPS & Telecom': ['App Control', '/app-control', 'Integrations'],
+  'App Content & Config': ['App Control', '/app-control'],
 };
+
+function stripQuery(href?: string): string {
+  if (!href) return '';
+  return href.split('?')[0];
+}
 
 function hasPermission(userPermissions: string[], item: MenuItem): boolean {
   if (userPermissions.includes('all')) return true;
   if (item.href === '/dashboard') return true;
-  const permissionId = item.href || item.label;
+  const cleanHref = stripQuery(item.href);
+  if (cleanHref === '/customers/migration') {
+    return (
+      userPermissions.includes('/customers') ||
+      userPermissions.includes('Customer Management') ||
+      userPermissions.includes('Customer Records') ||
+      userPermissions.includes('/customers/migration')
+    );
+  }
+  const permissionId = cleanHref || item.label;
   if (userPermissions.includes(permissionId)) return true;
+  if (item.href && userPermissions.includes(item.href)) return true;
   const aliases = LEGACY_LABEL_ALIASES[item.label] || [];
   return aliases.some(alias => userPermissions.includes(alias));
 }
@@ -51,9 +70,12 @@ const sectionAccents: Record<string, string> = {
   'Customer Management':       'text-sky-400',
   'Account Operations':        'text-cyan-400',
   'Security & Access Control': 'text-indigo-400',
+  'Limits & Charges':          'text-amber-400',
+  'Mini Apps':                 'text-teal-400',
+  'IPS & Telecom':             'text-emerald-400',
+  'App Content & Config':      'text-cyan-300',
   'Online Linking':            'text-fuchsia-400',
   'Administration':            'text-violet-400',
-  'App Control':               'text-teal-400',
   'Oversight':                 'text-orange-400',
   'System Monitoring':         'text-green-400',
   'Reporting':                 'text-blue-400',
@@ -72,7 +94,6 @@ function SidebarNavItem({
   pathname,
   userPermissions,
   depth = 0,
-  parentLabel,
 }: {
   item: MenuItem;
   pathname: string;
@@ -99,12 +120,17 @@ function SidebarNavItem({
 
     if (accessibleChildren.length === 0 && !item.href) return null;
 
-    const isChildActive = accessibleChildren.some(
-      child =>
-        (child.href && (pathname === child.href || pathname.startsWith(child.href + '/'))) ||
+    const isChildActive = accessibleChildren.some(child => {
+      const childPath = stripQuery(child.href);
+      return (
+        (childPath && (pathname === childPath || pathname.startsWith(childPath + '/'))) ||
         (child.children &&
-          child.children.some(sub => sub.href && (pathname === sub.href || pathname.startsWith(sub.href + '/'))))
-    );
+          child.children.some(sub => {
+            const subPath = stripQuery(sub.href);
+            return subPath && (pathname === subPath || pathname.startsWith(subPath + '/'));
+          }))
+      );
+    });
 
     return (
       <Accordion
@@ -116,16 +142,17 @@ function SidebarNavItem({
       >
         <AccordionItem value={`item-${item.label}`} className="border-b-0">
           <AccordionTrigger
+            title={item.label}
             className={cn(
-              'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+              'group flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-all duration-200',
               'text-sidebar-foreground/80 hover:text-sidebar-accent-foreground',
               'hover:bg-sidebar-accent/60 hover:no-underline',
               depth === 0 && 'py-2.5',
-              depth > 0 && 'py-2 text-[13px]',
+              depth > 0 && 'py-1.5 text-[12.5px]',
               isChildActive && 'bg-sidebar-accent/40 text-sidebar-accent-foreground'
             )}
           >
-            <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex items-center gap-2.5 flex-1 min-w-0 text-left">
               <div
                 className={cn(
                   'flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-200',
@@ -133,7 +160,7 @@ function SidebarNavItem({
                     ? 'bg-white/10'
                     : depth === 0
                     ? 'bg-white/5 group-hover:bg-white/10'
-                    : ''
+                    : 'w-6 h-6'
                 )}
               >
                 <Icon
@@ -143,11 +170,11 @@ function SidebarNavItem({
                   )}
                 />
               </div>
-              <span className="truncate">{item.label}</span>
+              <span className="leading-snug line-clamp-2 break-words">{item.label}</span>
             </div>
           </AccordionTrigger>
-          <AccordionContent className={cn('pb-0', depth === 0 ? 'pl-3 pt-0.5' : 'pl-3 pt-0')}>
-            <div className="flex flex-col gap-0.5 border-l border-sidebar-border/50 ml-3 pl-2">
+          <AccordionContent className={cn('pb-0', depth === 0 ? 'pl-2 pt-0.5' : 'pl-2 pt-0')}>
+            <div className="flex flex-col gap-0.5 border-l border-sidebar-border/50 ml-2.5 pl-2">
               {accessibleChildren.map(child => (
                 <SidebarNavItem
                   key={child.href || child.label}
@@ -165,14 +192,18 @@ function SidebarNavItem({
     );
   }
 
-  const isActive = pathname === item.href;
+  const itemPath = stripQuery(item.href);
+  const isActive =
+    pathname === itemPath &&
+    (!item.href?.includes('?tab=') || item.href.endsWith('/customers/migration'));
 
   return (
     <Link
       href={item.href || '#'}
+      title={item.label}
       className={cn(
-        'group relative flex items-center gap-3 rounded-xl px-3 transition-all duration-200',
-        depth === 0 ? 'py-2.5 text-sm font-medium' : 'py-2 text-[13px] font-normal',
+        'group relative flex items-center gap-2.5 rounded-xl px-2.5 transition-all duration-200',
+        depth === 0 ? 'py-2.5 text-sm font-medium' : 'py-1.5 text-[12.5px] font-normal',
         isActive
           ? [depth === 0 ? 'text-white font-semibold' : 'text-[hsl(347,90%,85%)] font-medium']
           : [
@@ -197,7 +228,8 @@ function SidebarNavItem({
 
       <div
         className={cn(
-          'relative z-10 flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-200',
+          'relative z-10 flex-shrink-0 flex items-center justify-center rounded-lg transition-all duration-200',
+          depth === 0 ? 'w-7 h-7' : 'w-6 h-6',
           isActive
             ? depth === 0
               ? 'bg-white/20'
@@ -214,7 +246,7 @@ function SidebarNavItem({
           )}
         />
       </div>
-      <span className="relative z-10 truncate">{item.label}</span>
+      <span className="relative z-10 leading-snug line-clamp-2 break-words">{item.label}</span>
     </Link>
   );
 }
@@ -236,7 +268,7 @@ export function Sidebar({ userPermissions }: { userPermissions: string[] }) {
     <aside
       ref={asideRef}
       onPointerMove={onMove}
-      className="sidebar-aurora relative hidden md:flex flex-col w-64 flex-shrink-0 overflow-hidden"
+      className="sidebar-aurora relative hidden md:flex flex-col w-72 xl:w-[300px] flex-shrink-0 overflow-hidden"
       style={{ borderRight: '1px solid hsl(222, 35%, 16%)' }}
     >
       {/* Aurora blobs */}
@@ -274,7 +306,7 @@ export function Sidebar({ userPermissions }: { userPermissions: string[] }) {
       {/* ─── Navigation ─── */}
       <ScrollArea className="relative z-10 flex-1">
         <motion.nav
-          className="flex flex-col gap-0.5 p-3 pb-6"
+          className="flex flex-col gap-0.5 p-2.5 pb-6"
           initial="hidden"
           animate="show"
           variants={{ hidden: {}, show: { transition: { staggerChildren: 0.035, delayChildren: 0.1 } } }}

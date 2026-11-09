@@ -17,6 +17,83 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const queryText = searchParams.get('q')?.trim();
   const accountNumber = searchParams.get('accountNumber')?.trim();
+  const recent = searchParams.get('recent') === 'true';
+
+  // ─── Mode 0: Recent Directory Listing (?recent=true) ───
+  if (recent) {
+    const results: Array<{
+      id: string;
+      cifNumber: string;
+      name: string;
+      phoneNumber: string;
+      email?: string;
+      branchName?: string;
+      mobileStatus?: string;
+      insertDate?: string;
+      matchType: 'CIF' | 'Phone' | 'Name';
+    }> = [];
+    const seenCifs = new Set<string>();
+
+    try {
+      const connStr = process.env.USER_MODULE_DB_CONNECTION_STRING;
+      if (connStr) {
+        const recentRes: any = await executeQuery(
+          connStr,
+          `SELECT "Id", "CIFNumber", "FirstName", "SecondName", "LastName",
+                  "Email", "PhoneNumber", "MobileStatus", "BranchName", "InsertDate"
+           FROM "USER_MODULE"."AppUsers"
+           ORDER BY "InsertDate" DESC NULLS LAST
+           FETCH FIRST 15 ROWS ONLY`
+        );
+        for (const user of recentRes?.rows || []) {
+          const cif = String(user.CIFNumber || '');
+          if (!cif || seenCifs.has(cif)) continue;
+          seenCifs.add(cif);
+          const firstName = decrypt(user.FirstName) || '';
+          const secondName = decrypt(user.SecondName) || '';
+          const lastName = decrypt(user.LastName) || '';
+          const fullName = [firstName, secondName, lastName].filter(Boolean).join(' ').trim();
+          results.push({
+            id: user.Id || `user_${cif}`,
+            cifNumber: cif,
+            name: fullName || `Customer ${cif}`,
+            phoneNumber: decrypt(user.PhoneNumber) || '',
+            email: decrypt(user.Email) || '',
+            branchName: user.BranchName || 'Main Branch',
+            mobileStatus: user.MobileStatus || 'Active',
+            insertDate: user.InsertDate ? new Date(user.InsertDate).toISOString() : undefined,
+            matchType: 'CIF',
+          });
+        }
+      }
+    } catch (err) {
+      console.error('[CustomerDirectoryRecent] Oracle query warning:', err);
+    }
+
+    if (results.length < 5) {
+      try {
+        const localCustomers = await db.customer.findMany({ take: 12 });
+        for (const c of localCustomers) {
+          const cif = String(c.id).padStart(7, '0');
+          if (seenCifs.has(cif)) continue;
+          seenCifs.add(cif);
+          results.push({
+            id: `user_${cif}`,
+            cifNumber: cif,
+            name: c.name,
+            phoneNumber: c.phone,
+            branchName: 'Addis Ababa',
+            mobileStatus: c.status || 'Active',
+            matchType: 'CIF',
+          });
+        }
+      } catch {
+        // Ignore fallback error
+      }
+    }
+
+    return NextResponse.json({ results });
+  }
 
   // ─── Mode 1: Global Customer Search (?q=...) ───
   if (queryText !== undefined) {

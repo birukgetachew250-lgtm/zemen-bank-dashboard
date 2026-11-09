@@ -47,10 +47,15 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState, useCallback } from 'react';
 
 const LEGACY_LABEL_ALIASES: Record<string, string[]> = {
-  'Dashboard & Tasks': ['Overview', 'Dashboard'],
-  'Customer Management': ['Customer Records'],
-  'Account Operations': ['Account Management'],
+  'Dashboard & Tasks': ['Overview', 'Dashboard', '/dashboard'],
+  'Customer Management': ['Customer Records', '/customers'],
+  'App Migration': ['Customer Records', 'Customer Management', '/customers'],
+  'Account Operations': ['Account Management', '/customers/link-account'],
   'Security & Access Control': ['Customer Security'],
+  'Limits & Charges': ['Administration', '/limits', '/charges', 'App Control', '/app-control'],
+  'Mini Apps': ['App Control', '/app-control'],
+  'IPS & Telecom': ['App Control', '/app-control', 'Integrations'],
+  'App Content & Config': ['App Control', '/app-control'],
 };
 
 /* ─── Build breadcrumbs from pathname ─── */

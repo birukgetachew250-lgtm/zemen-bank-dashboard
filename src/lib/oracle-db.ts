@@ -23,6 +23,20 @@ async function getOracleConnection(connectionString: string | undefined) {
         }
         throw new Error("Oracle connection string is not defined in the environment variables.");
     }
+
+    // Support ADO.NET style connection strings (e.g., Data Source=10.1.1.165:2483/SPRAPDB;User Id=MIGRATION_MODULE;Password=...;)
+    if (/Data\s+Source\s*=/i.test(connectionString)) {
+        const dsMatch = connectionString.match(/Data\s+Source\s*=\s*([^;]+)/i);
+        const uidMatch = connectionString.match(/User\s+Id\s*=\s*([^;]+)/i);
+        const pwdMatch = connectionString.match(/Password\s*=\s*([^;]+)/i);
+        if (dsMatch && uidMatch && pwdMatch) {
+            return await oracledb.getConnection({
+                user: uidMatch[1].trim(),
+                password: pwdMatch[1].trim().replace(/\\\$/g, '$'),
+                connectString: dsMatch[1].trim(),
+            });
+        }
+    }
     
     const userMatch = connectionString.match(/^(.*?)\//);
     const passwordMatch = connectionString.match(/\/(.*?)@/);
@@ -33,7 +47,7 @@ async function getOracleConnection(connectionString: string | undefined) {
     }
 
     const user = userMatch[1];
-    const password = passwordMatch[1];
+    const password = passwordMatch[1].replace(/\\\$/g, '$');
     const connectString = serverMatch[1];
     
     return await oracledb.getConnection({
