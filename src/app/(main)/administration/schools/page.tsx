@@ -147,7 +147,7 @@ export default function SchoolsPage() {
   return (
     <div className="space-y-6 animate-fade-up">
       {/* ── Header ── */}
-      <div className="relative overflow-hidden rounded-2xl p-6"
+      <div className="relative overflow-hidden rounded-2xl bg-slate-900 p-6 shadow-lg"
         style={{ background: 'linear-gradient(135deg, hsl(233,55%,52%) 0%, hsl(233,55%,40%) 100%)' }}>
         <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(to_bottom,transparent,black)]" />
         <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" />

@@ -58,10 +58,10 @@ async function ensureDirectProviderContainer(sub: {
                 ProviderId: sub.SubcategoryId,
                 CategoryId: sub.CategoryId,
                 SubcategoryId: sub.SubcategoryId,
-                ProviderName: `${sub.SubcategoryName} (Direct Subcategory Page)`,
+                ProviderName: sub.SubcategoryName,
                 HoldingAccountId: sub.HoldingAccountId,
                 ApiEndpoint: sub.ApiEndpoint || null,
-                Description: sub.Description || 'Direct subcategory page configuration container',
+                Description: sub.Description || null,
                 LogoUrl: sub.LogoUrl || null,
                 IconUrl: sub.IconUrl || null,
                 Status: sub.Status || 'Active',
@@ -83,11 +83,11 @@ async function ensureDirectProviderContainer(sub: {
                 ProviderId: sub.SubcategoryId,
                 CategoryId: sub.CategoryId,
                 SubcategoryId: sub.SubcategoryId,
-                ProviderName: `${sub.SubcategoryName} (Direct Subcategory Page)`,
+                ProviderName: sub.SubcategoryName,
                 ProviderCode: code,
                 ApiEndpoint: sub.ApiEndpoint || null,
                 HoldingAccountId: sub.HoldingAccountId,
-                Description: sub.Description || 'Direct subcategory page configuration container',
+                Description: sub.Description || null,
                 LogoUrl: sub.LogoUrl || null,
                 IconUrl: sub.IconUrl || null,
                 Status: sub.Status || 'Active',
@@ -104,6 +104,16 @@ export async function GET(req: Request) {
     const categoryId = searchParams.get('categoryId');
 
     try {
+        // Automatically clean up any legacy '(Direct Subcategory Page)' suffix on backing BillProvider rows
+        await executeQuery(
+            process.env.APP_CONTROL_DB_CONNECTION_STRING,
+            `UPDATE ${PROVIDER_TABLE}
+             SET "ProviderName" = REPLACE("ProviderName", ' (Direct Subcategory Page)', ''),
+                 "Description" = CASE WHEN "Description" = 'Direct subcategory page configuration container' THEN NULL ELSE "Description" END
+             WHERE "ProviderName" LIKE '%(Direct Subcategory Page)%'
+                OR "Description" = 'Direct subcategory page configuration container'`
+        ).catch(() => {});
+
         let query = `SELECT s.*, c."CategoryName" FROM ${TABLE} s JOIN "${SCHEMA}"."BillCategory" c ON s."CategoryId" = c."CategoryId"`;
         const binds: any = {};
         

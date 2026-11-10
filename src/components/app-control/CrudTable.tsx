@@ -84,8 +84,9 @@ export default function CrudTable({ title, apiUrl, idField, columns, formFields,
     setEditingItem(item);
     const data: Record<string, any> = {};
     formFields.forEach((f) => {
-      let val = item[f.key];
-      if (f.type === "checkbox") val = val === 1 || val === true;
+      const matchKey = Object.keys(item || {}).find((k) => k.toLowerCase() === f.key.toLowerCase());
+      let val = item?.[f.key] !== undefined ? item[f.key] : (matchKey ? item[matchKey] : undefined);
+      if (f.type === "checkbox") val = val === 1 || val === true || val === "1";
       else if (f.type === "number") val = val ?? 0;
       else val = val ?? "";
       data[f.key] = val;

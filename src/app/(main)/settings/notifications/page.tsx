@@ -51,10 +51,15 @@ export default function NotificationsSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-2xl p-6 mb-6 animate-fade-up" style={{ background: 'linear-gradient(135deg, hsl(220, 80%, 40%) 0%, hsl(220, 80%, 20%) 100%)' }}>
+      <div
+        className="relative overflow-hidden rounded-2xl bg-slate-900 p-6 mb-6 shadow-lg animate-fade-up"
+        style={{
+          background:
+            'radial-gradient(85% 140% at 100% 0%, hsl(220 80% 45% / 0.45), transparent 60%), radial-gradient(70% 120% at 0% 100%, hsl(347 77% 40% / 0.35), transparent 60%), linear-gradient(135deg, hsl(222 47% 11%), hsl(224 55% 7%))',
+        }}
+      >
         <h1 className="text-3xl font-bold text-white relative z-10">Notification Settings</h1>
         <p className="text-white/80 mt-2 relative z-10">Manage your email and system notification preferences.</p>
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
       </div>
 
     <Form {...form}>

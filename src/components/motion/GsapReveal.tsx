@@ -21,7 +21,7 @@ export function GsapReveal({ children }: { children: React.ReactNode }) {
       if (targets.length === 0) {
         // Fallback: auto-reveal direct children of the page
         const kids = Array.from(root.current?.firstElementChild?.children ?? []) as HTMLElement[];
-        gsap.from(kids, { y: 28, opacity: 0, duration: 0.8, ease: 'power3.out', stagger: 0.08, clearProps: 'all' });
+        gsap.from(kids, { y: 28, opacity: 0, duration: 0.8, ease: 'power3.out', stagger: 0.08, clearProps: 'transform,opacity' });
       } else {
         ScrollTrigger.batch(targets, {
           start: 'top 92%',

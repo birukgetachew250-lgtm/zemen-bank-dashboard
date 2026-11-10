@@ -51,10 +51,28 @@ const mapUsageRow = (row: any) => ({
   updateDate: row.updateDate,
 });
 
-export async function GET() {
+export async function GET(req: Request) {
   const _authSession = await requirePermission(PERMISSIONS.LIMITS_MANAGE);
   if (_authSession instanceof NextResponse) return _authSession;
   try {
+    const { searchParams } = new URL(req.url);
+    const cif = (searchParams.get('cif') || '').trim();
+    const service = (searchParams.get('service') || '').trim();
+
+    if (!cif) {
+      return NextResponse.json([]);
+    }
+
+    const conditions: string[] = [`UPPER(clu."CIFNumber") LIKE UPPER(:cif)`];
+    const binds: Record<string, any> = {
+      cif: `%${cif}%`,
+    };
+
+    if (service) {
+      conditions.push(`UPPER(clu."ServiceName") LIKE UPPER(:service)`);
+      binds.service = `%${service}%`;
+    }
+
     const query = `
       SELECT
         clu."Id" as "id",
@@ -89,10 +107,12 @@ export async function GET() {
       FROM ${TABLE} clu
       LEFT JOIN "LIMIT_CHARGE_MODULE"."CustomerCategories" cc ON clu."CustomerCategoryId" = cc."Id"
       LEFT JOIN "LIMIT_CHARGE_MODULE"."TransactionTypes" tt ON clu."TransactionTypeId" = tt."Id"
+      WHERE ${conditions.join(' AND ')}
       ORDER BY clu."UpdateDate" DESC, clu."InsertDate" DESC
+      FETCH FIRST 500 ROWS ONLY
     `;
 
-    const result: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, query);
+    const result: any = await executeQuery(process.env.LIMIT_CHARGE_MODULE_DB_CONNECTION_STRING, query, binds);
     if (!result.rows) return NextResponse.json([]);
 
     return NextResponse.json(result.rows.map(mapUsageRow));

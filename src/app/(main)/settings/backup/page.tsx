@@ -132,7 +132,7 @@ export default function BackupPage() {
   return (
     <div className="space-y-6 animate-fade-up">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl p-6"
+      <div className="relative overflow-hidden rounded-2xl bg-slate-900 p-6 shadow-lg"
         style={{ background: 'linear-gradient(135deg, hsl(222,47%,25%) 0%, hsl(222,47%,14%) 100%)' }}>
         <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" />
         <div className="relative flex items-center justify-between">

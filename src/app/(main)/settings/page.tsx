@@ -129,10 +129,10 @@ export default function SettingsPage() {
   return (
     <div className="w-full space-y-6">
       <div
-        className="relative mb-6 overflow-hidden rounded-2xl p-6 animate-fade-up"
+        className="relative mb-6 overflow-hidden rounded-2xl bg-slate-900 p-6 shadow-lg animate-fade-up"
         style={{
           background:
-            'linear-gradient(135deg, hsl(220, 80%, 40%) 0%, hsl(220, 80%, 20%) 100%)',
+            'radial-gradient(85% 140% at 100% 0%, hsl(220 80% 45% / 0.45), transparent 60%), radial-gradient(70% 120% at 0% 100%, hsl(347 77% 40% / 0.35), transparent 60%), linear-gradient(135deg, hsl(222 47% 11%), hsl(224 55% 7%))',
         }}
       >
         <h1 className="relative z-10 text-3xl font-bold text-white">
@@ -141,7 +141,6 @@ export default function SettingsPage() {
         <p className="relative z-10 mt-2 text-white/80">
           Manage application appearance and Multi-Factor Authentication settings.
         </p>
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm" />
       </div>
 
       <Form {...form}>

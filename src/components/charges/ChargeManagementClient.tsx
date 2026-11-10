@@ -267,7 +267,6 @@ export function ChargeManagementClient({ initialChargeRules }: ChargeManagementC
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Customer Category</TableHead>
                   <TableHead>Transaction Type</TableHead>
                   <TableHead>Service</TableHead>
                   <TableHead>Charge Type</TableHead>
@@ -279,13 +278,10 @@ export function ChargeManagementClient({ initialChargeRules }: ChargeManagementC
               <TableBody>
                 {filteredRules.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No charge rules found.</TableCell>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No charge rules found.</TableCell>
                   </TableRow>
                 ) : filteredRules.map((rule) => (
                   <TableRow key={rule.id}>
-                    <TableCell>
-                      <Badge variant="secondary">{rule.categories || 'All Categories'}</Badge>
-                    </TableCell>
                     <TableCell className="font-medium">{rule.transactionType}</TableCell>
                     <TableCell>{rule.serviceName || '-'}</TableCell>
                     <TableCell>

@@ -3,6 +3,9 @@ import { executeQuery } from '@/lib/oracle-db';
 import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const CS = process.env.APP_CONTROL_DB_CONNECTION_STRING;
 const TABLE = '"APP_CONTROL_MODULE"."FeeCharge"';
 
@@ -65,9 +68,17 @@ export async function PUT(req: Request) {
     for (const [col, bind] of Object.entries(map)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col]; } }
     const boolMap: Record<string, string> = { IsFree:'isFree',IsVATApplicable:'vat',IsWaivedForPremium:'waived' };
     for (const [col, bind] of Object.entries(boolMap)) { if (b[col] !== undefined) { fields.push(`"${col}"=:${bind}`); binds[bind] = b[col] ? 1 : 0; } }
+    if (b.EffectiveFrom !== undefined) {
+      fields.push('"EffectiveFrom"=:effFrom');
+      binds.effFrom = b.EffectiveFrom ? new Date(b.EffectiveFrom) : null;
+    }
+    if (b.EffectiveTo !== undefined) {
+      fields.push('"EffectiveTo"=:effTo');
+      binds.effTo = b.EffectiveTo ? new Date(b.EffectiveTo) : null;
+    }
     fields.push('"UpdatedAt"=CURRENT_TIMESTAMP'); fields.push('"UpdatedBy"=:updBy'); binds.updBy = session.user?.email || 'system';
     await executeQuery(CS, `UPDATE ${TABLE} SET ${fields.join(',')} WHERE "FeeId"=:id`, binds);
-    const r: any = await executeQuery(CS, `SELECT * FROM ${TABLE} WHERE "FeeId"=:id`, { id: b.FeeId });
+    const r: any = await executeQuery(CS, `SELECT f.*, c."CategoryName", c."CategoryCode" FROM ${TABLE} f LEFT JOIN "APP_CONTROL_MODULE"."FeeCategory" c ON f."CategoryId"=c."CategoryId" WHERE f."FeeId"=:id`, { id: b.FeeId });
     return NextResponse.json(r.rows[0]);
   } catch (error) {
     console.error("Failed to update fee charge:", error);

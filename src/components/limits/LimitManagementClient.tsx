@@ -244,7 +244,6 @@ export function LimitManagementClient({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Customer Category</TableHead>
                   <TableHead>Transaction Type</TableHead>
                   <TableHead>Aggregation</TableHead>
                   <TableHead>Service(s)</TableHead>
@@ -256,9 +255,6 @@ export function LimitManagementClient({
               <TableBody>
                 {filteredRules.map((rule) => (
                   <TableRow key={rule.id}>
-                    <TableCell>
-                      <Badge variant="secondary">{rule.category || "All Categories"}</Badge>
-                    </TableCell>
                     <TableCell className="font-medium">{rule.transactionType}</TableCell>
                     <TableCell>
                       <Badge variant={rule.limitAggregationType === "SERVICE_GROUP" ? "default" : "outline"}>

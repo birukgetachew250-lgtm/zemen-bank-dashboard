@@ -128,7 +128,7 @@ export default function ChangePasswordPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-fade-up">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl p-8"
+      <div className="relative overflow-hidden rounded-3xl bg-slate-900 p-8 shadow-lg"
         style={{ background: 'linear-gradient(135deg, hsl(233,55%,52%) 0%, hsl(233,55%,32%) 100%)' }}>
         <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" />
         <div className="relative flex items-center gap-4">
