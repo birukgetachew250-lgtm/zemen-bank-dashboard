@@ -62,7 +62,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from '@/lib/utils';
-import { CODED_APP_PAGES } from './SubcategoryManagement';
 
 interface Provider {
   ProviderId: string;
@@ -922,7 +921,6 @@ export function ProviderManagement({
                       ...prev,
                       TargetMode: 'coded_page',
                       PageTemplate: '3',
-                      ApiEndpoint: prev.ApiEndpoint || '/bills/ethio-telecom',
                     }))
                   }
                   className={cn(
@@ -943,38 +941,20 @@ export function ProviderManagement({
               </div>
 
               {formData.TargetMode === 'coded_page' && (
-                <div className="mt-2 space-y-3 rounded-lg border border-purple-200 bg-background p-3.5 dark:border-purple-900">
+                <div className="mt-2 space-y-2 rounded-lg border border-purple-200 bg-background p-3.5 dark:border-purple-900">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-purple-700 dark:text-purple-300">
-                      Select Pre-Coded Mobile App Screen Preset
+                      Target Mobile App Route / Screen Key <span className="text-red-500">*</span>
                     </Label>
-                    <Select
-                      value={CODED_APP_PAGES.some(p => p.route === formData.ApiEndpoint) ? formData.ApiEndpoint : 'custom'}
-                      onValueChange={(v) => {
-                        if (v !== 'custom') setFormData(prev => ({ ...prev, ApiEndpoint: v }));
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a coded mobile screen..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CODED_APP_PAGES.map((page) => (
-                          <SelectItem key={page.route} value={page.route}>
-                            {page.label} ({page.route})
-                          </SelectItem>
-                        ))}
-                        <SelectItem value="custom">Custom App Route / Screen Key...</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Target Mobile App Route / Screen Key <span className="text-red-500">*</span></Label>
                     <Input
                       className="font-mono text-xs"
                       value={formData.ApiEndpoint}
                       onChange={e => setFormData({ ...formData, ApiEndpoint: e.target.value })}
-                      placeholder="/bills/ethio-telecom"
+                      placeholder="e.g. /bills/ethio-telecom or EthioTelecomScreen"
                     />
+                    <p className="text-[11px] text-muted-foreground">
+                      Enter the exact route or screen key coded in the mobile application.
+                    </p>
                   </div>
                 </div>
               )}

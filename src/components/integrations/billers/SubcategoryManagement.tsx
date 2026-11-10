@@ -43,21 +43,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-export const CODED_APP_PAGES = [
-  { route: '/bills/ethio-telecom', label: 'Ethio Telecom (Airtime / Package / Postpaid)' },
-  { route: '/bills/safaricom', label: 'Safaricom Ethiopia (Airtime & Data)' },
-  { route: '/bills/eeu-electricity', label: 'Ethiopian Electric Utility (EEU Bill Payment)' },
-  { route: '/bills/aawsa-water', label: 'AAWSA Water Bill Payment' },
-  { route: '/bills/ethiopian-airlines', label: 'Ethiopian Airlines Ticket Booking & Payment' },
-  { route: '/bills/school-fee', label: 'School & Tuition Fee Payment' },
-  { route: '/bills/dstv', label: 'DSTV Subscription Renewal' },
-  { route: '/bills/canal-plus', label: 'Canal+ Subscription Payment' },
-  { route: '/bills/guzogo', label: 'GuzoGo Flight & Travel Payment' },
-  { route: '/bills/feres-ride', label: 'Feres / Ride Transport Wallet Top-up' },
-  { route: '/bills/traffic-penalty', label: 'Traffic Penalty & Municipal Fines' },
-  { route: '/bills/tax-customs', label: 'Ministry of Revenues / Tax & Customs' },
-];
-
 export interface Subcategory {
   SubcategoryId: string;
   CategoryId: string;
@@ -190,7 +175,6 @@ export function SubcategoryManagement({ initialSubcategories, categories }: { in
         TargetMode: mode,
         IsMiniApp: false,
         PageTemplate: '3',
-        WebUrl: prev.WebUrl || '/bills/ethio-telecom',
       }));
     } else {
       setFormData(prev => ({ ...prev, TargetMode: mode, IsMiniApp: false, PageTemplate: '1' }));
@@ -623,40 +607,19 @@ export function SubcategoryManagement({ initialSubcategories, categories }: { in
               </div>
 
               {formData.TargetMode === 'coded_page' && (
-                <div className="mt-3 space-y-3 rounded-lg border border-purple-200 bg-background p-3.5 dark:border-purple-900">
+                <div className="mt-3 space-y-2 rounded-lg border border-purple-200 bg-background p-3.5 dark:border-purple-900">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-purple-700 dark:text-purple-300">
-                      Select Pre-Coded Mobile App Page Preset
+                      Target Mobile App Route / Screen Key <span className="text-red-500">*</span>
                     </Label>
-                    <Select
-                      value={CODED_APP_PAGES.some(p => p.route === formData.WebUrl) ? formData.WebUrl : 'custom'}
-                      onValueChange={(v) => {
-                        if (v !== 'custom') set('WebUrl', v);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a coded app screen..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CODED_APP_PAGES.map((page) => (
-                          <SelectItem key={page.route} value={page.route}>
-                            {page.label} ({page.route})
-                          </SelectItem>
-                        ))}
-                        <SelectItem value="custom">Custom App Route / Screen Key...</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Target Mobile App Route / Screen Key <span className="text-red-500">*</span></Label>
                     <Input
                       className="font-mono text-xs"
                       value={formData.WebUrl}
                       onChange={e => set('WebUrl', e.target.value)}
-                      placeholder="/bills/ethio-telecom or nativeScreenKey"
+                      placeholder="e.g. /bills/ethio-telecom or EthioTelecomScreen"
                     />
                     <p className="text-[11px] text-muted-foreground">
-                      The mobile app will navigate directly to this coded screen when the user taps this subcategory.
+                      Enter the exact route or screen key coded in the mobile application. When a user taps this subcategory, the app will navigate directly to this route.
                     </p>
                   </div>
                 </div>

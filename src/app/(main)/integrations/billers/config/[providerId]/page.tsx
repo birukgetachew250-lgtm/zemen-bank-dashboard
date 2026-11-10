@@ -32,7 +32,6 @@ import { SDUIFieldBuilder } from '@/components/integrations/billers/SDUIFieldBui
 import { SDUIFlowDesigner } from '@/components/integrations/billers/SDUIFlowDesigner';
 import { SDUIApiConfig } from '@/components/integrations/billers/SDUIApiConfig';
 import { SDUIDisplayConfig } from '@/components/integrations/billers/SDUIDisplayConfig';
-import { CODED_APP_PAGES } from '@/components/integrations/billers/SubcategoryManagement';
 import { cn } from '@/lib/utils';
 
 export default function BillerConfigDashboardPage({ params }: { params: { providerId: string } }) {
@@ -76,7 +75,7 @@ export default function BillerConfigDashboardPage({ params }: { params: { provid
             if (found) {
                 const isCoded = Number(found.PageTemplate) === 3;
                 setTargetMode(isCoded ? 'coded_page' : 'sdui');
-                setCodedRoute(found.ApiEndpoint || '/bills/ethio-telecom');
+                setCodedRoute(found.ApiEndpoint || '');
             }
 
             // Fetch full config (fields, steps, api, display)
@@ -217,38 +216,17 @@ export default function BillerConfigDashboardPage({ params }: { params: { provid
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Select Pre-Coded Mobile App Screen Preset</Label>
-                                <Select
-                                    value={CODED_APP_PAGES.some(p => p.route === codedRoute) ? codedRoute : 'custom'}
-                                    onValueChange={(v) => {
-                                        if (v !== 'custom') setCodedRoute(v);
-                                    }}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Choose a coded mobile screen..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {CODED_APP_PAGES.map((page) => (
-                                            <SelectItem key={page.route} value={page.route}>
-                                                {page.label} ({page.route})
-                                            </SelectItem>
-                                        ))}
-                                        <SelectItem value="custom">Custom App Route / Screen Key...</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Target Mobile App Route / Screen Identifier</Label>
-                                <Input
-                                    className="font-mono"
-                                    value={codedRoute}
-                                    onChange={(e) => setCodedRoute(e.target.value)}
-                                    placeholder="/bills/ethio-telecom"
-                                />
-                            </div>
+                        <div className="space-y-2">
+                            <Label>Target Mobile App Route / Screen Key <span className="text-red-500">*</span></Label>
+                            <Input
+                                className="font-mono"
+                                value={codedRoute}
+                                onChange={(e) => setCodedRoute(e.target.value)}
+                                placeholder="e.g. /bills/ethio-telecom or EthioTelecomScreen"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Enter the exact route or screen key coded in the mobile application.
+                            </p>
                         </div>
 
                         <div className="flex items-center justify-between rounded-xl border bg-muted/30 p-4">
