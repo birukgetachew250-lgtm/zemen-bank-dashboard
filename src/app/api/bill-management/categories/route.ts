@@ -5,22 +5,29 @@ import crypto from 'crypto';
 import { requirePermission } from '@/lib/auth-utils';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 import { PERMISSIONS } from '@/lib/permissions';
 
 const SCHEMA = "APP_CONTROL_MODULE";
 const TABLE = `"${SCHEMA}"."BillCategory"`;
 
+const NO_STORE_HEADERS = {
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+};
+
 export async function GET() {
     const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
     if (session instanceof NextResponse) return session;
     try {
-        const query = `SELECT * FROM ${TABLE} ORDER BY "Rank" ASC`;
+        const query = `SELECT * FROM ${TABLE} ORDER BY "Rank" ASC, "CategoryName" ASC`;
         const result: any = await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, query);
-        return NextResponse.json(result.rows || []);
+        return NextResponse.json(result.rows || [], { headers: NO_STORE_HEADERS });
     } catch (error: any) {
         console.error("Failed to fetch bill categories:", error);
-        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ message: "Internal Server Error" }, { status: 500, headers: NO_STORE_HEADERS });
     }
 }
 

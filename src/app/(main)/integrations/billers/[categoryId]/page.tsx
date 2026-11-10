@@ -6,6 +6,9 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function getCategory(id: string) {
     const query = `SELECT "CategoryName" FROM "APP_CONTROL_MODULE"."BillCategory" WHERE "CategoryId" = :id`;
     const result: any = await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, query, { id });

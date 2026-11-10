@@ -4,6 +4,9 @@ import { executeQuery } from '@/lib/oracle-db';
 import { BillCategoryList } from '@/components/integrations/billers/BillCategoryList';
 import { Loader2 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function getBillCategories() {
   try {
     const query = `

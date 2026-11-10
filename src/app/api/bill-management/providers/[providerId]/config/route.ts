@@ -4,7 +4,17 @@ import { executeQuery } from '@/lib/oracle-db';
 
 import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const SCHEMA = "APP_CONTROL_MODULE";
+
+const NO_STORE_HEADERS = {
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+};
 
 export async function GET(req: Request, { params }: { params: { providerId: string } }) {
   const _authSession = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
@@ -27,9 +37,9 @@ export async function GET(req: Request, { params }: { params: { providerId: stri
             })
         );
 
-        return NextResponse.json(Object.fromEntries(results));
+        return NextResponse.json(Object.fromEntries(results), { headers: NO_STORE_HEADERS });
     } catch (error: any) {
         console.error(`Failed to fetch full config for provider ${providerId}:`, error);
-        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ message: "Internal Server Error" }, { status: 500, headers: NO_STORE_HEADERS });
     }
 }

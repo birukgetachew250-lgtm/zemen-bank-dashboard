@@ -4,6 +4,9 @@ import { CategoryManagement } from '@/components/integrations/billers/CategoryMa
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function getCategories() {
     try {
         const query = `SELECT * FROM "APP_CONTROL_MODULE"."BillCategory" ORDER BY "Rank" ASC`;

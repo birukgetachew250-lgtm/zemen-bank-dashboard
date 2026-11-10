@@ -4,6 +4,9 @@ import { SubcategoryManagement } from '@/components/integrations/billers/Subcate
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function getSubcategories() {
     try {
         const query = `

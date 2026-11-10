@@ -6,27 +6,39 @@ import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const SCHEMA = "APP_CONTROL_MODULE";
 const TABLE = `"${SCHEMA}"."BillProvider"`;
+
+const NO_STORE_HEADERS = {
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+};
 
 export async function GET(req: Request) {
     const session = await requirePermission(PERMISSIONS.APP_CONTROL_MANAGE);
     if (session instanceof NextResponse) return session;
     const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
     const categoryId = searchParams.get('categoryId');
     const subcategoryId = searchParams.get('subcategoryId');
 
     try {
         let query = `
-            SELECT p.*, c."CategoryName", s."SubcategoryName" 
+            SELECT p.*, c."CategoryName", s."SubcategoryName", s."PageTemplate" AS "SubcategoryPageTemplate", s."WebUrl" AS "SubcategoryWebUrl", s."IsMiniApp" AS "SubcategoryIsMiniApp"
             FROM ${TABLE} p 
             JOIN "${SCHEMA}"."BillCategory" c ON p."CategoryId" = c."CategoryId"
             LEFT JOIN "${SCHEMA}"."BillSubcategory" s ON p."SubcategoryId" = s."SubcategoryId"
         `;
         const binds: any = {};
         const conditions: string[] = [];
-        
+
+        if (id) {
+            conditions.push(`p."ProviderId" = :id`);
+            binds.id = id;
+        }
         if (categoryId) {
             conditions.push(`p."CategoryId" = :categoryId`);
             binds.categoryId = categoryId;
@@ -40,13 +52,13 @@ export async function GET(req: Request) {
             query += ` WHERE ` + conditions.join(' AND ');
         }
         
-        query += ` ORDER BY p."Rank" ASC`;
+        query += ` ORDER BY p."Rank" ASC, p."ProviderName" ASC`;
         
         const result: any = await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, query, binds);
-        return NextResponse.json(result.rows || []);
+        return NextResponse.json(result.rows || [], { headers: NO_STORE_HEADERS });
     } catch (error: any) {
         console.error("Failed to fetch bill providers:", error);
-        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ message: "Internal Server Error" }, { status: 500, headers: NO_STORE_HEADERS });
     }
 }
 
@@ -112,7 +124,7 @@ export async function PUT(req: Request) {
         if (!ProviderId) return NextResponse.json({ message: "ProviderId is required" }, { status: 400 });
 
         const numericFields = ['PageTemplate', 'MinAmount', 'MaxAmount', 'ServiceChargePercent', 'ServiceChargeFixed', 'Rank'];
-        const excludeKeys = ['ProviderId', 'CreatedAt', 'CreatedBy', 'Version'];
+        const excludeKeys = ['ProviderId', 'CreatedAt', 'CreatedBy', 'Version', 'CategoryName', 'SubcategoryName', 'SubcategoryPageTemplate', 'SubcategoryWebUrl', 'SubcategoryIsMiniApp'];
 
         const setFields: string[] = [];
         const binds: any = { ProviderId };
@@ -124,7 +136,7 @@ export async function PUT(req: Request) {
                 const n = parseFloat(String(value));
                 binds[key] = isNaN(n) ? null : n;
             } else {
-                binds[key] = (value === '' || value === undefined) ? null : value;
+                binds[key] = (value === '' || value === undefined || value === 'none') ? null : value;
             }
         }
 
@@ -144,11 +156,25 @@ export async function DELETE(req: Request) {
     if (session instanceof NextResponse) return session;
     try {
         const { id } = await req.json();
+        if (!id) {
+            return NextResponse.json({ message: "Provider id is required" }, { status: 400 });
+        }
+
+        const connStr = process.env.APP_CONTROL_DB_CONNECTION_STRING;
+        const childTables = ['BillFormField', 'BillFlowStep', 'BillApiConfig', 'BillDisplayField'];
+        for (const childTable of childTables) {
+            await executeQuery(
+                connStr,
+                `DELETE FROM "${SCHEMA}"."${childTable}" WHERE "ProviderId" = :id`,
+                { id }
+            );
+        }
+
         const query = `DELETE FROM ${TABLE} WHERE "ProviderId" = :id`;
-        await executeQuery(process.env.APP_CONTROL_DB_CONNECTION_STRING, query, { id });
+        await executeQuery(connStr, query, { id });
         return new Response(null, { status: 204 });
     } catch (error: any) {
-        console.error("Failed to delete bill provider:", error);
-        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+        console.error("Failed to delete bill provider and related configuration:", error);
+        return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
     }
 }
