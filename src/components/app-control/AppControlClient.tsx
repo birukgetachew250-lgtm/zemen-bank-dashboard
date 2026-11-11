@@ -17,9 +17,6 @@ export default function AppControlClient() {
     { title: "Release Management", items: [
       { label: "App Updates", href: "/app-control/app-updates", desc: "Manage mobile app versions and forced update policy" },
     ]},
-    { title: "Integrations", items: [
-      { label: "FlexCube Integrations", href: "/app-control/flexcube-integrations", desc: "Core banking integration settings" },
-    ]},
     { title: "Fees & Charges", items: [
       { label: "Fee Categories", href: "/app-control/fee-categories", desc: "Fee category management" },
       { label: "Fee Charges", href: "/app-control/fee-charges", desc: "Individual fee and charge rules" },

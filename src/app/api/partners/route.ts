@@ -170,7 +170,6 @@ export const menu: MenuItem[] = [
     icon: Network,
     children: [
       { icon: Plug, label: "Configuration", href: "/integrations/config" },
-      { icon: Building, label: "IPS Bank Management", href: "/integrations/ips-bank-management" },
       { icon: Activity, label: "API Monitoring", href: "/integrations/api-monitoring" },
       { icon: Globe, label: "Third-Party Apps", href: "/integrations/third-party" },
       { icon: History, label: "Webhooks", href: "/integrations/webhooks" },

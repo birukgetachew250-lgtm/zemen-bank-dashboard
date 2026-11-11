@@ -174,7 +174,6 @@ export const menu: MenuItem[] = [
     children: [
       { icon: Building,   label: "IPS Banks", href: "/app-control/ips-banks" },
       { icon: Wallet,     label: "IPS Wallets", href: "/app-control/ips-wallets" },
-      { icon: Plug,       label: "FlexCube Integrations", href: "/app-control/flexcube-integrations" },
     ],
   },
   {
@@ -280,7 +279,6 @@ export const menu: MenuItem[] = [
     label: "Integrations",
     icon: Network,
     children: [
-      { icon: Building, label: "IPS Bank Management", href: "/integrations/ips-bank-management" },
       { icon: Activity, label: "API Monitoring", href: "/integrations/api-monitoring" },
     ],
   },
