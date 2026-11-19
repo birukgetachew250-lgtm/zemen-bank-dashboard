@@ -107,10 +107,11 @@ export const menu: MenuItem[] = [
     label: "Account Operations",
     icon: Link,
     children: [
-      { icon: Link,   label: "Link Account", href: "/customers/link-account" },
-      { icon: Unlink, label: "Unlink Account", href: "/customers/unlink-account" },
-      { icon: Link,   label: "Approve Linking", href: "/customers/approve-accounts" },
-      { icon: Unlink, label: "Approve Unlinking", href: "/customers/approve-unlink" },
+      { icon: Link,        label: "Link Account", href: "/customers/link-account" },
+      { icon: Unlink,      label: "Unlink Account", href: "/customers/unlink-account" },
+      { icon: Link,        label: "Approve Linking", href: "/customers/approve-accounts" },
+      { icon: Unlink,      label: "Approve Unlinking", href: "/customers/approve-unlink" },
+      { icon: ShieldCheck, label: "Account Class Permissions", href: "/customers/account-class-permissions" },
     ],
   },
   {

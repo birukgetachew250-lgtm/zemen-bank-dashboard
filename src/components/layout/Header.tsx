@@ -51,6 +51,7 @@ const LEGACY_LABEL_ALIASES: Record<string, string[]> = {
   'Customer Management': ['Customer Records', '/customers'],
   'App Migration': ['Customer Records', 'Customer Management', '/customers'],
   'Account Operations': ['Account Management', '/customers/link-account'],
+  'Account Class Permissions': ['Account Management', '/customers/link-account', '/limits', 'Administration', 'App Control', '/app-control'],
   'Security & Access Control': ['Customer Security'],
   'Limits & Charges': ['Administration', '/limits', '/charges', 'App Control', '/app-control'],
   'Mini Apps': ['App Control', '/app-control'],
