@@ -22,7 +22,7 @@ const LEGACY_LABEL_ALIASES: Record<string, string[]> = {
   'Customer Management': ['Customer Records', '/customers', 'Maker', 'Checker'],
   'App Migration': ['Customer Records', 'Customer Management', '/customers', '/customers/migration'],
   'Account Operations': ['Account Management', '/customers/link-account', 'Maker', 'Checker'],
-  'Account Class Permissions': ['Account Management', '/customers/link-account', '/limits', 'Administration', 'App Control', '/app-control'],
+  'Account Class Permissions': ['Administration', '/branches', '/departments', '/administration/schools'],
   'Customer Security': ['Customer Security', 'Security & Access Control'],
   'Security Requests': ['Maker', 'Device & Credential (Maker)', 'Device & Credential Requests (Maker)'],
   'Security Approvals': ['Checker', 'Security Approvals (Checker)', 'Security Verification (Checker)'],
