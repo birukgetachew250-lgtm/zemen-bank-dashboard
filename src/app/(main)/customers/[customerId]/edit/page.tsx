@@ -28,9 +28,11 @@ import {
   Globe2,
   MapPin,
   CheckCircle2,
+  RefreshCw,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { FlexCubeSyncDialog } from '@/components/customers/FlexCubeSyncDialog';
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -72,6 +74,7 @@ const channelOptions = [
 
 const editProfileSchema = z
   .object({
+    fullName: z.string().min(2, 'Full name is required.'),
     email: z.string().email().or(z.literal('')).optional().nullable(),
     phoneNumber: z.string().min(1, 'Phone number is required.'),
     signUpMainAuth: z.string().min(1, 'Primary authentication method is required.'),
@@ -105,6 +108,7 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [documents, setDocuments] = useState<UploadedFile[]>([]);
   const [wizardStep, setWizardStep] = useState<WizardStepNumber>(1);
+  const [syncOpen, setSyncOpen] = useState(false);
 
   const { toast } = useToast();
   const router = useRouter();
@@ -127,6 +131,7 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
         const customerData = await customerRes.json();
         setCustomer(customerData);
         form.reset({
+          fullName: customerData.name || '',
           email: customerData.email || '',
           phoneNumber: customerData.phoneNumber || '',
           signUpMainAuth: customerData.signUpMainAuth || 'SMSOTP',
@@ -149,8 +154,9 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
 
     setIsSubmitting(true);
     const changes = {
+      name: { old: customer.name, new: values.fullName.trim() },
       email: { old: customer.email, new: values.email },
-      phoneNumber: { old: customer.phoneNumber, new: customer.phoneNumber },
+      phoneNumber: { old: customer.phoneNumber, new: values.phoneNumber.trim() },
       signUpMainAuth: { old: customer.signUpMainAuth, new: values.signUpMainAuth },
       signUp2FA: { old: customer.signUp2FA, new: values.signUp2FA },
       channel: { old: customer.channel, new: values.channel },
@@ -219,12 +225,40 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
       title={`Update Customer Profile — ${customer.name}`}
       description={`Modify contact, channel, and authentication settings for CIF ${customer.cifNumber}.`}
       headerExtra={
-        <Button variant="outline" size="sm" onClick={() => router.back()} className="gap-1.5">
-          <ArrowLeft className="h-4 w-4" />
-          Back to Profile
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => setSyncOpen(true)}
+            className="gap-1.5"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Sync from FlexCube
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => router.back()} className="gap-1.5">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Profile
+          </Button>
+        </div>
       }
     >
+      <FlexCubeSyncDialog
+        cifNumber={customer.cifNumber || customerId}
+        open={syncOpen}
+        onOpenChange={setSyncOpen}
+        onSynced={(synced) => {
+          setCustomer((prev: any) => ({
+            ...prev,
+            name: synced.name || prev.name,
+            phoneNumber: synced.phoneNumber || prev.phoneNumber,
+            email: synced.email ?? prev.email,
+          }));
+          form.setValue('fullName', synced.name || form.getValues('fullName'));
+          form.setValue('phoneNumber', synced.phoneNumber || form.getValues('phoneNumber'));
+          form.setValue('email', synced.email ?? form.getValues('email'));
+        }}
+      />
       <MakerMiniHistory approvalType="updated-customer" />
 
       <Form {...form}>
@@ -238,12 +272,25 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-3.5">
-                  <User className="mt-0.5 h-4 w-4 text-primary" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Full Name</p>
-                    <p className="text-sm font-semibold text-foreground">{customer.name}</p>
-                  </div>
+                <div className="sm:col-span-2">
+                  <FormField
+                    control={form.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Customer Full Name <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} value={field.value || ''} placeholder="Customer Full Name" />
+                        </FormControl>
+                        <p className="text-[11px] text-muted-foreground">
+                          Can be updated manually or synced directly from FlexCube Core Banking.
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
                 <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-3.5">
                   <Fingerprint className="mt-0.5 h-4 w-4 text-primary" />
@@ -298,19 +345,17 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          Phone Number (Read-Only) <span className="text-destructive">*</span>
+                          Phone Number <span className="text-destructive">*</span>
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             value={field.value || ''}
-                            readOnly
-                            disabled
-                            className="bg-muted/60 font-mono cursor-not-allowed opacity-90"
+                            className="font-mono"
                           />
                         </FormControl>
                         <p className="text-[11px] text-muted-foreground">
-                          Phone number editing is disabled and synced with Core Banking.
+                          Updates both encrypted PhoneNumber and PhoneNumberHashed in USER_MODULE.AppUsers.
                         </p>
                         <FormMessage />
                       </FormItem>

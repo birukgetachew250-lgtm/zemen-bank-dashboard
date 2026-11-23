@@ -58,6 +58,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { FlexCubeSyncDialog } from '@/components/customers/FlexCubeSyncDialog';
 
 interface CustomerDeviceItem {
   id: string;
@@ -121,8 +122,26 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
   const [devicesLoading, setDevicesLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mfaSaving, setMfaSaving] = useState(false);
+  const [syncOpen, setSyncOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+
+  const reloadCustomerAndAccounts = useCallback(async () => {
+    try {
+      const [customerRes, accountsRes] = await Promise.all([
+        fetch(`/api/customers/${customerId}?_t=${Date.now()}`, { cache: 'no-store' }),
+        fetch(`/api/customers/${customerId}/accounts?_t=${Date.now()}`, { cache: 'no-store' }),
+      ]);
+      if (customerRes.ok) {
+        setCustomer(await customerRes.json());
+      }
+      if (accountsRes.ok) {
+        setAccounts(await accountsRes.json());
+      }
+    } catch (err) {
+      console.error('Failed to reload customer after sync:', err);
+    }
+  }, [customerId]);
 
   const fetchDevices = useCallback(async (cifOrId: string) => {
     setDevicesLoading(true);
@@ -347,6 +366,13 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button
+              variant="default"
+              onClick={() => setSyncOpen(true)}
+              className="gap-2 shadow-sm"
+            >
+              <RefreshCw className="h-4 w-4" /> Sync from FlexCube
+            </Button>
             {isSuspended ? (
               <Button
                 variant="outline"
@@ -458,11 +484,22 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
 
         <TabsContent value="accounts" className="mt-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Bank Accounts</CardTitle>
-              <CardDescription>
-                All bank accounts linked to this customer profile.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Bank Accounts</CardTitle>
+                <CardDescription>
+                  All bank accounts linked to this customer profile (including Account Class, Customer Category, and live status).
+                </CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSyncOpen(true)}
+                className="gap-1.5"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Sync Account Statuses from FlexCube
+              </Button>
             </CardHeader>
             <CardContent>
               <Table>
@@ -470,6 +507,8 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
                   <TableRow>
                     <TableHead>Account Number</TableHead>
                     <TableHead>Account Type</TableHead>
+                    <TableHead>Account Class</TableHead>
+                    <TableHead>Customer Category</TableHead>
                     <TableHead>Currency</TableHead>
                     <TableHead>Branch</TableHead>
                     <TableHead>Status</TableHead>
@@ -483,16 +522,28 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
                         {acc.accountNumber}
                       </TableCell>
                       <TableCell>{acc.accountType}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-mono text-xs">
+                          {acc.accountClass || '—'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-mono text-xs">
+                          {acc.customerCategory || '—'}
+                        </Badge>
+                      </TableCell>
                       <TableCell>{acc.currency}</TableCell>
                       <TableCell>{acc.branchName}</TableCell>
                       <TableCell>
                         <Badge
                           variant={getStatusVariant(acc.status)}
-                          className={
+                          className={cn(
                             acc.status === 'Active'
                               ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                              : ''
-                          }
+                              : acc.status === 'Frozen' || acc.status === 'Blocked' || acc.status === 'Closed'
+                              ? 'border-rose-500/30 bg-rose-500/15 text-rose-700 dark:text-rose-300'
+                              : 'border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-300'
+                          )}
                         >
                           {acc.status}
                         </Badge>
@@ -782,6 +833,15 @@ function CustomerDetailsPageContent({ customerId }: { customerId: string }) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <FlexCubeSyncDialog
+        cifNumber={customer.cifNumber || customerId}
+        open={syncOpen}
+        onOpenChange={setSyncOpen}
+        onSynced={() => {
+          reloadCustomerAndAccounts();
+        }}
+      />
     </div>
   );
 }

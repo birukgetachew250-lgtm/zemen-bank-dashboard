@@ -24,9 +24,12 @@ import {
   ShieldAlert,
   UserCheck,
   UserX,
+  RefreshCw,
 } from 'lucide-react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { FlexCubeSyncDialog } from './FlexCubeSyncDialog';
 
 export interface CustomerDetails {
   id: string;
@@ -92,8 +95,10 @@ function StatusPill({ value }: { value?: string }) {
   );
 }
 
-export function CustomerDetailsCard({ customer }: CustomerDetailsCardProps) {
+export function CustomerDetailsCard({ customer: initialCustomer }: CustomerDetailsCardProps) {
   const router = useRouter();
+  const [customer, setCustomer] = useState<CustomerDetails>(initialCustomer);
+  const [syncOpen, setSyncOpen] = useState(false);
   const initials = (customer.name || '')
     .split(' ')
     .map((n) => n[0])
@@ -143,6 +148,14 @@ export function CustomerDetailsCard({ customer }: CustomerDetailsCardProps) {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 rounded-xl border-sky-400/40 bg-sky-500/20 text-xs text-sky-100 backdrop-blur hover:bg-sky-500/30 hover:text-white"
+              onClick={() => setSyncOpen(true)}
+            >
+              <RefreshCw className="h-3.5 w-3.5" /> Sync from FlexCube
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -277,6 +290,23 @@ export function CustomerDetailsCard({ customer }: CustomerDetailsCardProps) {
           />
         </div>
       </CardContent>
+      <FlexCubeSyncDialog
+        cifNumber={customer.cifNumber}
+        open={syncOpen}
+        onOpenChange={setSyncOpen}
+        onSynced={(synced) => {
+          setCustomer((prev) => ({
+            ...prev,
+            name: synced.name || prev.name,
+            firstName: synced.firstName || prev.firstName,
+            lastName: synced.lastName || prev.lastName,
+            phoneNumber: synced.phoneNumber || prev.phoneNumber,
+            email: synced.email ?? prev.email,
+            mobileStatus: synced.mobileStatus || prev.mobileStatus,
+            ussdStatus: synced.ussdStatus || prev.ussdStatus,
+          }));
+        }}
+      />
     </Card>
   );
 }
