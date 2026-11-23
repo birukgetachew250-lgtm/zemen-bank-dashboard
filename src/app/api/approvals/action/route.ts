@@ -13,6 +13,7 @@ import { logActivity, type ActivityLogAction } from '@/lib/activity-log';
 import { sendSms } from '@/services/sms-service';
 import { sendEmail } from '@/services/email-service';
 import { getAccountClassDescription } from '@/lib/account-class-mapper';
+import { enrichAccountsWithFlexCubeMeta, splitFullName } from '@/lib/flexcube-sync';
 
 const extractRequesterBranch = (details?: string | null): string | null => {
     if (!details) return null;
@@ -327,13 +328,25 @@ export async function POST(req: Request) {
                 console.log('[APPROVAL_ACTION] AppUsers Binds:', { ...appUserBinds, PhoneNumber: '***', FirstName: '***', SecondName: '***', LastName: '***', Email: '***' });
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, appUserQuery, appUserBinds);
 
-                for (const acc of linkedAccounts) {
+                const { enrichedAccounts: enrichedNewCustomerAccounts, flexData: newCustFlex } =
+                    await enrichAccountsWithFlexCubeMeta(
+                        String(customerData.customer_number || '').trim(),
+                        Array.isArray(linkedAccounts) ? linkedAccounts : []
+                    );
+
+                for (const acc of enrichedNewCustomerAccounts) {
                     const rawAccountNumber = getLinkedAccountNumber(acc);
                     const rawAccountType = getLinkedAccountType(acc);
                     const rawCurrency = getLinkedAccountCurrency(acc);
-                    const rawBranchCode = getLinkedAccountBranchCode(acc);
-                    const rawAccountClass = getLinkedAccountClass(acc);
-                    const rawCustomerCategory = getLinkedCustomerCategory(acc);
+                    const rawBranchCode = getLinkedAccountBranchCode(acc) || customerData.branch || '103';
+                    const rawAccountClass =
+                        getLinkedAccountClass(acc) ||
+                        (String(rawAccountType).toUpperCase().includes('LOAN') ? 'LOAN' : 'SAV');
+                    const rawCustomerCategory =
+                        getLinkedCustomerCategory(acc) ||
+                        customerData.customer_category ||
+                        newCustFlex?.customerCategory ||
+                        'INDV';
 
                     const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id","CIFNumber","AccountNumber","HashedAccountNumber","FirstName","SecondName","LastName","AccountType","AccountClass","CustomerCategory","Currency","Status","BranchCode","BranchName") VALUES (SYS_GUID(),:CIFNumber,:AccountNumber,:HashedAccountNumber,:FirstName,:SecondName,:LastName,:AccountType,:AccountClass,:CustomerCategory,:Currency,:Status,:BranchCode,:BranchName)`;
                     
@@ -345,8 +358,8 @@ export async function POST(req: Request) {
                         SecondName: encrypt(secondName)!,
                         LastName: encrypt(lastName)!,
                         AccountType: encrypt(String(rawAccountType))!,
-                        AccountClass: rawAccountClass || null,
-                        CustomerCategory: rawCustomerCategory || null,
+                        AccountClass: rawAccountClass,
+                        CustomerCategory: rawCustomerCategory,
                         Currency: encrypt(String(rawCurrency))!,
                         Status: 'Active',
                         BranchCode: rawBranchCode,
@@ -407,10 +420,49 @@ export async function POST(req: Request) {
                 const { changes } = updateDetails;
                 if (!changes) throw new Error('Update details are missing from approval request.');
 
+                const updatedPhoneRaw = String(changes.phoneNumber?.new || approval.customerPhone || '').replace(/\D/g, '');
+                const updatedPhoneHash = updatedPhoneRaw
+                    ? crypto.createHash('sha256').update(updatedPhoneRaw).digest('hex')
+                    : null;
+
+                const updatedFullName = String(changes.name?.new || changes.fullName?.new || '').trim();
+                if (updatedFullName) {
+                    const { firstName: uFirst, secondName: uSecond, lastName: uLast } = splitFullName(updatedFullName);
+                    await executeQuery(
+                        process.env.USER_MODULE_DB_CONNECTION_STRING,
+                        `UPDATE "USER_MODULE"."AppUsers"
+                         SET "FirstName" = :FirstName,
+                             "SecondName" = :SecondName,
+                             "LastName" = :LastName
+                         WHERE "CIFNumber" = :cif`,
+                        {
+                            FirstName: encrypt(uFirst)!,
+                            SecondName: encrypt(uSecond)!,
+                            LastName: encrypt(uLast)!,
+                            cif,
+                        }
+                    );
+                    await executeQuery(
+                        process.env.USER_MODULE_DB_CONNECTION_STRING,
+                        `UPDATE "USER_MODULE"."Accounts"
+                         SET "FirstName" = :FirstName,
+                             "SecondName" = :SecondName,
+                             "LastName" = :LastName
+                         WHERE "CIFNumber" = :cif`,
+                        {
+                            FirstName: encrypt(uFirst)!,
+                            SecondName: encrypt(uSecond)!,
+                            LastName: encrypt(uLast)!,
+                            cif,
+                        }
+                    );
+                }
+
                 const updateQuery = `
                     UPDATE "USER_MODULE"."AppUsers" SET
                         "Email" = :email,
                         "PhoneNumber" = :phoneNumber,
+                        "PhoneNumberHashed" = COALESCE(:phoneNumberHashed, "PhoneNumberHashed"),
                         "SignUpMainAuth" = :signUpMainAuth,
                         "SignUp2FA" = :signUp2FA,
                         "Channel" = :channel,
@@ -420,17 +472,20 @@ export async function POST(req: Request) {
                 `;
                 
                 const updateBinds = {
-                    email: encrypt(changes.email.new),
-                    phoneNumber: encrypt(changes.phoneNumber.new),
-                    signUpMainAuth: changes.signUpMainAuth.new,
-                    signUp2FA: changes.signUp2FA.new,
-                    channel: changes.channel.new,
+                    email: encrypt(changes.email?.new ?? ''),
+                    phoneNumber: encrypt(updatedPhoneRaw || changes.phoneNumber?.new || ''),
+                    phoneNumberHashed: updatedPhoneHash,
+                    signUpMainAuth: changes.signUpMainAuth?.new || 'SMSOTP',
+                    signUp2FA: changes.signUp2FA?.new || 'None',
+                    channel: changes.channel?.new || 'Both',
                     cif: cif,
                 };
                 
                 await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, updateQuery, updateBinds);
                 
-                await db.customer.updateMany({ where: { phone: changes.phoneNumber.old }, data: { phone: changes.phoneNumber.new } });
+                if (changes.phoneNumber?.old && changes.phoneNumber?.new) {
+                    await db.customer.updateMany({ where: { phone: changes.phoneNumber.old }, data: { phone: changes.phoneNumber.new } });
+                }
                 
                 successMessage = `Customer profile for CIF ${cif} has been updated.`;
                 break;
@@ -689,33 +744,103 @@ export async function POST(req: Request) {
                     linkLastName = linkFirstName;
                 }
 
-                for (const acc of accountsToLink) {
+                const targetLinkCif = String(linkDetails.cif || cif || '').trim();
+                const { enrichedAccounts: enrichedLinkAccounts, flexData: linkFlexData } =
+                    await enrichAccountsWithFlexCubeMeta(
+                        targetLinkCif,
+                        Array.isArray(accountsToLink) ? accountsToLink : []
+                    );
+
+                for (const acc of enrichedLinkAccounts) {
                     const rawAccountNumber = getLinkedAccountNumber(acc);
                     const rawAccountType = getLinkedAccountType(acc);
                     const rawCurrency = getLinkedAccountCurrency(acc);
-                    const rawBranchCode = getLinkedAccountBranchCode(acc);
-                    const rawAccountClass = getLinkedAccountClass(acc);
-                    const rawCustomerCategory = getLinkedCustomerCategory(acc);
+                    const rawBranchCode = getLinkedAccountBranchCode(acc) || '103';
+                    const rawAccountClass =
+                        getLinkedAccountClass(acc) ||
+                        (String(rawAccountType).toUpperCase().includes('LOAN') ? 'LOAN' : 'SAV');
+                    const rawCustomerCategory =
+                        getLinkedCustomerCategory(acc) ||
+                        linkFlexData?.customerCategory ||
+                        'INDV';
+                    const hashedAccNo = hashSha256(rawAccountNumber, 'Linked account number');
 
-                    const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "AccountClass", "CustomerCategory", "Currency", "Status", "BranchCode", "BranchName") 
-                        VALUES (SYS_GUID(), :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :AccountClass, :CustomerCategory, :Currency, :Status, :BranchCode, :BranchName)`;
-                    
-                    const accBinds = {
-                        CIFNumber: linkDetails.cif || cif,
-                        AccountNumber: encrypt(requireNonEmptyString(rawAccountNumber, 'Linked account number'))!,
-                        HashedAccountNumber: hashSha256(rawAccountNumber, 'Linked account number'),
-                        FirstName: encrypt(linkFirstName)!,
-                        SecondName: encrypt(linkSecondName)!,
-                        LastName: encrypt(linkLastName)!,
-                        AccountType: encrypt(String(rawAccountType))!,
-                        AccountClass: rawAccountClass || null,
-                        CustomerCategory: rawCustomerCategory || null,
-                        Currency: encrypt(String(rawCurrency))!,
-                        Status: 'Active',
-                        BranchCode: rawBranchCode,
-                        BranchName: rawBranchCode
-                    };
-                    await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accountQuery, accBinds);
+                    // Check if account already exists in USER_MODULE.Accounts (e.g. previously Unlinked or missing class/category)
+                    const existingAccRes: any = await executeQuery(
+                        process.env.USER_MODULE_DB_CONNECTION_STRING,
+                        `SELECT "Id" FROM "USER_MODULE"."Accounts" WHERE "HashedAccountNumber" = :HashedAccountNumber AND "CIFNumber" = :CIFNumber`,
+                        { HashedAccountNumber: hashedAccNo, CIFNumber: targetLinkCif }
+                    );
+
+                    if (existingAccRes?.rows && existingAccRes.rows.length > 0) {
+                        await executeQuery(
+                            process.env.USER_MODULE_DB_CONNECTION_STRING,
+                            `UPDATE "USER_MODULE"."Accounts"
+                             SET "Status" = 'Active',
+                                 "AccountType" = :AccountType,
+                                 "AccountClass" = :AccountClass,
+                                 "CustomerCategory" = :CustomerCategory,
+                                 "FirstName" = :FirstName,
+                                 "SecondName" = :SecondName,
+                                 "LastName" = :LastName,
+                                 "BranchCode" = COALESCE(:BranchCode, "BranchCode"),
+                                 "BranchName" = COALESCE(:BranchName, "BranchName")
+                             WHERE "HashedAccountNumber" = :HashedAccountNumber AND "CIFNumber" = :CIFNumber`,
+                            {
+                                AccountType: encrypt(String(rawAccountType))!,
+                                AccountClass: rawAccountClass,
+                                CustomerCategory: rawCustomerCategory,
+                                FirstName: encrypt(linkFirstName)!,
+                                SecondName: encrypt(linkSecondName)!,
+                                LastName: encrypt(linkLastName)!,
+                                BranchCode: rawBranchCode,
+                                BranchName: rawBranchCode,
+                                HashedAccountNumber: hashedAccNo,
+                                CIFNumber: targetLinkCif,
+                            }
+                        );
+                    } else {
+                        const accountQuery = `INSERT INTO "USER_MODULE"."Accounts" ("Id", "CIFNumber", "AccountNumber", "HashedAccountNumber", "FirstName", "SecondName", "LastName", "AccountType", "AccountClass", "CustomerCategory", "Currency", "Status", "BranchCode", "BranchName") 
+                            VALUES (SYS_GUID(), :CIFNumber, :AccountNumber, :HashedAccountNumber, :FirstName, :SecondName, :LastName, :AccountType, :AccountClass, :CustomerCategory, :Currency, :Status, :BranchCode, :BranchName)`;
+                        
+                        const accBinds = {
+                            CIFNumber: targetLinkCif,
+                            AccountNumber: encrypt(requireNonEmptyString(rawAccountNumber, 'Linked account number'))!,
+                            HashedAccountNumber: hashedAccNo,
+                            FirstName: encrypt(linkFirstName)!,
+                            SecondName: encrypt(linkSecondName)!,
+                            LastName: encrypt(linkLastName)!,
+                            AccountType: encrypt(String(rawAccountType))!,
+                            AccountClass: rawAccountClass,
+                            CustomerCategory: rawCustomerCategory,
+                            Currency: encrypt(String(rawCurrency))!,
+                            Status: 'Active',
+                            BranchCode: rawBranchCode,
+                            BranchName: rawBranchCode
+                        };
+                        await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, accountQuery, accBinds);
+                    }
+                }
+
+                // Also backfill any existing accounts of this customer in USER_MODULE.Accounts that had NULL AccountClass or CustomerCategory
+                if (linkFlexData?.accounts && linkFlexData.accounts.length > 0) {
+                    for (const flexAcc of linkFlexData.accounts) {
+                        await executeQuery(
+                            process.env.USER_MODULE_DB_CONNECTION_STRING,
+                            `UPDATE "USER_MODULE"."Accounts"
+                             SET "AccountClass" = COALESCE("AccountClass", :AccountClass),
+                                 "CustomerCategory" = COALESCE("CustomerCategory", :CustomerCategory)
+                             WHERE "CIFNumber" = :CIFNumber
+                               AND "HashedAccountNumber" = :HashedAccountNumber
+                               AND ("AccountClass" IS NULL OR "CustomerCategory" IS NULL)`,
+                            {
+                                AccountClass: flexAcc.accountClass,
+                                CustomerCategory: flexAcc.customerCategory || linkFlexData.customerCategory || 'INDV',
+                                CIFNumber: targetLinkCif,
+                                HashedAccountNumber: flexAcc.hashedAccountNumber,
+                            }
+                        );
+                    }
                 }
                 successMessage = `Successfully linked ${accountsToLink.length} account(s).`;
                 break;

@@ -36,7 +36,7 @@ export async function GET(
         return NextResponse.json({ message: 'Could not determine CIF for the given customer ID.' }, { status: 404 });
     }
 
-    const linkedAccountsQuery = `SELECT * FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :cif AND "Status" = 'Active'`;
+    const linkedAccountsQuery = `SELECT * FROM "USER_MODULE"."Accounts" WHERE "CIFNumber" = :cif AND ("Status" IS NULL OR "Status" <> 'Unlinked')`;
     const linkedResult: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, linkedAccountsQuery, [cif]);
 
     if (!linkedResult.rows) {
@@ -47,9 +47,11 @@ export async function GET(
       id: acc.Id,
       accountNumber: decrypt(acc.AccountNumber),
       accountType: decrypt(acc.AccountType),
+      accountClass: acc.AccountClass || '',
+      customerCategory: acc.CustomerCategory || '',
       currency: decrypt(acc.Currency),
-      status: acc.Status,
-      branchName: acc.BranchName,
+      status: acc.Status || 'Active',
+      branchName: acc.BranchName || acc.BranchCode || '',
     }));
     
     return NextResponse.json(accounts);

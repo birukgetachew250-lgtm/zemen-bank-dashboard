@@ -183,10 +183,16 @@ export async function POST(req: Request) {
       ? onboardingData.documents
       : [];
 
+    const { enrichAccountsWithFlexCubeMeta } = await import('@/lib/flexcube-sync');
+    const { enrichedAccounts } = await enrichAccountsWithFlexCubeMeta(
+      String(customer.customer_number || '').trim(),
+      Array.isArray(accounts) ? accounts : []
+    );
+
     const detailsForApproval = {
       cif: customer.customer_number,
       customerData: customer,
-      linkedAccounts: accounts,
+      linkedAccounts: enrichedAccounts,
       onboardingData,
       documents: normalizedDocuments,
       requestContext: {

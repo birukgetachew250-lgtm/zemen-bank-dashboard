@@ -90,10 +90,6 @@ export async function POST(req: Request) {
     
     if (!client) {
         console.error('gRPC client for AccountDetailService is not available.');
-        // Fallback for demo purposes
-        if (customer_id === '0000238') {
-            return NextResponse.json(mockCustomer);
-        }
         return NextResponse.json({ message: 'Internal server error: Could not connect to banking service.' }, { status: 500 });
     }
 
@@ -159,12 +155,6 @@ export async function POST(req: Request) {
 
     } catch (error: any) {
         console.error('[gRPC/DB Error]', error);
-
-        // Fallback for demo purposes if DB/gRPC fails
-        if (customer_id === '0000238') {
-            return NextResponse.json(mockCustomer);
-        }
-        
         const errorMsg = error?.details || error?.message || 'Failed to fetch customer details';
         return NextResponse.json({ message: errorMsg }, { status: 500 });
     }

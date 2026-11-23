@@ -5,23 +5,16 @@ import { format } from "date-fns";
 import { decrypt } from "@/lib/crypto";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const mockInactiveCustomers = [
-    { id: 'user_0061234', name: 'Sara Connor', phone: '+251911123456', status: 'Inactive', registeredAt: '25 Jul 2024, 08:00 AM' },
-    { id: 'user_0078901', name: 'Kyle Reese', phone: '+251911654321', status: 'Dormant', registeredAt: '24 Jul 2024, 09:00 AM' },
-];
-
-
 async function getCustomers(channel: 'mobile' | 'ussd') {
   if (!process.env.USER_MODULE_DB_CONNECTION_STRING) {
-    console.warn("USER_MODULE_DB_CONNECTION_STRING not set, returning mock data for inactive customers.");
-    return mockInactiveCustomers;
+    return [];
   }
   try {
     const statusCol = channel === 'mobile' ? 'MobileStatus' : 'UssdStatus';
     const query = `SELECT * FROM "USER_MODULE"."AppUsers" WHERE "${statusCol}" IN ('InActive', 'Suspended') ORDER BY "InsertDate" DESC`;
     const result: any = await executeQuery(process.env.USER_MODULE_DB_CONNECTION_STRING, query);
 
-    if (!result.rows) return mockInactiveCustomers;
+    if (!result.rows) return [];
 
     return result.rows.map((customer: any) => {
       const firstName = decrypt(customer.FirstName);
@@ -38,7 +31,7 @@ async function getCustomers(channel: 'mobile' | 'ussd') {
     });
   } catch (error) {
     console.error("Failed to fetch inactive customers:", error);
-    return mockInactiveCustomers;
+    return [];
   }
 }
 

@@ -32,6 +32,7 @@ interface Account {
   account_type: string;
   account_class: string;
   acclassdesc: string;
+  customer_category?: string;
   status: string;
   acc_status: string;
   record_stat: string;
@@ -140,10 +141,19 @@ function SelectAccountsContent() {
 
     const accountsToSubmit = includedAccounts.map((acc) => ({
       CUSTACNO: acc.custacno,
+      custacno: acc.custacno,
       BRANCH_CODE: acc.branch_code,
+      branch_code: acc.branch_code,
       CCY: acc.ccy,
+      ccy: acc.ccy,
       ACCOUNT_TYPE: acc.account_type,
+      account_type: acc.account_type,
+      ACCOUNT_CLASS: acc.account_class || acc.account_type || 'SAV',
+      account_class: acc.account_class || acc.account_type || 'SAV',
+      CUSTOMER_CATEGORY: acc.customer_category || 'INDV',
+      customer_category: acc.customer_category || 'INDV',
       ACCLASSDESC: acc.acclassdesc,
+      acclassdesc: acc.acclassdesc,
       status: acc.status,
     }));
 

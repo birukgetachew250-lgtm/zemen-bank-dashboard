@@ -54,6 +54,7 @@ interface Account {
   account_type: string;
   account_class: string;
   acclassdesc: string;
+  customer_category?: string;
   status: string;
   isAlreadyLinked: boolean;
   isBlocked: boolean;
@@ -268,7 +269,18 @@ function LinkAccountWorkbench() {
           details: {
             cif: customer.cifNumber,
             customerName: customer.name,
-            linkedAccounts: selectedAccounts,
+            linkedAccounts: selectedAccounts.map((acc) => ({
+              ...acc,
+              CUSTACNO: acc.custacno,
+              BRANCH_CODE: acc.branch_code,
+              CCY: acc.ccy,
+              ACCOUNT_TYPE: acc.account_type,
+              ACCOUNT_CLASS: acc.account_class || acc.account_type || 'SAV',
+              account_class: acc.account_class || acc.account_type || 'SAV',
+              CUSTOMER_CATEGORY: acc.customer_category || 'INDV',
+              customer_category: acc.customer_category || 'INDV',
+              ACCLASSDESC: acc.acclassdesc,
+            })),
           },
           attachmentUrl: documents.length > 0 ? documents[0].url : undefined,
         }),
@@ -677,7 +689,8 @@ function LinkAccountWorkbench() {
                                   {acc.acclassdesc || 'Standard Account'}
                                 </span>
                                 <span className="text-[11px] text-muted-foreground">
-                                  Class: {acc.account_class}
+                                  Class: {acc.account_class || '—'}
+                                  {acc.customer_category ? ` • Category: ${acc.customer_category}` : ''}
                                 </span>
                               </div>
                             </TableCell>

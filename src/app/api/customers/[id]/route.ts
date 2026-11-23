@@ -99,34 +99,6 @@ const getCustomerByCifOrId = async (identifier: string) => {
         };
     } catch(e) {
         console.error(`[Oracle Error] in getCustomerByCifOrId for identifier ${identifier}:`, e);
-        // Fallback for demo if DB fails
-        if (identifier === "0048533" || identifier === "user_0048533") {
-             return {
-                id: 'user_0048533',
-                cifNumber: '0048533',
-                name: 'AKALEWORK TAMENE KEBEDE',
-                firstName: 'AKALEWORK',
-                lastName: 'KEBEDE',
-                email: 'akalework.t@example.com',
-                phoneNumber: '+251911223345',
-                address: 'Arada, Addis Ababa',
-                nationality: 'Ethiopian',
-                branchName: 'Arada',
-                branchCode: '103',
-                status: 'Active',
-                appUserStatus: 'Active',
-                isSuspended: false,
-                mobileStatus: 'Active',
-                ussdStatus: 'Pending',
-                securityStatus: 'Active',
-                isLocked: false,
-                failedAttempts: 0,
-                insertDate: new Date().toISOString(),
-                signUpMainAuth: "SMSOTP",
-                signUp2FA: "GAUTH",
-                channel: "Both"
-            };
-        }
         return null;
     }
 }

@@ -4,7 +4,6 @@ import { decrypt } from '@/lib/crypto';
 import crypto from 'crypto';
 import { requirePermission } from '@/lib/auth-utils';
 import { PERMISSIONS } from '@/lib/permissions';
-import { db } from '@/lib/db';
 
 /**
  * GET /api/customers/search?q=XXXX  (Global Customer Search by Name, Phone, or CIF)
@@ -68,28 +67,6 @@ export async function GET(req: Request) {
       }
     } catch (err) {
       console.error('[CustomerDirectoryRecent] Oracle query warning:', err);
-    }
-
-    if (results.length < 5) {
-      try {
-        const localCustomers = await db.customer.findMany({ take: 12 });
-        for (const c of localCustomers) {
-          const cif = String(c.id).padStart(7, '0');
-          if (seenCifs.has(cif)) continue;
-          seenCifs.add(cif);
-          results.push({
-            id: `user_${cif}`,
-            cifNumber: cif,
-            name: c.name,
-            phoneNumber: c.phone,
-            branchName: 'Addis Ababa',
-            mobileStatus: c.status || 'Active',
-            matchType: 'CIF',
-          });
-        }
-      } catch {
-        // Ignore fallback error
-      }
     }
 
     return NextResponse.json({ results });
@@ -194,37 +171,6 @@ export async function GET(req: Request) {
       console.error('[GlobalCustomerSearch] Oracle query warning:', err);
     }
 
-    // 3) Fallback / supplement from dashboard customer records if needed
-    if (results.length < 8) {
-      try {
-        const localCustomers = await db.customer.findMany({
-          take: 25,
-        });
-        for (const c of localCustomers) {
-          if (results.length >= 8) break;
-          const cif = String(c.id).padStart(7, '0');
-          if (seenCifs.has(cif)) continue;
-          const nameMatch = (c.name || '').toLowerCase().includes(qLower);
-          const phoneMatch = (c.phone || '').toLowerCase().includes(qLower);
-          const cifMatch = cif.includes(qLower) || String(c.id).includes(qLower);
-
-          if (cifMatch || phoneMatch || nameMatch) {
-            seenCifs.add(cif);
-            results.push({
-              id: `user_${cif}`,
-              cifNumber: cif,
-              name: c.name,
-              phoneNumber: c.phone,
-              mobileStatus: c.status,
-              matchType: cifMatch ? 'CIF' : phoneMatch ? 'Phone' : 'Name',
-            });
-          }
-        }
-      } catch {
-        // Ignore fallback DB error
-      }
-    }
-
     return NextResponse.json({ results: results.slice(0, 8) });
   }
 
@@ -284,29 +230,6 @@ export async function GET(req: Request) {
     });
   } catch (e: any) {
     console.error('[AccountSearch] Oracle query failed:', e);
-
-    if (accountNumber === '1234567890') {
-      return NextResponse.json({
-        id: 'user_demo',
-        cifNumber: '0048533',
-        name: 'AKALEWORK TAMENE KEBEDE',
-        firstName: 'AKALEWORK',
-        lastName: 'KEBEDE',
-        email: 'akalework.t@example.com',
-        phoneNumber: '+251911223345',
-        address: 'Arada, Addis Ababa',
-        nationality: 'Ethiopian',
-        branchName: 'Arada',
-        branchCode: '103',
-        mobileStatus: 'Active',
-        ussdStatus: 'Pending',
-        insertDate: new Date().toISOString(),
-        signUpMainAuth: 'SMSOTP',
-        signUp2FA: 'GAUTH',
-        channel: 'Both',
-        accountNumber: '1234567890',
-      });
-    }
 
     return NextResponse.json(
       { message: 'Failed to search by account number. Please try again.' },
