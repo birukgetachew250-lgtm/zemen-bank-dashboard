@@ -272,25 +272,12 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <FormField
-                    control={form.control}
-                    name="fullName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Customer Full Name <span className="text-destructive">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ''} placeholder="Customer Full Name" />
-                        </FormControl>
-                        <p className="text-[11px] text-muted-foreground">
-                          Can be updated manually or synced directly from FlexCube Core Banking.
-                        </p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-3.5">
+                  <User className="mt-0.5 h-4 w-4 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Full Name (Synced from FlexCube)</p>
+                    <p className="text-sm font-semibold text-foreground">{customer.name}</p>
+                  </div>
                 </div>
                 <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-3.5">
                   <Fingerprint className="mt-0.5 h-4 w-4 text-primary" />
@@ -345,17 +332,19 @@ export default function EditCustomerPage({ params }: { params: { customerId: str
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          Phone Number <span className="text-destructive">*</span>
+                          Phone Number (Read-Only) <span className="text-destructive">*</span>
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             value={field.value || ''}
-                            className="font-mono"
+                            readOnly
+                            disabled
+                            className="bg-muted/60 font-mono cursor-not-allowed opacity-90"
                           />
                         </FormControl>
                         <p className="text-[11px] text-muted-foreground">
-                          Updates both encrypted PhoneNumber and PhoneNumberHashed in USER_MODULE.AppUsers.
+                          Phone number is read-only and synced directly from FlexCube Core Banking (normalized to 2519...).
                         </p>
                         <FormMessage />
                       </FormItem>

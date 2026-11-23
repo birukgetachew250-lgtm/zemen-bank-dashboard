@@ -7,6 +7,7 @@ import { PERMISSIONS } from '@/lib/permissions';
 import { logActivity } from '@/lib/activity-log';
 import {
   fetchFlexCubeCustomerAndAccounts,
+  normalizeEthiopianPhone,
   splitFullName,
 } from '@/lib/flexcube-sync';
 
@@ -150,6 +151,17 @@ export async function GET(
         ? 'Suspended'
         : current.mobileStatus;
 
+    const flexPhoneNormalized = normalizeEthiopianPhone(flexcube.phoneNumber);
+    const currentPhoneNormalized = normalizeEthiopianPhone(current.phoneNumber);
+    const effectivePhone = flexPhoneNormalized || currentPhoneNormalized;
+
+    const flexEmailTrimmed = String(flexcube.email || '').trim();
+    const currentEmailTrimmed = String(current.email || '').trim();
+    // If FlexCube email is empty, preserve the previous email from USER_MODULE.AppUsers
+    const effectiveEmail = flexEmailTrimmed || currentEmailTrimmed;
+
+    const effectiveFullName = String(flexcube.fullName || '').trim() || current.fullName;
+
     return NextResponse.json({
       cifNumber: current.cifNumber,
       current: {
@@ -158,18 +170,24 @@ export async function GET(
         secondName: current.secondName,
         lastName: current.lastName,
         phoneNumber: current.phoneNumber,
-        email: current.email,
+        normalizedPhoneNumber: currentPhoneNormalized,
+        email: currentEmailTrimmed,
         mobileStatus: current.mobileStatus,
         ussdStatus: current.ussdStatus,
         branchCode: current.branchCode,
       },
       flexcube: {
-        fullName: flexcube.fullName || current.fullName,
+        fullName: effectiveFullName,
+        rawFlexFullName: flexcube.fullName || null,
         firstName: flexcube.firstName || current.firstName,
         secondName: flexcube.secondName,
         lastName: flexcube.lastName || current.lastName,
-        phoneNumber: flexcube.phoneNumber || current.phoneNumber,
-        email: flexcube.email ?? current.email,
+        phoneNumber: effectivePhone,
+        rawFlexPhoneNumber: flexPhoneNormalized || null,
+        email: effectiveEmail,
+        rawFlexEmail: flexEmailTrimmed || null,
+        emailPreservedFromDb: !flexEmailTrimmed && Boolean(currentEmailTrimmed),
+        phonePreservedFromDb: !flexPhoneNormalized && Boolean(currentPhoneNormalized),
         customerCategory: flexcube.customerCategory,
         isCustomerFrozen: flexcube.isCustomerFrozen,
         isCustomerDeceased: flexcube.isCustomerDeceased,
@@ -222,24 +240,23 @@ export async function POST(
       current.branchCode || '103'
     );
 
-    // Resolve final values to apply (allowing admin override or direct FlexCube values)
-    const targetFullName = String(
-      body.fullName ?? (flexcube.fullName || current.fullName)
-    ).trim();
+    // Resolve final values strictly from FlexCube, falling back to existing DB values if empty in FlexCube
+    const targetFullName =
+      String(flexcube.fullName || '').trim() || current.fullName;
     const { firstName, secondName, lastName } = splitFullName(targetFullName);
 
-    const rawPhone = String(
-      body.phoneNumber ?? (flexcube.phoneNumber || current.phoneNumber)
-    ).trim();
-    const normalizedPhone = rawPhone.replace(/\D/g, '') || current.phoneNumber.replace(/\D/g, '');
+    const flexPhoneNormalized = normalizeEthiopianPhone(flexcube.phoneNumber);
+    const currentPhoneNormalized = normalizeEthiopianPhone(current.phoneNumber);
+    const normalizedPhone = flexPhoneNormalized || currentPhoneNormalized;
     const phoneHash = crypto
       .createHash('sha256')
       .update(normalizedPhone)
       .digest('hex');
 
-    const targetEmail = String(
-      body.email !== undefined ? body.email : (flexcube.email ?? current.email)
-    ).trim();
+    // If FlexCube email is empty, preserve the previous email from USER_MODULE.AppUsers
+    const flexEmailTrimmed = String(flexcube.email || '').trim();
+    const currentEmailTrimmed = String(current.email || '').trim();
+    const targetEmail = flexEmailTrimmed || currentEmailTrimmed;
 
     const syncCustomerFreeze = body.syncCustomerStatus !== false;
     let nextMobileStatus = current.mobileStatus;

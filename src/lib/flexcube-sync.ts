@@ -55,6 +55,24 @@ function recordStat(val: any): 'O' | 'C' {
   return v === 'C' ? 'C' : 'O';
 }
 
+export function normalizeEthiopianPhone(raw: string | null | undefined): string {
+  if (!raw) return '';
+  let digits = String(raw).replace(/\D/g, '');
+  if (!digits) return '';
+
+  if (digits.startsWith('00251')) {
+    digits = digits.slice(2);
+  }
+  if (digits.startsWith('2510') && digits.length === 13) {
+    digits = '251' + digits.slice(4);
+  } else if (digits.startsWith('0') && digits.length === 10) {
+    digits = '251' + digits.slice(1);
+  } else if ((digits.startsWith('9') || digits.startsWith('7')) && digits.length === 9) {
+    digits = '251' + digits;
+  }
+  return digits;
+}
+
 export function splitFullName(fullName: string): {
   firstName: string;
   secondName: string;
@@ -315,8 +333,9 @@ export async function fetchFlexCubeCustomerAndAccounts(
   const phoneFromDb = personalRow?.MOBILE_NUMBER || personalRow?.TELEPHONE || null;
   const emailFromDb = personalRow?.E_MAIL || null;
 
-  const phoneNumber =
-    String(phoneFromDb || restDetail?.phoneNumber || '').trim() || null;
+  const rawPhone = String(phoneFromDb || restDetail?.phoneNumber || '').trim();
+  const normalizedPhone = normalizeEthiopianPhone(rawPhone);
+  const phoneNumber = normalizedPhone || null;
   const email =
     String(emailFromDb || restDetail?.email || '').trim() || null;
 

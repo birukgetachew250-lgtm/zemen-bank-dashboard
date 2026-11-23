@@ -5,7 +5,6 @@ import {
   RefreshCw,
   Loader2,
   CheckCircle2,
-  AlertTriangle,
   User,
   Phone,
   Mail,
@@ -13,6 +12,7 @@ import {
   ArrowRight,
   ShieldAlert,
   Layers,
+  Lock,
 } from 'lucide-react';
 import {
   Dialog,
@@ -23,7 +23,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -47,11 +46,6 @@ export function FlexCubeSyncDialog({
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [preview, setPreview] = useState<any>(null);
-
-  // Editable target values pre-filled from FlexCube
-  const [fullName, setFullName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [email, setEmail] = useState('');
   const [syncCustomerStatus, setSyncCustomerStatus] = useState(true);
 
   const loadPreview = useCallback(async () => {
@@ -67,9 +61,6 @@ export function FlexCubeSyncDialog({
         throw new Error(data.message || 'Failed to fetch FlexCube sync preview.');
       }
       setPreview(data);
-      setFullName(data.flexcube?.fullName || data.current?.fullName || '');
-      setPhoneNumber(data.flexcube?.phoneNumber || data.current?.phoneNumber || '');
-      setEmail(data.flexcube?.email ?? data.current?.email ?? '');
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -97,9 +88,6 @@ export function FlexCubeSyncDialog({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            fullName: fullName.trim(),
-            phoneNumber: phoneNumber.trim(),
-            email: email.trim(),
             syncCustomerStatus,
           }),
         }
@@ -137,9 +125,10 @@ export function FlexCubeSyncDialog({
             Sync Customer Profile &amp; Accounts from FlexCube (CIF: {cifNumber})
           </DialogTitle>
           <DialogDescription>
-            Compare live Core Banking (<code className="font-mono text-xs">FCUBSPRD</code>) records with{' '}
+            Read-only synchronization directly from Core Banking (<code className="font-mono text-xs">FCUBSPRD</code>) into{' '}
             <code className="font-mono text-xs">USER_MODULE.AppUsers</code> and{' '}
-            <code className="font-mono text-xs">USER_MODULE.Accounts</code>, and synchronize Full Name, Phone Number, Email, Account Status (Frozen/Dormant/Active), Account Class, and Customer Category.
+            <code className="font-mono text-xs">USER_MODULE.Accounts</code>. Phone numbers are normalized to{' '}
+            <code className="font-mono text-xs">2519...</code> format, and existing emails are preserved if FlexCube has no email.
           </DialogDescription>
         </DialogHeader>
 
@@ -166,12 +155,12 @@ export function FlexCubeSyncDialog({
               </div>
             )}
 
-            {/* Demographic & Contact Sync Fields */}
+            {/* Read-Only Demographic & Contact Sync Preview */}
             <div className="rounded-2xl border border-border bg-muted/20 p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <User className="h-4 w-4 text-primary" />
-                  1. Customer Identity &amp; Contact Information
+                  <Lock className="h-4 w-4 text-primary" />
+                  1. Core Banking Profile Attributes (Read-Only from FlexCube)
                 </h4>
                 {preview?.flexcube?.customerCategory && (
                   <Badge variant="outline" className="font-mono text-xs">
@@ -180,55 +169,65 @@ export function FlexCubeSyncDialog({
                 )}
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs flex items-center gap-1.5">
-                    <User className="h-3.5 w-3.5 text-muted-foreground" />
-                    Full Name
-                  </Label>
-                  <Input
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Customer Full Name"
-                  />
-                  {preview?.current?.fullName && (
-                    <p className="text-[11px] text-muted-foreground">
-                      Current DB: <span className="font-medium text-foreground">{preview.current.fullName}</span>
-                    </p>
-                  )}
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                {/* Full Name */}
+                <div className="rounded-xl border border-border bg-background p-3 space-y-1">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <User className="h-3.5 w-3.5 text-primary" />
+                      Full Name
+                    </span>
+                    <Badge variant="secondary" className="text-[10px]">Read-Only</Badge>
+                  </div>
+                  <p className="text-sm font-bold text-foreground break-words">
+                    {preview?.flexcube?.fullName || '—'}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Current DB: <span className="font-medium text-foreground">{preview?.current?.fullName || '—'}</span>
+                  </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="text-xs flex items-center gap-1.5">
-                    <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                    Phone Number
-                  </Label>
-                  <Input
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="+2519..."
-                    className="font-mono"
-                  />
-                  {preview?.current?.phoneNumber && (
-                    <p className="text-[11px] text-muted-foreground">
-                      Current DB: <span className="font-mono text-foreground">{preview.current.phoneNumber}</span>
-                    </p>
-                  )}
+                {/* Normalized Phone Number */}
+                <div className="rounded-xl border border-border bg-background p-3 space-y-1">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Phone className="h-3.5 w-3.5 text-primary" />
+                      Normalized Phone
+                    </span>
+                    <Badge variant="secondary" className="text-[10px] font-mono">251...</Badge>
+                  </div>
+                  <p className="font-mono text-sm font-bold text-foreground">
+                    {preview?.flexcube?.phoneNumber || '—'}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Current DB: <span className="font-mono text-foreground">{preview?.current?.phoneNumber || '—'}</span>
+                    {preview?.flexcube?.phonePreservedFromDb && (
+                      <span className="block text-amber-600 dark:text-amber-400">
+                        (Preserved from DB — empty in FlexCube)
+                      </span>
+                    )}
+                  </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="text-xs flex items-center gap-1.5">
-                    <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-                    Email Address
-                  </Label>
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="customer@example.com"
-                  />
+                {/* Email Address */}
+                <div className="rounded-xl border border-border bg-background p-3 space-y-1">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Mail className="h-3.5 w-3.5 text-primary" />
+                      Email Address
+                    </span>
+                    <Badge variant="secondary" className="text-[10px]">Read-Only</Badge>
+                  </div>
+                  <p className="text-sm font-bold text-foreground break-all">
+                    {preview?.flexcube?.email || 'None'}
+                  </p>
                   <p className="text-[11px] text-muted-foreground">
                     Current DB: <span className="text-foreground">{preview?.current?.email || 'None'}</span>
+                    {preview?.flexcube?.emailPreservedFromDb && (
+                      <span className="block text-emerald-600 dark:text-emerald-400">
+                        (Keeping existing email — empty in FlexCube)
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
